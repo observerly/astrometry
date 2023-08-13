@@ -42,3 +42,21 @@ export const getModifiedJulianDate = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getNumberOfCenturiesSinceJ2000()
+ *
+ * @param datetime - The date for which to calculate the number of centuries since J2000.0.
+ * @returns number - the number of centuries since J2000.0.
+ *
+ */
+export const getNumberOfCenturiesSinceJ2000 = (datetime: Date): number => {
+  // Get the Julian Date (JD) of the given date normalised to UTC:
+  const JD = getJulianDate(datetime)
+
+  // Calculate the number of centuries since J2000.0:
+  return (JD - 2451545.0) / 36525
+}
+
+/*****************************************************************************************************************/
