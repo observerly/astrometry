@@ -20,6 +20,9 @@ import { resolve } from 'path'
 
 export default defineConfig({
   test: {
+    env: {
+      TZ: 'UTC'
+    },
     watch: false,
     setupFiles: ['./tests/setup.ts'],
     passWithNoTests: true,
