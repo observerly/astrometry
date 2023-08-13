@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getJulianDate } from '../src'
+import { getJulianDate, getModifiedJulianDate } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -28,6 +28,19 @@ describe('getJulianDate', () => {
   it('should return the Julian Date (JD) of the given date', () => {
     const JD = getJulianDate(datetime)
     expect(JD).toBe(2459348.5)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('Modified Julian Date', () => {
+  it('should be defined', () => {
+    expect(getModifiedJulianDate).toBeDefined()
+  })
+
+  it('should return the Modified Julian Date (MJD) of the given date', () => {
+    const MJD = getModifiedJulianDate(datetime)
+    expect(MJD).toBe(59348)
   })
 })
 
