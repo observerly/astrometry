@@ -32,6 +32,11 @@
       "import": "./dist/common.js",
       "require": "./dist/common.cjs",
       "types": "./dist/common.d.ts"
+    },
+    "./epoch": {
+      "import": "./dist/epoch.js",
+      "require": "./dist/epoch.cjs",
+      "types": "./dist/epoch.d.ts"
     }
   },
   "release": {
