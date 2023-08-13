@@ -1,2 +1,3 @@
-# typescript-vite-template
-observerly's Typescript + Vite Monorepo starter template
+# astrometry
+
+observerly's lightweight, zero-dependency, type safe astrometry library written in Typescript.
