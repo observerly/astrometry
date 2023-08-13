@@ -1,0 +1,68 @@
+{
+  "name": "@observerly/typescript-vite-template",
+  "version": "0.0.0",
+  "description": "observerly's Typescript + Vite Monorepo starter template",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/observerly/typescript-vite-template.git"
+  },
+  "author": "Micheal J. Roberts",
+  "prepublish": "tsc",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/observerly"
+  },
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/typescript-vite-template.umd.cjs",
+  "module": "./dist/typescript-vite-template.js",
+  "exports": {
+    ".": {
+      "import": "./dist/typescript-vite-template.js",
+      "require": "./dist/typescript-vite-template.umd.cjs"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "release": {
+    "branches": [
+      "main"
+    ]
+  },
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "format": "prettier \"src/**/*.ts\" --write",
+    "lint": "eslint src --ext .ts --fix",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.26.2",
+    "@rollup/plugin-typescript": "^11.1.0",
+    "@typescript-eslint/eslint-plugin": "^6.3.0",
+    "@vitest/coverage-v8": "^0.34.1",
+    "eslint": "^8.47.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.3",
+    "path": "^0.12.7",
+    "prettier": "3.0.1",
+    "rollup": "^3.28.0",
+    "tslib": "^2.6.1",
+    "typescript": "5.1.6",
+    "vite": "^4.4.9",
+    "vitest": "^0.34.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix",
+      "git add -A ."
+    ]
+  }
+}
