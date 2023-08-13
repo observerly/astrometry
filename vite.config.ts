@@ -40,14 +40,16 @@ export default defineConfig({
     lib: {
       // Could also be a dictionary or array of multiple entry points
       entry: {
-        index: resolve(__dirname, 'src/index.ts')
+        index: resolve(__dirname, 'src/index.ts'),
+        abberation: resolve(__dirname, 'src/abberation.ts')
       },
       name: '@observerly/astrometry'
     },
     rollupOptions: {
       external: ['./playground/*.ts'],
       input: {
-        index: resolve(__dirname, 'src/index.ts')
+        index: resolve(__dirname, 'src/index.ts'),
+        abberation: resolve(__dirname, 'src/abberation.ts')
       },
       output: {
         preserveModules: false,
