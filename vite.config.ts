@@ -41,7 +41,8 @@ export default defineConfig({
       // Could also be a dictionary or array of multiple entry points
       entry: {
         index: resolve(__dirname, 'src/index.ts'),
-        abberation: resolve(__dirname, 'src/abberation.ts')
+        abberation: resolve(__dirname, 'src/abberation.ts'),
+        common: resolve(__dirname, 'src/common.ts')
       },
       name: '@observerly/astrometry'
     },
@@ -49,7 +50,8 @@ export default defineConfig({
       external: ['./playground/*.ts'],
       input: {
         index: resolve(__dirname, 'src/index.ts'),
-        abberation: resolve(__dirname, 'src/abberation.ts')
+        abberation: resolve(__dirname, 'src/abberation.ts'),
+        common: resolve(__dirname, 'src/common.ts')
       },
       output: {
         preserveModules: false,
