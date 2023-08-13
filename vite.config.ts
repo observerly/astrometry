@@ -42,7 +42,8 @@ export default defineConfig({
       entry: {
         index: resolve(__dirname, 'src/index.ts'),
         abberation: resolve(__dirname, 'src/abberation.ts'),
-        common: resolve(__dirname, 'src/common.ts')
+        common: resolve(__dirname, 'src/common.ts'),
+        epoch: resolve(__dirname, 'src/epoch.ts')
       },
       name: '@observerly/astrometry'
     },
@@ -51,7 +52,8 @@ export default defineConfig({
       input: {
         index: resolve(__dirname, 'src/index.ts'),
         abberation: resolve(__dirname, 'src/abberation.ts'),
-        common: resolve(__dirname, 'src/common.ts')
+        common: resolve(__dirname, 'src/common.ts'),
+        epoch: resolve(__dirname, 'src/epoch.ts')
       },
       output: {
         preserveModules: false,
