@@ -39,14 +39,18 @@ export default defineConfig({
     outDir: './dist',
     lib: {
       // Could also be a dictionary or array of multiple entry points
-      entry: resolve(__dirname, 'src/index.ts'),
-      name: '@observerly/typescript-vite-template',
-      // the proper extensions will be added
-      fileName: 'typescript-vite-template'
+      entry: {
+        index: resolve(__dirname, 'src/index.ts')
+      },
+      name: '@observerly/astrometry'
     },
     rollupOptions: {
       external: ['./playground/*.ts'],
+      input: {
+        index: resolve(__dirname, 'src/index.ts')
+      },
       output: {
+        preserveModules: false,
         sourcemap: true
       }
     }
