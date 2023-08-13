@@ -1,10 +1,10 @@
 {
-  "name": "@observerly/typescript-vite-template",
+  "name": "@observerly/astrometry",
   "version": "0.0.0",
-  "description": "observerly's Typescript + Vite Monorepo starter template",
+  "description": "observerly's lightweight, zero-dependency, type safe astrometry library written in Typescript.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/observerly/typescript-vite-template.git"
+    "url": "git+https://github.com/observerly/astrometry.git"
   },
   "author": "Micheal J. Roberts",
   "prepublish": "tsc",
@@ -15,15 +15,15 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/typescript-vite-template.umd.cjs",
-  "module": "./dist/typescript-vite-template.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "exports": {
     ".": {
-      "import": "./dist/typescript-vite-template.js",
-      "require": "./dist/typescript-vite-template.umd.cjs"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
     }
   },
-  "types": "./dist/index.d.ts",
   "release": {
     "branches": [
       "main"
