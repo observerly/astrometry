@@ -1,0 +1,49 @@
+name: astrometry/lint
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  unit:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [18]
+
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@master
+
+      # Setup .npmrc file to publish to GitHub Packages
+      - name: Setup node env 🏗 and .npmrc file to publish to GitHub Packages
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          registry-url: 'https://npm.pkg.github.com'
+          # Defaults to the user or organization that owns the workflow file:
+          scope: '@observerly'
+
+      - name: Cache node_modules 📦
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install pnpm globally
+        run: npm install -g pnpm@8.6.12
+
+      - name: Install project dependencies 👨🏻‍💻
+        run: pnpm install
+
+      - name: Run linting 🧹
+        run: pnpm run lint
