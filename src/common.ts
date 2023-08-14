@@ -30,3 +30,26 @@ export type EquatorialCoordinate = {
 }
 
 /*****************************************************************************************************************/
+
+export type GeographicCoordinate = {
+  /**
+   *
+   *
+   * The latitude of a geographic coordinate is the angular distance north or
+   * south of the equator of the point on the Earth's surface.
+   *
+   *
+   */
+  latitude: number
+  /**
+   *
+   *
+   * The longitude of a geographic coordinate is the angular distance east or
+   * west of the prime meridian of the point on the Earth's surface.
+   *
+   *
+   */
+  longitude: number
+}
+
+/*****************************************************************************************************************/
