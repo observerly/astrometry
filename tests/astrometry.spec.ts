@@ -10,7 +10,12 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getGreenwhichSiderealTime, getLocalSiderealTime } from '../src'
+import {
+  type EquatorialCoordinate,
+  getHourAngle,
+  getGreenwhichSiderealTime,
+  getLocalSiderealTime
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -20,6 +25,9 @@ export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
 export const longitude = -155.468094
+
+// For testing
+const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
 
 /*****************************************************************************************************************/
 
@@ -52,3 +60,23 @@ describe('getLocalSiderealTime', () => {
     expect(LST).toBe(5.099450799019053)
   })
 })
+
+/*****************************************************************************************************************/
+
+describe('getHourAngle', () => {
+  it('should be defined', () => {
+    expect(getHourAngle).toBeDefined()
+  })
+
+  it('should return the Hour Angle (HA) of the given date at longitude 0 at Greenwhich', () => {
+    const HA = getHourAngle(datetime, 0, betelgeuse.ra)
+    expect(HA).toBe(143.1668976852858)
+  })
+
+  it('should return the Hour Angle (HA) of the given date', () => {
+    const HA = getHourAngle(datetime, longitude, betelgeuse.ra)
+    expect(HA).toBe(347.6988036852858)
+  })
+})
+
+/*****************************************************************************************************************/
