@@ -18,6 +18,39 @@ import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees 
 
 /**
  *
+ * getAngularSeparation()
+ *
+ * The angular separation between two objects is the angle in degrees between the two objects as seen by an observer on Earth.
+ *
+ * @param A - The equatorial coordinate of the observed object.
+ * @param B - The equatorial coordinate of the observed object.
+ * @returns The angular separation between the two objects in degrees.
+ *
+ */
+export const getAngularSeparation = (A: EquatorialCoordinate, B: EquatorialCoordinate): number => {
+  // Calculate the angular separation between A and B (in degrees):
+  let θ =
+    degrees(
+      Math.acos(
+        Math.sin(radians(A['dec'])) * Math.sin(radians(B['dec'])) +
+          Math.cos(radians(A['dec'])) *
+            Math.cos(radians(B['dec'])) *
+            Math.cos(radians(A['ra'] - B['ra']))
+      )
+    ) % 360
+
+  // Correct for negative angles:
+  if (θ < 0) {
+    θ += 360
+  }
+
+  return θ
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * getGreenwhichSiderealTime()
  *
  * The Greenwich Sidereal Time (GST) is the hour angle of the vernal

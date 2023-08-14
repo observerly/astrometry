@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   type EquatorialCoordinate,
+  getAngularSeparation,
   getHourAngle,
   getGreenwhichSiderealTime,
   getLocalSiderealTime,
@@ -33,6 +34,23 @@ export const longitude = -155.468094
 
 // For testing
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
+
+const arcturus: EquatorialCoordinate = { ra: 213.9153, dec: 19.182409 }
+
+const spica: EquatorialCoordinate = { ra: 201.2983, dec: -11.1614 }
+
+/*****************************************************************************************************************/
+
+describe('getAngularSeparation', () => {
+  it('should be defined', () => {
+    expect(getAngularSeparation).toBeDefined()
+  })
+
+  it('should return the angular separation between two objects', () => {
+    const θ = getAngularSeparation(arcturus, spica)
+    expect(θ).toBe(32.79290589269233)
+  })
+})
 
 /*****************************************************************************************************************/
 
