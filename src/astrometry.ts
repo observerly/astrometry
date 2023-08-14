@@ -121,9 +121,11 @@ export const LST = getLocalSiderealTime
  * The Hour Angle (HA) is the angular distance along the celestial equator
  * from the observer's meridian to the hour circle of a celestial body.
  *
- * @param datetime - The date for which to calculate the hour angle.
+ * @param date - The date for which to calculate the hour angle.
  * @param ra - Right Ascension of the target in degrees.
  * @param longitude - The longitude of the observer in degrees.
+ * @returns The Hour Angle (HA) of the given date.
+ *
  */
 export const getHourAngle = (datetime: Date, longitude: number, ra: number): number => {
   // Get the Local Sidereal Time (LST) of the given date:
@@ -137,6 +139,30 @@ export const getHourAngle = (datetime: Date, longitude: number, ra: number): num
   }
 
   return ha
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getObliquityOfTheEcliptic()
+ *
+ * The obliquity of the ecliptic is the angle between the ecliptic and the celestial
+ * equator, and is used to convert between ecliptic and equatorial coordinates.
+ *
+ * @param date - The date for which to calculate the obliquity of the ecliptic for.
+ * @returns The obliquity of the ecliptic in degrees.
+ *
+ */
+export const getObliquityOfTheEcliptic = (datetime: Date): number => {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  // Calculate the number of centuries since J2000.0:
+  const T = (JD - 2451545.0) / 36525
+
+  // Calculate the obliquity of the ecliptic:
+  return 23.439292 - (46.845 * T + 0.00059 * Math.pow(T, 2) + 0.001813 * Math.pow(T, 3)) / 3600
 }
 
 /*****************************************************************************************************************/
