@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getJulianDate, getModifiedJulianDate } from '../src'
+import { getJulianDate, getModifiedJulianDate, getNumberOfCenturiesSinceJ2000 } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -41,6 +41,17 @@ describe('Modified Julian Date', () => {
   it('should return the Modified Julian Date (MJD) of the given date', () => {
     const MJD = getModifiedJulianDate(datetime)
     expect(MJD).toBe(59348)
+  })
+})
+
+describe('getNumberOfCenturiesSinceJ2000', () => {
+  it('should be defined', () => {
+    expect(getNumberOfCenturiesSinceJ2000).toBeDefined()
+  })
+
+  it('should return the number of centuries since J2000.0', () => {
+    const T = getNumberOfCenturiesSinceJ2000(datetime)
+    expect(T).toBe(0.21364818617385353)
   })
 })
 
