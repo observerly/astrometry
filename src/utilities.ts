@@ -6,6 +6,18 @@
 
 /*****************************************************************************************************************/
 
-export {}
+/**
+ *
+ * convertDegreesToRadians()
+ *
+ * Converts an angle in degrees to radians.
+ *
+ * @param degrees - The angle in degrees to convert to radians.
+ * @returns The angle in radians.
+ *
+ */
+export const convertDegreesToRadians = (degrees: number): number => {
+  return (degrees * Math.PI) / 180
+}
 
 /*****************************************************************************************************************/
