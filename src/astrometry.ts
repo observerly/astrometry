@@ -113,3 +113,30 @@ export const getLocalSiderealTime = (datetime: Date, longitude: number): number 
 export const LST = getLocalSiderealTime
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getHourAngle()
+ *
+ * The Hour Angle (HA) is the angular distance along the celestial equator
+ * from the observer's meridian to the hour circle of a celestial body.
+ *
+ * @param datetime - The date for which to calculate the hour angle.
+ * @param ra - Right Ascension of the target in degrees.
+ * @param longitude - The longitude of the observer in degrees.
+ */
+export const getHourAngle = (datetime: Date, longitude: number, ra: number): number => {
+  // Get the Local Sidereal Time (LST) of the given date:
+  const LST = getLocalSiderealTime(datetime, longitude)
+
+  let ha = LST * 15 - ra
+
+  // If the hour angle is less than zero, ensure we rotate by 2π radians (360 degrees)
+  if (ha < 0) {
+    ha += 360
+  }
+
+  return ha
+}
+
+/*****************************************************************************************************************/
