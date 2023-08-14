@@ -15,7 +15,8 @@ import {
   getHourAngle,
   getGreenwhichSiderealTime,
   getLocalSiderealTime,
-  getObliquityOfTheEcliptic
+  getObliquityOfTheEcliptic,
+  getParallacticAngle
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -23,6 +24,9 @@ import {
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
 export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+
+// For testing we will fix the latitude to be Manua Kea, Hawaii, US
+export const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
 export const longitude = -155.468094
@@ -90,6 +94,19 @@ describe('getObliquityOfTheEcliptic', () => {
   it('should return the Obliquity of the Ecliptic (e) of the given date', () => {
     const ε = getObliquityOfTheEcliptic(datetime)
     expect(ε).toBe(23.436511890585354)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getParallacticAngle', () => {
+  it('should be defined', () => {
+    expect(getParallacticAngle).toBeDefined()
+  })
+
+  it('should return the Parallactic Angle (PA) of the given date at longitude 0 at Greenwhich', () => {
+    const q = getParallacticAngle(datetime, { latitude, longitude }, betelgeuse)
+    expect(q).toBe(-42.62812646220704)
   })
 })
 

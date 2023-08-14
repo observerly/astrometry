@@ -6,9 +6,13 @@
 
 /*****************************************************************************************************************/
 
+import { type EquatorialCoordinate, type GeographicCoordinate } from './common'
+
 import { getJulianDate } from './epoch'
 
 import { utc } from './utc'
+
+import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -163,6 +167,43 @@ export const getObliquityOfTheEcliptic = (datetime: Date): number => {
 
   // Calculate the obliquity of the ecliptic:
   return 23.439292 - (46.845 * T + 0.00059 * Math.pow(T, 2) + 0.001813 * Math.pow(T, 3)) / 3600
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getParallacticAngle()
+ *
+ * The parallactic angle is the angle between the great circle that passes through
+ * the celestial object and the zenith, and the great circle that passes through
+ * the celestial object and the celestial pole.
+ *
+ * @param date - The date for which to calculate the parallactic angle for.
+ * @param observer - The geographic coordinate of the observer.
+ * @param target - The equatorial coordinate of the observed object.
+ * @return The parallactic angle of the observed object in degrees.
+ *
+ */
+export const getParallacticAngle = (
+  datetime: Date,
+  observer: GeographicCoordinate,
+  target: EquatorialCoordinate
+): number => {
+  const { latitude, longitude } = observer
+
+  const { ra, dec } = target
+
+  // Get the hour angle for the target:
+  const ha = radians(getHourAngle(datetime, longitude, ra))
+
+  // Calculate the parallactic angle and return in degrees:
+  return degrees(
+    Math.atan2(
+      Math.sin(ha),
+      Math.tan(radians(latitude)) * Math.cos(radians(dec)) - Math.sin(radians(dec)) * Math.cos(ha)
+    )
+  )
 }
 
 /*****************************************************************************************************************/
