@@ -10,11 +10,11 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { convertDegreesToRadians } from '../src/utilities'
+import { convertDegreesToRadians, convertRadiansToDegrees } from '../src/utilities'
 
 /*****************************************************************************************************************/
 
-describe('onvertDegreesToRadians', () => {
+describe('convertDegreesToRadians', () => {
   it('should be defined', () => {
     expect(convertDegreesToRadians).toBeDefined()
   })
@@ -32,6 +32,29 @@ describe('onvertDegreesToRadians', () => {
   it('should convert degrees to radians correctly for 45°', () => {
     const radians = convertDegreesToRadians(45)
     expect(radians).toBe(Math.PI / 4)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertRadiansToDegrees', () => {
+  it('should be defined', () => {
+    expect(convertRadiansToDegrees).toBeDefined()
+  })
+
+  it('should convert radians to degrees correctly for π', () => {
+    const degrees = convertRadiansToDegrees(Math.PI)
+    expect(degrees).toBe(180)
+  })
+
+  it('should convert radians to degrees correctly for π/2', () => {
+    const degrees = convertRadiansToDegrees(Math.PI / 2)
+    expect(degrees).toBe(90)
+  })
+
+  it('should convert radians to degrees correctly for π/4', () => {
+    const degrees = convertRadiansToDegrees(Math.PI / 4)
+    expect(degrees).toBe(45)
   })
 })
 
