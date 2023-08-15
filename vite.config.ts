@@ -47,6 +47,7 @@ export default defineConfig({
         abberation: resolve(__dirname, 'src/abberation.ts'),
         astrometry: resolve(__dirname, 'src/astrometry.ts'),
         common: resolve(__dirname, 'src/common.ts'),
+        coordinates: resolve(__dirname, 'src/coordinates'),
         epoch: resolve(__dirname, 'src/epoch.ts')
       },
       name: '@observerly/astrometry'
@@ -58,6 +59,7 @@ export default defineConfig({
         abberation: resolve(__dirname, 'src/abberation.ts'),
         astrometry: resolve(__dirname, 'src/astrometry.ts'),
         common: resolve(__dirname, 'src/common.ts'),
+        coordinates: resolve(__dirname, 'src/coordinates'),
         epoch: resolve(__dirname, 'src/epoch.ts')
       },
       output: {
