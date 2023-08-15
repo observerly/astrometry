@@ -53,3 +53,28 @@ export type GeographicCoordinate = {
 }
 
 /*****************************************************************************************************************/
+
+export type HorizontalCoordinate = {
+  /**
+   *
+   *
+   * The altitude of a celestial object is the angular distance of that object
+   * above the observer's horizon. It is the complement of the zenith angle.
+   * The horizon is 0° altitude, while directly overhead is 90° altitude.
+   *
+   *
+   */
+  alt: number
+  /**
+   *
+   *
+   * The azimuth of a celestial object is the angular distance measured eastward
+   * along the celestial horizon from the north point of the horizon to the (hour
+   * circle of the) point above the earth in question.
+   *
+   *
+   */
+  az: number
+}
+
+/*****************************************************************************************************************/
