@@ -34,6 +34,11 @@
       "require": "./dist/common.cjs",
       "types": "./dist/common.d.ts"
     },
+    "coordinates": {
+      "import": "./dist/coordinates.js",
+      "require": "./dist/coordinates.cjs",
+      "types": "./dist/coordinates.d.ts"
+    },
     "epoch": {
       "import": "./dist/epoch.js",
       "require": "./dist/epoch.cjs",

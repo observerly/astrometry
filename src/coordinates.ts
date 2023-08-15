@@ -1,15 +1,11 @@
 /*****************************************************************************************************************/
 
 // @author         Michael Roberts <michael@observerly.com>
-// @package        @observerly/typescript-vite-template
+// @package        @observerly/astrometry/epoch
 // @license        Copyright © 2021-2023 observerly
 
 /*****************************************************************************************************************/
 
-export * from './abberation'
-export * from './astrometry'
-export * from './common'
-export * from './coordinates'
-export * from './epoch'
+export {}
 
 /*****************************************************************************************************************/
