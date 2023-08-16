@@ -45,3 +45,39 @@ export const getMeanAnomaly = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getMeanGeometricLongitude()
+ *
+ * The Moon's mean geometric longitude is the angle between the Moon's current
+ * position and the vernal equinox.
+ *
+ * @param date - The date to calculate the Moon's mean geometric longitude for.
+ * @returns The Moon's mean geometric longitude at the given date.
+ *
+ */
+export const getMeanGeometricLongitude = (datetime: Date): number => {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  // Calculate the number of centuries since J2000.0:
+  const T = (JD - 2451545.0) / 36525
+
+  let l =
+    (218.3164477 +
+      481267.88123421 * T -
+      0.0015786 * Math.pow(T, 2) +
+      Math.pow(T, 3) / 538841 -
+      Math.pow(T, 4) / 65194000) %
+    360
+
+  // Correct for negative angles
+  if (l < 0) {
+    l += 360
+  }
+
+  return l
+}
+
+/*****************************************************************************************************************/

@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getMeanAnomaly } from '../src'
+import { getMeanAnomaly, getMeanGeometricLongitude } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -25,9 +25,22 @@ describe('getMeanAnomaly', () => {
     expect(getMeanAnomaly).toBeDefined()
   })
 
-  it('should return the Julian Date (JD) of the given date', () => {
+  it('should return the correct Lunar mean anomaly for the given date', () => {
     const M = getMeanAnomaly(datetime)
     expect(M).toBe(207.63633585681964)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getMeanGeometricLongitude', () => {
+  it('should be defined', () => {
+    expect(getMeanGeometricLongitude).toBeDefined()
+  })
+
+  it('should return the correct Lunar mean geometric longitude for the given date', () => {
+    const l = getMeanGeometricLongitude(datetime)
+    expect(l).toBe(80.32626508452813)
   })
 })
 
