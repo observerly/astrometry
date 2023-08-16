@@ -61,3 +61,39 @@ export const getNormalizedAzimuthalDegree = (degrees: number): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getNormalizedInclinationDegree()
+ *
+ * Normalizes an inclination angle it to a value between 0 and 360.
+ *
+ * @param degrees - The angle in degrees to convert.
+ * @returns The normalized angle in degrees.
+ *
+ */
+export const getNormalizedInclinationDegree = (degrees: number): number => {
+  let d = degrees
+
+  // Correct for angles greater than 90° or less than -90°
+  if (degrees > 90) {
+    d = 180 - degrees
+  }
+
+  // Correct for angles less than -90°
+  if (degrees < -90) {
+    d = -180 - degrees
+  }
+
+  if (d < 0) {
+    d % -90
+  }
+
+  if (d > 0) {
+    d % 90
+  }
+
+  return d
+}
+
+/*****************************************************************************************************************/

@@ -13,7 +13,8 @@ import { describe, expect, it } from 'vitest'
 import {
   convertDegreesToRadians,
   convertRadiansToDegrees,
-  getNormalizedAzimuthalDegree
+  getNormalizedAzimuthalDegree,
+  getNormalizedInclinationDegree
 } from '../src/utilities'
 
 /*****************************************************************************************************************/
@@ -106,3 +107,44 @@ describe('getNormalizedAzimuthalDegree', () => {
 })
 
 /*****************************************************************************************************************/
+
+describe('getNormalizedInclinationDegree', () => {
+  it('should be defined', () => {
+    expect(getNormalizedInclinationDegree).toBeDefined()
+  })
+
+  it('should correctly normalize a degree value to between -90 and 90', () => {
+    let degree = getNormalizedInclinationDegree(91)
+    expect(degree).toBe(89)
+
+    degree = getNormalizedInclinationDegree(-91)
+    expect(degree).toBe(-89)
+
+    degree = getNormalizedInclinationDegree(0)
+    expect(degree).toBe(0)
+
+    degree = getNormalizedInclinationDegree(90)
+    expect(degree).toBe(90)
+
+    degree = getNormalizedInclinationDegree(-90)
+    expect(degree).toBe(-90)
+
+    degree = getNormalizedInclinationDegree(180)
+    expect(degree).toBe(0)
+
+    degree = getNormalizedInclinationDegree(-180)
+    expect(degree).toBe(0)
+
+    degree = getNormalizedInclinationDegree(270)
+    expect(degree).toBe(-90)
+
+    degree = getNormalizedInclinationDegree(-270)
+    expect(degree).toBe(90)
+
+    degree = getNormalizedInclinationDegree(120)
+    expect(degree).toBe(60)
+
+    degree = getNormalizedInclinationDegree(-130)
+    expect(degree).toBe(-50)
+  })
+})
