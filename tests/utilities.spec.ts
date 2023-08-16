@@ -10,7 +10,11 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { convertDegreesToRadians, convertRadiansToDegrees } from '../src/utilities'
+import {
+  convertDegreesToRadians,
+  convertRadiansToDegrees,
+  getNormalizedAzimuthalDegree
+} from '../src/utilities'
 
 /*****************************************************************************************************************/
 
@@ -55,6 +59,49 @@ describe('convertRadiansToDegrees', () => {
   it('should convert radians to degrees correctly for π/4', () => {
     const degrees = convertRadiansToDegrees(Math.PI / 4)
     expect(degrees).toBe(45)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getNormalizedAzimuthalDegree', () => {
+  it('should be defined', () => {
+    expect(getNormalizedAzimuthalDegree).toBeDefined()
+  })
+
+  it('should correctly normalize a degree value to between 0 and 360', () => {
+    let degree = getNormalizedAzimuthalDegree(361)
+    expect(degree).toBe(1)
+
+    degree = getNormalizedAzimuthalDegree(-1)
+    expect(degree).toBe(359)
+
+    degree = getNormalizedAzimuthalDegree(0)
+    expect(degree).toBe(0)
+
+    degree = getNormalizedAzimuthalDegree(360)
+    expect(degree).toBe(0)
+
+    degree = getNormalizedAzimuthalDegree(720)
+    expect(degree).toBe(0)
+
+    degree = getNormalizedAzimuthalDegree(-360)
+    expect(degree).toBe(0)
+
+    degree = getNormalizedAzimuthalDegree(-720)
+    expect(degree).toBe(0)
+
+    degree = getNormalizedAzimuthalDegree(540)
+    expect(degree).toBe(180)
+
+    degree = getNormalizedAzimuthalDegree(-540)
+    expect(degree).toBe(180)
+
+    degree = getNormalizedAzimuthalDegree(180)
+    expect(degree).toBe(180)
+
+    degree = getNormalizedAzimuthalDegree(390)
+    expect(degree).toBe(30)
   })
 })
 

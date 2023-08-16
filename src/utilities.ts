@@ -37,3 +37,27 @@ export const convertRadiansToDegrees = (degrees: number): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getNormalizedAzimuthalDegree()
+ *
+ * Normalizes an azimuthal angle it to a value between 0 and 360.
+ *
+ * @param degrees - The angle in degrees to convert.
+ * @returns The normalized angle in degrees.
+ *
+ */
+export const getNormalizedAzimuthalDegree = (degrees: number): number => {
+  // Correct for large angles (+ive or -ive):
+  let d = degrees % 360
+
+  // Correct for negative angles
+  if (d < 0) {
+    d += 360
+  }
+
+  return Math.abs(d)
+}
+
+/*****************************************************************************************************************/
