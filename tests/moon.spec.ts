@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getMeanAnomaly, getMeanGeometricLongitude } from '../src'
+import { getMeanAnomaly, getMeanGeometricLongitude, getMeanEclipticLongitude } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -41,6 +41,19 @@ describe('getMeanGeometricLongitude', () => {
   it('should return the correct Lunar mean geometric longitude for the given date', () => {
     const l = getMeanGeometricLongitude(datetime)
     expect(l).toBe(80.32626508452813)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getMeanEclipticLongitude', () => {
+  it('should be defined', () => {
+    expect(getMeanEclipticLongitude).toBeDefined()
+  })
+
+  it('should return the correct Lunar mean ecliptic longitude for the given date', () => {
+    const λ = getMeanEclipticLongitude(datetime)
+    expect(λ).toBe(79.88317358099448)
   })
 })
 

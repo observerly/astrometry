@@ -81,3 +81,34 @@ export const getMeanGeometricLongitude = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getMeanEclipticLongitude()
+ *
+ * The mean lunar ecliptic longitude is the ecliptic longitude of the Moon
+ * if the Moon's orbit where free of perturbations
+ *
+ * @param date - The date to calculate the Moon's mean ecliptic longitude for.
+ * @returns The Moon's mean ecliptic longitude at the given date.
+ *
+ */
+export const getMeanEclipticLongitude = (datetime: Date): number => {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  // Get the number of days since the standard epoch J2000:
+  const De = JD - 2451545.0
+
+  // Get the uncorrected mean eclptic longitude:
+  let λ = (13.176339686 * De + 218.31643388) % 360
+
+  // Correct for negative angles
+  if (λ < 0) {
+    λ += 360
+  }
+
+  return λ
+}
+
+/*****************************************************************************************************************/
