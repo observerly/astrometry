@@ -10,7 +10,11 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getMeanAnomaly, getMeanGeometricLongitude, getMeanEclipticLongitude } from '../src'
+import {
+  getLunarMeanAnomaly,
+  getLunarMeanGeometricLongitude,
+  getLunarMeanEclipticLongitude
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -20,39 +24,39 @@ export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
 
 /*****************************************************************************************************************/
 
-describe('getMeanAnomaly', () => {
+describe('getLunarMeanAnomaly', () => {
   it('should be defined', () => {
-    expect(getMeanAnomaly).toBeDefined()
+    expect(getLunarMeanAnomaly).toBeDefined()
   })
 
   it('should return the correct Lunar mean anomaly for the given date', () => {
-    const M = getMeanAnomaly(datetime)
+    const M = getLunarMeanAnomaly(datetime)
     expect(M).toBe(207.63633585681964)
   })
 })
 
 /*****************************************************************************************************************/
 
-describe('getMeanGeometricLongitude', () => {
+describe('getLunarMeanGeometricLongitude', () => {
   it('should be defined', () => {
-    expect(getMeanGeometricLongitude).toBeDefined()
+    expect(getLunarMeanGeometricLongitude).toBeDefined()
   })
 
   it('should return the correct Lunar mean geometric longitude for the given date', () => {
-    const l = getMeanGeometricLongitude(datetime)
+    const l = getLunarMeanGeometricLongitude(datetime)
     expect(l).toBe(80.32626508452813)
   })
 })
 
 /*****************************************************************************************************************/
 
-describe('getMeanEclipticLongitude', () => {
+describe('getLunarMeanEclipticLongitude', () => {
   it('should be defined', () => {
-    expect(getMeanEclipticLongitude).toBeDefined()
+    expect(getLunarMeanEclipticLongitude).toBeDefined()
   })
 
   it('should return the correct Lunar mean ecliptic longitude for the given date', () => {
-    const λ = getMeanEclipticLongitude(datetime)
+    const λ = getLunarMeanEclipticLongitude(datetime)
     expect(λ).toBe(79.88317358099448)
   })
 })

@@ -12,7 +12,7 @@ import { getJulianDate } from './epoch'
 
 /**
  *
- * getMeanAnomaly()
+ * getLunarMeanAnomaly()
  *
  * The Moon's mean anomaly is the angle between perigee and the Moon's current position.
  *
@@ -20,7 +20,7 @@ import { getJulianDate } from './epoch'
  * @returns The Moon's mean anomaly at the given date.
  *
  */
-export const getMeanAnomaly = (datetime: Date): number => {
+export const getLunarMeanAnomaly = (datetime: Date): number => {
   // Get the Julian date:
   const JD = getJulianDate(datetime)
 
@@ -48,7 +48,7 @@ export const getMeanAnomaly = (datetime: Date): number => {
 
 /**
  *
- * getMeanGeometricLongitude()
+ * getLunarMeanGeometricLongitude()
  *
  * The Moon's mean geometric longitude is the angle between the Moon's current
  * position and the vernal equinox.
@@ -57,7 +57,7 @@ export const getMeanAnomaly = (datetime: Date): number => {
  * @returns The Moon's mean geometric longitude at the given date.
  *
  */
-export const getMeanGeometricLongitude = (datetime: Date): number => {
+export const getLunarMeanGeometricLongitude = (datetime: Date): number => {
   // Get the Julian date:
   const JD = getJulianDate(datetime)
 
@@ -84,7 +84,7 @@ export const getMeanGeometricLongitude = (datetime: Date): number => {
 
 /**
  *
- * getMeanEclipticLongitude()
+ * getLunarMeanEclipticLongitude()
  *
  * The mean lunar ecliptic longitude is the ecliptic longitude of the Moon
  * if the Moon's orbit where free of perturbations
@@ -93,7 +93,7 @@ export const getMeanGeometricLongitude = (datetime: Date): number => {
  * @returns The Moon's mean ecliptic longitude at the given date.
  *
  */
-export const getMeanEclipticLongitude = (datetime: Date): number => {
+export const getLunarMeanEclipticLongitude = (datetime: Date): number => {
   // Get the Julian date:
   const JD = getJulianDate(datetime)
 
