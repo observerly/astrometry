@@ -8,6 +8,8 @@
 
 import { getJulianDate } from './epoch'
 
+import { convertDegreesToRadians as radians } from './utilities'
+
 /*****************************************************************************************************************/
 
 /**
@@ -35,6 +37,37 @@ export const getSolarMeanAnomaly = (datetime: Date): number => {
   }
 
   return M
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getSolarEquationOfCenter()
+ *
+ * The equation of center is the difference between the mean geometric longitude
+ * and the mean anomaly.
+ *
+ * @param datetime
+ * @returns The Sun's equation of center at the given date.
+ */
+export const getSolarEquationOfCenter = (datetime: Date): number => {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  // Calculate the number of centuries since J2000.0:
+  const T = (JD - 2451545.0) / 36525
+
+  // Get the mean anomaly:
+  const M = getSolarMeanAnomaly(datetime)
+
+  // Calculate the equation of center:
+  const C =
+    (1.914602 - 0.004817 * Math.pow(T, 2) - 0.000014 * Math.pow(T, 3)) * Math.sin(radians(M)) +
+    (0.019993 - 0.000101 * Math.pow(T, 2)) * Math.sin(radians(2 * M)) +
+    0.000289 * Math.sin(radians(3 * M))
+
+  return C
 }
 
 /*****************************************************************************************************************/

@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getSolarMeanAnomaly } from '../src'
+import { getSolarMeanAnomaly, getSolarEquationOfCenter } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -28,6 +28,19 @@ describe('getSolarMeanAnomaly', () => {
   it('should return the correct Solar mean anomaly for the given date', () => {
     const M = getSolarMeanAnomaly(datetime)
     expect(M).toBe(128.66090142411576)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getSolarEquationOfCenter', () => {
+  it('should be defined', () => {
+    expect(getSolarEquationOfCenter).toBeDefined()
+  })
+
+  it('should return the correct Solar equation of center for the given date', () => {
+    const C = getSolarEquationOfCenter(datetime)
+    expect(C).toBe(1.475483942359445)
   })
 })
 
