@@ -48,7 +48,7 @@ export const getSolarMeanAnomaly = (datetime: Date): number => {
  * The equation of center is the difference between the mean geometric longitude
  * and the mean anomaly.
  *
- * @param datetime
+ * @param date - The date to calculate the Sun's equation of center for.
  * @returns The Sun's equation of center at the given date.
  */
 export const getSolarEquationOfCenter = (datetime: Date): number => {
@@ -68,6 +68,37 @@ export const getSolarEquationOfCenter = (datetime: Date): number => {
     0.000289 * Math.sin(radians(3 * M))
 
   return C
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getSolarMeanGeometricLongitude()
+ *
+ * The mean geometric longitude for the Sun is the angle between the perihelion
+ * and the current position of the Sun, as seen from the centre of the Earth.
+ *
+ * @param date - The date to calculate the Sun's true geometric longitude for.
+ * @returns The Sun's true geometric longitude at the given date.
+ *
+ */
+export const getSolarMeanGeometricLongitude = (datetime: Date): number => {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  // Calculate the number of centuries since J2000.0:
+  const T = (JD - 2451545.0) / 36525
+
+  // Calculate the mean geometric longitude:
+  let L = (280.46646 + 36000.76983 * T + 0.0003032 * Math.pow(T, 2)) % 360
+
+  // Correct for negative angles
+  if (L < 0) {
+    L += 360
+  }
+
+  return L
 }
 
 /*****************************************************************************************************************/
