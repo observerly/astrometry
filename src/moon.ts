@@ -8,6 +8,20 @@
 
 import { getJulianDate } from './epoch'
 
+import { getSolarMeanAnomaly } from './sun'
+
+import { convertDegreesToRadians as radians } from './utilities'
+
+/*****************************************************************************************************************/
+
+export const getLunarAnnualEquationCorrection = (datetime: Date): number => {
+  // Correct for the Sun's mean anomaly:
+  const M = radians(getSolarMeanAnomaly(datetime))
+
+  // Get the annual equation correction:
+  return 0.1858 * Math.sin(M)
+}
+
 /*****************************************************************************************************************/
 
 /**
