@@ -152,3 +152,34 @@ export const getSolarTrueGeometricLongitude = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getSolarEclipticLongitude()
+ *
+ * The ecliptic longitude for the Sun is the angle between the perihelion and
+ * the current position of the Sun, as seen from the centre of the Earth,
+ * corrected for the equation of center and the Sun's ecliptic longitude at
+ * perigee at the epoch.
+ *
+ * @param date - The date to calculate the Sun's ecliptic longitude for.
+ * @returns The Sun's ecliptic longitude at the given date.
+ *
+ */
+export const getSolarEclipticLongitude = (datetime: Date): number => {
+  // Get the true anomaly:
+  const ν = getSolarTrueAnomaly(datetime)
+
+  // Correct the true anomaly with the Sun's ecliptic longitude
+  // at perigee at the epoch:
+  let λ = ν + (282.938346 % 360)
+
+  // Correct for negative angles
+  if (λ < 0) {
+    λ += 360
+  }
+
+  return λ
+}
+
+/*****************************************************************************************************************/
