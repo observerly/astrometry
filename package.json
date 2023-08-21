@@ -13,12 +13,14 @@
   },
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "package.json"
   ],
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
@@ -39,15 +41,45 @@
       "require": "./dist/common.cjs",
       "types": "./dist/common.d.ts"
     },
+    "./constants": {
+      "import": "./dist/constants.js",
+      "require": "./dist/constants.cjs",
+      "types": "./dist/constants.d.ts"
+    },
     "./coordinates": {
       "import": "./dist/coordinates.js",
       "require": "./dist/coordinates.cjs",
       "types": "./dist/coordinates.d.ts"
     },
+    "./earth": {
+      "import": "./dist/earth.js",
+      "require": "./dist/earth.cjs",
+      "types": "./dist/earth.d.ts"
+    },
     "./epoch": {
       "import": "./dist/epoch.js",
       "require": "./dist/epoch.cjs",
       "types": "./dist/epoch.d.ts"
+    },
+    "./moon": {
+      "import": "./dist/moon.js",
+      "require": "./dist/moon.cjs",
+      "types": "./dist/moon.d.ts"
+    },
+    "./refraction": {
+      "import": "./dist/refraction.js",
+      "require": "./dist/refraction.cjs",
+      "types": "./dist/refraction.d.ts"
+    },
+    "./seeing": {
+      "import": "./dist/seeing.js",
+      "require": "./dist/seeing.cjs",
+      "types": "./dist/seeing.d.ts"
+    },
+    "./sun": {
+      "import": "./dist/sun.js",
+      "require": "./dist/sun.cjs",
+      "types": "./dist/sun.d.ts"
     }
   },
   "release": {
