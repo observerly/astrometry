@@ -30,7 +30,8 @@ export default defineConfig({
   },
   plugins: [
     typescript({
-      tsconfig: './tsconfig.json'
+      tsconfig: './tsconfig.json',
+      declaration: true
     })
   ],
   resolve: {
@@ -47,8 +48,14 @@ export default defineConfig({
         abberation: resolve(__dirname, 'src/abberation.ts'),
         astrometry: resolve(__dirname, 'src/astrometry.ts'),
         common: resolve(__dirname, 'src/common.ts'),
+        constants: resolve(__dirname, 'src/constants.ts'),
         coordinates: resolve(__dirname, 'src/coordinates'),
-        epoch: resolve(__dirname, 'src/epoch.ts')
+        earth: resolve(__dirname, 'src/earth.ts'),
+        epoch: resolve(__dirname, 'src/epoch.ts'),
+        moon: resolve(__dirname, 'src/moon.ts'),
+        refraction: resolve(__dirname, 'src/refraction.ts'),
+        seeing: resolve(__dirname, 'src/seeing.ts'),
+        sun: resolve(__dirname, 'src/sun.ts')
       },
       name: '@observerly/astrometry'
     },
@@ -59,8 +66,14 @@ export default defineConfig({
         abberation: resolve(__dirname, 'src/abberation.ts'),
         astrometry: resolve(__dirname, 'src/astrometry.ts'),
         common: resolve(__dirname, 'src/common.ts'),
+        constants: resolve(__dirname, 'src/constants.ts'),
         coordinates: resolve(__dirname, 'src/coordinates'),
-        epoch: resolve(__dirname, 'src/epoch.ts')
+        earth: resolve(__dirname, 'src/earth.ts'),
+        epoch: resolve(__dirname, 'src/epoch.ts'),
+        moon: resolve(__dirname, 'src/moon.ts'),
+        refraction: resolve(__dirname, 'src/refraction.ts'),
+        seeing: resolve(__dirname, 'src/seeing.ts'),
+        sun: resolve(__dirname, 'src/sun.ts')
       },
       output: {
         preserveModules: false,
