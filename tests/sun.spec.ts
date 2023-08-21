@@ -14,6 +14,7 @@ import {
   getSolarMeanAnomaly,
   getSolarEquationOfCenter,
   getSolarMeanGeometricLongitude,
+  getSolarTrueAnomaly,
   getSolarTrueGeometricLongitude
 } from '../src'
 
@@ -59,6 +60,19 @@ describe('getSolarMeanGeometricLongitude', () => {
   it('should return the correct Solar mean geometric longitude for the given date', () => {
     const L = getSolarMeanGeometricLongitude(datetime)
     expect(L).toBe(51.96564888161811)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getSolarTrueAnomaly', () => {
+  it('should be defined', () => {
+    expect(getSolarTrueAnomaly).toBeDefined()
+  })
+
+  it('should return the correct Solar true anomaly for the given date', () => {
+    const ν = getSolarTrueAnomaly(datetime)
+    expect(ν).toBe(130.1363853664752)
   })
 })
 

@@ -105,6 +105,31 @@ export const getSolarMeanGeometricLongitude = (datetime: Date): number => {
 
 /**
  *
+ * getSolarTrueAnomaly()
+ *
+ * The true anomaly for the Sun is the angle between the perihelion and the
+ * current position of the Sun, as seen from the centre of the Earth, corrected
+ * for the equation of center.
+ *
+ * @param date - The date to calculate the Sun's true anomaly for.
+ * @returns The Sun's true anomaly at the given date.
+ *
+ */
+export const getSolarTrueAnomaly = (datetime: Date): number => {
+  // Get the mean anomaly:
+  const M = getSolarMeanAnomaly(datetime)
+
+  // Get the equation of center:
+  const C = getSolarEquationOfCenter(datetime)
+
+  // Correct the mean anomaly for the equation of center:
+  return (M + C) % 360
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * getSolarTrueGeometricLongitude()
  *
  * The true geometric longitude for the Sun is the angle between the perihelion
