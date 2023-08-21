@@ -102,3 +102,28 @@ export const getSolarMeanGeometricLongitude = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getSolarTrueGeometricLongitude()
+ *
+ * The true geometric longitude for the Sun is the angle between the perihelion
+ * and the current position of the Sun, as seen from the centre of the Earth,
+ * corrected for the equation of center.
+ *
+ * @param date - The date to calculate the Sun's true geometric longitude for.
+ * @returns The Sun's true geometric longitude at the given date.
+ *
+ */
+export const getSolarTrueGeometricLongitude = (datetime: Date): number => {
+  // Get the mean geometric longitude:
+  const L = getSolarMeanGeometricLongitude(datetime)
+
+  // Get the equation of center:
+  const C = getSolarEquationOfCenter(datetime)
+
+  // Correct the mean geometric longitude for the equation of center:
+  return (L + C) % 360
+}
+
+/*****************************************************************************************************************/
