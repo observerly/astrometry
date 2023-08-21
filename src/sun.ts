@@ -6,9 +6,13 @@
 
 /*****************************************************************************************************************/
 
+import { getObliquityOfTheEcliptic } from './astrometry'
+
+import { type EquatorialCoordinate } from './common'
+
 import { getJulianDate } from './epoch'
 
-import { convertDegreesToRadians as radians } from './utilities'
+import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -180,6 +184,46 @@ export const getSolarEclipticLongitude = (datetime: Date): number => {
   }
 
   return λ
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getSolarEquatorialCoordinate()
+ *
+ * The equatorial coordinate of the Sun is the standard equatorial coordinate
+ * of the Sun, as seen from the centre of the Earth, corrected for the equation
+ * of center and the Sun's ecliptic longitude at perigee at the epoch.
+ *
+ * @param date - The date to calculate the Sun's equatorial coordinate for.
+ * @returns The Sun's equatorial coordinate at the given date.
+ *
+ */
+export const getSolarEquatorialCoordinate = (datetime: Date): EquatorialCoordinate => {
+  // Get the ecliptic longitude:
+  const λ = radians(getSolarEclipticLongitude(datetime))
+
+  // Get the ecliptic latitude:
+  // This term is zero for the Sun, so we can largely ignore it by refactoring
+  // the standard equations for the conversion between ecliptic and equatorial
+  // coordinates.
+  // const β = 0
+
+  // Get the obliquity of the ecliptic:
+  const ε = radians(getObliquityOfTheEcliptic(datetime))
+
+  // Get the corresponding Right Ascension, α:
+  let ra = degrees(Math.atan2(Math.sin(λ) * Math.cos(ε), Math.cos(λ))) % 360
+
+  // Correct ra for negative angles
+  if (ra < 0) {
+    ra += 360
+  }
+
+  const dec = degrees(Math.asin(Math.sin(ε) * Math.sin(λ)))
+
+  return { ra, dec }
 }
 
 /*****************************************************************************************************************/

@@ -16,7 +16,8 @@ import {
   getSolarMeanGeometricLongitude,
   getSolarTrueAnomaly,
   getSolarTrueGeometricLongitude,
-  getSolarEclipticLongitude
+  getSolarEclipticLongitude,
+  getSolarEquatorialCoordinate
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -101,6 +102,21 @@ describe('getSolarEclipticLongitude', () => {
     const datetime = new Date('2015-02-05T12:00:00.000+00:00')
     const λ = getSolarEclipticLongitude(datetime)
     expect(λ).toBe(316.10388080739784)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getSolarEquatorialCoordinate', () => {
+  it('should be defined', () => {
+    expect(getSolarEquatorialCoordinate).toBeDefined()
+  })
+
+  it('should return the correct Solar equatorial coordinate for the given date', () => {
+    const datetime = new Date('2015-02-05T12:00:00.000+00:00')
+    const { ra: α, dec: δ } = getSolarEquatorialCoordinate(datetime)
+    expect(α).toBe(318.5617376411268)
+    expect(δ).toBe(-16.008394691469505)
   })
 })
 
