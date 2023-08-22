@@ -1,7 +1,7 @@
 /*****************************************************************************************************************/
 
 // @author         Michael Roberts <michael@observerly.com>
-// @package        @observerly/astrometry/aberration
+// @package        @observerly/astrometry/nutation
 // @license        Copyright © 2021-2023 observerly
 
 /*****************************************************************************************************************/
@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, getCorrectionToEquatorialForAbberation } from '../src'
+import { type EquatorialCoordinate, getCorrectionToEquatorialForNutation } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -29,15 +29,15 @@ const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
 
 /*****************************************************************************************************************/
 
-describe('getCorrectionToEquatorialForAbberation', () => {
+describe('getCorrectionToEquatorialForNutation', () => {
   it('should be defined', () => {
-    expect(getCorrectionToEquatorialForAbberation).toBeDefined()
+    expect(getCorrectionToEquatorialForNutation).toBeDefined()
   })
 
   it('should return the angular separation between two objects', () => {
-    const { ra, dec } = getCorrectionToEquatorialForAbberation(datetime, betelgeuse)
-    expect(ra + betelgeuse.ra).toBe(88.78837512114575)
-    expect(dec + betelgeuse.dec).toBe(7.406109156062398)
+    const { ra, dec } = getCorrectionToEquatorialForNutation(datetime, betelgeuse)
+    expect(ra + betelgeuse.ra).toBe(88.52194751991885)
+    expect(dec + betelgeuse.dec).toBe(7.448166948222143)
   })
 })
 

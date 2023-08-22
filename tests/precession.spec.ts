@@ -1,7 +1,7 @@
 /*****************************************************************************************************************/
 
 // @author         Michael Roberts <michael@observerly.com>
-// @package        @observerly/astrometry/epoch
+// @package        @observerly/astrometry/precession
 // @license        Copyright © 2021-2023 observerly
 
 /*****************************************************************************************************************/
