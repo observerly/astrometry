@@ -66,6 +66,11 @@
       "require": "./dist/moon.cjs",
       "types": "./dist/moon.d.ts"
     },
+    "./precession": {
+      "import": "./dist/precession.js",
+      "require": "./dist/precession.cjs",
+      "types": "./dist/precession.d.ts"
+    },
     "./refraction": {
       "import": "./dist/refraction.js",
       "require": "./dist/refraction.cjs",
