@@ -8,7 +8,7 @@
 
 import { getJulianDate } from './epoch'
 
-import { getSolarMeanAnomaly } from './sun'
+import { getSolarMeanAnomaly, getSolarEclipticLongitude } from './sun'
 
 import { convertDegreesToRadians as radians } from './utilities'
 
@@ -123,6 +123,22 @@ export const getLunarMeanEclipticLongitude = (datetime: Date): number => {
   }
 
   return λ
+}
+
+/*****************************************************************************************************************/
+
+export const getLunarEvectionCorrection = (datetime: Date): number => {
+  // Get the Moon's mean anomaly at the current epoch relative to J2000:
+  const M = radians(getLunarMeanAnomaly(datetime))
+
+  // Get the Moon's mean ecliptic longitude:
+  const λ = radians(getLunarMeanEclipticLongitude(datetime))
+
+  // Get the Sun's mean ecliptic longitude:
+  const l = radians(getSolarEclipticLongitude(datetime))
+
+  // Get the avection correction:
+  return 1.2739 * Math.sin(2 * (λ - l) - M)
 }
 
 /*****************************************************************************************************************/
