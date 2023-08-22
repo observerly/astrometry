@@ -53,6 +53,7 @@ export default defineConfig({
         earth: resolve(__dirname, 'src/earth.ts'),
         epoch: resolve(__dirname, 'src/epoch.ts'),
         moon: resolve(__dirname, 'src/moon.ts'),
+        precession: resolve(__dirname, 'src/precession.ts'),
         refraction: resolve(__dirname, 'src/refraction.ts'),
         seeing: resolve(__dirname, 'src/seeing.ts'),
         sun: resolve(__dirname, 'src/sun.ts')
@@ -71,6 +72,7 @@ export default defineConfig({
         earth: resolve(__dirname, 'src/earth.ts'),
         epoch: resolve(__dirname, 'src/epoch.ts'),
         moon: resolve(__dirname, 'src/moon.ts'),
+        precession: resolve(__dirname, 'src/precession.ts'),
         refraction: resolve(__dirname, 'src/refraction.ts'),
         seeing: resolve(__dirname, 'src/seeing.ts'),
         sun: resolve(__dirname, 'src/sun.ts')
