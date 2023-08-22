@@ -142,3 +142,34 @@ export const getLunarEvectionCorrection = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarMeanEclipticLongitudeOfTheAscendingNode()
+ *
+ * The mean lunar ecliptic longitude of the ascending node is the angle where
+ * the Moon's orbit crosses the ecliptic at the current epoch relative to J2000.
+ *
+ * @param date - The date to calculate the Moon's mean ecliptic longitude of the ascending node for.
+ * @returns The Moon's mean ecliptic longitude of the ascending node at the given date.
+ *
+ */
+export const getLunarMeanEclipticLongitudeOfTheAscendingNode = (datetime: Date): number => {
+  // Get the number of days since the standard epoch J2000:
+  const d = getJulianDate(datetime) - 2451545.0
+
+  // Get the Moon's ecliptic longitude of the ascending node at the current epoch relative to J2000:
+  let Ω = (125.044522 - 0.0529539 * d) % 360
+
+  // Correct for negative angles
+  if (Ω < 0) {
+    Ω += 360
+  }
+
+  // Correct for the Sun's mean anomaly:
+  const M = radians(getSolarMeanAnomaly(datetime))
+
+  return Ω - 0.16 * Math.sin(M)
+}
+
+/*****************************************************************************************************************/
