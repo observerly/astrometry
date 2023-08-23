@@ -6,6 +6,30 @@
 
 /*****************************************************************************************************************/
 
+export type Observer = {
+  /**
+   *
+   *
+   * The datetime of an observer is the date and time at which the observation
+   * was or will be made.
+   *
+   *
+   */
+  datetime: Date
+  /**
+   *
+   *
+   * The elevation of an observer is the distance above sea level of the point
+   * of observation, or the height of the point of observation above the
+   * surface of the Earth (in SI metres).
+   *
+   *
+   */
+  elevation?: number
+} & GeographicCoordinate
+
+/*****************************************************************************************************************/
+
 export type EquatorialCoordinate = {
   /**
    *
