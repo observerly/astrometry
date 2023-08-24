@@ -62,17 +62,16 @@ export const getCorrectionToEquatorialForAbberation = (
 
   // Get the nutation in obliquity (in degrees):
   const Δε =
-    (9.2 * Math.cos(radians(Ω)) +
-      0.57 * Math.cos(radians(2 * L)) +
-      0.1 * Math.cos(radians(2 * l)) -
-      0.09 * Math.cos(radians(2 * Ω))) /
-    3600
+    9.2 * Math.cos(radians(Ω)) +
+    0.57 * Math.cos(radians(2 * L)) +
+    0.1 * Math.cos(radians(2 * l)) -
+    0.09 * Math.cos(radians(2 * Ω))
 
   // Get the true obliquity of the ecliptic (in degrees):
-  const ε = radians(getObliquityOfTheEcliptic(datetime) + Δε)
+  const ε = radians(getObliquityOfTheEcliptic(datetime) + Δε / 3600)
 
   // Get the constant of abberation (in degrees):
-  const κ = 20.49552 / 3600
+  const κ = 20.49552
 
   // Get the eccentricity of the Earth's orbit (dimensionless):
   const e = getEccentricityOfOrbit(datetime)
@@ -101,8 +100,8 @@ export const getCorrectionToEquatorialForAbberation = (
         Math.cos(ra) * Math.sin(dec) * Math.sin(ϖ))
 
   return {
-    ra: Δra,
-    dec: Δdec
+    ra: Δra / 3600,
+    dec: Δdec / 3600
   }
 }
 

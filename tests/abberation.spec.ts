@@ -34,7 +34,16 @@ describe('getCorrectionToEquatorialForAbberation', () => {
     expect(getCorrectionToEquatorialForAbberation).toBeDefined()
   })
 
-  it('should return the angular separation between two objects', () => {
+  it('should return the correct abberation correction for the J2000 default epoch', () => {
+    const { ra, dec } = getCorrectionToEquatorialForAbberation(
+      new Date('2000-01-01T00:00:00+00:00'),
+      betelgeuse
+    )
+    expect(ra + betelgeuse.ra).toBe(88.79868732900589)
+    expect(dec + betelgeuse.dec).toBe(7.4068039145745)
+  })
+
+  it('should return the correct abberation correction for the designated epoch', () => {
     const { ra, dec } = getCorrectionToEquatorialForAbberation(datetime, betelgeuse)
     expect(ra + betelgeuse.ra).toBe(88.78837512114575)
     expect(dec + betelgeuse.dec).toBe(7.406109156062398)
