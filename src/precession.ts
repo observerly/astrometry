@@ -50,7 +50,7 @@ export const getCorrectionToEquatorialForPrecessionOfEquinoxes = (
   const Δdec = Nd * Math.cos(radians(ra)) * T
 
   return {
-    ra: Δra / (3600 / 15),
+    ra: Δra / 3600,
     dec: Δdec / 3600
   }
 }
