@@ -1,24 +1,11 @@
 /*****************************************************************************************************************/
 
 // @author         Michael Roberts <michael@observerly.com>
-// @package        @observerly/typescript-vite-template
+// @package        @observerly/astrometry/observation
 // @license        Copyright © 2021-2023 observerly
 
 /*****************************************************************************************************************/
 
-export * from './abberation'
-export * from './astrometry'
-export * from './common'
-export * from './constants'
-export * from './coordinates'
-export * from './earth'
-export * from './epoch'
-export * from './moon'
-export * from './nutation'
-export * from './observation'
-export * from './precession'
-export * from './refraction'
-export * from './seeing'
-export * from './sun'
+export {}
 
 /*****************************************************************************************************************/
