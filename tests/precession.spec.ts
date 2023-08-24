@@ -31,9 +31,18 @@ describe('getCorrectionToEquatorialForPrecessionOfEquinoxes', () => {
     expect(getCorrectionToEquatorialForPrecessionOfEquinoxes).toBeDefined()
   })
 
-  it('should return the correct Lunar mean ecliptic longitude for the given date', () => {
+  it('should return the correct precession correction for the J2000 default epoch', () => {
+    const { ra, dec } = getCorrectionToEquatorialForPrecessionOfEquinoxes(
+      new Date('2000-01-01T00:00:00+00:00'),
+      polaris
+    )
+    expect(ra + polaris.ra).toBe(37.38905590611019)
+    expect(dec + polaris.dec).toBe(89.26411383289323)
+  })
+
+  it('should return the correct precession correction for the designated epoch', () => {
     const { ra, dec } = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, polaris)
-    expect(ra + polaris.ra).toBe(37.96789695343117)
+    expect(ra + polaris.ra).toBe(37.95543943289541)
     expect(dec + polaris.dec).toBe(89.26505189444276)
   })
 })
