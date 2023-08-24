@@ -17,7 +17,7 @@ import {
 
 import { getSolarMeanGeometricLongitude } from './sun'
 
-import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees } from './utilities'
+import { convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -51,35 +51,35 @@ export const getCorrectionToEquatorialForNutation = (
   // Get the mean geometric longitude of the moon (in degrees):
   const l = getLunarMeanGeometricLongitude(datetime)
 
-  // Get the nutation in longitude (in arcseconds)
+  // Get the nutation in longitude (in degrees)
   const Δψ =
     -17.2 * Math.sin(radians(Ω)) -
-    1.32 * Math.sin(radians(2 * L)) -
-    0.23 * Math.sin(radians(2 * l)) +
-    0.21 * Math.sin(radians(2 * Ω))
+    1.32 * Math.sin(2 * radians(L)) -
+    0.23 * Math.sin(2 * radians(l)) +
+    0.21 * Math.sin(2 * radians(Ω))
 
-  // Get the nutation in obliquity (in arcseconds)
+  // Get the nutation in obliquity (in degrees)
   const Δε =
     9.2 * Math.cos(radians(Ω)) +
-    0.57 * Math.cos(radians(2 * L)) +
-    0.1 * Math.cos(radians(2 * l)) -
-    0.09 * Math.cos(radians(2 * Ω))
+    0.57 * Math.cos(2 * radians(L)) +
+    0.1 * Math.cos(2 * radians(l)) -
+    0.09 * Math.cos(2 * radians(Ω))
 
   // Get the true obliquity of the ecliptic (in degrees):
   const ε = radians(getObliquityOfTheEcliptic(datetime) + Δε / 3600)
 
   // Calculate the nutation correction in right ascension (in degrees)
   const Δra =
-    (degrees(Math.cos(ε) + Math.sin(ε) * Math.sin(ra) * Math.tan(dec)) * Δψ) / 3600 -
-    (degrees(Math.cos(ra) * Math.tan(dec)) * Δε) / 3600
+    Math.cos(ε) +
+    Math.sin(ε) * Math.sin(ra) * Math.tan(dec) * Δψ -
+    Math.cos(ra) * Math.tan(dec) * Δε
 
   // Calculate the nutation correction in declination (in degrees)
-  const Δdec =
-    (degrees(Math.sin(ε) * Math.cos(ra)) * Δψ) / 3600 + (degrees(Math.sin(ra)) * Δε) / 3600
+  const Δdec = Math.sin(ε) * Math.cos(ra) * Δψ + Math.sin(ra) * Δε
 
   return {
-    ra: Δra,
-    dec: Δdec
+    ra: Δra / 3600,
+    dec: Δdec / 3600
   }
 }
 

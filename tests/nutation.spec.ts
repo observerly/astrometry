@@ -34,10 +34,19 @@ describe('getCorrectionToEquatorialForNutation', () => {
     expect(getCorrectionToEquatorialForNutation).toBeDefined()
   })
 
-  it('should return the angular separation between two objects', () => {
+  it('should return the correct nutation correction for the J2000 default epoch', () => {
+    const { ra, dec } = getCorrectionToEquatorialForNutation(
+      new Date('2000-01-01T00:00:00+00:00'),
+      betelgeuse
+    )
+    expect(ra + betelgeuse.ra).toBe(88.79301607419127)
+    expect(dec + betelgeuse.dec).toBe(7.4054349663419785)
+  })
+
+  it('should return the correct nutation correction for the designated epoch', () => {
     const { ra, dec } = getCorrectionToEquatorialForNutation(datetime, betelgeuse)
-    expect(ra + betelgeuse.ra).toBe(88.52194751991885)
-    expect(dec + betelgeuse.dec).toBe(7.448166948222143)
+    expect(ra + betelgeuse.ra).toBe(88.7929588955088)
+    expect(dec + betelgeuse.dec).toBe(7.407781283524082)
   })
 })
 
