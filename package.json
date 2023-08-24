@@ -71,6 +71,11 @@
       "require": "./dist/nutation.cjs",
       "types": "./dist/nutation.d.ts"
     },
+    "./observation": {
+      "import": "./dist/observation.js",
+      "require": "./dist/observation.cjs",
+      "types": "./dist/observation.d.ts"
+    },
     "./precession": {
       "import": "./dist/precession.js",
       "require": "./dist/precession.cjs",
