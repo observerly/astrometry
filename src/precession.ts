@@ -35,66 +35,34 @@ export const getCorrectionToEquatorialForPrecessionOfEquinoxes = (
   // Get the difference in fractional Julian centuries between the target date and J2000.0
   const T = (JD - 2451545.0) / 36525
 
-  const cdr = Math.PI / 180.0
+  // Calculate the precession angle ζ (in degrees):
+  const ζ = (2306.2181 * T + 0.30188 * Math.pow(T, 2) + 0.017998 * Math.pow(T, 3)) / 3600
 
-  const csr = cdr / 3600.0
+  // Calculate the precession angle z (in degrees):
+  const z = (2306.2181 * T + 1.09468 * Math.pow(T, 2) + 0.018203 * Math.pow(T, 3)) / 3600
 
-  const epochFrom = 2000.0
+  // Calculate the precession angle θ (in degrees):
+  const θ = (2004.3109 * T - 0.42665 * Math.pow(T, 2) - 0.041833 * Math.pow(T, 3)) / 3600
 
-  const epochTo = 2000.0 + T * 100
+  // Calculate the reduction coordinates of the target:
+  const A = Math.cos(radians(target.dec)) * Math.sin(radians(target.ra + ζ))
 
-  let { ra, dec } = target
+  const B =
+    Math.cos(radians(θ)) * Math.cos(radians(target.dec)) * Math.cos(radians(target.ra + ζ)) -
+    Math.sin(radians(θ)) * Math.sin(radians(target.dec))
 
-  ra = radians(ra)
+  const C =
+    Math.sin(radians(θ)) * Math.cos(radians(target.dec)) * Math.cos(radians(target.ra + ζ)) +
+    Math.cos(radians(θ)) * Math.sin(radians(target.dec))
 
-  dec = radians(dec)
+  // Calculate the equatorial coordinates of the target:
+  const ra = degrees(Math.atan2(A, B)) + z
 
-  const x1 = [Math.cos(dec) * Math.cos(ra), Math.cos(dec) * Math.sin(ra), Math.sin(dec)]
-
-  const t = 0.001 * (epochTo - epochFrom)
-
-  const st = 0.001 * (epochFrom - 1900.0)
-
-  const a = csr * t * (23042.53 + st * (139.75 + 0.06 * st) + t * (30.23 - 0.27 * st + 18.0 * t))
-  const b = csr * t * t * (79.27 + 0.66 * st + 0.32 * t) + a
-  const c = csr * t * (20046.85 - st * (85.33 + 0.37 * st) + t * (-42.67 - 0.37 * st - 41.8 * t))
-
-  const sina = Math.sin(a)
-  const sinb = Math.sin(b)
-  const sinc = Math.sin(c)
-  const cosa = Math.cos(a)
-  const cosb = Math.cos(b)
-  const cosc = Math.cos(c)
-
-  const r = [
-    [0.0, 0.0, 0.0],
-    [0.0, 0.0, 0.0],
-    [0.0, 0.0, 0.0]
-  ]
-
-  r[0][0] = cosa * cosb * cosc - sina * sinb
-  r[0][1] = -cosa * sinb - sina * cosb * cosc
-  r[0][2] = -cosb * sinc
-  r[1][0] = sina * cosb + cosa * sinb * cosc
-  r[1][1] = cosa * cosb - sina * sinb * cosc
-  r[1][2] = -sinb * sinc
-  r[2][0] = cosa * sinc
-  r[2][1] = -sina * sinc
-  r[2][2] = cosc
-
-  const x2 = [0.0, 0.0, 0.0]
-
-  for (let i = 0; i < 3; i++) {
-    x2[i] = r[i][0] * x1[0] + r[i][1] * x1[1] + r[i][2] * x1[2]
-  }
-
-  ra = Math.atan2(x2[1], x2[0])
-
-  if (ra < 0.0) ra += 2.0 * Math.PI
+  const dec = degrees(Math.asin(C))
 
   return {
-    ra: degrees(ra) - target.ra,
-    dec: degrees(Math.asin(x2[2])) - target.dec
+    ra: ra - target.ra,
+    dec: dec - target.dec
   }
 }
 
