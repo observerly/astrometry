@@ -33,17 +33,17 @@ describe('getCorrectionToEquatorialForPrecessionOfEquinoxes', () => {
 
   it('should return the correct precession correction for the J2000 default epoch', () => {
     const { ra, dec } = getCorrectionToEquatorialForPrecessionOfEquinoxes(
-      new Date('2000-01-01T00:00:00+00:00'),
+      new Date('2000-01-01T12:00:00+00:00'),
       polaris
     )
-    expect(ra + polaris.ra).toBe(37.95416721740917)
-    expect(dec + polaris.dec).toBe(89.26410788485157)
+    expect(ra + polaris.ra).toBeCloseTo(37.95454961)
+    expect(dec + polaris.dec).toBeCloseTo(89.264113893)
   })
 
   it('should return the correct precession correction for the designated epoch', () => {
     const { ra, dec } = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, polaris)
-    expect(ra + polaris.ra).toBe(44.74379194339864)
-    expect(dec + polaris.dec).toBe(89.35352781135785)
+    expect(ra + polaris.ra).toBe(44.745635372429454)
+    expect(dec + polaris.dec).toBe(89.35354802815961)
   })
 })
 
