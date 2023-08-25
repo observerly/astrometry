@@ -18,6 +18,8 @@ import { getCorrectionToEquatorialForNutation } from './nutation'
 
 import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
 
+import { getNormalizedAzimuthalDegree, getNormalizedInclinationDegree } from './utilities'
+
 /*****************************************************************************************************************/
 
 /**
@@ -142,8 +144,14 @@ export class Observation extends Object {
 
     const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(this.datetime, target)
 
-    this.ra = target.ra + abberation.ra + nutation.ra + precession.ra
-    this.dec = target.dec + abberation.dec + nutation.dec + precession.dec
+    const α = target.ra + abberation.ra + nutation.ra + precession.ra
+
+    const δ = target.dec + abberation.dec + nutation.dec + precession.dec
+
+    // Ensure the Right Ascension is normalized to the range [0, 360):
+    this.ra = getNormalizedAzimuthalDegree(α)
+    // Ensure the declination is normalized to the range [-90, 90]:
+    this.dec = getNormalizedInclinationDegree(δ)
   }
 
   private setHourAngle() {
