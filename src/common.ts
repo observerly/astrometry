@@ -55,6 +55,17 @@ export type EquatorialCoordinate = {
 
 /*****************************************************************************************************************/
 
+export const isEquatorialCoordinate = (target: unknown): target is EquatorialCoordinate => {
+  return (
+    typeof target === 'object' &&
+    target !== null &&
+    typeof (target as EquatorialCoordinate).dec === 'number' &&
+    typeof (target as EquatorialCoordinate).ra === 'number'
+  )
+}
+
+/*****************************************************************************************************************/
+
 export type GeographicCoordinate = {
   /**
    *
