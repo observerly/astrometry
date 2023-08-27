@@ -95,6 +95,11 @@
       "import": "./dist/sun.js",
       "require": "./dist/sun.cjs",
       "types": "./dist/sun.d.ts"
+    },
+    "./transit": {
+      "import": "./dist/transit.js",
+      "require": "./dist/transit.cjs",
+      "types": "./dist/transit.d.ts"
     }
   },
   "release": {
