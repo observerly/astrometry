@@ -58,7 +58,8 @@ export default defineConfig({
         precession: resolve(__dirname, 'src/precession.ts'),
         refraction: resolve(__dirname, 'src/refraction.ts'),
         seeing: resolve(__dirname, 'src/seeing.ts'),
-        sun: resolve(__dirname, 'src/sun.ts')
+        sun: resolve(__dirname, 'src/sun.ts'),
+        transit: resolve(__dirname, 'src/transit.ts')
       },
       name: '@observerly/astrometry'
     },
@@ -79,7 +80,8 @@ export default defineConfig({
         precession: resolve(__dirname, 'src/precession.ts'),
         refraction: resolve(__dirname, 'src/refraction.ts'),
         seeing: resolve(__dirname, 'src/seeing.ts'),
-        sun: resolve(__dirname, 'src/sun.ts')
+        sun: resolve(__dirname, 'src/sun.ts'),
+        transit: resolve(__dirname, 'src/transit.ts')
       },
       output: {
         preserveModules: false,
