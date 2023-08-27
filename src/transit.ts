@@ -6,7 +6,14 @@
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, type GeographicCoordinate } from './common'
+import {
+  type HorizontalCoordinate,
+  type EquatorialCoordinate,
+  type GeographicCoordinate,
+  isEquatorialCoordinate,
+  isHorizontalCoordinate
+} from './common'
+import { convertEquatorialToHorizontal } from './coordinates'
 
 import { getNormalizedInclinationDegree } from './utilities'
 
@@ -73,6 +80,47 @@ export const isBodyVisible = (
   // If the object's declination is greater than 90 degrees minus the observer's latitude,
   // then the object is visible (ever above the observer's horizon).
   return extrema > 0 && extrema !== 0
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * isBodyAboveHorizon()
+ *
+ * An object is above the horizon if it is above the observer's horizon at the time of observation.
+ *
+ * @param datetime - The date and time of the observation.
+ * @param observer - The geographic coordinate of the observer.
+ * @param target - The equatorial or horizontal coordinate of the observed object.
+ * @param horizon - The observer's horizon (in degrees).
+ * @returns a boolean indicating whether the target is above the horizon for the observer's location and for the time of observation.
+ *
+ */
+export const isBodyAboveHorizon = (
+  datetime: Date,
+  observer: GeographicCoordinate,
+  target: EquatorialCoordinate | HorizontalCoordinate,
+  horizon: number = 0
+): boolean => {
+  let alt = -Infinity
+
+  // Is the target an equatorial coordinate?
+  if (isEquatorialCoordinate(target)) {
+    const hz = convertEquatorialToHorizontal(datetime, observer, target)
+    // We only need to consider the altitude of the target object:
+    alt = hz.alt
+  }
+
+  // Is the target a horizontal coordinate?
+  if (isHorizontalCoordinate(target)) {
+    // We only need to consider the altitude of the target object:
+    alt = target.alt
+  }
+
+  // If the object's altitude is greater than the observer's horizon,
+  // then the object is visible (ever above the observer's horizon).
+  return alt > horizon
 }
 
 /*****************************************************************************************************************/

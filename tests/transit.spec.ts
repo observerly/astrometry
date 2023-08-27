@@ -10,7 +10,12 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, isBodyCircumpolar, isBodyVisible } from '../src'
+import {
+  type EquatorialCoordinate,
+  isBodyCircumpolar,
+  isBodyVisible,
+  isBodyAboveHorizon
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -168,6 +173,70 @@ describe('isBodyVisible', () => {
   it('should return false for a northerm hemisphere object for a negative latitude', () => {
     expect(
       isBodyVisible(
+        {
+          latitude: -latitude,
+          longitude
+        },
+        polaris,
+        0
+      )
+    ).toBe(false)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('isBodyAboveHorizon', () => {
+  it('should be defined', () => {
+    expect(isBodyAboveHorizon).toBeDefined()
+  })
+
+  it('should return true for a northerm hemisphere object for a postivie latitude', () => {
+    expect(
+      isBodyAboveHorizon(
+        datetime,
+        {
+          latitude,
+          longitude
+        },
+        betelgeuse,
+        0
+      )
+    ).toBe(true)
+  })
+
+  it('should return false for a southern hemisphere object for a postivie latitude', () => {
+    expect(
+      isBodyAboveHorizon(
+        datetime,
+        {
+          latitude,
+          longitude
+        },
+        sigmaOctantis,
+        0
+      )
+    ).toBe(false)
+  })
+
+  it('should return true for a southern hemisphere object for a negative latitude', () => {
+    expect(
+      isBodyAboveHorizon(
+        datetime,
+        {
+          latitude: -latitude,
+          longitude
+        },
+        betelgeuse,
+        0
+      )
+    ).toBe(true)
+  })
+
+  it('should return false for a northerm hemisphere object for a negative latitude', () => {
+    expect(
+      isBodyAboveHorizon(
+        datetime,
         {
           latitude: -latitude,
           longitude
