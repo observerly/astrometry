@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, isBodyCircumpolar } from '../src'
+import { type EquatorialCoordinate, isBodyCircumpolar, isBodyVisible } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -118,3 +118,65 @@ describe('isBodyCircumpolar', () => {
     ).toBe(true)
   })
 })
+
+/*****************************************************************************************************************/
+
+describe('isBodyVisible', () => {
+  it('should be defined', () => {
+    expect(isBodyVisible).toBeDefined()
+  })
+
+  it('should return true for a northerm hemisphere object for a postivie latitude', () => {
+    expect(
+      isBodyVisible(
+        {
+          latitude,
+          longitude
+        },
+        betelgeuse,
+        0
+      )
+    ).toBe(true)
+  })
+
+  it('should return false for a southern hemisphere object for a postivie latitude', () => {
+    expect(
+      isBodyVisible(
+        {
+          latitude,
+          longitude
+        },
+        sigmaOctantis,
+        0
+      )
+    ).toBe(false)
+  })
+
+  it('should return true for a southern hemisphere object for a negative latitude', () => {
+    expect(
+      isBodyVisible(
+        {
+          latitude: -latitude,
+          longitude
+        },
+        betelgeuse,
+        0
+      )
+    ).toBe(true)
+  })
+
+  it('should return false for a northerm hemisphere object for a negative latitude', () => {
+    expect(
+      isBodyVisible(
+        {
+          latitude: -latitude,
+          longitude
+        },
+        polaris,
+        0
+      )
+    ).toBe(false)
+  })
+})
+
+/*****************************************************************************************************************/
