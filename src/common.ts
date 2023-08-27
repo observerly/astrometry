@@ -113,3 +113,14 @@ export type HorizontalCoordinate = {
 }
 
 /*****************************************************************************************************************/
+
+export const isHorizontalCoordinate = (target: unknown): target is HorizontalCoordinate => {
+  return (
+    typeof target === 'object' &&
+    target !== null &&
+    typeof (target as HorizontalCoordinate).alt === 'number' &&
+    typeof (target as HorizontalCoordinate).az === 'number'
+  )
+}
+
+/*****************************************************************************************************************/
