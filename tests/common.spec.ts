@@ -10,7 +10,12 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, isEquatorialCoordinate } from '../src/common'
+import {
+  type EquatorialCoordinate,
+  type HorizontalCoordinate,
+  isEquatorialCoordinate,
+  isHorizontalCoordinate
+} from '../src/common'
 
 /*****************************************************************************************************************/
 
@@ -19,24 +24,22 @@ describe('isEquatorialCoordinate', () => {
     expect(isEquatorialCoordinate).toBeDefined()
   })
 
-  it('should return false for private unknownstring', () => {
+  it('should return false for private unknown string', () => {
     const unknown = 'equatorial_coordinate'
     const result = isEquatorialCoordinate(unknown)
     expect(result).toBe(false)
     expectTypeOf(unknown).not.toEqualTypeOf<EquatorialCoordinate>()
   })
 
-  it('should return false for private unknownstring', () => {
+  it('should return false for private unknown number', () => {
     const unknown = 45
     const result = isEquatorialCoordinate(unknown)
     expect(result).toBe(false)
-
     expectTypeOf(unknown).not.toEqualTypeOf<EquatorialCoordinate>()
   })
 
   it('should return true for valid equatorial coordinates', () => {
     const eq = { ra: 0, dec: 0 }
-
     const result = isEquatorialCoordinate(eq)
     expect(result).toBe(true)
     expectTypeOf(eq).toEqualTypeOf<EquatorialCoordinate>()
@@ -44,7 +47,6 @@ describe('isEquatorialCoordinate', () => {
 
   it('should return false for invalid equatorial coordinates', () => {
     const eq = { alt: 0, az: 0 }
-
     const result = isEquatorialCoordinate(eq)
     expect(result).toBe(false)
     expectTypeOf(eq).not.toEqualTypeOf<EquatorialCoordinate>()
@@ -52,3 +54,37 @@ describe('isEquatorialCoordinate', () => {
 })
 
 /*****************************************************************************************************************/
+
+describe('isHorizontalCoordinate', () => {
+  it('should be defined', () => {
+    expect(isHorizontalCoordinate).toBeDefined()
+  })
+
+  it('should return false for private unknown string', () => {
+    const unknown = 'horizontal_coordinate'
+    const result = isHorizontalCoordinate(unknown)
+    expect(result).toBe(false)
+    expectTypeOf(unknown).not.toEqualTypeOf<HorizontalCoordinate>()
+  })
+
+  it('should return false for private unknown number', () => {
+    const unknown = 45
+    const result = isHorizontalCoordinate(unknown)
+    expect(result).toBe(false)
+    expectTypeOf(unknown).not.toEqualTypeOf<HorizontalCoordinate>()
+  })
+
+  it('should return true for valid horizontal coordinates', () => {
+    const eq = { alt: 0, az: 0 }
+    const result = isHorizontalCoordinate(eq)
+    expect(result).toBe(true)
+    expectTypeOf(eq).toEqualTypeOf<HorizontalCoordinate>()
+  })
+
+  it('should return false for invalid horizontal coordinates', () => {
+    const eq = { ra: 0, dec: 0 }
+    const result = isHorizontalCoordinate(eq)
+    expect(result).toBe(false)
+    expectTypeOf(eq).not.toEqualTypeOf<HorizontalCoordinate>()
+  })
+})
