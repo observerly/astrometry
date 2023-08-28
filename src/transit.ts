@@ -26,6 +26,43 @@ export interface Parameters {
 
 /*****************************************************************************************************************/
 
+export interface Transit {
+  /**
+   *
+   *
+   * The local sidereal time of rise.
+   *
+   *
+   */
+  LSTr: number
+  /**
+   *
+   *
+   * The local sidereal time of set.
+   *
+   *
+   */
+  LSTs: number
+  /**
+   *
+   *
+   * The azimuthal angle (in degrees) of the object at rise.
+   *
+   *
+   */
+  R: number
+  /**
+   *
+   *
+   * The azimuthal angle (in degrees) of the object at set.
+   *
+   *
+   */
+  S: number
+}
+
+/*****************************************************************************************************************/
+
 /**
  *
  * isBodyCircumpolar()
