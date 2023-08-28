@@ -15,7 +15,11 @@ import {
 } from './common'
 import { convertEquatorialToHorizontal } from './coordinates'
 
-import { getNormalizedInclinationDegree, convertDegreesToRadians as radians } from './utilities'
+import {
+  getNormalizedInclinationDegree,
+  convertDegreesToRadians as radians,
+  convertRadiansToDegrees as degrees
+} from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -207,6 +211,66 @@ export const doesBodyRiseOrSet = (
   return {
     Ar,
     H1
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getBodyTransit()
+ *
+ * Determines the local sidereal time and azimuthal angle of rise and set for an object.
+ *
+ * @param observer - The geographic coordinate of the observer.
+ * @param target - The equatorial or horizontal coordinate of the observed object.
+ * @returns the transit for the body, or undefined if the body never rises or sets for the observer.
+ *
+ */
+export const getBodyTransit = (
+  observer: GeographicCoordinate,
+  target: EquatorialCoordinate
+): Transit | undefined => {
+  // Convert the right ascension to hours:
+  const ra = target.ra / 15
+
+  // Get the transit parameters:
+  const body = doesBodyRiseOrSet(observer, target)
+
+  if (!body) {
+    return undefined
+  }
+
+  // Extract the transit parameters from the body:
+  const { H1, Ar } = body
+
+  const H2 = degrees(Math.acos(-H1)) / 15
+
+  // Get the azimuthal angle of rise:
+  const R = degrees(Math.acos(Ar))
+
+  // Get the azimuthal angle of set:
+  const S = 360 - R
+
+  // The local sidereal time of rise:
+  let LSTr = 24 + ra - H2
+
+  if (LSTr > 24) {
+    LSTr -= 24
+  }
+
+  // The local sidereal time of set:
+  let LSTs = ra + H2
+
+  if (LSTs > 24) {
+    LSTs -= 24
+  }
+
+  return {
+    LSTr,
+    LSTs,
+    R,
+    S
   }
 }
 

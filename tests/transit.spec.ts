@@ -15,7 +15,8 @@ import {
   isBodyCircumpolar,
   isBodyVisible,
   isBodyAboveHorizon,
-  doesBodyRiseOrSet
+  doesBodyRiseOrSet,
+  getBodyTransit
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -34,7 +35,7 @@ export const longitude = -155.468094
 const polaris: EquatorialCoordinate = { ra: 37.95456, dec: 89.264108 }
 
 // For testing
-const betelgeuse: EquatorialCoordinate = { ra: 5.919529, dec: 7.407064 }
+const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
 
 // For testings
 const sigmaOctantis: EquatorialCoordinate = { ra: 21.07875, dec: -88.9569444 }
@@ -266,8 +267,8 @@ describe('doesBodyRiseOrSet', () => {
         betelgeuse
       )
     ).toEqual({
-      Ar: 0.13703603027752978,
-      H1: 0.04685668461549029
+      Ar: 0.13703602843777568,
+      H1: 0.04685668397579211
     })
   })
 
@@ -281,6 +282,29 @@ describe('doesBodyRiseOrSet', () => {
         polaris
       )
     ).toBe(false)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getBodyTransit', () => {
+  it('should be defined', () => {
+    expect(getBodyTransit).toBeDefined()
+  })
+
+  it('should return transit parameters for a northerm hemisphere object for a postive latitude', () => {
+    const { LSTr, LSTs, R, S } = getBodyTransit(
+      {
+        latitude,
+        longitude
+      },
+      betelgeuse
+    )
+
+    expect(LSTr).toBe(23.740485646638913)
+    expect(LSTs).toBe(12.098575460027751)
+    expect(R).toBeCloseTo(82.12362992591511)
+    expect(S).toBeCloseTo(277.8763700740849)
   })
 })
 
