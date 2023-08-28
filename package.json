@@ -96,6 +96,11 @@
       "require": "./dist/sun.cjs",
       "types": "./dist/sun.d.ts"
     },
+    "./temporal": {
+      "import": "./dist/temporal.js",
+      "require": "./dist/temporal.cjs",
+      "types": "./dist/temporal.d.ts"
+    },
     "./transit": {
       "import": "./dist/transit.js",
       "require": "./dist/transit.cjs",

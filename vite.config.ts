@@ -59,6 +59,7 @@ export default defineConfig({
         refraction: resolve(__dirname, 'src/refraction.ts'),
         seeing: resolve(__dirname, 'src/seeing.ts'),
         sun: resolve(__dirname, 'src/sun.ts'),
+        temporal: resolve(__dirname, 'src/temporal.ts'),
         transit: resolve(__dirname, 'src/transit.ts')
       },
       name: '@observerly/astrometry'
@@ -81,6 +82,7 @@ export default defineConfig({
         refraction: resolve(__dirname, 'src/refraction.ts'),
         seeing: resolve(__dirname, 'src/seeing.ts'),
         sun: resolve(__dirname, 'src/sun.ts'),
+        temporal: resolve(__dirname, 'src/temporal.ts'),
         transit: resolve(__dirname, 'src/transit.ts')
       },
       output: {

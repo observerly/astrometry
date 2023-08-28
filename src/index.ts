@@ -20,6 +20,7 @@ export * from './precession'
 export * from './refraction'
 export * from './seeing'
 export * from './sun'
+export * from './temporal'
 export * from './transit'
 
 /*****************************************************************************************************************/
