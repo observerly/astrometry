@@ -14,7 +14,8 @@ import {
   type EquatorialCoordinate,
   isBodyCircumpolar,
   isBodyVisible,
-  isBodyAboveHorizon
+  isBodyAboveHorizon,
+  doesBodyRiseOrSet
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -243,6 +244,41 @@ describe('isBodyAboveHorizon', () => {
         },
         polaris,
         0
+      )
+    ).toBe(false)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('doesBodyRiseOrSet', () => {
+  it('should be defined', () => {
+    expect(doesBodyRiseOrSet).toBeDefined()
+  })
+
+  it('should return transit parameters for a northerm hemisphere object for a postive latitude', () => {
+    expect(
+      doesBodyRiseOrSet(
+        {
+          latitude,
+          longitude
+        },
+        betelgeuse
+      )
+    ).toEqual({
+      Ar: 0.13703603027752978,
+      H1: 0.04685668461549029
+    })
+  })
+
+  it('should return false for a nothern hemisphere object for a negative latitude', () => {
+    expect(
+      doesBodyRiseOrSet(
+        {
+          latitude: -85,
+          longitude
+        },
+        polaris
       )
     ).toBe(false)
   })
