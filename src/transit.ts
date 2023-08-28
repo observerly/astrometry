@@ -67,6 +67,41 @@ export interface Transit {
 
 /*****************************************************************************************************************/
 
+export interface TransitInstance {
+  /**
+   * 
+   * 
+   * The date and time of rise.
+   * 
+   * 
+   */
+  datetime: Date
+  /**
+   * 
+   * 
+   * The local sidereal time of rise.
+   * 
+   * 
+   */
+  LST: number
+  /**
+   * 
+   * 
+   * The Greenwhich sidereal time of rise.
+   * 
+   */
+  GST: number
+  /**
+   * 
+   * 
+   * The local azimuthal angle (in degrees) of the object at rise.
+   * 
+   */
+  az: number
+}
+
+/*****************************************************************************************************************/
+
 /**
  *
  * isBodyCircumpolar()
