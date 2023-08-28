@@ -16,7 +16,8 @@ import {
   isBodyVisible,
   isBodyAboveHorizon,
   doesBodyRiseOrSet,
-  getBodyTransit
+  getBodyTransit,
+  getBodyNextSet
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -305,6 +306,38 @@ describe('getBodyTransit', () => {
     expect(LSTs).toBe(12.098575460027751)
     expect(R).toBeCloseTo(82.12362992591511)
     expect(S).toBeCloseTo(277.8763700740849)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getBodyNextSet', () => {
+  it('should be defined', () => {
+    expect(getBodyNextSet).toBeDefined()
+  })
+
+  it('should return transit parameters for a northerm hemisphere object for a postive latitude', () => {
+    const set = getBodyNextSet(
+      new Date('2021-05-14T07:00:00.000+00:00'),
+      {
+        latitude,
+        longitude
+      },
+      betelgeuse
+    )
+
+    expect(set).toBeDefined()
+    expect(set).not.toBeFalsy()
+    expect(set).not.toBe(true)
+
+    if (typeof set === 'boolean') return
+
+    const { GST, LST, az, datetime: d } = set
+
+    expect(GST).toBe(22.463115060027754)
+    expect(LST).toBe(12.098575460027751)
+    expect(az).toBeCloseTo(277.8763700740849)
+    expect(d).toStrictEqual(new Date('2021-05-15T06:54:52.253Z'))
   })
 })
 
