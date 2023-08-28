@@ -15,7 +15,7 @@ import {
 } from './common'
 import { convertEquatorialToHorizontal } from './coordinates'
 
-import { getNormalizedInclinationDegree } from './utilities'
+import { getNormalizedInclinationDegree, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -128,6 +128,49 @@ export const isBodyAboveHorizon = (
   // If the object's altitude is greater than the observer's horizon,
   // then the object is visible (ever above the observer's horizon).
   return alt > horizon
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * doesBodyRiseOrSet()
+ *
+ * An object rises or sets if it is above the observer's horizon at the time of observation.
+ *
+ * @param observer - The geographic coordinate of the observer.
+ * @param target - The equatorial or horizontal coordinate of the observed object.
+ * @returns false if the object never rises or sets for the observer, otherwise returns the Ar and H1 transit parameters.
+ *
+ */
+export const doesBodyRiseOrSet = (
+  observer: GeographicCoordinate,
+  target: EquatorialCoordinate
+): false | Parameters => {
+  // We only need to consider the latitude of the observer:
+  const { latitude } = observer
+
+  // We only need to consider the declination of the target object:
+  const { dec } = target
+
+  // If |Ar| > 1, the object will never rise or set for the observer.
+  const Ar = Math.sin(radians(dec)) / Math.cos(radians(latitude))
+
+  if (Math.abs(Ar) > 1) {
+    return false
+  }
+
+  // If |H1| > 1, the object will never rise or set for the observer.
+  const H1 = Math.tan(radians(latitude)) * Math.tan(radians(dec))
+
+  if (Math.abs(H1) > 1) {
+    return false
+  }
+
+  return {
+    Ar,
+    H1
+  }
 }
 
 /*****************************************************************************************************************/
