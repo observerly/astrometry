@@ -13,7 +13,8 @@ import { describe, expect, it } from 'vitest'
 import {
   getLocalSiderealTime,
   getGreenwhichSiderealTime,
-  convertLocalSiderealTimeToGreenwhichSiderealTime
+  convertLocalSiderealTimeToGreenwhichSiderealTime,
+  convertGreenwhichSiderealTimeToUniversalTime
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -41,6 +42,22 @@ describe('convertLocalSiderealTimeToGreenwhichSiderealTime', () => {
     expect(
       convertLocalSiderealTimeToGreenwhichSiderealTime(LST, { latitude, longitude })
     ).toBeCloseTo(GST)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertGreenwhichSiderealTimeToUniversalTime', () => {
+  it('should be defined', () => {
+    expect(convertGreenwhichSiderealTimeToUniversalTime).toBeDefined()
+  })
+
+  it('should return the correct Universal Coordinated Time for a given Greenwich Sidereal Time', () => {
+    const GST = getGreenwhichSiderealTime(datetime)
+    const UTC = convertGreenwhichSiderealTimeToUniversalTime(GST, datetime)
+    expect(UTC).toBeInstanceOf(Date)
+    // Check that the UTC is the same as the datetime:
+    expect(UTC.getTime()).toBeCloseTo(datetime.getTime(), -3)
   })
 })
 
