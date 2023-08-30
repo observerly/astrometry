@@ -173,3 +173,29 @@ export const getLunarMeanEclipticLongitudeOfTheAscendingNode = (datetime: Date):
 }
 
 /*****************************************************************************************************************/
+
+export const getLunarMeanAnomalyCorrection = (datetime: Date) => {
+  // Get the annual equation correction:
+  const Ae = getLunarAnnualEquationCorrection(datetime)
+
+  // Get the evection correction:
+  const Ev = getLunarEvectionCorrection(datetime)
+
+  // Get the mean anomaly for the Moon:
+  const M = getLunarMeanAnomaly(datetime)
+
+  // Correct for the Sun's mean anomaly:
+  const S = radians(getSolarMeanAnomaly(datetime))
+
+  // Get the mean anomaly correction:
+  let Ca = (M + Ev - Ae - 0.37 * Math.sin(S)) % 360
+
+  // Correct for negative angles
+  if (Ca < 0) {
+    Ca += 360
+  }
+
+  return Ca
+}
+
+/*****************************************************************************************************************/
