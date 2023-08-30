@@ -226,3 +226,53 @@ export const getLunarTrueAnomaly = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarTrueEclipticLongitude()
+ *
+ * The corrected lunar ecliptic longitude is the ecliptic longitude of the Moon
+ * if the Moon's orbit where free of perturbations.
+ *
+ * @param date - The date to calculate the Moon's true ecliptic longitude for.
+ * @returns The Moon's true ecliptic longitude in degrees.
+ *
+ */
+export const getLunarTrueEclipticLongitude = (datetime: Date): number => {
+  // Get the mean ecliptic longitude:
+  let λ = getLunarMeanEclipticLongitude(datetime)
+
+  // Get the annual equation correction:
+  const Ae = getLunarAnnualEquationCorrection(datetime)
+
+  // Get the evection correction:
+  const Ev = getLunarEvectionCorrection(datetime)
+
+  // Get the true anomaly:
+  const ν = getLunarTrueAnomaly(datetime)
+
+  // Get the corrected ecliptic longitude:
+  λ = (λ + Ev + ν - Ae) % 360
+
+  // Correct for negative angles
+  if (λ < 0) {
+    λ += 360
+  }
+
+  // Get the solar ecliptic longitude:
+  const L = getSolarEclipticLongitude(datetime)
+
+  // Get the correction of variation:
+  const V = 0.6583 * Math.sin(2 * radians(λ - L))
+
+  let λt = (λ + V) % 360
+
+  // Correct for negative angles
+  if (λt < 0) {
+    λt += 360
+  }
+
+  return λt
+}
+
+/*****************************************************************************************************************/
