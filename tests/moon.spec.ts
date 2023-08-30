@@ -18,7 +18,8 @@ import {
   getLunarEvectionCorrection,
   getLunarMeanEclipticLongitudeOfTheAscendingNode,
   getLunarMeanAnomalyCorrection,
-  getLunarTrueAnomaly
+  getLunarTrueAnomaly,
+  getLunarTrueEclipticLongitude
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -128,6 +129,19 @@ describe('getLunarTrueAnomaly', () => {
   it('should return the correct Lunar true anomaly for the given date', () => {
     const ν = getLunarTrueAnomaly(datetime)
     expect(ν).toBe(357.3514315617634)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getLunarTrueEclipticLongitude', () => {
+  it('should be defined', () => {
+    expect(getLunarTrueEclipticLongitude).toBeDefined()
+  })
+
+  it('should return the correct Lunar true ecliptic longitude for the given date', () => {
+    const λ = getLunarTrueEclipticLongitude(datetime)
+    expect(λ).toBe(77.01224128076132)
   })
 })
 
