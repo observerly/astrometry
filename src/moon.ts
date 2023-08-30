@@ -199,3 +199,30 @@ export const getLunarMeanAnomalyCorrection = (datetime: Date) => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarTrueAnomaly()
+ *
+ * The true anomaly of the Moon is the angle between the perihelion and the
+ * current position of the Moon, as seen from the Earth.
+ *
+ * @param date - The date to calculate the Moon's true anomaly for.
+ * @returns The Moon's true anomaly in degrees.
+ */
+export const getLunarTrueAnomaly = (datetime: Date): number => {
+  // Get the mean anomaly correction:
+  const Ca = getLunarMeanAnomalyCorrection(datetime)
+
+  // Get the true anomaly:
+  let ν = 6.2886 * Math.sin(radians(Ca)) + ((0.214 * Math.sin(radians(2 * Ca))) % 360)
+
+  // Correct for negative angles
+  if (ν < 0) {
+    ν += 360
+  }
+
+  return ν
+}
+
+/*****************************************************************************************************************/
