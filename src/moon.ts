@@ -6,6 +6,8 @@
 
 /*****************************************************************************************************************/
 
+import { type EclipticCoordinate } from './common'
+
 import { getJulianDate } from './epoch'
 
 import { getSolarMeanAnomaly, getSolarEclipticLongitude } from './sun'
@@ -369,6 +371,50 @@ export const getLunarEclipticLatitude = (datetime: Date): number => {
   const β = degrees(Math.asin(Math.sin(radians(λt - Ωcorr)) * Math.sin(ι)))
 
   return β
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarEclipticCoordinate()
+ *
+ * The ecliptic coordinates for the Moon are the angles between the ecliptic and
+ * the current position of the Moon, as seen from the centre of the Earth,
+ * corrected for the equation of center and the Moon's ecliptic longitude at
+ * perigee at the epoch.
+ *
+ * @param date - The date to calculate the Moon's ecliptic coordinates for.
+ * @returns The Moon's ecliptic coordinates in degrees.
+ *
+ */
+export const getLunarEclipticCoordinate = (datetime: Date): EclipticCoordinate => {
+  // Get the true ecliptic longitude:
+  const λt = getLunarTrueEclipticLongitude(datetime)
+
+  // Get the corrected ecliptic longitude of the ascending node:
+  const Ωcorr = getLunarCorrectedEclipticLongitudeOfTheAscendingNode(datetime)
+
+  // Get the Moon's orbital inclination:
+  const ι = radians(5.1453964)
+
+  // Calculate the ecliptic longitude of the Moon (in degrees):
+  let λ =
+    (Ωcorr +
+      degrees(
+        Math.atan2(Math.sin(radians(λt - Ωcorr)) * Math.cos(ι), Math.cos(radians(λt - Ωcorr)))
+      )) %
+    360
+
+  // Correct for negative angles
+  if (λ < 0) {
+    λ += 360
+  }
+
+  // Calculate the ecliptic latitude of the Moon (in degrees):
+  const β = degrees(Math.asin(Math.sin(radians(λt - Ωcorr)) * Math.sin(ι)))
+
+  return { λ, β }
 }
 
 /*****************************************************************************************************************/
