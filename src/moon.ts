@@ -276,3 +276,27 @@ export const getLunarTrueEclipticLongitude = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarCorrectedEclipticLongitudeOfTheAscendingNode()
+ *
+ * The corrected lunar ecliptic longitude of the ascending node is the angle where
+ * the Moon's orbit crosses the ecliptic corrected for perturbations in the
+ * Moon's orbit due to the Sun.
+ *
+ * @param date - The date to calculate the Moon's corrected ecliptic latitude for.
+ * @returns The Moon's corrected ecliptic latitude in degrees.
+ *
+ */
+export const getLunarCorrectedEclipticLongitudeOfTheAscendingNode = (datetime: Date): number => {
+  // Get the ecliptic longitude of the ascending node:
+  const Ω = getLunarMeanEclipticLongitudeOfTheAscendingNode(datetime)
+
+  // Get the solar mean anomaly:
+  const M = getSolarMeanAnomaly(datetime)
+
+  return Ω - 0.16 * Math.sin(radians(M))
+}
+
+/*****************************************************************************************************************/
