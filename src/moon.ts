@@ -10,7 +10,7 @@ import { getJulianDate } from './epoch'
 
 import { getSolarMeanAnomaly, getSolarEclipticLongitude } from './sun'
 
-import { convertDegreesToRadians as radians } from './utilities'
+import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -297,6 +297,47 @@ export const getLunarCorrectedEclipticLongitudeOfTheAscendingNode = (datetime: D
   const M = getSolarMeanAnomaly(datetime)
 
   return Ω - 0.16 * Math.sin(radians(M))
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarEclipticLongitude()
+ *
+ * The ecliptic longitude for the Moon is the angle between the perihelion and
+ * the current position of the Moon, as seen from the centre of the Earth,
+ * corrected for the equation of center and the Moon's ecliptic longitude at
+ * perigee at the epoch.
+ *
+ * @param date - The date to calculate the Moon's ecliptic longitude for.
+ * @returns The Moon's ecliptic longitude in degrees.
+ *
+ */
+export const getLunarEclipticLongitude = (datetime: Date): number => {
+  // Get the true ecliptic longitude:
+  const λt = getLunarTrueEclipticLongitude(datetime)
+
+  // Get the corrected ecliptic longitude of the ascending node:
+  const Ωcorr = getLunarCorrectedEclipticLongitudeOfTheAscendingNode(datetime)
+
+  // Get the Moon's orbital inclination:
+  const ι = radians(5.1453964)
+
+  // Calculate the ecliptic longitude of the Moon (in degrees):
+  let λ =
+    (Ωcorr +
+      degrees(
+        Math.atan2(Math.sin(radians(λt - Ωcorr)) * Math.cos(ι), Math.cos(radians(λt - Ωcorr)))
+      )) %
+    360
+
+  // Correct for negative angles
+  if (λ < 0) {
+    λ += 360
+  }
+
+  return λ
 }
 
 /*****************************************************************************************************************/
