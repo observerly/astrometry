@@ -30,6 +30,32 @@ export type Observer = {
 
 /*****************************************************************************************************************/
 
+export type EclipticCoordinate = {
+  /**
+   *
+   *
+   * The geocentric ecliptic longitude of a celestial object is the angular
+   * distance measured eastward along the ecliptic from the March equinox to
+   * the (hour circle of the) point above the Earth in question.
+   *
+   *
+   */
+  λ: number
+  /**
+   *
+   *
+   * The geocentric ecliptic latitude of a celestial object is the angular
+   * distance measured north or south of the ecliptic of the point on the
+   * celestial sphere, relative to the ecliptic plane for an observer on
+   * the Earth.
+   *
+   *
+   */
+  β: number
+}
+
+/*****************************************************************************************************************/
+
 export type EquatorialCoordinate = {
   /**
    *
