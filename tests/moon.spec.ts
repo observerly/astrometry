@@ -22,7 +22,8 @@ import {
   getLunarTrueEclipticLongitude,
   getLunarCorrectedEclipticLongitudeOfTheAscendingNode,
   getLunarEclipticLongitude,
-  getLunarEclipticLatitude
+  getLunarEclipticLatitude,
+  getLunarEclipticCoordinate
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -183,6 +184,20 @@ describe('getLunarEclipticLatitude', () => {
 
   it('should return the correct Lunar ecliptic latitude for the given date', () => {
     const β = getLunarEclipticLatitude(datetime)
+    expect(β).toBe(0.48745043387361126)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getLunarEclipticCoordinate', () => {
+  it('should be defined', () => {
+    expect(getLunarEclipticCoordinate).toBeDefined()
+  })
+
+  it('should return the correct Lunar ecliptic coordinate for the given date', () => {
+    const { λ, β } = getLunarEclipticCoordinate(datetime)
+    expect(λ).toBe(76.99043727540315)
     expect(β).toBe(0.48745043387361126)
   })
 })
