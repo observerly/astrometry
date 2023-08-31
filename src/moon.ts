@@ -341,3 +341,34 @@ export const getLunarEclipticLongitude = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarEclipticLatitude()
+ *
+ * The ecliptic latitude for the Moon is the angle between the ecliptic and
+ * the current position of the Moon, as seen from the centre of the Earth,
+ * corrected for the equation of center and the Moon's ecliptic longitude at
+ * perigee at the epoch.
+ *
+ * @param date - The date to calculate the Moon's ecliptic latitude for.
+ * @returns The Moon's ecliptic latitude in degrees.
+ *
+ */
+export const getLunarEclipticLatitude = (datetime: Date): number => {
+  // Get the true ecliptic longitude:
+  const λt = getLunarTrueEclipticLongitude(datetime)
+
+  // Get the corrected ecliptic longitude of the ascending node:
+  const Ωcorr = getLunarCorrectedEclipticLongitudeOfTheAscendingNode(datetime)
+
+  // Get the Moon's orbital inclination:
+  const ι = radians(5.1453964)
+
+  // Calculate the ecliptic latitude of the Moon (in degrees):
+  const β = degrees(Math.asin(Math.sin(radians(λt - Ωcorr)) * Math.sin(ι)))
+
+  return β
+}
+
+/*****************************************************************************************************************/
