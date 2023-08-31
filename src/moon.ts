@@ -6,7 +6,9 @@
 
 /*****************************************************************************************************************/
 
-import { type EclipticCoordinate } from './common'
+import { getObliquityOfTheEcliptic } from './astrometry'
+
+import { type EclipticCoordinate, type EquatorialCoordinate } from './common'
 
 import { getJulianDate } from './epoch'
 
@@ -415,6 +417,49 @@ export const getLunarEclipticCoordinate = (datetime: Date): EclipticCoordinate =
   const β = degrees(Math.asin(Math.sin(radians(λt - Ωcorr)) * Math.sin(ι)))
 
   return { λ, β }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarEquatorialCoordinate()
+ *
+ * The equatorial coordinates for the Moon are the angles between the equator and
+ * the current position of the Moon, as seen from the centre of the Earth,
+ * corrected for the equation of center and the Moon's ecliptic longitude at
+ * perigee at the epoch.
+ *
+ * @param date - The date to calculate the Moon's equatorial coordinates for.
+ * @returns The Moon's equatorial coordinates in degrees.
+ *
+ */
+export const getLunarEquatorialCoordinate = (datetime: Date): EquatorialCoordinate => {
+  // Get the ecliptic coordinates for the Moon:
+  const { λ, β } = getLunarEclipticCoordinate(datetime)
+
+  // Get the ecliptic obliquity:
+  const ε = radians(getObliquityOfTheEcliptic(datetime))
+
+  // Calculate the right ascension of the Moon:
+  const ra = degrees(
+    Math.atan2(
+      Math.sin(radians(λ)) * Math.cos(ε) - Math.tan(radians(β)) * Math.sin(ε),
+      Math.cos(radians(λ))
+    )
+  )
+
+  // Calculate the declination of the Moon:
+  const dec = degrees(
+    Math.asin(
+      Math.sin(radians(β)) * Math.cos(ε) + Math.cos(radians(β)) * Math.sin(ε) * Math.sin(radians(λ))
+    )
+  )
+
+  return {
+    ra,
+    dec
+  }
 }
 
 /*****************************************************************************************************************/
