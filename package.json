@@ -76,6 +76,11 @@
       "require": "./dist/observation.cjs",
       "types": "./dist/observation.d.ts"
     },
+    "./orbit": {
+      "import": "./dist/orbit.js",
+      "require": "./dist/orbit.cjs",
+      "types": "./dist/orbit.d.ts"
+    },
     "./precession": {
       "import": "./dist/precession.js",
       "require": "./dist/precession.cjs",
