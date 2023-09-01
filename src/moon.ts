@@ -585,3 +585,32 @@ export const getLunarAge = (date: Date): { A: number; age: number } => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarPhaseAngle()
+ *
+ * The phase angle of the Moon is the angle subtended by the incident
+ * light from the Sun as seen from the Earth's line of sight.
+ *
+ * @param date - The date to calculate the Moon's phase angle for.
+ * @returns The Moon's phase angle in degrees.
+ *
+ */
+export const getLunarPhaseAngle = (datetime: Date): number => {
+  // Get the mean anomaly:
+  const M = radians(getLunarMeanAnomaly(datetime))
+
+  // Get the age of the Moon in degrees (elongation):
+  const d = getLunarElongation(datetime)
+
+  // Get the phase angle of the Moon in degrees:
+  const PA =
+    180 -
+    d -
+    0.1468 * ((1 - 0.0549 * Math.sin(M)) / (1 - 0.0167 * Math.sin(M))) * Math.sin(radians(d))
+
+  return PA
+}
+
+/*****************************************************************************************************************/
