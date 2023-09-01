@@ -519,3 +519,29 @@ export const getLunarAngularDiameter = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarDistance()
+ *
+ *
+ * The distance to the Moon is the distance between the centre of the Earth
+ * and the centre of the Moon, corrected for the equation of center and the
+ * Moon's ecliptic longitude at perigee at the epoch.
+ *
+ * @param date - The date to calculate the distance to the Moon for.
+ * @returns The distance to the Moon in metres.
+ *
+ */
+export const getLunarDistance = (datetime: Date): number => {
+  // Get the true anomaly:
+  const ν = getLunarTrueAnomaly(datetime)
+
+  // Get the F orbital paramater which applies corrections
+  // due to the Moon's orbital eccentricity:
+  const F = getFOrbitalParameter(ν, 0.0549)
+
+  return 3.844e8 / F
+}
+
+/*****************************************************************************************************************/
