@@ -463,3 +463,33 @@ export const getLunarEquatorialCoordinate = (datetime: Date): EquatorialCoordina
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarElongation()
+ *
+ * The elongation of the Moon is the angle between the Sun and the Moon, as
+ * seen from the reference observer Earth.
+ *
+ * @param date - The date to calculate the Moon's elongation for.
+ * @returns The Moon's elongation in degrees.
+ *
+ */
+export const getLunarElongation = (datetime: Date): number => {
+  // Get the ecliptic coordinate:
+  const { λ, β } = getLunarEclipticCoordinate(datetime)
+
+  // Get the solar ecliptic longitude:
+  const λS = getSolarEclipticLongitude(datetime)
+
+  // Get the age of the Moon in degrees:
+  let d = degrees(Math.acos(Math.cos(radians(λ - λS)) * Math.cos(radians(β)))) % 360
+
+  if (d < 0) {
+    d += 360
+  }
+
+  return d
+}
+
+/*****************************************************************************************************************/
