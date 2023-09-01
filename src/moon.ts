@@ -545,3 +545,43 @@ export const getLunarDistance = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarAge()
+ *
+ * The age of the Moon is calculated by ascertaining the number of degrees
+ * the Moon has traversed in it's orbit, given that it takes the Moon
+ * 29.5306 days to traverse a full 360° in one orbit cycle.
+ *
+ * @param date - The date to calculate the Moon's age for.
+ * @returns The Moon's age in both degrees and days.
+ *
+ */
+export const getLunarAge = (date: Date): { A: number; age: number } => {
+  // Get the true ecliptic longitude:
+  const λt = getLunarTrueEclipticLongitude(date)
+
+  // Get the solar ecliptic longitude:
+  const λ = getSolarEclipticLongitude(date)
+
+  // Get the Moon's age in degrees:
+  let A = (λt - λ) % 360
+
+  // Correct for negative angles:
+  if (A < 0) {
+    A += 360
+  }
+
+  // Get the Moon's age in days by multiplying the age, A,
+  // by the number of degrees traversed per day given that
+  // the Moon orbits the Earth every 29.5306 days:
+  const age = A * (29.5306 / 360)
+
+  return {
+    A,
+    age
+  }
+}
+
+/*****************************************************************************************************************/
