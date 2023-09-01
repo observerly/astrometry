@@ -12,6 +12,8 @@ import { type EclipticCoordinate, type EquatorialCoordinate } from './common'
 
 import { getJulianDate } from './epoch'
 
+import { getFOrbitalParameter } from './orbit'
+
 import { getSolarMeanAnomaly, getSolarEclipticLongitude } from './sun'
 
 import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees } from './utilities'
@@ -490,6 +492,30 @@ export const getLunarElongation = (datetime: Date): number => {
   }
 
   return d
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarAngularDiameter()
+ *
+ * The Moon's angular diameter is the distance between the Moon's centre and
+ * the observer's eye, as seen from the centre of the Earth.
+ *
+ * @param date - The date to calculate the Moon's phase angle for.
+ * @returns The Moon's phase angle in degrees.
+ *
+ */
+export const getLunarAngularDiameter = (datetime: Date): number => {
+  // Get the true anomaly:
+  const ν = getLunarTrueAnomaly(datetime)
+
+  // Get the F orbital paramater which applies corrections
+  // due to the Moon's orbital eccentricity:
+  const F = getFOrbitalParameter(ν, 0.0549)
+
+  return 0.5181 * F
 }
 
 /*****************************************************************************************************************/
