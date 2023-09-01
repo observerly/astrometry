@@ -26,7 +26,8 @@ import {
   getLunarEclipticCoordinate,
   getLunarEquatorialCoordinate,
   getLunarElongation,
-  getLunarAngularDiameter
+  getLunarAngularDiameter,
+  getLunarDistance
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -245,6 +246,20 @@ describe('getLunarAngularDiameter', () => {
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const δ = getLunarAngularDiameter(datetime)
     expect(δ).toBe(0.5480234986129843)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getLunarDistance', () => {
+  it('should be defined', () => {
+    expect(getLunarDistance).toBeDefined()
+  })
+
+  it('should return the correct Lunar distance for the given date', () => {
+    const datetime = new Date('2015-01-02T03:00:00.000+00:00')
+    const Δ = getLunarDistance(datetime)
+    expect(Δ).toBe(363410767.06392413)
   })
 })
 
