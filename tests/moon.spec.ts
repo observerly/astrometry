@@ -30,7 +30,8 @@ import {
   getLunarDistance,
   getLunarAge,
   getLunarPhaseAngle,
-  getLunarIllumination
+  getLunarIllumination,
+  getLunarPhase
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -306,6 +307,38 @@ describe('getLunarIllumination', () => {
     const datetime = new Date('2015-01-01T00:00:00.000+00:00')
     const K = getLunarIllumination(datetime)
     expect(K).toBe(82.36316687224799)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getLunarPhase', () => {
+  it('should be defined', () => {
+    expect(getLunarPhase).toBeDefined()
+  })
+
+  it('should return the correct Lunar phase for the given date as Waxing Gibbous', () => {
+    const datetime = new Date('2015-01-02T02:00:00.000+00:00')
+    const phase = getLunarPhase(datetime)
+    expect(phase).toBe('Waxing Gibbous')
+  })
+
+  it('should return the correct Lunar phase for the given date as Full Moon', () => {
+    const datetime = new Date('2015-01-05T07:00:00.000+00:00')
+    const phase = getLunarPhase(datetime)
+    expect(phase).toBe('Full')
+  })
+
+  it('should return the correct Lunar phase for the given date as Waning Gibbous', () => {
+    const datetime = new Date('2015-01-07T23:00:00.000+00:00')
+    const phase = getLunarPhase(datetime)
+    expect(phase).toBe('Waning Gibbous')
+  })
+
+  it('should return the correct Lunar phase for the given date as Last Quarter', () => {
+    const datetime = new Date('2015-02-12T17:00:00.000+00:00')
+    const phase = getLunarPhase(datetime)
+    expect(phase).toBe('Last Quarter')
   })
 })
 
