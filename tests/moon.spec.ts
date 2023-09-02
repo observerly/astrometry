@@ -29,7 +29,8 @@ import {
   getLunarAngularDiameter,
   getLunarDistance,
   getLunarAge,
-  getLunarPhaseAngle
+  getLunarPhaseAngle,
+  getLunarIllumination
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -291,6 +292,20 @@ describe('getLunarPhaseAngle', () => {
     const datetime = new Date('2015-01-01T00:00:00.000+00:00')
     const PA = getLunarPhaseAngle(datetime)
     expect(PA).toBe(49.66441438659977)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getLunarIllumination', () => {
+  it('should be defined', () => {
+    expect(getLunarIllumination).toBeDefined()
+  })
+
+  it('should return the correct Lunar illumination for the given date', () => {
+    const datetime = new Date('2015-01-01T00:00:00.000+00:00')
+    const K = getLunarIllumination(datetime)
+    expect(K).toBe(82.36316687224799)
   })
 })
 
