@@ -651,3 +651,51 @@ export const getLunarIllumination = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarPhase()
+ *
+ * The phase of the Moon is the shape of the Moon's illuminated portion
+ * as seen from the Earth.
+ *
+ * @param date - The date to calculate the Moon's phase for.
+ * @returns The phase of the Moon.
+ *
+ */
+export const getLunarPhase = (datetime: Date): Phase => {
+  // Get the age of the Moon:
+  const { age } = getLunarAge(datetime)
+
+  if (age >= 0 && age < 3.7) {
+    return Phases.WaningCrescent
+  }
+
+  if (age >= 3.7 && age < 7.4) {
+    return Phases.WaxingCrescent
+  }
+
+  if (age >= 7.4 && age < 11.1) {
+    return Phases.FirstQuarter
+  }
+
+  if (age >= 11.1 && age < 14.6) {
+    return Phases.WaxingGibbous
+  }
+
+  if (age >= 14.6 && age < 15.0) {
+    return Phases.Full
+  }
+
+  if (age >= 15.0 && age < 22.1) {
+    return Phases.WaningGibbous
+  }
+
+  if (age >= 22.1 && age < 25.8) {
+    return Phases.LastQuarter
+  }
+
+  return Phases.New
+}
+
+/*****************************************************************************************************************/
