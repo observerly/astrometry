@@ -614,3 +614,25 @@ export const getLunarPhaseAngle = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarIllimination()
+ *
+ * The total percentage illumination of the Moon as seen from Earth
+ * (i.e., the visible portion of the Moon), not to be confused with
+ * the total illumination of the Moon by the Sun which is always 50%.
+ *
+ * @param date - The date to calculate the Moon's phase angle for.
+ * @returns The Moon's illumination as a percentage of the visible portion of the Moon as seen from Earth.
+ *
+ */
+export const getLunarIllumination = (datetime: Date): number => {
+  // Get the phase angle:
+  const PA = getLunarPhaseAngle(datetime)
+
+  // Get the total illuminated % fraction:
+  return 50 * (1 + Math.cos(radians(PA)))
+}
+
+/*****************************************************************************************************************/
