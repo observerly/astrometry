@@ -20,6 +20,21 @@ import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees 
 
 /*****************************************************************************************************************/
 
+export const Phases = {
+  New: 'New',
+  WaxingCrescent: 'Waxing Crescent',
+  FirstQuarter: 'First Quarter',
+  WaxingGibbous: 'Waxing Gibbous',
+  Full: 'Full',
+  WaningGibbous: 'Waning Gibbous',
+  LastQuarter: 'Last Quarter',
+  WaningCrescent: 'Waning Crescent'
+} as const
+
+export type Phase = (typeof Phases)[keyof typeof Phases]
+
+/*****************************************************************************************************************/
+
 export const getLunarAnnualEquationCorrection = (datetime: Date): number => {
   // Correct for the Sun's mean anomaly:
   const M = radians(getSolarMeanAnomaly(datetime))
