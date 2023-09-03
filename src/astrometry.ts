@@ -86,7 +86,7 @@ export const getGreenwhichSiderealTime = (datetime: Date): number => {
 
   // Convert the UTC time to a decimal fraction of hours:
   const UTC =
-    d.getUTCMilliseconds() / 1e-6 +
+    d.getUTCMilliseconds() / 1e-4 +
     d.getUTCSeconds() / 60 +
     d.getUTCMinutes() / 60 +
     d.getUTCHours()
@@ -95,9 +95,7 @@ export const getGreenwhichSiderealTime = (datetime: Date): number => {
 
   T_0 += A
 
-  let GST = T_0 + A
-
-  GST = GST % 24
+  const GST = T_0 % 24
 
   return GST < 0 ? GST + 24 : GST
 }
