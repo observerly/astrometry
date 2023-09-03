@@ -10,11 +10,47 @@
 
 /*****************************************************************************************************************/
 
-import { defineConfig } from 'vite'
+import { defineConfig, type UserConfig } from 'vite'
 
 import typescript from '@rollup/plugin-typescript'
 
 import { resolve } from 'path'
+
+/*****************************************************************************************************************/
+
+const modules = [
+  'abberation',
+  'astrometry',
+  'common',
+  'constants',
+  'coordinates',
+  'earth',
+  'epoch',
+  'moon',
+  'night',
+  'nutation',
+  'observation',
+  'orbit',
+  'precession',
+  'refraction',
+  'seeing',
+  'sun',
+  'temporal',
+  'transit'
+]
+
+/*****************************************************************************************************************/
+
+const entrypoints = Object.assign(
+  {
+    index: resolve(__dirname, 'src/index.ts')
+  },
+  ...modules.map(module => {
+    return {
+      [module]: resolve(__dirname, `src/${module}.ts`)
+    }
+  })
+) satisfies UserConfig['build']['rollupOptions']['input']
 
 /*****************************************************************************************************************/
 
@@ -43,52 +79,12 @@ export default defineConfig({
     outDir: './dist',
     lib: {
       // Could also be a dictionary or array of multiple entry points
-      entry: {
-        index: resolve(__dirname, 'src/index.ts'),
-        abberation: resolve(__dirname, 'src/abberation.ts'),
-        astrometry: resolve(__dirname, 'src/astrometry.ts'),
-        common: resolve(__dirname, 'src/common.ts'),
-        constants: resolve(__dirname, 'src/constants.ts'),
-        coordinates: resolve(__dirname, 'src/coordinates'),
-        earth: resolve(__dirname, 'src/earth.ts'),
-        epoch: resolve(__dirname, 'src/epoch.ts'),
-        moon: resolve(__dirname, 'src/moon.ts'),
-        night: resolve(__dirname, 'src/night.ts'),
-        nutation: resolve(__dirname, 'src/nutation.ts'),
-        observation: resolve(__dirname, 'src/observation.ts'),
-        orbit: resolve(__dirname, 'src/orbit.ts'),
-        precession: resolve(__dirname, 'src/precession.ts'),
-        refraction: resolve(__dirname, 'src/refraction.ts'),
-        seeing: resolve(__dirname, 'src/seeing.ts'),
-        sun: resolve(__dirname, 'src/sun.ts'),
-        temporal: resolve(__dirname, 'src/temporal.ts'),
-        transit: resolve(__dirname, 'src/transit.ts')
-      },
+      entry: entrypoints,
       name: '@observerly/astrometry'
     },
     rollupOptions: {
       external: ['./playground/*.ts'],
-      input: {
-        index: resolve(__dirname, 'src/index.ts'),
-        abberation: resolve(__dirname, 'src/abberation.ts'),
-        astrometry: resolve(__dirname, 'src/astrometry.ts'),
-        common: resolve(__dirname, 'src/common.ts'),
-        constants: resolve(__dirname, 'src/constants.ts'),
-        coordinates: resolve(__dirname, 'src/coordinates'),
-        earth: resolve(__dirname, 'src/earth.ts'),
-        epoch: resolve(__dirname, 'src/epoch.ts'),
-        moon: resolve(__dirname, 'src/moon.ts'),
-        night: resolve(__dirname, 'src/night.ts'),
-        nutation: resolve(__dirname, 'src/nutation.ts'),
-        observation: resolve(__dirname, 'src/observation.ts'),
-        orbit: resolve(__dirname, 'src/orbit.ts'),
-        precession: resolve(__dirname, 'src/precession.ts'),
-        refraction: resolve(__dirname, 'src/refraction.ts'),
-        seeing: resolve(__dirname, 'src/seeing.ts'),
-        sun: resolve(__dirname, 'src/sun.ts'),
-        temporal: resolve(__dirname, 'src/temporal.ts'),
-        transit: resolve(__dirname, 'src/transit.ts')
-      },
+      input: entrypoints,
       output: {
         preserveModules: false,
         sourcemap: true
