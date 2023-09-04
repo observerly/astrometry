@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getSolarTransit, getNight } from '../src'
+import { getSolarTransit, getNight, isNight } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -88,6 +88,79 @@ describe('getNight', () => {
 
     expect(start?.toISOString()).toBe('2021-05-14T19:56:00.000Z')
     expect(end?.toISOString()).toBe('2021-05-15T04:45:00.000Z')
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('isNight', () => {
+  it('should be defined', () => {
+    expect(isNight).toBeDefined()
+  })
+
+  it('should return true for the observer at a horizon of 0 degrees', () => {
+    expect(
+      isNight(
+        datetime,
+        {
+          latitude,
+          longitude
+        },
+        0
+      )
+    ).toBe(true)
+  })
+
+  it('should return true for the observer at a horizon of 0 degrees at midnight on the current day', () => {
+    expect(
+      isNight(
+        datetime,
+        {
+          latitude,
+          longitude
+        },
+        0
+      )
+    ).toBe(true)
+  })
+
+  it('should return false for the observer at a horizon of 0 degrees after sunrise at ~7am on the current day', () => {
+    expect(
+      isNight(
+        new Date('2021-05-14T06:55:00.000+00:00'),
+        {
+          latitude,
+          longitude
+        },
+        0
+      )
+    ).toBe(false)
+  })
+
+  it('should return false for the observer at a horizon of 0 degrees after sunrise at "noon" on the current day', () => {
+    expect(
+      isNight(
+        new Date('2021-05-14T12:00:00.000+00:00'),
+        {
+          latitude,
+          longitude
+        },
+        0
+      )
+    ).toBe(false)
+  })
+
+  it('should return true for the observer at a horizon of 0 degrees after sunset at 9pm on the current day', () => {
+    expect(
+      isNight(
+        new Date('2021-05-14T21:00:00.000+00:00'),
+        {
+          latitude,
+          longitude
+        },
+        0
+      )
+    ).toBe(true)
   })
 })
 
