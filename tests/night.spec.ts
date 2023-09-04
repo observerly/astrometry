@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getSolarTransit } from '../src'
+import { getSolarTransit, getNight } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -63,6 +63,31 @@ describe('getSolarTransit', () => {
     expect(sunrise?.toISOString()).toBe('2021-05-14T04:01:00.000Z')
     expect(noon?.toISOString()).toBe('2021-05-14T12:20:00.000Z')
     expect(sunset?.toISOString()).toBe('2021-05-14T20:41:00.000Z')
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getNight', () => {
+  it('should be defined', () => {
+    expect(getNight).toBeDefined()
+  })
+
+  it('should return the correct night for the observer at a horizon of 0 degrees', () => {
+    const { start, end } = getNight(
+      datetime,
+      {
+        latitude,
+        longitude
+      },
+      0
+    )
+
+    expect(start).toBeInstanceOf(Date)
+    expect(end).toBeInstanceOf(Date)
+
+    expect(start?.toISOString()).toBe('2021-05-14T19:56:00.000Z')
+    expect(end?.toISOString()).toBe('2021-05-15T04:45:00.000Z')
   })
 })
 
