@@ -88,3 +88,46 @@ export const getSolarTransit = (
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getNight()
+ *
+ * Calculates the start and end of the next night for the observer at the given date.
+ *
+ * @param date - The date to calculate the extent of the next night for.
+ * @param observer - The geographic coordinates of the observer.
+ * @param horizon - The horizon altitude to use for the calculation.
+ * @param temperature - The temperature to use for the calculation.
+ * @param pressure - The pressure to use for the calculation.
+ * @returns The start and end of the next night for the observer.
+ *
+ */
+export const getNight = (
+  datetime: Date,
+  observer: GeographicCoordinate,
+  horizon: number = -12,
+  temperature: number = 288.15,
+  pressure: number = 101325
+): {
+  start: Date | null
+  end: Date | null
+} => {
+  const { sunset } = getSolarTransit(datetime, observer, horizon, temperature, pressure)
+
+  const { sunrise } = getSolarTransit(
+    new Date(datetime.getTime() + 60000 * 60 * 24),
+    observer,
+    horizon,
+    temperature,
+    pressure
+  )
+
+  // The observer could be in perpetual daylight or perpetual night, e.g., the North Pole or South Pole:
+  return {
+    start: sunset,
+    end: sunrise
+  }
+}
+
+/*****************************************************************************************************************/
