@@ -131,3 +131,32 @@ export const getNight = (
 }
 
 /*****************************************************************************************************************/
+
+export const isNight = (
+  datetime: Date,
+  observer: GeographicCoordinate,
+  horizon: number = -12,
+  temperature: number = 288.15,
+  pressure: number = 101325
+) => {
+  const when = new Date(
+    datetime.getFullYear(),
+    datetime.getMonth(),
+    datetime.getDate(),
+    datetime.getHours(),
+    datetime.getMinutes(),
+    datetime.getSeconds(),
+    datetime.getMilliseconds()
+  )
+
+  const { sunrise, sunset } = getSolarTransit(datetime, observer, horizon, temperature, pressure)
+
+  if (sunrise === null || sunset === null) {
+    return false
+  }
+
+  // If the datetime is before sunrise or after sunset, it is night:
+  return when.getTime() <= sunrise.getTime() || when.getTime() >= sunset.getTime()
+}
+
+/*****************************************************************************************************************/
