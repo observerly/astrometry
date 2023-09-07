@@ -77,7 +77,7 @@ export interface TransitInstance {
   /**
    *
    *
-   * The date and time of rise.
+   * The date and time of rise or set.
    *
    *
    */
@@ -85,7 +85,7 @@ export interface TransitInstance {
   /**
    *
    *
-   * The local sidereal time of rise.
+   * The local sidereal time of rise or set.
    *
    *
    */
@@ -93,17 +93,45 @@ export interface TransitInstance {
   /**
    *
    *
-   * The Greenwhich sidereal time of rise.
+   * The Greenwhich sidereal time of rise or set.
    *
    */
   GST: number
   /**
    *
    *
-   * The local azimuthal angle (in degrees) of the object at rise.
+   * The local azimuthal angle (in degrees) of the object at rise or set.
    *
    */
   az: number
+}
+
+/*****************************************************************************************************************/
+
+export const isTransitInstance = (value: unknown): value is TransitInstance => {
+  if (typeof value === 'boolean' || typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  const { datetime, LST, GST, az } = value as TransitInstance
+
+  if (!(datetime instanceof Date)) {
+    return false
+  }
+
+  if (typeof LST !== 'number') {
+    return false
+  }
+
+  if (typeof GST !== 'number') {
+    return false
+  }
+
+  if (typeof az !== 'number') {
+    return false
+  }
+
+  return true
 }
 
 /*****************************************************************************************************************/
