@@ -18,7 +18,8 @@ import {
   doesBodyRiseOrSet,
   getBodyTransit,
   getBodyNextRise,
-  getBodyNextSet
+  getBodyNextSet,
+  isBodyVisibleForNight
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -371,6 +372,69 @@ describe('getBodyNextSet', () => {
     expect(LST).toBe(12.098575460027751)
     expect(az).toBeCloseTo(277.8763700740849)
     expect(d).toStrictEqual(new Date('2021-05-15T06:54:52.253Z'))
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('isBodyVisibleForNight', () => {
+  it('should be defined', () => {
+    expect(isBodyVisibleForNight).toBeDefined()
+  })
+
+  it('should return true for Polaris on January 1st 2021 at midnight', () => {
+    expect(
+      isBodyVisibleForNight(
+        new Date('2021-01-01T12:00:00.000+00:00'),
+        {
+          latitude,
+          longitude
+        },
+        polaris
+      )
+    ).toBe(true)
+  })
+
+  it('should return true for Betelgeuse on January 1st 2021 at midnight', () => {
+    expect(
+      isBodyVisibleForNight(
+        new Date('2021-01-01T12:00:00.000+00:00'),
+        {
+          latitude: 56.130366,
+          longitude
+        },
+        betelgeuse
+      )
+    ).toBe(true)
+  })
+
+  it('should return false for Betelgeuse on July 1st 2021 at midnight', () => {
+    expect(
+      isBodyVisibleForNight(
+        new Date('2021-06-01T12:00:00.000+00:00'),
+        {
+          latitude: 56.130366,
+          longitude
+        },
+        betelgeuse
+      )
+    ).toBe(false)
+  })
+
+  it('should return false for Canopus on September 1st 2021 at midnight', () => {
+    expect(
+      isBodyVisibleForNight(
+        new Date('2021-09-01T12:00:00.000+00:00'),
+        {
+          latitude: 56.130366,
+          longitude
+        },
+        {
+          ra: 95.9879167,
+          dec: -52.6956944
+        }
+      )
+    ).toBe(false)
   })
 })
 

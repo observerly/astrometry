@@ -16,6 +16,8 @@ import {
 
 import { convertEquatorialToHorizontal } from './coordinates'
 
+import { getNight } from './night'
+
 import {
   convertLocalSiderealTimeToGreenwhichSiderealTime,
   convertGreenwhichSiderealTimeToUniversalTime
@@ -108,7 +110,7 @@ export interface TransitInstance {
 
 /*****************************************************************************************************************/
 
-export const isTransitInstance = (value: unknown): value is TransitInstance => {
+const isTransitInstance = (value: unknown): value is TransitInstance => {
   if (typeof value === 'boolean' || typeof value !== 'object' || value === null) {
     return false
   }
@@ -477,6 +479,63 @@ export const getBodyNextSet = (
     GST: GSTs,
     az: transit.S
   }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * isBodyVisibleForNight()
+ *
+ * Determines whether an object is visible at some point during the night.
+ *
+ * @param date - The date to start searching for the next set.
+ * @param observer - The geographic coordinate of the observer.
+ * @param target - The equatorial coordinate of the observed object.
+ * @param horizon - The observer's horizon (in degrees).
+ * @returns a boolean indicating whether the object is visible at some point during the night.
+ *
+ */
+export const isBodyVisibleForNight = (
+  datetime: Date,
+  observer: GeographicCoordinate,
+  target: EquatorialCoordinate,
+  horizon: number = 0
+) => {
+  // If the object is never visible, it never rises:
+  if (!isBodyVisible(observer, target, horizon)) {
+    return false
+  }
+
+  // If the object is circumpolar, it never sets:
+  if (isBodyCircumpolar(observer, target, horizon)) {
+    return true
+  }
+
+  // Get night for the date specified:
+  const { start, end } = getNight(datetime, observer)
+
+  // If we are at the poles, then there is (potentially) no night:
+  if (!start || !end) {
+    return false
+  }
+
+  // Get the next rising time for the object:
+  const rise = getBodyNextRise(datetime, observer, target, horizon)
+
+  if (!isTransitInstance(rise)) {
+    return false
+  }
+
+  // Get the next setting after the rise time for the object:
+  const set = getBodyNextSet(rise.datetime, observer, target, horizon)
+
+  if (!isTransitInstance(set)) {
+    return false
+  }
+
+  // If the rise or set is within the night, then the object is visible for the night:
+  return rise.datetime <= end && set.datetime >= start
 }
 
 /*****************************************************************************************************************/
