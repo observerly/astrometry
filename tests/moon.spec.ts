@@ -31,7 +31,8 @@ import {
   getLunarAge,
   getLunarPhaseAngle,
   getLunarIllumination,
-  getLunarPhase
+  getLunarPhase,
+  getLunarBrownLunationNumber
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -339,6 +340,15 @@ describe('getLunarPhase', () => {
     const datetime = new Date('2015-02-12T17:00:00.000+00:00')
     const phase = getLunarPhase(datetime)
     expect(phase).toBe('Last Quarter')
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getLunarBrownLunationNumber', () => {
+  it('should return the correct Brown Lunation number for the given datetime', () => {
+    const LBN = getLunarBrownLunationNumber(datetime)
+    expect(LBN).toBe(1217)
   })
 })
 
