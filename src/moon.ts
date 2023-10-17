@@ -20,6 +20,18 @@ import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees 
 
 /*****************************************************************************************************************/
 
+/**
+ *
+ *
+ * Lunation 1st as the first new moon of 1923 at approximately 02:41 UTC,
+ * January 17, 1923 as per Ernest William Brown's lunar theory.
+ *
+ *
+ */
+export const LUNATION_BASE_JULIAN_DAY = 2423436.6115277777
+
+/*****************************************************************************************************************/
+
 export const Phases = {
   New: 'New',
   WaxingCrescent: 'Waxing Crescent',
