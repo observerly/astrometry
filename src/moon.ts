@@ -32,6 +32,18 @@ export const LUNATION_BASE_JULIAN_DAY = 2423436.6115277777
 
 /*****************************************************************************************************************/
 
+/**
+ *
+ *
+ * The time between two identical Lunar syzygies, equivalent of 29.53059
+ * Earth days, which is based on Mean Synodic Month, 2000 AD mean solar days.
+ *
+ *
+ */
+export const LUNAR_SYNODIC_MONTH = 29.530588853
+
+/*****************************************************************************************************************/
+
 export const Phases = {
   New: 'New',
   WaxingCrescent: 'Waxing Crescent',
