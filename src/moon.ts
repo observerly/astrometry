@@ -723,3 +723,23 @@ export const getLunarPhase = (datetime: Date): Phase => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getBrownLunationNumber()
+ *
+ * The Brown Lunation Number (BLN), per Ernest William Brown's lunar theory introduced
+ * in the American Ephemeris and Nautical Almanac., defining Lunation 1st as the first
+ * new moon of 1923 at approximately 02:41 UTC, January 17, 1923.
+ *
+ * Represents the number of Lunar synodic months since Lunation 1st.
+ *
+ */
+export const getLunarBrownLunationNumber = (datetime: Date) => {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  return Math.round((JD - LUNATION_BASE_JULIAN_DAY) / LUNAR_SYNODIC_MONTH) + 1
+}
+
+/*****************************************************************************************************************/
