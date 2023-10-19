@@ -16,6 +16,10 @@ import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians 
 
 /*****************************************************************************************************************/
 
+export const SOLAR_TROPICAL_YEAR = 365.242189 as const
+
+/*****************************************************************************************************************/
+
 /**
  *
  * getSolarMeanAnomaly()
