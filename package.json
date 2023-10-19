@@ -86,6 +86,11 @@
       "require": "./dist/orbit.cjs",
       "types": "./dist/orbit.d.ts"
     },
+    "./planets": {
+      "import": "./dist/planets.js",
+      "require": "./dist/planets.cjs",
+      "types": "./dist/planets.d.ts"
+    },
     "./precession": {
       "import": "./dist/precession.js",
       "require": "./dist/precession.cjs",
