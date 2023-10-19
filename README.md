@@ -4,6 +4,8 @@
 
 The key tenants of the library is to use as JavaScript primatives. The notion of the JavaScript `Date` is relied upon heavily and we do not rely on, or enforce reliance on, any third-party datetime or timezone related libraries. This is to ensure that the library can be used in any environment, and that the user can supplement usage with their own datetime libraries of choice, if required.
 
+The second key tenant, is that all coordinates are required to be in degrees for mathematical calculations, and, importantly, in the standard ICRS epoch J2000.
+
 **N.B.** _This project is currently in the early stages of development and is not yet ready for production use._ As it is still in the early stages of development, the API is subject to change.
 
 ## Features
@@ -61,10 +63,13 @@ export const longitude = -155.468094
 To find the horizontal coordinate of, e.g., the star Betelgeuse, at a given time and location:
 
 ```typescript
-import { type EquatorialCoordinate } from '@observerly/astrometry'
+import { type EquatorialCoordinate, convertEquatorialToHorizontal } from '@observerly/astrometry'
 
+// Our astronomical target in this example is Betelgeuse, where
+// the coordinate is given in epoch J2000 and in degrees:
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
 
+// Perform the conversion:
 const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
 
 // alt: 72.78539444063765
