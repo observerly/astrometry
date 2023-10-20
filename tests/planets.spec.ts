@@ -8,7 +8,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { getPlanetaryMeanAnomaly, planets } from '../src'
+import { getPlanetaryEquationOfCenter, getPlanetaryMeanAnomaly, planets } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -28,6 +28,21 @@ describe('getPlanetaryMeanAnomaly', () => {
     expect(venus).toBeDefined()
     const M = getPlanetaryMeanAnomaly(new Date('2016-01-04T03:00:00+00:00'), venus)
     expect(M).toBeCloseTo(57.636998)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getPlanetaryEquationOfCenter', () => {
+  it('should be defined', () => {
+    expect(getPlanetaryEquationOfCenter).toBeDefined()
+  })
+
+  it('should return the correct value for Venus at the datetime prescribed', () => {
+    const venus = planets.find(planet => planet.name === 'Venus')
+    expect(venus).toBeDefined()
+    const E = getPlanetaryEquationOfCenter(new Date('2016-01-04T03:00:00+00:00'), venus)
+    expect(E).toBeCloseTo(0.655907)
   })
 })
 
