@@ -279,6 +279,8 @@ export const getPlanetaryMeanAnomaly = (datetime: Date, planet: Planet): number 
  *
  * @param date - The date to calculate the Sun's mean anomaly for.
  * @param planet - The planet to calculate the mean anomaly for.
+ * @returns a planet's equation of center at a given datetime
+ *
  */
 export const getPlanetaryEquationOfCenter = (datetime: Date, planet: Planet): number => {
   const M = getPlanetaryMeanAnomaly(datetime, planet)
@@ -286,6 +288,28 @@ export const getPlanetaryEquationOfCenter = (datetime: Date, planet: Planet): nu
   const E = (360 / Math.PI) * planet.e * Math.sin(radians(M))
 
   return E
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getPlanetaryTrueAnomaly()
+ *
+ * A planet's true anomaly is the angle between perigee and the planet's
+ * current position, corrected for the planet's eccentricity.
+ *
+ * @param date - The date to calculate the Sun's mean anomaly for.
+ * @param planet - The planet to calculate the mean anomaly for.
+ * @returns a planet's true anomaly at a given datetime
+ *
+ */
+export const getPlanetaryTrueAnomaly = (datetime: Date, planet: Planet): number => {
+  const M = getPlanetaryMeanAnomaly(datetime, planet)
+
+  const E = getPlanetaryEquationOfCenter(datetime, planet)
+
+  return (M + E) % 360
 }
 
 /*****************************************************************************************************************/
