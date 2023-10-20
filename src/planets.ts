@@ -10,6 +10,8 @@ import { J2000 } from './constants'
 
 import { getJulianDate } from './epoch'
 
+import { convertDegreesToRadians as radians } from './utilities'
+
 /*****************************************************************************************************************/
 
 export type Planet = {
@@ -241,6 +243,16 @@ export const planets: Planet[] = [
 
 /*****************************************************************************************************************/
 
+/**
+ *
+ * getPlanetaryMeanAnomaly()
+ *
+ * A planet's mean anomaly is the angle between perigee and the Sun's current position.
+ *
+ * @param date - The date to calculate the Sun's mean anomaly for.
+ * @param planet - The planet to calculate the mean anomaly for.
+ * @returns a planet's mean anomaly at a given datetime
+ */
 export const getPlanetaryMeanAnomaly = (datetime: Date, planet: Planet): number => {
   // Get the Julian date:
   const JD = getJulianDate(datetime)
@@ -257,6 +269,23 @@ export const getPlanetaryMeanAnomaly = (datetime: Date, planet: Planet): number 
 
   // Return the mean anomaly:
   return M
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getPlanetaryEquationOfCenter()
+ *
+ * @param date - The date to calculate the Sun's mean anomaly for.
+ * @param planet - The planet to calculate the mean anomaly for.
+ */
+export const getPlanetaryEquationOfCenter = (datetime: Date, planet: Planet): number => {
+  const M = getPlanetaryMeanAnomaly(datetime, planet)
+
+  const E = (360 / Math.PI) * planet.e * Math.sin(radians(M))
+
+  return E
 }
 
 /*****************************************************************************************************************/
