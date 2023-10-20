@@ -6,6 +6,12 @@
 
 /*****************************************************************************************************************/
 
+import { J2000 } from './constants'
+
+import { getJulianDate } from './epoch'
+
+/*****************************************************************************************************************/
+
 export type Planet = {
   /**
    *
@@ -110,7 +116,7 @@ export type Planet = {
  * All quoted values are for the epoch J2000.0.
  *
  */
-export const planets = [
+export const planets: Planet[] = [
   {
     uid: '01HD49QMD7GA502WXEMY1ZAG15',
     name: 'Mercury',
@@ -231,6 +237,26 @@ export const planets = [
     Ω: 131.784226,
     isInferior: false
   }
-] satisfies Planet[]
+]
+
+/*****************************************************************************************************************/
+
+export const getPlanetaryMeanAnomaly = (datetime: Date, planet: Planet): number => {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  // Get the number of Julian days since the epoch:
+  const De = JD - J2000
+
+  // Calculate the mean anomaly:
+  let M = ((360 / 365.242191) * (De / planet.T) + planet.ε - planet.ϖ) % 360
+
+  if (M < 0) {
+    M += 360
+  }
+
+  // Return the mean anomaly:
+  return M
+}
 
 /*****************************************************************************************************************/
