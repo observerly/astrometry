@@ -1,3 +1,7 @@
+[![@observerly/astrometry](./.github/assets/banner.png)](https:/observerly.com)
+
+---
+
 ## Introduction
 
 🔭 astrometry is observerly's lightweight, zero-dependency\*, type safe astrometry library written in TypeScript. It is aimed to be easy to use, and malleable to your usage, for amateur-astronomers and the general astronomy community to understand how positional astronomy works on a soft high-level.
