@@ -12,6 +12,7 @@ import {
   getPlanetaryEquationOfCenter,
   getPlanetaryMeanAnomaly,
   getPlanetaryTrueAnomaly,
+  getPlanetaryHeliocentricEclipticLongitude,
   planets
 } from '../src'
 
@@ -63,6 +64,24 @@ describe('getPlanetaryTrueAnomaly', () => {
     expect(venus).toBeDefined()
     const E = getPlanetaryTrueAnomaly(new Date('2016-01-04T03:00:00+00:00'), venus)
     expect(E).toBeCloseTo(58.288946)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getPlanetaryHeliocentricEclipticLongitude', () => {
+  it('should be defined', () => {
+    expect(getPlanetaryHeliocentricEclipticLongitude).toBeDefined()
+  })
+
+  it('should return the correct value for Venus at the datetime prescribed', () => {
+    const venus = planets.find(planet => planet.name === 'Venus')
+    expect(venus).toBeDefined()
+    const L = getPlanetaryHeliocentricEclipticLongitude(
+      new Date('2016-01-04T03:00:00+00:00'),
+      venus
+    )
+    expect(L).toBeCloseTo(189.891413)
   })
 })
 
