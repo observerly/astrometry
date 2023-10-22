@@ -15,6 +15,7 @@ import {
   getPlanetaryHeliocentricEclipticLongitude,
   getPlanetaryHeliocentricEclipticLatitude,
   getPlanetaryHeliocentricDistance,
+  getPlanetaryGeocentricEclipticCoordinate,
   planets
 } from '../src'
 
@@ -114,6 +115,36 @@ describe('getPlanetaryHeliocentricDistance', () => {
     expect(venus).toBeDefined()
     const R = getPlanetaryHeliocentricDistance(new Date('2016-01-04T03:00:00+00:00'), venus)
     expect(R).toBe(0.7207354164908778)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getPlanetaryGeocentricEclipticCoordinate', () => {
+  it('should be defined', () => {
+    expect(getPlanetaryGeocentricEclipticCoordinate).toBeDefined()
+  })
+
+  it('should return the correct value for Venus (an interior planet) at the datetime prescribed', () => {
+    const venus = planets.find(planet => planet.name === 'Venus')
+    expect(venus).toBeDefined()
+    const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(
+      new Date('2016-01-04T03:00:00+00:00'),
+      venus
+    )
+    expect(λ).toBe(245.79403406596947)
+    expect(β).toBe(1.8937944394473665)
+  })
+
+  it('should return the correct value for Saturn (an exterior planet) at the datetime prescribed', () => {
+    const saturn = planets.find(planet => planet.name === 'Saturn')
+    expect(saturn).toBeDefined()
+    const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(
+      new Date('2016-01-04T03:00:00+00:00'),
+      saturn
+    )
+    expect(λ).toBe(251.5017460271163)
+    expect(β).toBe(1.6685889641726377)
   })
 })
 

@@ -6,7 +6,11 @@
 
 /*****************************************************************************************************************/
 
+import { type EclipticCoordinate } from './common'
+
 import { J2000 } from './constants'
+
+import { earth } from './earth'
 
 import { getJulianDate } from './epoch'
 
@@ -249,7 +253,7 @@ export const planets: Planet[] = [
  *
  * A planet's mean anomaly is the angle between perigee and the Sun's current position.
  *
- * @param date - The date to calculate the Sun's mean anomaly for.
+ * @param date - The date to calculate the Planet's mean anomaly for.
  * @param planet - The planet to calculate the mean anomaly for.
  * @returns a planet's mean anomaly at a given datetime
  */
@@ -277,8 +281,8 @@ export const getPlanetaryMeanAnomaly = (datetime: Date, planet: Planet): number 
  *
  * getPlanetaryEquationOfCenter()
  *
- * @param date - The date to calculate the Sun's mean anomaly for.
- * @param planet - The planet to calculate the mean anomaly for.
+ * @param date - The date to calculate the Planet's equation of center for.
+ * @param planet - The planet to calculate the equation of center for.
  * @returns a planet's equation of center at a given datetime
  *
  */
@@ -299,8 +303,8 @@ export const getPlanetaryEquationOfCenter = (datetime: Date, planet: Planet): nu
  * A planet's true anomaly is the angle between perigee and the planet's
  * current position, corrected for the planet's eccentricity.
  *
- * @param date - The date to calculate the Sun's mean anomaly for.
- * @param planet - The planet to calculate the mean anomaly for.
+ * @param date - The date to calculate the Planet's true anomaly for.
+ * @param planet - The planet to calculate the true anomaly for.
  * @returns a planet's true anomaly at a given datetime
  *
  */
@@ -318,8 +322,8 @@ export const getPlanetaryTrueAnomaly = (datetime: Date, planet: Planet): number 
  *
  * getPlanetaryHeliocentricEclipticLongitude()
  *
- * @param date - The date to calculate the Sun's mean anomaly for.
- * @param planet - The planet to calculate the mean anomaly for.
+ * @param date - The date to calculate the Planet's heliocentric ecliptic longitude for.
+ * @param planet - The planet to calculate the heliocentric ecliptic longitude for.
  * @returns a planet's heliocentric ecliptic longitude at a given datetime
  *
  */
@@ -338,8 +342,8 @@ export const getPlanetaryHeliocentricEclipticLongitude = (
  *
  * getPlanetaryHeliocentricEclipticLatitude()
  *
- * @param date - The date to calculate the Sun's mean anomaly for.
- * @param planet - The planet to calculate the mean anomaly for.
+ * @param date - The date to calculate the Planet's heliocentric ecliptic latitude for.
+ * @param planet - The planet to calculate the heliocentric ecliptic latitude for.
  * @returns a planet's heliocentric ecliptic latitude at a given datetime
  *
  */
@@ -360,8 +364,8 @@ export const getPlanetaryHeliocentricEclipticLatitude = (
  *
  * getPlanetaryHeliocentricDistance()
  *
- * @param date - The date to calculate the Sun's mean anomaly for.
- * @param planet - The planet to calculate the mean anomaly for.
+ * @param date - The date to calculate the Planet's heliocentric distance for.
+ * @param planet - The planet to calculate the heliocentric distance for.
  * @returns a planet's heliocentric distance at a given datetime (in AUs)
  *
  */
@@ -369,6 +373,86 @@ export const getPlanetaryHeliocentricDistance = (datetime: Date, planet: Planet)
   const v = getPlanetaryTrueAnomaly(datetime, planet)
 
   return (planet.a * (1 - planet.e ** 2)) / (1 + planet.e * Math.cos(radians(v)))
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getPlanetaryGeocentricEclipticCoordinate()
+ *
+ * @param datetime - The date to calculate the Planet's geocentric ecliptic coordinates for.
+ * @param planet - The planet to calculate the geocentric ecliptic coordinates for.
+ * @returns a planet's geocentric ecliptic coordinates at a given datetime
+ *
+ */
+export const getPlanetaryGeocentricEclipticCoordinate = (
+  datetime: Date,
+  planet: Planet
+): EclipticCoordinate => {
+  // Get the geocentric ecliptic longitude for the planet:
+  const Lp = getPlanetaryHeliocentricEclipticLongitude(datetime, planet)
+
+  // Get the geocentric ecliptic latitude for the planet:
+  const Λp = getPlanetaryHeliocentricEclipticLatitude(datetime, planet)
+
+  // Get the geocentric ecliptic longitude for the planet:
+  const Rp = getPlanetaryHeliocentricDistance(datetime, planet)
+
+  const Ω = planet.Ω || 0
+
+  // Caluclate the correction to apply to the planet's ecliptic longiutde:
+  const Lp_corr =
+    Ω +
+    degrees(
+      Math.atan2(Math.sin(radians(Lp - Ω)) * Math.cos(radians(planet.i)), Math.cos(radians(Lp - Ω)))
+    )
+
+  // Get the geocentric ecliptic longitude for Earth:
+  const Le = getPlanetaryHeliocentricEclipticLongitude(datetime, earth)
+
+  // Get the geocentric ecliptic latitude for Earth:
+  // N.B. The following calculation isn't used in the final calculation of the
+  // planet's ecliptic longitude, but is included here for completeness.
+  // const Λe = getPlanetaryHeliocentricEclipticLatitude(datetime, earth)
+
+  // Get the geocentric distance for Earth:
+  const Re = getPlanetaryHeliocentricDistance(datetime, earth)
+
+  let λp = -Infinity
+
+  if (planet.isInferior) {
+    λp =
+      180 +
+      Le +
+      degrees(
+        Math.atan2(
+          Rp * Math.cos(radians(Λp)) * Math.sin(radians(Le - Lp_corr)),
+          Re - Rp * Math.cos(radians(Λp)) * Math.cos(radians(Le - Lp_corr))
+        )
+      )
+  } else {
+    λp =
+      Lp_corr +
+      degrees(
+        Math.atan2(
+          Re * Math.sin(radians(Lp_corr - Le)),
+          Rp * Math.cos(radians(Λp)) - Re * Math.sin(radians(Le - Lp_corr))
+        )
+      )
+  }
+
+  const β = degrees(
+    Math.atan2(
+      Rp * Math.cos(radians(Λp)) * Math.tan(radians(Λp)) * Math.sin(radians(λp - Lp_corr)),
+      Re * Math.sin(radians(Lp_corr - Le))
+    )
+  )
+
+  return {
+    λ: λp % 360,
+    β: β
+  }
 }
 
 /*****************************************************************************************************************/
