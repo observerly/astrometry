@@ -355,3 +355,20 @@ export const getPlanetaryHeliocentricEclipticLatitude = (
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getPlanetaryHeliocentricDistance()
+ *
+ * @param date - The date to calculate the Sun's mean anomaly for.
+ * @param planet - The planet to calculate the mean anomaly for.
+ * @returns a planet's heliocentric distance at a given datetime (in AUs)
+ *
+ */
+export const getPlanetaryHeliocentricDistance = (datetime: Date, planet: Planet): number => {
+  const v = getPlanetaryTrueAnomaly(datetime, planet)
+
+  return (planet.a * (1 - planet.e ** 2)) / (1 + planet.e * Math.cos(radians(v)))
+}
+
+/*****************************************************************************************************************/
