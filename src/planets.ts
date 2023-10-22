@@ -10,7 +10,7 @@ import { J2000 } from './constants'
 
 import { getJulianDate } from './epoch'
 
-import { convertDegreesToRadians as radians } from './utilities'
+import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -330,6 +330,28 @@ export const getPlanetaryHeliocentricEclipticLongitude = (
   const v = getPlanetaryTrueAnomaly(datetime, planet)
 
   return (v + planet.ϖ) % 360
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getPlanetaryHeliocentricEclipticLatitude()
+ *
+ * @param date - The date to calculate the Sun's mean anomaly for.
+ * @param planet - The planet to calculate the mean anomaly for.
+ * @returns a planet's heliocentric ecliptic latitude at a given datetime
+ *
+ */
+export const getPlanetaryHeliocentricEclipticLatitude = (
+  datetime: Date,
+  planet: Planet
+): number => {
+  const L = getPlanetaryHeliocentricEclipticLongitude(datetime, planet)
+
+  const Ω = planet.Ω || 0
+
+  return degrees(Math.asin(Math.sin(radians(L - Ω)) * Math.sin(radians(planet.i)))) % 360
 }
 
 /*****************************************************************************************************************/
