@@ -10,7 +10,11 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, convertEquatorialToHorizontal } from '../src'
+import {
+  type EquatorialCoordinate,
+  convertEclipticToEquatorial,
+  convertEquatorialToHorizontal
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -26,6 +30,25 @@ export const longitude = -155.468094
 
 // For testing
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
+
+/*****************************************************************************************************************/
+
+describe('convertEclipticToEquatorial', () => {
+  it('should be defined', () => {
+    expect(convertEclipticToEquatorial).toBeDefined()
+  })
+
+  it('should return the correct equatorial coodinate for the planet Venus for the datetime provided', () => {
+    const venus = {
+      λ: 245.79403406596947,
+      β: 1.8937944394473665
+    }
+
+    const { ra, dec } = convertEclipticToEquatorial(new Date('2016-01-04T03:00:00+00:00'), venus)
+    expect(ra).toBe(244.24799409185357)
+    expect(dec).toBe(-19.405675761170443)
+  })
+})
 
 /*****************************************************************************************************************/
 
