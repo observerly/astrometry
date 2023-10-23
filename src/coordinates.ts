@@ -6,15 +6,51 @@
 
 /*****************************************************************************************************************/
 
-import { getHourAngle } from './astrometry'
+import { getHourAngle, getObliquityOfTheEcliptic } from './astrometry'
 
 import {
+  type EclipticCoordinate,
   type EquatorialCoordinate,
   type GeographicCoordinate,
   type HorizontalCoordinate
 } from './common'
 
 import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees } from './utilities'
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * convertEclipticToEquatorial()
+ *
+ * Performs the conversion from Ecliptic to Equatorial coordinates for a given
+ * datetime and target (observer agnostic).
+ *
+ * @param date - The date and time of the observation for which to calculate the Horizontal coordinate
+ * @param target - The ecliptical coordinate of the observed object.
+ * @returns The equatorial coordinates of the target
+ *
+ */
+export const convertEclipticToEquatorial = (
+  datetime: Date,
+  target: EclipticCoordinate
+): EquatorialCoordinate => {
+  // Get the obliquity of the ecliptic for the given datetime:
+  const ε = radians(getObliquityOfTheEcliptic(datetime))
+
+  const λ = radians(target.λ)
+
+  const β = radians(target.β)
+
+  const α = Math.atan2(Math.sin(λ) * Math.cos(ε) - Math.tan(β) * Math.sin(ε), Math.cos(λ))
+
+  const δ = Math.asin(Math.sin(β) * Math.cos(ε) + Math.cos(β) * Math.sin(ε) * Math.sin(λ))
+
+  return {
+    ra: degrees(α) < 0 ? degrees(α) + 360 : degrees(α),
+    dec: degrees(δ)
+  }
+}
 
 /*****************************************************************************************************************/
 
