@@ -26,6 +26,7 @@ const modules = [
   'coordinates',
   'earth',
   'epoch',
+  'humanize',
   'moon',
   'night',
   'nutation',
