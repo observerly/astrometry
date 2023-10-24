@@ -18,7 +18,7 @@ jobs:
 
     env:
       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_OBSERVERLY_PUBLIC_TOKEN }}
 
     steps:
       - name: Checkout 🛎
@@ -50,11 +50,11 @@ jobs:
       - name: Build the package ready for publishing
         run: pnpm run build
 
-      - uses: JS-DevTools/npm-publish@v1
+      - uses: JS-DevTools/npm-publish@v3
         with:
-          registry: 'https://npm.pkg.github.com'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          check-version: true
+          registry: 'https://registry.npmjs.org/'
+          access: 'public'
+          token: ${{ secrets.NPM_OBSERVERLY_PUBLIC_TOKEN }}
 
       - if: steps.publish.outputs.type != 'none'
         run: |
