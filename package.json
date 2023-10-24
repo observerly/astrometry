@@ -3,6 +3,7 @@
   "version": "0.23.0",
   "description": "observerly's lightweight, zero-dependency, type safe astrometry library written in Typescript.",
   "private": false,
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/observerly/astrometry.git"
