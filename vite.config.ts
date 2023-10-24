@@ -34,6 +34,7 @@ const modules = [
   'orbit',
   'planets',
   'precession',
+  'projection',
   'refraction',
   'seeing',
   'sun',
