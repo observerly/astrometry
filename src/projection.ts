@@ -26,13 +26,14 @@ export const convertHorizontalToStereo = (
   extent: {
     width: number
     height: number
-  }
+  },
+  focus: number = 0.42
 ): CartesianCoordinate => {
   const { az, alt } = target
 
   const { width, height } = extent
 
-  const f = 0.42
+  const f = focus
 
   const sinalt1 = 0
 
