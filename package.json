@@ -103,6 +103,11 @@
       "require": "./dist/precession.cjs",
       "types": "./dist/precession.d.ts"
     },
+    "./projection": {
+      "import": "./dist/projection.js",
+      "require": "./dist/projection.cjs",
+      "types": "./dist/projection.d.ts"
+    },
     "./refraction": {
       "import": "./dist/refraction.js",
       "require": "./dist/refraction.cjs",
