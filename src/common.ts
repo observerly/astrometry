@@ -30,6 +30,38 @@ export type Observer = {
 
 /*****************************************************************************************************************/
 
+export type CartesianCoordinate = {
+  /**
+   *
+   *
+   * The x-coordinate of a cartesian coordinate is the distance from the origin
+   * to the point on the x-axis.
+   *
+   *
+   */
+  x: number
+  /**
+   *
+   *
+   * The y-coordinate of a cartesian coordinate is the distance from the origin
+   * to the point on the y-axis.
+   *
+   *
+   */
+  y: number
+  /**
+   *
+   *
+   * The z-coordinate of a cartesian coordinate is the distance from the origin
+   * to the point on the z-axis.
+   *
+   *
+   */
+  z?: number
+}
+
+/*****************************************************************************************************************/
+
 export type EclipticCoordinate = {
   /**
    *
