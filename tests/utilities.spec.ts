@@ -10,9 +10,12 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
+import { type EquatorialCoordinate } from '../src'
+
 import {
   convertDegreesToRadians,
   convertRadiansToDegrees,
+  convertDegreeToDMS,
   getNormalizedAzimuthalDegree,
   getNormalizedInclinationDegree
 } from '../src/utilities'
@@ -148,3 +151,37 @@ describe('getNormalizedInclinationDegree', () => {
     expect(degree).toBe(-50)
   })
 })
+
+/*****************************************************************************************************************/
+
+describe('convertDegreeToDMS', () => {
+  it('should be defined', () => {
+    expect(convertDegreeToDMS).toBeDefined()
+  })
+
+  it('should correctly convert a degree value to degrees, minutes and seconds for Betelgeuse', () => {
+    const betelgeuse: EquatorialCoordinate = {
+      ra: 88.7929583,
+      dec: 7.4070639
+    }
+
+    const { deg, min, sec } = convertDegreeToDMS(betelgeuse.dec)
+    expect(deg).toBe(7)
+    expect(min).toBe(24)
+    expect(sec).toBe(25.43)
+  })
+
+  it('should correctly convert a degree value to degrees, minutes and seconds for Spica', () => {
+    const spica: EquatorialCoordinate = {
+      ra: 201.2983,
+      dec: -11.1614
+    }
+
+    const { deg, min, sec } = convertDegreeToDMS(spica.dec)
+    expect(deg).toBe(-11)
+    expect(min).toBe(9)
+    expect(sec).toBe(41.04)
+  })
+})
+
+/*****************************************************************************************************************/
