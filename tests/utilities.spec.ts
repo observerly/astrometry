@@ -16,6 +16,7 @@ import {
   convertDegreesToRadians,
   convertRadiansToDegrees,
   convertDegreeToDMS,
+  convertDegreeToHMS,
   getNormalizedAzimuthalDegree,
   getNormalizedInclinationDegree
 } from '../src/utilities'
@@ -181,6 +182,38 @@ describe('convertDegreeToDMS', () => {
     expect(deg).toBe(-11)
     expect(min).toBe(9)
     expect(sec).toBe(41.04)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertDegreeToHMS', () => {
+  it('should be defined', () => {
+    expect(convertDegreeToHMS).toBeDefined()
+  })
+
+  it('should correctly convert a degree value to hours, minutes and seconds for Betelgeuse', () => {
+    const betelgeuse: EquatorialCoordinate = {
+      ra: 88.7929583,
+      dec: 7.4070639
+    }
+
+    const { hrs, min, sec } = convertDegreeToHMS(betelgeuse.ra)
+    expect(hrs).toBe(5)
+    expect(min).toBe(55)
+    expect(sec).toBe(10.31)
+  })
+
+  it('should correctly convert a degree value to hours, minutes and seconds for Spica', () => {
+    const spica: EquatorialCoordinate = {
+      ra: 201.2983,
+      dec: -11.1614
+    }
+
+    const { hrs, min, sec } = convertDegreeToHMS(spica.ra)
+    expect(hrs).toBe(13)
+    expect(min).toBe(25)
+    expect(sec).toBe(11.592)
   })
 })
 
