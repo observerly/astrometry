@@ -6,6 +6,14 @@
 
 /*****************************************************************************************************************/
 
+import { type EquatorialCoordinate } from './common'
+
+import { NANCY_ROMAN_TABLE_I } from './nancy'
+
+import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
+
+/*****************************************************************************************************************/
+
 export interface Constellation {
   /**
    *
@@ -122,9 +130,9 @@ export interface Constellation {
 
 /*****************************************************************************************************************/
 
-export const constellations = new Map<Constellation['abbreviation'], Constellation>([
+export const constellations = new Map<string, Constellation>([
   [
-    'And',
+    'Andromeda',
     {
       name: 'Andromeda',
       meaning: 'The Chained Princess',
@@ -132,7 +140,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Ant',
+    'Antlia',
     {
       name: 'Antlia',
       meaning: 'The Air Pump',
@@ -140,7 +148,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Aps',
+    'Apus',
     {
       name: 'Apus',
       meaning: 'The Bird of Paradise',
@@ -148,7 +156,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Aqr',
+    'Aquarius',
     {
       name: 'Aquarius',
       meaning: 'The Water Bearer',
@@ -156,7 +164,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Aql',
+    'Aquila',
     {
       name: 'Aquila',
       meaning: 'The Eagle',
@@ -172,7 +180,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Ari',
+    'Aries',
     {
       name: 'Aries',
       meaning: 'The Ram',
@@ -180,7 +188,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Aur',
+    'Auriga',
     {
       name: 'Auriga',
       meaning: 'The Charioteer',
@@ -188,7 +196,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Boo',
+    'Boötes',
     {
       name: 'Boötes',
       meaning: 'The Herdsman',
@@ -196,7 +204,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cae',
+    'Caelum',
     {
       name: 'Caelum',
       meaning: 'The Chisel',
@@ -204,7 +212,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cam',
+    'Camelopardalis',
     {
       name: 'Camelopardalis',
       meaning: 'The Giraffe',
@@ -212,7 +220,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cnc',
+    'Cancer',
     {
       name: 'Cancer',
       meaning: 'The Crab',
@@ -220,7 +228,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'CVn',
+    'Canes Venatici',
     {
       name: 'Canes Venatici',
       meaning: 'The Hunting Dogs',
@@ -228,7 +236,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'CMa',
+    'Canis Major',
     {
       name: 'Canis Major',
       meaning: 'The Great Dog',
@@ -236,7 +244,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'CMi',
+    'Canis Minor',
     {
       name: 'Canis Minor',
       meaning: 'The Lesser Dog',
@@ -244,7 +252,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cap',
+    'Capricornus',
     {
       name: 'Capricornus',
       meaning: 'The Sea Goat',
@@ -252,7 +260,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Car',
+    'Carina',
     {
       name: 'Carina',
       meaning: 'The Keel',
@@ -260,7 +268,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cas',
+    'Cassiopeia',
     {
       name: 'Cassiopeia',
       meaning: 'The Queen',
@@ -268,7 +276,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cen',
+    'Centaurus',
     {
       name: 'Centaurus',
       meaning: 'The Centaur',
@@ -276,7 +284,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cep',
+    'Cepheus',
     {
       name: 'Cepheus',
       meaning: 'The King',
@@ -284,7 +292,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cet',
+    'Cetus',
     {
       name: 'Cetus',
       meaning: 'The Whale',
@@ -292,7 +300,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cha',
+    'Chamaeleon',
     {
       name: 'Chamaeleon',
       meaning: 'The Chameleon',
@@ -300,7 +308,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cir',
+    'Circinus',
     {
       name: 'Circinus',
       meaning: 'The Compasses',
@@ -308,7 +316,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Col',
+    'Columba',
     {
       name: 'Columba',
       meaning: 'The Dove',
@@ -316,7 +324,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Com',
+    'Coma Berenices',
     {
       name: 'Coma Berenices',
       meaning: "Berenice's Hair",
@@ -324,7 +332,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'CrA',
+    'Corona Australis',
     {
       name: 'Corona Australis',
       meaning: 'The Southern Crown',
@@ -332,7 +340,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'CrB',
+    'Corona Borealis',
     {
       name: 'Corona Borealis',
       meaning: 'The Northern Crown',
@@ -340,7 +348,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Crv',
+    'Corvus',
     {
       name: 'Corvus',
       meaning: 'The Crow',
@@ -348,7 +356,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Crt',
+    'Crater',
     {
       name: 'Crater',
       meaning: 'The Cup',
@@ -356,7 +364,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cru',
+    'Crux',
     {
       name: 'Crux',
       meaning: 'The Southern Cross',
@@ -364,7 +372,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Cyg',
+    'Cygnus',
     {
       name: 'Cygnus',
       meaning: 'The Swan',
@@ -372,7 +380,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Del',
+    'Delphinus',
     {
       name: 'Delphinus',
       meaning: 'The Dolphin',
@@ -380,7 +388,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Dor',
+    'Dorado',
     {
       name: 'Dorado',
       meaning: 'The Swordfish',
@@ -388,7 +396,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Dra',
+    'Draco',
     {
       name: 'Draco',
       meaning: 'The Dragon',
@@ -396,7 +404,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Equ',
+    'Equuleus',
     {
       name: 'Equuleus',
       meaning: 'The Little Horse',
@@ -404,7 +412,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Eri',
+    'Eridanus',
     {
       name: 'Eridanus',
       meaning: 'The River',
@@ -412,7 +420,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'For',
+    'Fornax',
     {
       name: 'Fornax',
       meaning: 'The Furnace',
@@ -420,7 +428,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Gem',
+    'Gemini',
     {
       name: 'Gemini',
       meaning: 'The Twins',
@@ -428,7 +436,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Gru',
+    'Grus',
     {
       name: 'Grus',
       meaning: 'The Crane',
@@ -436,7 +444,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Her',
+    'Hercules',
     {
       name: 'Hercules',
       meaning: 'The Hero',
@@ -444,7 +452,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Hor',
+    'Horologium',
     {
       name: 'Horologium',
       meaning: 'The Pendulum Clock',
@@ -452,7 +460,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Hya',
+    'Hydra',
     {
       name: 'Hydra',
       meaning: 'The Water Snake',
@@ -460,7 +468,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Hyi',
+    'Hydrus',
     {
       name: 'Hydrus',
       meaning: 'The Water Snake',
@@ -468,7 +476,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Ind',
+    'Indus',
     {
       name: 'Indus',
       meaning: 'The Indian',
@@ -476,7 +484,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Lac',
+    'Lacerta',
     {
       name: 'Lacerta',
       meaning: 'The Lizard',
@@ -492,7 +500,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'LMi',
+    'Leo Minor',
     {
       name: 'Leo Minor',
       meaning: 'The Lesser Lion',
@@ -500,7 +508,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Lep',
+    'Lepus',
     {
       name: 'Lepus',
       meaning: 'The Hare',
@@ -508,7 +516,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Lib',
+    'Libra',
     {
       name: 'Libra',
       meaning: 'The Scales',
@@ -516,7 +524,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Lup',
+    'Lupus',
     {
       name: 'Lupus',
       meaning: 'The Wolf',
@@ -524,7 +532,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Lyn',
+    'Lynx',
     {
       name: 'Lynx',
       meaning: 'The Lynx',
@@ -532,7 +540,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Lyr',
+    'Lyra',
     {
       name: 'Lyra',
       meaning: 'The Lyre',
@@ -540,7 +548,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Men',
+    'Mensa',
     {
       name: 'Mensa',
       meaning: 'The Table Mountain',
@@ -548,7 +556,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Mic',
+    'Microscopium',
     {
       name: 'Microscopium',
       meaning: 'The Microscope',
@@ -556,7 +564,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Mon',
+    'Monoceros',
     {
       name: 'Monoceros',
       meaning: 'The Unicorn',
@@ -564,7 +572,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Mus',
+    'Musca',
     {
       name: 'Musca',
       meaning: 'The Fly',
@@ -572,7 +580,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Nor',
+    'Norma',
     {
       name: 'Norma',
       meaning: "The Carpenter's Square",
@@ -580,7 +588,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Oct',
+    'Octans',
     {
       name: 'Octans',
       meaning: 'The Octant',
@@ -588,7 +596,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Oph',
+    'Ophiuchus',
     {
       name: 'Ophiuchus',
       meaning: 'The Serpent Bearer',
@@ -596,7 +604,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Ori',
+    'Orion',
     {
       name: 'Orion',
       meaning: 'Orion the Hunter',
@@ -604,7 +612,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Pav',
+    'Pavo',
     {
       name: 'Pavo',
       meaning: 'The Peacock',
@@ -612,7 +620,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Peg',
+    'Pegasus',
     {
       name: 'Pegasus',
       meaning: 'The Winged Horse',
@@ -620,7 +628,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Per',
+    'Perseus',
     {
       name: 'Perseus',
       meaning: 'Perseus',
@@ -628,7 +636,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Phe',
+    'Phoenix',
     {
       name: 'Phoenix',
       meaning: 'The Phoenix',
@@ -636,7 +644,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Pic',
+    'Pictor',
     {
       name: 'Pictor',
       meaning: "The Painter's Easel",
@@ -644,7 +652,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Psc',
+    'Pisces',
     {
       name: 'Pisces',
       meaning: 'The Fishes',
@@ -652,7 +660,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'PsA',
+    'Piscis Austrinus',
     {
       name: 'Piscis Austrinus',
       meaning: 'The Southern Fish',
@@ -660,7 +668,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Pup',
+    'Puppis',
     {
       name: 'Puppis',
       meaning: 'The Poop Deck',
@@ -668,7 +676,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Pyx',
+    'Pyxis',
     {
       name: 'Pyxis',
       meaning: 'The Compass',
@@ -676,7 +684,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Ret',
+    'Reticulum',
     {
       name: 'Reticulum',
       meaning: 'The Reticle',
@@ -684,7 +692,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Sge',
+    'Sagitta',
     {
       name: 'Sagitta',
       meaning: 'The Arrow',
@@ -692,7 +700,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Sgr',
+    'Sagittarius',
     {
       name: 'Sagittarius',
       meaning: 'The Archer',
@@ -700,7 +708,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Sco',
+    'Scorpius',
     {
       name: 'Scorpius',
       meaning: 'The Scorpion',
@@ -708,7 +716,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Scl',
+    'Sculptor',
     {
       name: 'Sculptor',
       meaning: "The Sculptor's Studio",
@@ -716,7 +724,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Sct',
+    'Scutum',
     {
       name: 'Scutum',
       meaning: 'The Shield',
@@ -724,7 +732,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Ser',
+    'Serpens',
     {
       name: 'Serpens',
       meaning: 'The Serpent',
@@ -732,7 +740,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Sex',
+    'Sextans',
     {
       name: 'Sextans',
       meaning: 'The Sextant',
@@ -740,7 +748,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Tau',
+    'Taurus',
     {
       name: 'Taurus',
       meaning: 'The Bull',
@@ -748,7 +756,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Tel',
+    'Telescopium',
     {
       name: 'Telescopium',
       meaning: 'The Telescope',
@@ -756,7 +764,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Tri',
+    'Triangulum',
     {
       name: 'Triangulum',
       meaning: 'The Triangle',
@@ -764,7 +772,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'TrA',
+    'Triangulum Australe',
     {
       name: 'Triangulum Australe',
       meaning: 'The Southern Triangle',
@@ -772,7 +780,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Tuc',
+    'Tucana',
     {
       name: 'Tucana',
       meaning: 'The Toucan',
@@ -780,7 +788,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'UMa',
+    'Ursa Major',
     {
       name: 'Ursa Major',
       meaning: 'The Great Bear',
@@ -788,7 +796,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'UMi',
+    'Ursa Minor',
     {
       name: 'Ursa Minor',
       meaning: 'The Little Bear',
@@ -796,7 +804,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Vel',
+    'Vela',
     {
       name: 'Vela',
       meaning: 'The Sails',
@@ -804,7 +812,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Vir',
+    'Virgo',
     {
       name: 'Virgo',
       meaning: 'The Virgin',
@@ -812,7 +820,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Vol',
+    'Volans',
     {
       name: 'Volans',
       meaning: 'The Flying Fish',
@@ -820,7 +828,7 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ],
   [
-    'Vul',
+    'Vulpecula',
     {
       name: 'Vulpecula',
       meaning: 'The Little Fox',
@@ -828,5 +836,42 @@ export const constellations = new Map<Constellation['abbreviation'], Constellati
     }
   ]
 ])
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getConstellation()
+ *
+ * Performs a lookup of the Nancy Roman lookup table to find the constellation
+ * that the target equatorial coordinate is in.
+ *
+ * @param target - The target equatorial coordinate.
+ * @returns The constellation that the target equatorial coordinate is in, or undefined
+ *
+ */
+export const getConstellation = (target: EquatorialCoordinate): Constellation | undefined => {
+  // We precess to 1875, as the Nancy Roman lookup table is accurate for that epoch:
+  const corr = getCorrectionToEquatorialForPrecessionOfEquinoxes(new Date(1875, 0, 0), target)
+
+  // Apply the correction to the target's right ascension:
+  const ra = target.ra + (corr.ra % 360)
+
+  // Apply the correction to the target's declination:
+  const dec = target.dec + corr.dec
+
+  // N.B. The Nancy Roman lookup table uses right ascension in hours,
+  // so we convert the target's right ascension to hours:
+  const ha = ra / 15
+
+  // Find the constellation that matches the target's coordinates in the Nancy Roman lookup table :
+  const match = NANCY_ROMAN_TABLE_I.find(
+    constellation =>
+      !(dec < constellation.decl || ha < constellation.ral || ha >= constellation.rau)
+  )
+
+  // If we have a match, return the constellation, otherwise return undefined:
+  return match ? constellations.get(match.name) : undefined
+}
 
 /*****************************************************************************************************************/
