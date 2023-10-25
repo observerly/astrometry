@@ -23,6 +23,7 @@ const modules = [
   'astrometry',
   'common',
   'constants',
+  'constellations',
   'coordinates',
   'earth',
   'epoch',

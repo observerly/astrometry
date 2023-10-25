@@ -64,6 +64,11 @@
       "require": "./dist/constants.cjs",
       "types": "./dist/constants.d.ts"
     },
+    "./constellations": {
+      "import": "./dist/constellations.js",
+      "require": "./dist/constellations.cjs",
+      "types": "./dist/constellations.d.ts"
+    },
     "./coordinates": {
       "import": "./dist/coordinates.js",
       "require": "./dist/coordinates.cjs",

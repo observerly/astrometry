@@ -1,7 +1,7 @@
 /*****************************************************************************************************************/
 
 // @author         Michael Roberts <michael@observerly.com>
-// @package        @observerly/typescript-vite-template
+// @package        @observerly/astrometry
 // @license        Copyright © 2021-2023 observerly
 
 /*****************************************************************************************************************/
@@ -10,6 +10,7 @@ export * from './abberation'
 export * from './astrometry'
 export * from './common'
 export * from './constants'
+export * from './constellations'
 export * from './coordinates'
 export * from './earth'
 export * from './epoch'
