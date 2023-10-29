@@ -26,6 +26,7 @@ const modules = [
   'constellations',
   'coordinates',
   'earth',
+  'ecliptic',
   'epoch',
   'humanize',
   'moon',
