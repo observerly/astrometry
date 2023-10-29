@@ -79,6 +79,11 @@
       "require": "./dist/earth.cjs",
       "types": "./dist/earth.d.ts"
     },
+    "./ecliptic": {
+      "import": "./dist/ecliptic.js",
+      "require": "./dist/ecliptic.cjs",
+      "types": "./dist/ecliptic.d.ts"
+    },
     "./epoch": {
       "import": "./dist/epoch.js",
       "require": "./dist/epoch.cjs",
