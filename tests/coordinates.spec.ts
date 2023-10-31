@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import {
   type EquatorialCoordinate,
   convertEclipticToEquatorial,
+  convertGalacticToEquatorial,
   convertEquatorialToHorizontal
 } from '../src'
 
@@ -61,6 +62,23 @@ describe('convertEquatorialToHorizontal', () => {
     const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
     expect(alt).toBe(72.78539444063765)
     expect(az).toBe(134.44877920325155)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertGalacticToEquatorial', () => {
+  it('should be defined', () => {
+    expect(convertGalacticToEquatorial).toBeDefined()
+  })
+
+  it('should return the correct equatorial coodinate for the given galactic coordinate at J2000.0 epoch', () => {
+    const { ra, dec } = convertGalacticToEquatorial({
+      l: 180.0,
+      b: 55.33333333
+    })
+    expect(ra).toBe(153.92856024361822)
+    expect(dec).toBe(40.55960513183074)
   })
 })
 

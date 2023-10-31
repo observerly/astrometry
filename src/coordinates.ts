@@ -11,6 +11,7 @@ import { getHourAngle, getObliquityOfTheEcliptic } from './astrometry'
 import {
   type EclipticCoordinate,
   type EquatorialCoordinate,
+  type GalacticCoordinate,
   type GeographicCoordinate,
   type HorizontalCoordinate
 } from './common'
@@ -49,6 +50,58 @@ export const convertEclipticToEquatorial = (
   return {
     ra: degrees(α) < 0 ? degrees(α) + 360 : degrees(α),
     dec: degrees(δ)
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * convertGalacticToEquatorial()
+ *
+ * @param target - The galactic coordinate of the observed object.
+ * @returns The equatorial coordinates of the target in J2000.0
+ *
+ */
+export const convertGalacticToEquatorial = (target: GalacticCoordinate): EquatorialCoordinate => {
+  let { ra, dec } = { ra: 0, dec: 0 }
+
+  // Define the Right Ascenation equatorial coordinate of the galactic north pole, at J2000.0
+  const α0 = radians(192.8598)
+
+  // Define Declination the equatorial coordinate of the galactic north pole, at J2000.0
+  const δ0 = radians(27.128027)
+
+  // Define the galactic longitude of the ascending node of the galactic equator on the ecliptic, at J2000.0
+  const N0 = radians(32.9319)
+
+  // Convert the galactic coordinate, b,, to radians:
+  const b = radians(target.b)
+
+  // Convert the galactic coordinate, l, to radians:
+  const l = radians(target.l)
+
+  // Calculate the declination of the target:
+  dec = degrees(
+    Math.asin(Math.cos(b) * Math.cos(δ0) * Math.sin(l - N0) + Math.sin(b) * Math.sin(δ0))
+  )
+
+  // Calculate the denominator of the right ascension of the target:
+  const y = Math.cos(b) * Math.cos(l - N0)
+
+  // Calculate the numerator of the right ascension of the target:
+  const x = Math.sin(b) * Math.cos(δ0) - Math.cos(b) * Math.sin(δ0) * Math.sin(l - N0)
+
+  // Calculate the right ascension of the target, adjusting for the quadrant:
+  ra = degrees(Math.atan2(y, x) + α0) % 360
+
+  if (ra < 0) {
+    ra += 360
+  }
+
+  return {
+    ra,
+    dec
   }
 }
 
