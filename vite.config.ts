@@ -28,6 +28,7 @@ const modules = [
   'earth',
   'ecliptic',
   'epoch',
+  'galactic',
   'humanize',
   'moon',
   'night',
