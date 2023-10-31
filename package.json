@@ -89,6 +89,11 @@
       "require": "./dist/epoch.cjs",
       "types": "./dist/epoch.d.ts"
     },
+    "./galactic": {
+      "import": "./dist/galactic.js",
+      "require": "./dist/galactic.cjs",
+      "types": "./dist/galactic.d.ts"
+    },
     "./humanize": {
       "import": "./dist/humanize.js",
       "require": "./dist/humanize.cjs",
