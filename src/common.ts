@@ -88,6 +88,31 @@ export type EclipticCoordinate = {
 
 /*****************************************************************************************************************/
 
+export type GalacticCoordinate = {
+  /**
+   *
+   *
+   * The galactic longitude of a celestial object is the angular distance
+   * measured eastward along the galactic equator from the galactic center
+   * to the (hour circle of the) point above the Earth in question.
+   *
+   *
+   */
+  l: number
+  /**
+   *
+   *
+   * The galactic latitude of a celestial object is the angular distance
+   * measured north or south of the galactic equator along the hour circle
+   * passing through the point in question.
+   *
+   *
+   */
+  b: number
+}
+
+/*****************************************************************************************************************/
+
 export type EquatorialCoordinate = {
   /**
    *
