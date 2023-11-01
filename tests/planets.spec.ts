@@ -9,6 +9,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  convertEclipticToEquatorial,
   getPlanetaryEquationOfCenter,
   getPlanetaryMeanAnomaly,
   getPlanetaryTrueAnomaly,
@@ -145,6 +146,42 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
     )
     expect(λ).toBe(251.5017460271163)
     expect(β).toBe(1.6685889641726377)
+  })
+
+  it('should return the correct value for Mercury (an inferior planet) at the datetime prescribed', () => {
+    const mercury = planets.find(planet => planet.name === 'Mercury')
+    expect(mercury).toBeDefined()
+
+    const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(
+      new Date('2023-11-01T12:00:00+00:00'),
+      mercury
+    )
+
+    const { ra, dec } = convertEclipticToEquatorial(datetime, {
+      λ,
+      β
+    })
+
+    expect(ra).toBeCloseTo(224.32477023329668)
+    expect(dec).toBeCloseTo(-17.537833237099484)
+  })
+
+  it('should return the correct value for Jupiter (an exterior planet) at the datetime prescribed', () => {
+    const jupiter = planets.find(planet => planet.name === 'Jupiter')
+    expect(jupiter).toBeDefined()
+
+    const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(
+      new Date('2023-11-01T12:00:00+00:00'),
+      jupiter
+    )
+
+    const { ra, dec } = convertEclipticToEquatorial(datetime, {
+      λ,
+      β
+    })
+
+    expect(ra).toBeCloseTo(38.041925844118374)
+    expect(dec).toBeCloseTo(13.764471149937803)
   })
 })
 
