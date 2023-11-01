@@ -458,16 +458,16 @@ export const getPlanetaryGeocentricEclipticCoordinate = (
       )
   }
 
-  const β = degrees(
-    Math.atan2(
-      Rp * Math.cos(radians(Λp)) * Math.tan(radians(Λp)) * Math.sin(radians(λp - Lp_corr)),
-      Re * Math.sin(radians(Lp_corr - Le))
+  const βp = degrees(
+    Math.atan(
+      (Rp * Math.cos(radians(Λp)) * Math.tan(radians(Λp)) * Math.sin(radians(λp - Lp_corr))) /
+        (Re * Math.sin(radians(Lp_corr - Le)))
     )
   )
 
   return {
     λ: λp % 360,
-    β: β
+    β: βp
   }
 }
 
