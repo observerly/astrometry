@@ -247,6 +247,10 @@ export const planets: Planet[] = [
 
 /*****************************************************************************************************************/
 
+type PlanetOrbitalParameters = Omit<Planet, 'uid' | 'name' | 'symbol'>
+
+/*****************************************************************************************************************/
+
 /**
  *
  * getPlanetaryMeanAnomaly()
@@ -257,7 +261,10 @@ export const planets: Planet[] = [
  * @param planet - The planet to calculate the mean anomaly for.
  * @returns a planet's mean anomaly at a given datetime
  */
-export const getPlanetaryMeanAnomaly = (datetime: Date, planet: Planet): number => {
+export const getPlanetaryMeanAnomaly = (
+  datetime: Date,
+  planet: PlanetOrbitalParameters
+): number => {
   // Get the Julian date:
   const JD = getJulianDate(datetime)
 
@@ -286,7 +293,10 @@ export const getPlanetaryMeanAnomaly = (datetime: Date, planet: Planet): number 
  * @returns a planet's equation of center at a given datetime
  *
  */
-export const getPlanetaryEquationOfCenter = (datetime: Date, planet: Planet): number => {
+export const getPlanetaryEquationOfCenter = (
+  datetime: Date,
+  planet: PlanetOrbitalParameters
+): number => {
   const M = getPlanetaryMeanAnomaly(datetime, planet)
 
   const E = (360 / Math.PI) * planet.e * Math.sin(radians(M))
@@ -308,7 +318,10 @@ export const getPlanetaryEquationOfCenter = (datetime: Date, planet: Planet): nu
  * @returns a planet's true anomaly at a given datetime
  *
  */
-export const getPlanetaryTrueAnomaly = (datetime: Date, planet: Planet): number => {
+export const getPlanetaryTrueAnomaly = (
+  datetime: Date,
+  planet: PlanetOrbitalParameters
+): number => {
   const M = getPlanetaryMeanAnomaly(datetime, planet)
 
   const E = getPlanetaryEquationOfCenter(datetime, planet)
@@ -329,7 +342,7 @@ export const getPlanetaryTrueAnomaly = (datetime: Date, planet: Planet): number 
  */
 export const getPlanetaryHeliocentricEclipticLongitude = (
   datetime: Date,
-  planet: Planet
+  planet: PlanetOrbitalParameters
 ): number => {
   const v = getPlanetaryTrueAnomaly(datetime, planet)
 
@@ -349,7 +362,7 @@ export const getPlanetaryHeliocentricEclipticLongitude = (
  */
 export const getPlanetaryHeliocentricEclipticLatitude = (
   datetime: Date,
-  planet: Planet
+  planet: PlanetOrbitalParameters
 ): number => {
   const L = getPlanetaryHeliocentricEclipticLongitude(datetime, planet)
 
@@ -369,7 +382,10 @@ export const getPlanetaryHeliocentricEclipticLatitude = (
  * @returns a planet's heliocentric distance at a given datetime (in AUs)
  *
  */
-export const getPlanetaryHeliocentricDistance = (datetime: Date, planet: Planet): number => {
+export const getPlanetaryHeliocentricDistance = (
+  datetime: Date,
+  planet: PlanetOrbitalParameters
+): number => {
   const v = getPlanetaryTrueAnomaly(datetime, planet)
 
   return (planet.a * (1 - planet.e ** 2)) / (1 + planet.e * Math.cos(radians(v)))
@@ -388,7 +404,7 @@ export const getPlanetaryHeliocentricDistance = (datetime: Date, planet: Planet)
  */
 export const getPlanetaryGeocentricEclipticCoordinate = (
   datetime: Date,
-  planet: Planet
+  planet: PlanetOrbitalParameters
 ): EclipticCoordinate => {
   // Get the geocentric ecliptic longitude for the planet:
   const Lp = getPlanetaryHeliocentricEclipticLongitude(datetime, planet)
