@@ -10,7 +10,14 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getSolarTransit, getNight, isNight } from '../src'
+import {
+  convertLocalSiderealTimeToGreenwhichSiderealTime,
+  convertGreenwhichSiderealTimeToUniversalTime,
+  getInterpolatedSolarTransit,
+  getSolarTransit,
+  getNight,
+  isNight
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -23,6 +30,50 @@ export const latitude: number = 49.914425
 
 // For testing, we will fix the longitude to be the Isles of Scilly, Cornwall, UK.
 export const longitude: number = -6.315165
+
+/*****************************************************************************************************************/
+
+describe('getInterpolatedSolarTransit', () => {
+  it('should be defined', () => {
+    expect(getInterpolatedSolarTransit).toBeDefined()
+  })
+
+  it('should return the correct solar transit for the observer at a horizon of 0 degrees', () => {
+    const datetime = new Date('2015-02-05T04:00:00.000+00:00')
+
+    const observer = {
+      latitude: 38,
+      longitude: -78
+    }
+
+    const { Tr, Ts } = getInterpolatedSolarTransit(datetime, observer)
+
+    expect(Tr).toBeCloseTo(16.120631, 1)
+    expect(Ts).toBeCloseTo(2.360268, 1)
+
+    const GSTr = convertLocalSiderealTimeToGreenwhichSiderealTime(Tr, observer)
+
+    const GSTs = convertLocalSiderealTimeToGreenwhichSiderealTime(Ts, observer)
+
+    const LCTr = convertGreenwhichSiderealTimeToUniversalTime(GSTr, datetime)
+
+    const LCTs = convertGreenwhichSiderealTimeToUniversalTime(GSTs, datetime)
+
+    expect(LCTr).toBeInstanceOf(Date)
+    expect(LCTr?.toISOString()).toBe('2015-02-05T12:17:10.747Z')
+
+    expect(LCTr.toLocaleString('en-US', { timeZone: 'America/New_York' })).toBe(
+      '2/5/2015, 7:17:10 AM'
+    )
+
+    expect(LCTs).toBeInstanceOf(Date)
+    expect(LCTs?.toISOString()).toBe('2015-02-05T22:29:22.439Z')
+
+    expect(LCTs.toLocaleString('en-US', { timeZone: 'America/New_York' })).toBe(
+      '2/5/2015, 5:29:22 PM'
+    )
+  })
+})
 
 /*****************************************************************************************************************/
 
