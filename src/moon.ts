@@ -691,32 +691,37 @@ export const getLunarPhase = (datetime: Date): Phase => {
   // Get the age of the Moon:
   const { age } = getLunarAge(datetime)
 
-  if (age >= 0 && age < 3.7) {
-    return Phases.WaningCrescent
+  // Determine the phase of the Moon:
+  if (age < 1.84566) {
+    return Phases.New
   }
 
-  if (age >= 3.7 && age < 7.4) {
+  if (age < 5.53699) {
     return Phases.WaxingCrescent
   }
 
-  if (age >= 7.4 && age < 11.1) {
+  if (age < 9.22831) {
     return Phases.FirstQuarter
   }
 
-  if (age >= 11.1 && age < 14.6) {
+  if (age < 12.91963) {
     return Phases.WaxingGibbous
   }
 
-  if (age >= 14.6 && age < 15.0) {
+  if (age < 16.61096) {
     return Phases.Full
   }
 
-  if (age >= 15.0 && age < 22.1) {
+  if (age < 20.30228) {
     return Phases.WaningGibbous
   }
 
-  if (age >= 22.1 && age < 25.8) {
+  if (age < 23.99361) {
     return Phases.LastQuarter
+  }
+
+  if (age < 27.68493) {
+    return Phases.WaningCrescent
   }
 
   return Phases.New
