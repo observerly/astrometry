@@ -6,8 +6,6 @@
 
 /*****************************************************************************************************************/
 
-import { getObliquityOfTheEcliptic } from './astrometry'
-
 import { type GeographicCoordinate } from './common'
 
 import { convertEquatorialToHorizontal } from './coordinates'
@@ -16,91 +14,9 @@ import { getJulianDate } from './epoch'
 
 import { getCorrectionToHorizontalForRefraction } from './refraction'
 
-import { getSolarEquatorialCoordinate, getSolarEclipticLongitude } from './sun'
-
-import { getBodyTransit } from './transit'
+import { getSolarEquatorialCoordinate } from './sun'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
-
-/*****************************************************************************************************************/
-
-/**
- *
- * getInterpolatedSolarTransit()
- *
- * This is a lower accuracy method for calculating the transit of the Sun.
- *
- * Atmospheric conditions are not taken into account.
- *
- * @param datetime - The date to calculate the transit of the Sun for.
- * @param observer  - The geographic coordinates of the observer.
- */
-export const getInterpolatedSolarTransit = (datetime: Date, observer: GeographicCoordinate) => {
-  // Set the datetime to be at 1 minute before midnight for the previous date (UT = 0h):
-  datetime = new Date(new Date(datetime.setHours(0, 0, 0, 0)).getTime())
-
-  // Get the ecliptic longitude:
-  const λ1 = radians(getSolarEclipticLongitude(datetime))
-
-  const λ2 = λ1 + radians(0.985647)
-
-  // Get the ecliptic latitude:
-  // This term is zero for the Sun, so we can largely ignore it by refactoring
-  // the standard equations for the conversion between ecliptic and equatorial
-  // coordinates.
-  // const β1 = 0
-  // const β2 = 0
-
-  // Get the obliquity of the ecliptic:
-  const ε = radians(getObliquityOfTheEcliptic(datetime))
-
-  // Get the corresponding Right Ascension, α:
-  let ra1 = degrees(Math.atan2(Math.sin(λ1) * Math.cos(ε), Math.cos(λ1))) % 360
-
-  // Correct ra for negative angles
-  if (ra1 < 0) {
-    ra1 += 360
-  }
-
-  const dec1 = degrees(Math.asin(Math.sin(ε) * Math.sin(λ1)))
-
-  const transit1 = getBodyTransit(observer, {
-    ra: ra1,
-    dec: dec1
-  })
-
-  if (!transit1) {
-    throw new Error('Could not calculate the transit of the Sun.')
-  }
-
-  const { LSTr: LSTr1, LSTs: LSTs1 } = transit1
-
-  let ra2 = degrees(Math.atan2(Math.sin(λ2) * Math.cos(ε), Math.cos(λ2))) % 360
-
-  // Correct ra for negative angles
-  if (ra2 < 0) {
-    ra2 += 360
-  }
-
-  const dec2 = degrees(Math.asin(Math.sin(ε) * Math.sin(λ2)))
-
-  const transit2 = getBodyTransit(observer, {
-    ra: ra2,
-    dec: dec2
-  })
-
-  if (!transit2) {
-    throw new Error('Could not calculate the transit of the Sun.')
-  }
-
-  const { LSTr: LSTr2, LSTs: LSTs2 } = transit2
-
-  const Tr = (24.07 * LSTr1) / (24.07 + (LSTr1 - LSTr2))
-
-  const Ts = (24.07 * LSTs1) / (24.07 + (LSTs1 - LSTs2))
-
-  return { Tr, Ts }
-}
 
 /*****************************************************************************************************************/
 
