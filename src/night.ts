@@ -8,7 +8,7 @@
 
 import { getObliquityOfTheEcliptic } from './astrometry'
 
-import { type GeographicCoordinate, type HorizontalCoordinate } from './common'
+import { type GeographicCoordinate } from './common'
 
 import { convertEquatorialToHorizontal } from './coordinates'
 
@@ -180,61 +180,61 @@ export const getSolarTransit = (
   // Set the datetime to be at 1 minute before midnight for the previous date:
   datetime = new Date(new Date(datetime.setHours(0, 0, 0, 0)).getTime())
 
-  const sun: (HorizontalCoordinate & { datetime: Date })[] = []
+  // Get the generalized (approximated) solar transit for the date:
+  const { sunrise, noon, sunset } = getGeneralizedSolarTransit(datetime, observer)
 
-  let rise: number | null = null
+  // If the observer is in perpetual daylight or perpetual night, return null:
+  if (sunrise === null || sunset === null) {
+    return { sunrise: null, noon: null, sunset: null }
+  }
 
-  let noon: Date | null = null
+  let rise: null | Date = null
 
-  let set: number | null = null
+  // Loop between +/- 2 hours of the generalized sunrise to find the accurate sunrise,
+  // correcting for atmospheric refraction:
+  for (let i = -120; i <= 120; i++) {
+    const when = new Date(sunrise.getTime() + 60000 * i)
 
-  for (let i = 0; i < 1440; i++) {
-    const eq = getSolarEquatorialCoordinate(datetime)
+    const { ra, dec } = getSolarEquatorialCoordinate(when)
 
-    const target = convertEquatorialToHorizontal(datetime, observer, eq)
+    const target = convertEquatorialToHorizontal(when, observer, {
+      ra,
+      dec
+    })
 
-    // Correct the altitude for refraction:
     const refraction = getCorrectionToHorizontalForRefraction(target, temperature, pressure)
 
     // Find the altitude where the sun passes above the horizon:
     if (refraction.alt > horizon && rise === null) {
-      rise = i
+      rise = when
+      break
     }
-
-    // Find the altitude where the sun passes below the horizon:
-    if (refraction.alt < horizon && rise !== null && set === null) {
-      set = i
-    }
-
-    // If the altitude is above the horizon, add it to the list of altitudes:
-    if (refraction.alt > horizon) {
-      sun.push({
-        alt: refraction.alt,
-        az: refraction.az,
-        datetime: new Date(datetime.getTime())
-      })
-    }
-
-    // Add one minute to the datetime:
-    datetime = new Date(datetime.setMinutes(datetime.getMinutes() + 1))
   }
 
-  // Set the datetime to be at 1 minute before midnight for the previous date:
-  datetime = new Date(datetime.getTime() - 60000 * 1440)
+  let set: null | Date = null
 
-  // Find the index of the maximum altitude from the list of altitudes:
-  const transit = sun.findIndex(s => s.alt === Math.max(...sun.map(s => s.alt)))
+  // Loop between +/- 2 hours of the generalized sunset to find the accurate sunset,
+  // correcting for atmospheric refraction:
+  for (let i = -120; i <= 120; i++) {
+    const when = new Date(sunset.getTime() + 60000 * i)
 
-  // Get the time of the maximum altitude:
-  noon = sun[transit].datetime
+    const { ra, dec } = getSolarEquatorialCoordinate(when)
 
-  // Get the time of the sunrise:
-  const sunrise = rise !== null ? new Date(datetime.getTime() + 60000 * rise) : null
+    const target = convertEquatorialToHorizontal(when, observer, {
+      ra,
+      dec
+    })
 
-  // Get the time of the sunset:
-  const sunset = set !== null ? new Date(datetime.getTime() + 60000 * set) : null
+    const refraction = getCorrectionToHorizontalForRefraction(target, temperature, pressure)
 
-  return { sunrise, noon, sunset }
+    // Find the altitude where the sun passes above the horizon:
+    if (refraction.alt < horizon && set === null) {
+      set = when
+      break
+    }
+  }
+
+  return { sunrise: rise || sunrise, noon, sunset: set || sunset }
 }
 
 /*****************************************************************************************************************/
