@@ -12,6 +12,8 @@ import { type GeographicCoordinate, type HorizontalCoordinate } from './common'
 
 import { convertEquatorialToHorizontal } from './coordinates'
 
+import { getJulianDate } from './epoch'
+
 import { getCorrectionToHorizontalForRefraction } from './refraction'
 
 import { getSolarEquatorialCoordinate, getSolarEclipticLongitude } from './sun'
@@ -98,6 +100,68 @@ export const getInterpolatedSolarTransit = (datetime: Date, observer: Geographic
   const Ts = (24.07 * LSTs1) / (24.07 + (LSTs1 - LSTs2))
 
   return { Tr, Ts }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getGeneralizedSolarTransit()
+ *
+ * This is a lower accuracy method for calculating the transit of the Sun.
+ *
+ * Atmospheric conditions are not taken into account.
+ *
+ * @param datetime - The date to calculate the generalized solar transit for.
+ * @param observer - The geographic coordinates of the observer.
+ * @returns The generalized solar transit for the given date.
+ *
+ */
+export const getGeneralizedSolarTransit = (datetime: Date, observer: GeographicCoordinate) => {
+  const { latitude, longitude } = observer
+
+  // Get the Julian Date:
+  const JD = getJulianDate(datetime)
+
+  const n = Math.ceil(JD - (2451545.0 + 0.0009) + 69.184 / 86400.0)
+
+  // Calculate the mean solar time, J*:
+  const J = n - longitude / 360
+
+  // Calculate the mean solar anomaly, M:
+  const M = (357.5291 + 0.98560028 * J) % 360
+
+  // Calculate the equation of the center, C:
+  const C =
+    1.9148 * Math.sin(radians(M)) +
+    0.02 * Math.sin(radians(2 * M)) +
+    0.0003 * Math.sin(radians(3 * M))
+
+  const λ = (M + C + 180 + 102.9372) % 360
+
+  const Jt = 2451545.0 + J + 0.0053 * Math.sin(radians(M)) - 0.0069 * Math.sin(radians(2 * λ))
+
+  const dec = degrees(Math.asin(Math.sin(radians(λ)) * Math.sin(radians(23.45))))
+
+  const ha = degrees(
+    Math.acos(
+      (Math.sin(radians(-0.833) - Math.sin(radians(latitude)) * Math.sin(radians(dec))) /
+        Math.cos(radians(latitude))) *
+        Math.cos(radians(dec))
+    )
+  )
+
+  const Jr = Jt - ha / 360
+
+  const Js = Jt + ha / 360
+
+  return {
+    sunrise: new Date((Jr - 2440587.5) * 86400 * 1000),
+    noon: new Date((Jt - 2440587.5) * 86400 * 1000),
+    sunset: new Date((Js - 2440587.5) * 86400 * 1000),
+    J,
+    ha
+  }
 }
 
 /*****************************************************************************************************************/
