@@ -110,7 +110,7 @@ export interface TransitInstance {
 
 /*****************************************************************************************************************/
 
-const isTransitInstance = (value: unknown): value is TransitInstance => {
+export const isTransitInstance = (value: unknown): value is TransitInstance => {
   if (typeof value === 'boolean' || typeof value !== 'object' || value === null) {
     return false
   }
@@ -501,7 +501,10 @@ export const isBodyVisibleForNight = (
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
   horizon: number = 0
-) => {
+): boolean => {
+  // Set the datetime to be at 1 minute before midnight for the previous date:
+  datetime = new Date(new Date(datetime.setHours(0, 0, 0, 0)).getTime())
+
   // If the object is never visible, it never rises:
   if (!isBodyVisible(observer, target, horizon)) {
     return false
@@ -520,22 +523,19 @@ export const isBodyVisibleForNight = (
     return false
   }
 
-  // Get the next rising time for the object:
-  const rise = getBodyNextRise(datetime, observer, target, horizon)
+  // Loop over the night to determine whether the object is visible at some point during the night:
+  while (start <= end) {
+    // If the object is above the horizon at any point during the night, then it is visible:
+    if (isBodyAboveHorizon(start, observer, target, horizon)) {
+      return true
+    }
 
-  if (!isTransitInstance(rise)) {
-    return false
-  }
-
-  // Get the next setting after the rise time for the object:
-  const set = getBodyNextSet(rise.datetime, observer, target, horizon)
-
-  if (!isTransitInstance(set)) {
-    return false
+    // Increment the time by 1 minute:
+    start.setMinutes(start.getMinutes() + 1)
   }
 
   // If the rise or set is within the night, then the object is visible for the night:
-  return rise.datetime <= end && set.datetime >= start
+  return false
 }
 
 /*****************************************************************************************************************/
