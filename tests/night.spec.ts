@@ -14,6 +14,7 @@ import {
   convertLocalSiderealTimeToGreenwhichSiderealTime,
   convertGreenwhichSiderealTimeToUniversalTime,
   getInterpolatedSolarTransit,
+  getGeneralizedSolarTransit,
   getSolarTransit,
   getNight,
   isNight
@@ -72,6 +73,59 @@ describe('getInterpolatedSolarTransit', () => {
     expect(LCTs.toLocaleString('en-US', { timeZone: 'America/New_York' })).toBe(
       '2/5/2015, 5:29:22 PM'
     )
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getGeneralizedSolarTransit', () => {
+  it('should be defined', () => {
+    expect(getGeneralizedSolarTransit).toBeDefined()
+  })
+
+  it('should return the correct solar transit for the observer at a horizon of 0 degrees', () => {
+    const { sunrise, noon, sunset } = getGeneralizedSolarTransit(
+      new Date('2021-01-01T12:00:00.000+00:00'),
+      {
+        latitude: 56.130366,
+        longitude
+      }
+    )
+
+    expect(sunrise).toBeInstanceOf(Date)
+    expect(sunrise).toStrictEqual(new Date('2021-01-01T08:29:40.902Z'))
+    expect(noon).toBeInstanceOf(Date)
+    expect(noon).toStrictEqual(new Date('2021-01-01T12:28:42.861Z'))
+    expect(sunset).toBeInstanceOf(Date)
+    expect(sunset).toStrictEqual(new Date('2021-01-01T16:27:44.821Z'))
+  })
+
+  it('should return the correct solar transit for the observer at a horizon of 0 degrees', () => {
+    const { sunrise, noon, sunset } = getGeneralizedSolarTransit(datetime, {
+      latitude,
+      longitude
+    })
+
+    expect(sunrise).toBeInstanceOf(Date)
+    expect(sunrise).toStrictEqual(new Date('2021-05-14T04:52:57.636Z'))
+    expect(noon).toBeInstanceOf(Date)
+    expect(noon).toStrictEqual(new Date('2021-05-14T12:21:40.985Z'))
+    expect(sunset).toBeInstanceOf(Date)
+    expect(sunset).toStrictEqual(new Date('2021-05-14T19:50:24.334Z'))
+  })
+
+  it('should return the correct solar transit for the observer at a horizon of 0 degrees', () => {
+    const { sunrise, noon, sunset } = getGeneralizedSolarTransit(datetime, {
+      latitude: -34.209327109,
+      longitude: -71.240122387
+    })
+
+    expect(sunrise).toBeInstanceOf(Date)
+    expect(sunrise).toStrictEqual(new Date('2021-05-14T11:24:59.334Z'))
+    expect(noon).toBeInstanceOf(Date)
+    expect(noon).toStrictEqual(new Date('2021-05-14T16:41:23.153Z'))
+    expect(sunset).toBeInstanceOf(Date)
+    expect(sunset).toStrictEqual(new Date('2021-05-14T21:57:46.972Z'))
   })
 })
 
