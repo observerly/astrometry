@@ -539,11 +539,10 @@ export const getLunarElongation = (datetime: Date): number => {
  *
  * getLunarAngularDiameter()
  *
- * The Moon's angular diameter is the distance between the Moon's centre and
- * the observer's eye, as seen from the centre of the Earth.
+ * The Moon's angular diameter is the distance between the Moon's centre and the Moon's limb.
  *
- * @param date - The date to calculate the Moon's phase angle for.
- * @returns The Moon's phase angle in degrees.
+ * @param date - The date to calculate the Moon's angular diameter for.
+ * @returns The Moon's angular diameter in degrees
  *
  */
 export const getLunarAngularDiameter = (datetime: Date): number => {
