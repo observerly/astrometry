@@ -33,7 +33,8 @@ import {
   getLunarIllumination,
   getLunarPhase,
   getLunarBrownLunationNumber,
-  isNewMoon
+  isNewMoon,
+  isFullMoon
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -369,6 +370,26 @@ describe.each([
       expect(isNewMoon(date)).toBe(true)
     } else {
       expect(isNewMoon(date)).toBe(false)
+    }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe.each([
+  ...Array.from({ length: 31 }, (_, i) => i + 1).map(day => ({
+    date: new Date(2021, 0, day, 0, 0, 0, 0)
+  }))
+])('isFullMoon', ({ date }) => {
+  it('should return only when the Moon is a Full Moon', () => {
+    if (
+      [1, 27, 28, 29, 30].includes(date.getDate()) &&
+      date.getMonth() === 0 &&
+      date.getFullYear() === 2021
+    ) {
+      expect(isFullMoon(date)).toBe(true)
+    } else {
+      expect(isFullMoon(date)).toBe(false)
     }
   })
 })
