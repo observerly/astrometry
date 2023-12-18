@@ -32,7 +32,8 @@ import {
   getLunarPhaseAngle,
   getLunarIllumination,
   getLunarPhase,
-  getLunarBrownLunationNumber
+  getLunarBrownLunationNumber,
+  isNewMoon
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -349,6 +350,26 @@ describe('getLunarBrownLunationNumber', () => {
   it('should return the correct Brown Lunation number for the given datetime', () => {
     const LBN = getLunarBrownLunationNumber(datetime)
     expect(LBN).toBe(1217)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe.each([
+  ...Array.from({ length: 31 }, (_, i) => i + 1).map(day => ({
+    date: new Date(2021, 0, day, 0, 0, 0, 0)
+  }))
+])('isNewMoon', ({ date }) => {
+  it('should return only when the Moon is a New Moon', () => {
+    if (
+      [12, 13, 14].includes(date.getDate()) &&
+      date.getMonth() === 0 &&
+      date.getFullYear() === 2021
+    ) {
+      expect(isNewMoon(date)).toBe(true)
+    } else {
+      expect(isNewMoon(date)).toBe(false)
+    }
   })
 })
 
