@@ -748,3 +748,19 @@ export const getLunarBrownLunationNumber = (datetime: Date) => {
 }
 
 /*****************************************************************************************************************/
+
+// This is an exported helper function for determining if the Moon is new, this is
+// useful for determining if a lunar eclipse is possible, as a lunar eclipse can
+// only occur during a new Moon:
+
+/**
+ *
+ * isNewMoon()
+ *
+ * @param datetime - The date to determine if the Moon is new for.
+ * @returns true if the Moon is new, false otherwise.
+ *
+ */
+export const isNewMoon = (datetime: Date): boolean => getLunarPhase(datetime) === 'New'
+
+/*****************************************************************************************************************/
