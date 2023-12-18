@@ -750,7 +750,7 @@ export const getLunarBrownLunationNumber = (datetime: Date) => {
 /*****************************************************************************************************************/
 
 // This is an exported helper function for determining if the Moon is new, this is
-// useful for determining if a lunar eclipse is possible, as a lunar eclipse can
+// useful for determining if a solar eclipse is possible, as a solar eclipse can
 // only occur during a new Moon:
 
 /**
@@ -762,5 +762,21 @@ export const getLunarBrownLunationNumber = (datetime: Date) => {
  *
  */
 export const isNewMoon = (datetime: Date): boolean => getLunarPhase(datetime) === 'New'
+
+/*****************************************************************************************************************/
+
+// This is an exported helper function for determining if the Moon is full, this is
+// useful for determining if a lunar eclipse is possible, as a lunar eclipse can
+// only occur during a full Moon:
+
+/**
+ *
+ * isFullMoon()
+ *
+ * @param datetime - The date to determine if the Moon is full for.
+ * @returns true if the Moon is full, false otherwise.
+ *
+ */
+export const isFullMoon = (datetime: Date): boolean => getLunarPhase(datetime) === 'Full'
 
 /*****************************************************************************************************************/
