@@ -14,6 +14,7 @@ import {
   getLunarAnnualEquationCorrection,
   getLunarMeanAnomaly,
   getLunarMeanGeometricLongitude,
+  getLunarArgumentOfLatitude,
   getLunarMeanEclipticLongitude,
   getLunarEvectionCorrection,
   getLunarMeanEclipticLongitudeOfTheAscendingNode,
@@ -79,6 +80,31 @@ describe('getLunarMeanGeometricLongitude', () => {
   it('should return the correct Lunar mean geometric longitude for the given date', () => {
     const l = getLunarMeanGeometricLongitude(datetime)
     expect(l).toBe(80.32626508452813)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getLunarArgumentOfLatitude', () => {
+  it('should be defined', () => {
+    expect(getLunarArgumentOfLatitude).toBeDefined()
+  })
+
+  it('should return the correct Lunar argument of latitude for the given date', () => {
+    const F = getLunarArgumentOfLatitude(datetime)
+    expect(F).toBe(337.7234761663276)
+  })
+
+  it('should return the correct Lunar argument of latitude for the given date in 1977 from Meeus', () => {
+    const datetime = new Date('1977-02-13T00:00:00')
+    const F = getLunarArgumentOfLatitude(datetime)
+    expect(F).toBe(120.95841191863292)
+  })
+
+  it('should return the correct Lunar argument of latitude for the given date in 2009 from Meeus', () => {
+    const datetime = new Date('2009-07-22T02:37:00')
+    const F = getLunarArgumentOfLatitude(datetime)
+    expect(F).toBe(179.83012040559697)
   })
 })
 
