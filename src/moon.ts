@@ -143,6 +143,45 @@ export const getLunarMeanGeometricLongitude = (datetime: Date): number => {
 
 /**
  *
+ * getLunarArgumentOfLatitude()
+ *
+ * The Moon's argument of latitude is the angle between the Moon's current
+ * position and the vernal equinox.
+ *
+ * @param datetime - The date to calculate the Moon's argument of latitude for.
+ * @returns The Moon's argument of latitude at the given date.
+ *
+ */
+export const getLunarArgumentOfLatitude = (datetime: Date): number => {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  // Calculate the number of centuries since J2000.0:
+  const T = (JD - 2451545.0) / 36525
+
+  // k represents the number of new moons since the standard epoch J2000:
+  const k = Math.round(T * 1236.85)
+
+  // Get the Moon's argument of latitude at the current epoch relative to J2000:
+  let F =
+    (160.7108 +
+      390.67050284 * k -
+      0.0016118 * Math.pow(T, 2) -
+      0.00000227 * Math.pow(T, 3) -
+      0.000000011 * Math.pow(T, 4)) %
+    360
+
+  if (F < 0) {
+    F += 360
+  }
+
+  return F
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * getLunarMeanEclipticLongitude()
  *
  * The mean lunar ecliptic longitude is the ecliptic longitude of the Moon
