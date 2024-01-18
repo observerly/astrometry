@@ -14,10 +14,6 @@
     "registry": "https://npm.pkg.github.com/observerly"
   },
   "type": "module",
-  "files": [
-    "dist",
-    "package.json"
-  ],
   "keywords": [
     "astronomy",
     "astrometry",
@@ -34,11 +30,7 @@
     "observer",
     "observerly"
   ],
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
   "exports": {
-    "./package.json": "./package.json",
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
@@ -168,6 +160,13 @@
       "import": "./dist/transit.js",
       "require": "./dist/transit.cjs",
       "types": "./dist/transit.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*"
+      ]
     }
   },
   "release": {
