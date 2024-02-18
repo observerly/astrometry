@@ -1,4 +1,4 @@
-name: astrometry/lint
+name: astrometry/format
 
 on:
   pull_request:
@@ -16,15 +16,15 @@ jobs:
 
     env:
       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout 🛎
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
 
       # Setup .npmrc file to publish to GitHub Packages
       - name: Setup node env 🏗 and .npmrc file to publish to GitHub Packages
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           registry-url: 'https://npm.pkg.github.com'
@@ -32,7 +32,7 @@ jobs:
           scope: '@observerly'
 
       - name: Cache node_modules 📦
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
