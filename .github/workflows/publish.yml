@@ -55,7 +55,3 @@ jobs:
           registry: 'https://registry.npmjs.org/'
           access: 'public'
           token: ${{ secrets.NPM_OBSERVERLY_PUBLIC_TOKEN }}
-
-      - if: steps.publish.outputs.type != 'none'
-        run: |
-          echo "@observerly/astrometry package version changed: ${{ steps.publish.outputs.old-version }} => ${{ steps.publish.outputs.version }}"

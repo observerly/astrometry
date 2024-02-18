@@ -20,8 +20,6 @@ jobs:
     env:
       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # Vite App Specific Environment Variables
-      VITE_FIBER_API_BASE_URL: ${{ secrets.FIBER_API_BASE_URL }}
 
     steps:
       - name: Checkout 🛎
