@@ -52,6 +52,8 @@ TBD
 
 For all of the below examples, an "observer" at Manua Kea, Hawaii, US on the 14th May 2021 is assumed:
 
+#### Setup
+
 ```typescript
 // For these examples we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
@@ -66,11 +68,13 @@ export const longitude = -155.468094
 
 To find the horizontal coordinate of, e.g., the star Betelgeuse, at a given time and location:
 
+#### Horizontal Position of Betelgeuse
+
 ```typescript
 import { type EquatorialCoordinate, convertEquatorialToHorizontal } from '@observerly/astrometry'
 
 // Our astronomical target in this example is Betelgeuse, where
-// the coordinate is given in epoch J2000 and in degrees:
+// the coordinate is given relative to the epoch J2000 and in units of degrees:
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
 
 // Perform the conversion:
@@ -79,6 +83,35 @@ const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitud
 // alt: 72.78539444063765
 // az: 134.44877920325155
 ```
+
+#### Precession of Equinoxes
+
+Let's say we also wish to apply corrections for the precession of equinoxes:
+
+```typescript
+// Get the correction to the equatorial coordinate for for the precession of equinoxes:
+const { ra: δra, dec: δdec } = getCorrectionToEquatorialForPrecessionOfEquinoxes(
+  datetime,
+  betelgeuse
+)
+
+// Perform the conversion:
+const { alt, az } = convertEquatorialToHorizontal(
+  datetime,
+  { latitude, longitude },
+  {
+    ra: betelgeuse.ra + δra,
+    dec: betelgeuse.dec + δdec
+  }
+)
+
+// alt: 72.59159652271458
+// az: 133.7382466535349
+```
+
+This will give you the horizontal coordinates of Betelgeuse at the given time and location, with the correction for the precession of equinoxes applied.
+
+Corrections for atmospheric refraction, parallax, nutation and aberration can also be applied in a similar manner to get an accurate horizontal position of the star.
 
 ### Contributing
 
