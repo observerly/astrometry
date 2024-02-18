@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  unit:
+  format:
     runs-on: ${{ matrix.os }}
 
     strategy:
