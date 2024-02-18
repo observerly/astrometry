@@ -63,18 +63,15 @@ const entrypoints = Object.assign(
 
 export default defineConfig({
   test: {
-    env: {
-      TZ: 'UTC'
-    },
-    watch: false,
-    setupFiles: ['./tests/setup.ts'],
+    globalSetup: './tests/setup.ts',
     passWithNoTests: true,
-    threads: false
+    setupFiles: ['./tests/setup.ts'],
+    watch: false
   },
   plugins: [
     typescript({
-      tsconfig: './tsconfig.json',
-      declaration: true
+      declaration: true,
+      tsconfig: resolve(__dirname, 'tsconfig.json')
     })
   ],
   resolve: {
