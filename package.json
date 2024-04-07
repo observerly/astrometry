@@ -168,13 +168,6 @@
       "types": "./dist/transit.d.ts"
     }
   },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "./dist/*"
-      ]
-    }
-  },
   "release": {
     "branches": [
       "main"
