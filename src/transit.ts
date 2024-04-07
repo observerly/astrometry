@@ -364,7 +364,7 @@ export const getBodyNextRise = (
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
   horizon: number = 0
-): TransitInstance | boolean => {
+): TransitInstance | false => {
   const tomorrow = new Date(
     datetime.getFullYear(),
     datetime.getMonth(),
@@ -375,13 +375,8 @@ export const getBodyNextRise = (
     0
   )
 
-  // If the object is circumpolar, it never rises:
-  if (isBodyCircumpolar(observer, target, horizon)) {
-    return true
-  }
-
-  // If the object is never visible, it never rises:
-  if (!isBodyVisible(observer, target, horizon)) {
+  // If the object is circumpolar, or it is not visible from the observer's location, it never rises:
+  if (isBodyCircumpolar(observer, target, horizon) || !isBodyVisible(observer, target, horizon)) {
     return false
   }
 
