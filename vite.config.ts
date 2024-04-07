@@ -10,7 +10,7 @@
 
 /*****************************************************************************************************************/
 
-import { defineConfig, type UserConfig } from 'vite'
+import { BuildOptions, defineConfig, type UserConfig } from 'vite'
 
 import typescript from '@rollup/plugin-typescript'
 
@@ -44,7 +44,7 @@ const modules = [
   'sun',
   'temporal',
   'transit'
-]
+] as const;
 
 /*****************************************************************************************************************/
 
@@ -57,7 +57,7 @@ const entrypoints = Object.assign(
       [module]: resolve(__dirname, `src/${module}.ts`)
     }
   })
-) satisfies UserConfig['build']['rollupOptions']['input']
+) satisfies NonNullable<BuildOptions['rollupOptions']>['input'];
 
 /*****************************************************************************************************************/
 
