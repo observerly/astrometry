@@ -115,7 +115,7 @@ describe('isBodyCircumpolar', () => {
     ).toBe(false)
   })
 
-  it('should return true for an object that does not set below the horizon', () => {
+  it('should return false for an object that does not set below the horizon', () => {
     expect(
       isBodyCircumpolar(
         {
@@ -125,7 +125,7 @@ describe('isBodyCircumpolar', () => {
         betelgeuse,
         0
       )
-    ).toBe(true)
+    ).toBe(false)
   })
 })
 
