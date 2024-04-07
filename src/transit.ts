@@ -24,7 +24,6 @@ import {
 } from './temporal'
 
 import {
-  getNormalizedInclinationDegree,
   convertDegreesToRadians as radians,
   convertRadiansToDegrees as degrees
 } from './utilities'
@@ -194,11 +193,16 @@ export const isBodyVisible = (
   // We only need to consider the declination of the target object:
   const { dec } = target
 
-  const extrema = getNormalizedInclinationDegree(90 - (latitude - horizon) + dec)
+  // The maximum altitude a celestial object will reach above the horizon is dependent 
+  // on the observer's latitude and the object's declination:
+  const extrema = Math.asin(
+    Math.sin(radians(latitude)) * Math.sin(radians(dec)) + 
+    Math.cos(radians(latitude)) * Math.cos(radians(dec))
+  )
 
   // If the object's declination is greater than 90 degrees minus the observer's latitude,
   // then the object is visible (ever above the observer's horizon).
-  return extrema > 0 && extrema !== 0
+  return extrema > horizon
 }
 
 /*****************************************************************************************************************/
