@@ -161,11 +161,11 @@ export const isBodyCircumpolar = (
   // We only need to consider the declination of the target object:
   const { dec } = target
 
-  const extrema = 90 - Math.abs(latitude) - horizon
-
-  // If the object's declination is greater than 90 degrees minus the observer's latitude,
-  // then the object is circumpolar (always above the observer's horizon and never sets).
-  return latitude >= 0 ? dec > extrema : dec < extrema
+  // Whether a given star is circumpolar at the observer's latitude (θ) may be 
+  // calculated in terms of the star's declination (δ). The star is circumpolar 
+  // if θ + δ is greater than +90° (observer in Northern Hemisphere), or θ + δ is 
+  // less than −90° (observer in Southern Hemisphere).
+  return latitude >= horizon ? latitude + dec > 90 : latitude + dec < -90
 }
 
 /*****************************************************************************************************************/
