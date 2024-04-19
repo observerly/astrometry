@@ -296,13 +296,20 @@ describe('getBodyTransit', () => {
   })
 
   it('should return transit parameters for a northerm hemisphere object for a postive latitude', () => {
-    const { LSTr, LSTs, R, S } = getBodyTransit(
+    const transit = getBodyTransit(
       {
         latitude,
         longitude
       },
       betelgeuse
     )
+
+    if (!transit) {
+      expect(transit).toBeDefined()
+      return
+    }
+
+    const { LSTr, LSTs, R, S } = transit
 
     expect(LSTr).toBe(23.740485646638913)
     expect(LSTs).toBe(12.098575460027751)
@@ -332,7 +339,10 @@ describe('getBodyNextRise', () => {
     expect(rise).not.toBeFalsy()
     expect(rise).not.toBe(true)
 
-    if (typeof rise === 'boolean') return
+    if (!rise) {
+      expect(rise).toBeDefined()
+      return
+    }
 
     const { GST, LST, az, datetime: d } = rise
 
@@ -340,6 +350,30 @@ describe('getBodyNextRise', () => {
     expect(LST).toBe(23.740485646638913)
     expect(az).toBeCloseTo(82.12362992591511)
     expect(d).toStrictEqual(new Date('2021-05-15T18:31:28.713Z'))
+  })
+
+  it('should return transit parameters for a souther hemisphere object for a postive latitude', () => {
+    const rise = getBodyNextRise(
+      new Date('2021-10-01T21:00:00.000+00:00'),
+      {
+        latitude: -latitude,
+        longitude
+      },
+      betelgeuse,
+    )
+
+    expect(rise).toBeDefined()
+    expect(rise).not.toBeFalsy()
+    expect(rise).not.toBe(true)
+
+    if (typeof rise === 'boolean') return
+
+    const { GST, LST, az, datetime: d } = rise
+
+    expect(GST).toBe(10.46311506002775)
+    expect(LST).toBe(0.09857546002774953)
+    expect(az).toBeCloseTo(82.12362992591511)
+    expect(d).toStrictEqual(new Date('2021-10-02T09:42:26.990Z'))
   })
 })
 

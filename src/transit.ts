@@ -400,7 +400,7 @@ export const getBodyNextRise = (
   const rise = convertGreenwhichSiderealTimeToUniversalTime(GSTr, datetime)
 
   // If the rise is before the current time, then we know the next rise is tomorrow:
-  if (rise < datetime) {
+  if (rise.getTime() < datetime.getTime()) {
     return getBodyNextRise(tomorrow, observer, target, horizon)
   }
 
