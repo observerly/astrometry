@@ -193,16 +193,9 @@ export const isBodyVisible = (
   // We only need to consider the declination of the target object:
   const { dec } = target
 
-  // The maximum altitude a celestial object will reach above the horizon is dependent 
-  // on the observer's latitude and the object's declination:
-  const extrema = Math.asin(
-    Math.sin(radians(latitude)) * Math.sin(radians(dec)) + 
-    Math.cos(radians(latitude)) * Math.cos(radians(dec))
-  )
-
-  // If the object's declination is greater than 90 degrees minus the observer's latitude,
-  // then the object is visible (ever above the observer's horizon).
-  return extrema > horizon
+  // Calculate the maximum altitude at culmination, and if that is greater than the observer's horizon,
+  // then the object is going to be visible at some future time.
+  return 90 - Math.abs(latitude - dec) > horizon
 }
 
 /*****************************************************************************************************************/
