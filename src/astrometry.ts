@@ -85,9 +85,7 @@ export const getGreenwhichSiderealTime = (datetime: Date): number => {
   const d = utc(datetime)
 
   // Convert the UTC time to a decimal fraction of hours:
-  const UTC =
-    ((d.getUTCMilliseconds() / 1000 + d.getUTCSeconds()) / 60 + d.getUTCMinutes()) / 60 +
-    d.getUTCHours()
+  const UTC = d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600 + d.getUTCMilliseconds() / 3600000
 
   const A = UTC * 1.002737909
 
