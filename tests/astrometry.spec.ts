@@ -78,6 +78,13 @@ describe('getLocalSiderealTime', () => {
     expect(LST).toBe(GST)
   })
 
+  it('should return the Local Sidereal Time (LST) of the given date at longitude 0 at Greenwhich', () => {
+    const datetime = new Date('2021-05-14T01:06:33.99870+00:00')
+    const LST = getLocalSiderealTime(datetime, 0)
+    const GST = getGreenwhichSiderealTime(datetime)
+    expect(LST).toBe(GST)
+  })
+
   it('should return the Local Sidereal Time (LST) of the given date', () => {
     const LST = getLocalSiderealTime(datetime, longitude)
     expect(LST).toBe(5.099450799019053)
