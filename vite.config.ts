@@ -31,6 +31,7 @@ const modules = [
   'epoch',
   'galactic',
   'humanize',
+  'iers',
   'moon',
   'night',
   'nutation',
