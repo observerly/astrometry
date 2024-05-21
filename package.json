@@ -102,6 +102,11 @@
       "require": "./dist/humanize.cjs",
       "types": "./dist/humanize.d.ts"
     },
+    "./iers": {
+      "import": "./dist/iers.js",
+      "require": "./dist/iers.cjs",
+      "types": "./dist/iers.d.ts"
+    },
     "./moon": {
       "import": "./dist/moon.js",
       "require": "./dist/moon.cjs",
