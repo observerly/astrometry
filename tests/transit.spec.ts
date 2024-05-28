@@ -11,14 +11,15 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
-  type EquatorialCoordinate,
-  isBodyCircumpolar,
-  isBodyVisible,
-  isBodyAboveHorizon,
   doesBodyRiseOrSet,
-  getBodyTransit,
+  type EquatorialCoordinate,
+  type GeographicCoordinate,
   getBodyNextRise,
   getBodyNextSet,
+  getBodyTransit,
+  isBodyAboveHorizon,
+  isBodyCircumpolar,
+  isBodyVisible,
   isBodyVisibleForNight
 } from '../src'
 
@@ -359,7 +360,7 @@ describe('getBodyNextRise', () => {
         latitude: -latitude,
         longitude
       },
-      betelgeuse,
+      betelgeuse
     )
 
     expect(rise).toBeDefined()
@@ -469,6 +470,62 @@ describe('isBodyVisibleForNight', () => {
         }
       )
     ).toBe(false)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getBodyNextRise and getBodyNextSet maximum call stack size error', () => {
+  it('should not throw a maximum call stack size exceeded error for Messier 4', () => {
+    const datetime = new Date('2024-05-24T02:03:04.568+00:00')
+
+    const observer: GeographicCoordinate = {
+      latitude: 43.5314582,
+      longitude: 5.4483161
+    }
+
+    const target: EquatorialCoordinate = {
+      ra: 246.275,
+      dec: -26.58349
+    }
+
+    const set = getBodyNextSet(datetime, observer, target, 0.8190762287002356)
+
+    console.log(set)
+
+    expect(set).toBeDefined()
+
+    const rise = getBodyNextRise(datetime, observer, target, 0.8190762287002356)
+
+    console.log(rise)
+
+    expect(rise).toBeDefined()
+  })
+
+  it('should not throw a maximum call stack size exceeded error for Messier 57', () => {
+    const datetime = new Date('2024-05-24T02:03:04.568+00:00')
+
+    const observer: GeographicCoordinate = {
+      latitude: 43.5314582,
+      longitude: 5.4483161
+    }
+
+    const target: EquatorialCoordinate = {
+      ra: 283.395875,
+      dec: 33.028583
+    }
+
+    const set = getBodyNextSet(datetime, observer, target, 0.8190762287002356)
+
+    console.log(set)
+
+    expect(set).toBeDefined()
+
+    const rise = getBodyNextRise(datetime, observer, target, 0.8190762287002356)
+
+    console.log(rise)
+
+    expect(rise).toBeDefined()
   })
 })
 
