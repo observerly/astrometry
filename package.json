@@ -127,6 +127,11 @@
       "require": "./dist/observation.cjs",
       "types": "./dist/observation.d.ts"
     },
+    "./observer": {
+      "import": "./dist/observer.js",
+      "require": "./dist/observer.cjs",
+      "types": "./dist/observer.d.ts"
+    },
     "./orbit": {
       "import": "./dist/orbit.js",
       "require": "./dist/orbit.cjs",
