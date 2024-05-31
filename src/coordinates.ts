@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { getHourAngle, getObliquityOfTheEcliptic } from './astrometry'
+import { getHourAngle, getLocalSiderealTime, getObliquityOfTheEcliptic } from './astrometry'
 
 import {
   type EclipticCoordinate,
@@ -16,7 +16,7 @@ import {
   type HorizontalCoordinate
 } from './common'
 
-import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees } from './utilities'
+import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -155,6 +155,65 @@ export const convertEquatorialToHorizontal = (
   return {
     alt: degrees(altitude),
     az: Math.sin(ha) > 0 ? 360 - degrees(azimuth) : degrees(azimuth)
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * convertHorizontalToEquatorial()
+ *
+ * Performs the conversion from Horizontal to Equatorial coordinates for a given
+ * datetime, observer, and target.
+ *
+ * @param datetime - The date and time of the observation for which to calculate the Horizontal coordinate
+ * @param observer - The geographic coordinate of the observer.
+ * @param target - The horizontal coordinate of the observed object.
+ * @returns The equatorial coordinates of the target
+ */
+export const convertHorizontalToEquatorial = (
+  datetime: Date,
+  observer: GeographicCoordinate,
+  target: HorizontalCoordinate
+): EquatorialCoordinate => {
+  const { latitude, longitude } = observer
+
+  const altitude = radians(target.alt)
+  const azimuth = radians(target.az)
+
+  // Calculate the declination (in radians) for the target:
+  const dec = Math.asin(
+    Math.sin(radians(latitude)) * Math.sin(altitude) +
+      Math.cos(radians(latitude)) * Math.cos(altitude) * Math.cos(azimuth)
+  )
+
+  // Calculate the hour angle (in radians) for the target:
+  let ha = Math.atan2(
+    (-Math.sin(azimuth) * Math.cos(altitude)) / Math.cos(dec),
+    (Math.sin(altitude) - Math.sin(radians(latitude)) * Math.sin(dec)) /
+      (Math.cos(radians(latitude)) * Math.cos(dec))
+  )
+
+  // Adjust the hour angle for the observer's longitude:
+  if (ha < 0) {
+    ha += 2 * Math.PI
+  }
+
+  // Calculate the Local Sidereal Time (LST) for the observer:
+  const LST = getLocalSiderealTime(datetime, longitude)
+
+  // Calculate the Right Ascension (in degrees) for the target:
+  let ra = LST * 15 - degrees(ha)
+
+  // Adjust the angle to be within the range 0° to 360°:
+  if (ra < 0) {
+    ra += 360
+  }
+
+  return {
+    ra: ra % 360,
+    dec: degrees(dec)
   }
 }
 
