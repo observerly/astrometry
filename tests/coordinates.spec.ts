@@ -13,8 +13,9 @@ import { describe, expect, it } from 'vitest'
 import {
   type EquatorialCoordinate,
   convertEclipticToEquatorial,
+  convertEquatorialToHorizontal,
   convertGalacticToEquatorial,
-  convertEquatorialToHorizontal
+  convertHorizontalToEquatorial
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -62,6 +63,24 @@ describe('convertEquatorialToHorizontal', () => {
     const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
     expect(alt).toBe(72.78539444063765)
     expect(az).toBe(134.44877920325155)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertHorizontalToEquatorial', () => {
+  it('should be defined', () => {
+    expect(convertHorizontalToEquatorial).toBeDefined()
+  })
+
+  it('should return the correct equatorial coodinate for the given horizontal coordinate at the datetime provided', () => {
+    const { ra, dec } = convertHorizontalToEquatorial(
+      datetime,
+      { latitude, longitude },
+      { alt: 72.78539444063765, az: 134.44877920325155 }
+    )
+    expect(ra).toBeCloseTo(88.7929583)
+    expect(dec).toBeCloseTo(7.4070639)
   })
 })
 
