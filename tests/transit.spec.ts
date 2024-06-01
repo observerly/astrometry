@@ -477,7 +477,9 @@ describe('isBodyVisibleForNight', () => {
 
 describe('getBodyNextRise and getBodyNextSet maximum call stack size error', () => {
   it('should not throw a maximum call stack size exceeded error for Messier 4', () => {
-    const datetime = new Date('2024-05-24T02:03:04.568+00:00')
+    const datetime = new Date('2024-05-31T22:38:21.424Z')
+
+    expect(datetime).toMatchObject(new Date(2024, 4, 31, 22, 38, 21, 424))
 
     const observer: GeographicCoordinate = {
       latitude: 43.5314582,
@@ -503,7 +505,9 @@ describe('getBodyNextRise and getBodyNextSet maximum call stack size error', () 
   })
 
   it('should not throw a maximum call stack size exceeded error for Messier 57', () => {
-    const datetime = new Date('2024-05-24T02:03:04.568+00:00')
+    const datetime = new Date('2024-05-31T22:38:21.424Z')
+
+    expect(datetime).toMatchObject(new Date(2024, 4, 31, 22, 38, 21, 424))
 
     const observer: GeographicCoordinate = {
       latitude: 43.5314582,
@@ -513,6 +517,34 @@ describe('getBodyNextRise and getBodyNextSet maximum call stack size error', () 
     const target: EquatorialCoordinate = {
       ra: 283.395875,
       dec: 33.028583
+    }
+
+    const set = getBodyNextSet(datetime, observer, target, 0.8190762287002356)
+
+    console.log(set)
+
+    expect(set).toBeDefined()
+
+    const rise = getBodyNextRise(datetime, observer, target, 0.8190762287002356)
+
+    console.log(rise)
+
+    expect(rise).toBeDefined()
+  })
+
+  it('should not throw a maximum call stack size exceeded error for arbitary target', () => {
+    const datetime = new Date('2024-05-31T22:38:21.424Z')
+
+    expect(datetime).toMatchObject(new Date(2024, 4, 31, 22, 38, 21, 424))
+
+    const observer: GeographicCoordinate = {
+      latitude: 43.5314582,
+      longitude: 5.4483161
+    }
+
+    const target: EquatorialCoordinate = {
+      ra: 83.63320833333333,
+      dec: 22.01447222222222
     }
 
     const set = getBodyNextSet(datetime, observer, target, 0.8190762287002356)
