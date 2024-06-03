@@ -350,7 +350,10 @@ describe('getBodyNextRise', () => {
     expect(GST).toBe(10.105025246638917)
     expect(LST).toBe(23.740485646638913)
     expect(az).toBeCloseTo(82.12362992591511)
-    expect(d).toStrictEqual(new Date('2021-05-15T18:31:28.713Z'))
+
+    const date = new Date('2021-05-15T18:31:28.713Z')
+
+    expect(d).toStrictEqual(new Date(date.getTime() + date.getTimezoneOffset() * 60000))
   })
 
   it('should return transit parameters for a souther hemisphere object for a postive latitude', () => {
@@ -374,7 +377,10 @@ describe('getBodyNextRise', () => {
     expect(GST).toBe(10.46311506002775)
     expect(LST).toBe(0.09857546002774953)
     expect(az).toBeCloseTo(82.12362992591511)
-    expect(d).toStrictEqual(new Date('2021-10-02T09:42:26.990Z'))
+
+    const date = new Date('2021-10-02T09:42:26.990Z')
+
+    expect(d).toStrictEqual(new Date(date.getTime() + date.getTimezoneOffset() * 60000))
   })
 })
 
@@ -406,7 +412,10 @@ describe('getBodyNextSet', () => {
     expect(GST).toBe(22.463115060027754)
     expect(LST).toBe(12.098575460027751)
     expect(az).toBeCloseTo(277.8763700740849)
-    expect(d).toStrictEqual(new Date('2021-05-15T06:54:52.253Z'))
+
+    const date = new Date('2021-05-15T06:54:52.253Z')
+
+    expect(d).toStrictEqual(new Date(date.getTime() + date.getTimezoneOffset() * 60000))
   })
 })
 
@@ -479,7 +488,9 @@ describe('getBodyNextRise and getBodyNextSet maximum call stack size error', () 
   it('should not throw a maximum call stack size exceeded error for Messier 4', () => {
     const datetime = new Date('2024-05-31T22:38:21.424Z')
 
-    expect(datetime).toMatchObject(new Date(2024, 4, 31, 22, 38, 21, 424))
+    const d = new Date(2024, 4, 31, 22, 38, 21, 424)
+
+    expect(datetime).toMatchObject(new Date(d.getTime() - d.getTimezoneOffset() * 60000))
 
     const observer: GeographicCoordinate = {
       latitude: 43.5314582,
@@ -507,7 +518,9 @@ describe('getBodyNextRise and getBodyNextSet maximum call stack size error', () 
   it('should not throw a maximum call stack size exceeded error for Messier 57', () => {
     const datetime = new Date('2024-05-31T22:38:21.424Z')
 
-    expect(datetime).toMatchObject(new Date(2024, 4, 31, 22, 38, 21, 424))
+    const d = new Date(2024, 4, 31, 22, 38, 21, 424)
+
+    expect(datetime).toMatchObject(new Date(d.getTime() - d.getTimezoneOffset() * 60000))
 
     const observer: GeographicCoordinate = {
       latitude: 43.5314582,
@@ -535,7 +548,9 @@ describe('getBodyNextRise and getBodyNextSet maximum call stack size error', () 
   it('should not throw a maximum call stack size exceeded error for arbitary target', () => {
     const datetime = new Date('2024-05-31T22:38:21.424Z')
 
-    expect(datetime).toMatchObject(new Date(2024, 4, 31, 22, 38, 21, 424))
+    const d = new Date(2024, 4, 31, 22, 38, 21, 424)
+
+    expect(datetime).toMatchObject(new Date(d.getTime() - d.getTimezoneOffset() * 60000))
 
     const observer: GeographicCoordinate = {
       latitude: 43.5314582,

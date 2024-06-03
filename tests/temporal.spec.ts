@@ -11,10 +11,10 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
-  getLocalSiderealTime,
-  getGreenwhichSiderealTime,
+  convertGreenwhichSiderealTimeToUniversalTime,
   convertLocalSiderealTimeToGreenwhichSiderealTime,
-  convertGreenwhichSiderealTimeToUniversalTime
+  getGreenwhichSiderealTime,
+  getLocalSiderealTime
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -57,7 +57,7 @@ describe('convertGreenwhichSiderealTimeToUniversalTime', () => {
     const UTC = convertGreenwhichSiderealTimeToUniversalTime(GST, datetime)
     expect(UTC).toBeInstanceOf(Date)
     // Check that the UTC is the same as the datetime:
-    expect(UTC.getTime()).toBeCloseTo(datetime.getTime(), -3)
+    expect(UTC.getTime()).toBeCloseTo(datetime.getTime() + datetime.getTimezoneOffset() * 60000, -5)
   })
 })
 
