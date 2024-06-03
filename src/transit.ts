@@ -7,9 +7,9 @@
 /*****************************************************************************************************************/
 
 import {
-  type HorizontalCoordinate,
   type EquatorialCoordinate,
   type GeographicCoordinate,
+  type HorizontalCoordinate,
   isEquatorialCoordinate,
   isHorizontalCoordinate
 } from './common'
@@ -19,14 +19,11 @@ import { convertEquatorialToHorizontal } from './coordinates'
 import { getNight } from './night'
 
 import {
-  convertLocalSiderealTimeToGreenwhichSiderealTime,
-  convertGreenwhichSiderealTimeToUniversalTime
+  convertGreenwhichSiderealTimeToUniversalTime,
+  convertLocalSiderealTimeToGreenwhichSiderealTime
 } from './temporal'
 
-import {
-  convertDegreesToRadians as radians,
-  convertRadiansToDegrees as degrees
-} from './utilities'
+import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -161,9 +158,9 @@ export const isBodyCircumpolar = (
   // We only need to consider the declination of the target object:
   const { dec } = target
 
-  // Whether a given star is circumpolar at the observer's latitude (θ) may be 
-  // calculated in terms of the star's declination (δ). The star is circumpolar 
-  // if θ + δ is greater than +90° (observer in Northern Hemisphere), or θ + δ is 
+  // Whether a given star is circumpolar at the observer's latitude (θ) may be
+  // calculated in terms of the star's declination (δ). The star is circumpolar
+  // if θ + δ is greater than +90° (observer in Northern Hemisphere), or θ + δ is
   // less than −90° (observer in Southern Hemisphere).
   return latitude >= horizon ? latitude + dec > 90 : latitude + dec < -90
 }
@@ -363,13 +360,15 @@ export const getBodyNextRise = (
   horizon: number = 0
 ): TransitInstance | false => {
   const tomorrow = new Date(
-    datetime.getFullYear(),
-    datetime.getMonth(),
-    datetime.getDate() + 1,
-    0,
-    0,
-    0,
-    0
+    Date.UTC(
+      datetime.getUTCFullYear(),
+      datetime.getUTCMonth(),
+      datetime.getUTCDate() + 1,
+      0,
+      0,
+      0,
+      0
+    )
   )
 
   // If the object is circumpolar, or it is not visible from the observer's location, it never rises:
@@ -426,13 +425,15 @@ export const getBodyNextSet = (
   horizon: number = 0
 ): TransitInstance | boolean => {
   const tomorrow = new Date(
-    datetime.getFullYear(),
-    datetime.getMonth(),
-    datetime.getDate() + 1,
-    0,
-    0,
-    0,
-    0
+    Date.UTC(
+      datetime.getUTCFullYear(),
+      datetime.getUTCMonth(),
+      datetime.getUTCDate() + 1,
+      0,
+      0,
+      0,
+      0
+    )
   )
 
   // If the object is circumpolar, it never sets:

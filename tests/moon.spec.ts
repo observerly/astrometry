@@ -11,31 +11,31 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  getLunarAge,
+  getLunarAngularDiameter,
   getLunarAnnualEquationCorrection,
-  getLunarMeanAnomaly,
-  getLunarMeanGeometricLongitude,
   getLunarArgumentOfLatitude,
-  getLunarMeanEclipticLongitude,
+  getLunarBrownLunationNumber,
+  getLunarCorrectedEclipticLongitudeOfTheAscendingNode,
+  getLunarDistance,
+  getLunarEclipticCoordinate,
+  getLunarEclipticLatitude,
+  getLunarEclipticLongitude,
+  getLunarElongation,
+  getLunarEquatorialCoordinate,
   getLunarEvectionCorrection,
-  getLunarMeanEclipticLongitudeOfTheAscendingNode,
+  getLunarIllumination,
+  getLunarMeanAnomaly,
   getLunarMeanAnomalyCorrection,
+  getLunarMeanEclipticLongitude,
+  getLunarMeanEclipticLongitudeOfTheAscendingNode,
+  getLunarMeanGeometricLongitude,
+  getLunarPhase,
+  getLunarPhaseAngle,
   getLunarTrueAnomaly,
   getLunarTrueEclipticLongitude,
-  getLunarCorrectedEclipticLongitudeOfTheAscendingNode,
-  getLunarEclipticLongitude,
-  getLunarEclipticLatitude,
-  getLunarEclipticCoordinate,
-  getLunarEquatorialCoordinate,
-  getLunarElongation,
-  getLunarAngularDiameter,
-  getLunarDistance,
-  getLunarAge,
-  getLunarPhaseAngle,
-  getLunarIllumination,
-  getLunarPhase,
-  getLunarBrownLunationNumber,
-  isNewMoon,
-  isFullMoon
+  isFullMoon,
+  isNewMoon
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -96,13 +96,13 @@ describe('getLunarArgumentOfLatitude', () => {
   })
 
   it('should return the correct Lunar argument of latitude for the given date in 1977 from Meeus', () => {
-    const datetime = new Date('1977-02-13T00:00:00')
+    const datetime = new Date('1977-02-13T00:00:00Z')
     const F = getLunarArgumentOfLatitude(datetime)
     expect(F).toBe(120.95841191863292)
   })
 
   it('should return the correct Lunar argument of latitude for the given date in 2009 from Meeus', () => {
-    const datetime = new Date('2009-07-22T02:37:00')
+    const datetime = new Date('2009-07-22T02:37:00Z')
     const F = getLunarArgumentOfLatitude(datetime)
     expect(F).toBe(179.83012040559697)
   })
@@ -388,14 +388,12 @@ describe.each([
   }))
 ])('isNewMoon', ({ date }) => {
   it('should return only when the Moon is a New Moon', () => {
-    if (
-      [12, 13, 14].includes(date.getDate()) &&
-      date.getMonth() === 0 &&
-      date.getFullYear() === 2021
-    ) {
-      expect(isNewMoon(date)).toBe(true)
+    const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+
+    if ([12, 13, 14].includes(d.getDate()) && d.getMonth() === 0 && d.getFullYear() === 2021) {
+      expect(isNewMoon(d)).toBe(true)
     } else {
-      expect(isNewMoon(date)).toBe(false)
+      expect(isNewMoon(d)).toBe(false)
     }
   })
 })

@@ -61,11 +61,11 @@ export const convertGreenwhichSiderealTimeToUniversalTime = (GST: number, date: 
 
   // Get the Julian Date at 0h:
   const JD = getJulianDate(
-    new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0)
+    new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0))
   )
 
   // Get the Julian Date at 0h on 1st January for the current year:
-  const JD_0 = getJulianDate(new Date(date.getFullYear(), 1, 1, 0, 0, 0, 0)) - 1
+  const JD_0 = getJulianDate(new Date(Date.UTC(date.getFullYear(), 1, 1, 0, 0, 0, 0))) - 1
 
   // Get the number of Julian days since 1st January for the current year:
   const d = JD - JD_0

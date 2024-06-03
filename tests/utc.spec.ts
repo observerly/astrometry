@@ -30,9 +30,9 @@ describe('UTC', () => {
     expect(UTC.getTime()).toBe(new Date('2021-05-14T02:00:00.000Z').getTime())
   })
 
-  it('should have a timezone offset of 0 when conversion has been applied', () => {
+  it('should have a timezone offset of the known offset when conversion has been applied', () => {
     const UTC = utc(datetime)
-    expect(UTC.getTimezoneOffset()).toBe(0)
+    expect(UTC.getTimezoneOffset()).toBe(datetime.getTimezoneOffset())
   })
 })
 
