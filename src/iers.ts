@@ -8,7 +8,7 @@
 
 // The current Unix timestamp for the expiry of the current IERS leap second table.
 // This is when we should next check for an updated table.
-export const CURRENT_EXPIRY_UNIX_TIMESTAMP = new Date(2024, 12, 28).getTime()
+export const CURRENT_EXPIRY_UNIX_TIMESTAMP: number = new Date(2024, 12, 28).getTime()
 
 /*****************************************************************************************************************/
 
@@ -39,7 +39,13 @@ interface IERS_LEAP_SECONDS_NTP {
    *
    */
   dtai: number
-
+  /**
+   *
+   *
+   * The date and time when the leap second was added to the UTC time scale as a
+   * JavaScript Date object.
+   *
+   */
   when: Date
 }
 
@@ -54,7 +60,7 @@ interface IERS_LEAP_SECONDS_NTP {
  * @see https://data.iana.org/time-zones/data/leap-seconds.list
  *
  */
-const getLeapSeconds = () => {
+const getLeapSeconds = (): IERS_LEAP_SECONDS_NTP[] => {
   // Log a warning if the current leap seconds table is out of date according
   // to the IERS expiry date.
   if (Date.now() > CURRENT_EXPIRY_UNIX_TIMESTAMP) {
@@ -236,6 +242,6 @@ const getLeapSeconds = () => {
 /*****************************************************************************************************************/
 
 // We return a function to ensure a warning is logged if the leap seconds table is out of date.
-export const LEAP_SECONDS = getLeapSeconds()
+export const LEAP_SECONDS: IERS_LEAP_SECONDS_NTP[] = getLeapSeconds()
 
 /*****************************************************************************************************************/
