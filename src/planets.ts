@@ -14,7 +14,7 @@ import { earth } from './earth'
 
 import { getJulianDate } from './epoch'
 
-import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees } from './utilities'
+import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -114,7 +114,7 @@ export type Planet = {
 
 /*****************************************************************************************************************/
 
-export const mercury = {
+export const mercury: Planet = {
   uid: '01HD49QMD7GA502WXEMY1ZAG15',
   name: 'Mercury',
   symbol: '☿',
@@ -132,7 +132,7 @@ export const mercury = {
 
 /*****************************************************************************************************************/
 
-export const venus = {
+export const venus: Planet = {
   uid: '01HD49R1NASDCYK3ZBYYCBJTBW',
   name: 'Venus',
   symbol: '♀',
@@ -150,7 +150,7 @@ export const venus = {
 
 /*****************************************************************************************************************/
 
-export const mars = {
+export const mars: Planet = {
   uid: '01HD4ARM2X130B6M2Q74JFKRW4',
   name: 'Mars',
   symbol: '♂',
@@ -168,7 +168,7 @@ export const mars = {
 
 /*****************************************************************************************************************/
 
-export const jupiter = {
+export const jupiter: Planet = {
   uid: '01HD4AYRMZP734M8FVQGXDB5BV',
   name: 'Jupiter',
   symbol: '♃',
@@ -186,7 +186,7 @@ export const jupiter = {
 
 /*****************************************************************************************************************/
 
-export const saturn = {
+export const saturn: Planet = {
   uid: '01HD4AYZAHS15TJJMZDQWV1TET',
   name: 'Saturn',
   symbol: '♄',
@@ -204,7 +204,7 @@ export const saturn = {
 
 /*****************************************************************************************************************/
 
-export const uranus = {
+export const uranus: Planet = {
   uid: '01HD4AZ66TP0P2KY9A8XFMRQ4T',
   name: 'Uranus',
   symbol: '♅',
@@ -222,7 +222,7 @@ export const uranus = {
 
 /*****************************************************************************************************************/
 
-export const neptune = {
+export const neptune: Planet = {
   uid: '01HD4AZGMADD008W4XT4HEV9ZC',
   name: 'Neptune',
   symbol: '♆',
