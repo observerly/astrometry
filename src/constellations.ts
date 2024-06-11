@@ -8,7 +8,7 @@
 
 import { type EquatorialCoordinate } from './common'
 
-import { NANCY_ROMAN_TABLE_I } from './nancy'
+import { NANCY_ROMAN_TABLE_I, isNancyRomanRecord } from './nancy'
 
 import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
 
@@ -142,7 +142,10 @@ export interface Constellation {
 
 /*****************************************************************************************************************/
 
-export const constellations = new Map<string, Constellation>([
+export const constellations: Map<ConstellationName, Constellation> = new Map<
+  ConstellationName,
+  Constellation
+>([
   [
     'Andromeda',
     {
@@ -877,13 +880,17 @@ export const getConstellation = (target: EquatorialCoordinate): Constellation | 
   const ha = ra / 15
 
   // Find the constellation that matches the target's coordinates in the Nancy Roman lookup table :
-  const match = NANCY_ROMAN_TABLE_I.find(
+  const record = NANCY_ROMAN_TABLE_I.find(
     constellation =>
       !(dec < constellation.decl || ha < constellation.ral || ha >= constellation.rau)
   )
 
+  if (!isNancyRomanRecord(record)) {
+    return undefined
+  }
+
   // If we have a match, return the constellation, otherwise return undefined:
-  return match ? constellations.get(match.name) : undefined
+  return record ? constellations.get(record.name as ConstellationName) : undefined
 }
 
 /*****************************************************************************************************************/
