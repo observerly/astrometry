@@ -6,6 +6,14 @@
 
 /*****************************************************************************************************************/
 
+export interface NancyRomanRecord {
+  ral: number
+  rau: number
+  decl: number
+  name: string
+}
+
+/*****************************************************************************************************************/
 /**
  *
  * @description Constellation Boundary Lookup Table
@@ -17,7 +25,7 @@
  * @citation Nancy G. Roman 1987 The Astronomical Society of the Pacific 99 695
  *
  */
-export const NANCY_ROMAN_TABLE_I = [
+export const NANCY_ROMAN_TABLE_I: NancyRomanRecord[] = [
   {
     ral: 0,
     rau: 24,
