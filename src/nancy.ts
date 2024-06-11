@@ -14,6 +14,25 @@ export interface NancyRomanRecord {
 }
 
 /*****************************************************************************************************************/
+
+export const isNancyRomanRecord = (record: unknown): record is NancyRomanRecord => {
+  return (
+    !!record &&
+    record !== null &&
+    typeof record === 'object' &&
+    'ral' in record &&
+    'rau' in record &&
+    'decl' in record &&
+    'name' in record &&
+    typeof (record as NancyRomanRecord).ral === 'number' &&
+    typeof (record as NancyRomanRecord).rau === 'number' &&
+    typeof (record as NancyRomanRecord).decl === 'number' &&
+    typeof (record as NancyRomanRecord).name === 'string'
+  )
+}
+
+/*****************************************************************************************************************/
+
 /**
  *
  * @description Constellation Boundary Lookup Table
