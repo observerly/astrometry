@@ -10,7 +10,7 @@ import { type EquatorialCoordinate } from './common'
 
 import { getJulianDate } from './epoch'
 
-import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees } from './utilities'
+import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -28,7 +28,7 @@ import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees 
 export const getCorrectionToEquatorialForPrecessionOfEquinoxes = (
   datetime: Date,
   target: EquatorialCoordinate
-) => {
+): EquatorialCoordinate => {
   // Get the Julian date:
   const JD = getJulianDate(datetime)
 
