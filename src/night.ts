@@ -33,7 +33,16 @@ import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians 
  * @returns The generalized solar transit for the given date.
  *
  */
-export const getGeneralizedSolarTransit = (datetime: Date, observer: GeographicCoordinate) => {
+export const getGeneralizedSolarTransit = (
+  datetime: Date,
+  observer: GeographicCoordinate
+): {
+  sunrise: Date | null
+  noon: Date | null
+  sunset: Date | null
+  J: number
+  ha: number
+} => {
   const { latitude, longitude } = observer
 
   // Get the Julian Date:
@@ -204,7 +213,7 @@ export const isNight = (
   horizon: number = -12,
   temperature: number = 288.15,
   pressure: number = 101325
-) => {
+): boolean => {
   const when = new Date(
     datetime.getFullYear(),
     datetime.getMonth(),
