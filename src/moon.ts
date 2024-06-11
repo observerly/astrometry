@@ -14,9 +14,9 @@ import { getJulianDate } from './epoch'
 
 import { getFOrbitalParameter } from './orbit'
 
-import { getSolarMeanAnomaly, getSolarEclipticLongitude } from './sun'
+import { getSolarEclipticLongitude, getSolarMeanAnomaly } from './sun'
 
-import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees } from './utilities'
+import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -258,7 +258,7 @@ export const getLunarMeanEclipticLongitudeOfTheAscendingNode = (datetime: Date):
 
 /*****************************************************************************************************************/
 
-export const getLunarMeanAnomalyCorrection = (datetime: Date) => {
+export const getLunarMeanAnomalyCorrection = (datetime: Date): number => {
   // Get the annual equation correction:
   const Ae = getLunarAnnualEquationCorrection(datetime)
 
@@ -778,7 +778,7 @@ export const getLunarPhase = (datetime: Date): Phase => {
  * Represents the number of Lunar synodic months since Lunation 1st.
  *
  */
-export const getLunarBrownLunationNumber = (datetime: Date) => {
+export const getLunarBrownLunationNumber = (datetime: Date): number => {
   // Get the Julian date:
   const JD = getJulianDate(datetime)
 
