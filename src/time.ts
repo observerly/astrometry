@@ -75,6 +75,28 @@ export class DateTime extends Date {
     return this.getInternationalAtomicTime()
   }
 
+  /**
+   *
+   * @returns the Terrestrial Time (TT) of the given date.
+   *
+   */
+  getTerrestrialTime(): number {
+    const tai = this.getInternationalAtomicTime()
+
+    // The difference between TAI and TT is the number of leap seconds that have been
+    // added to the UTC time scale. This difference is known as DTAI.
+    return tai + 32.184 * 1000
+  }
+
+  /**
+   *
+   * @returns the Terrestrial Time (TT) of the given date.
+   *
+   */
+  getTT(): number {
+    return this.getTerrestrialTime()
+  }
+
   getGlobalPositioningSystemTime(): number {
     const zero = new Date('1980-01-06T00:00:00.000+00:00').getTime()
     // The International Atomic Time (TAI) is the time scale that combines the output of

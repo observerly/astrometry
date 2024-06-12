@@ -108,6 +108,31 @@ describe('DateTime International Atomic Time', () => {
 
 /*****************************************************************************************************************/
 
+describe('DateTime Terrestrial Time', () => {
+  it('should have a getTerrestrialTime method', () => {
+    expect(new DateTime().getTerrestrialTime).toBeDefined()
+    expect(new DateTime().getTerrestrialTime).toBeInstanceOf(Function)
+  })
+
+  it('should have a getTT method', () => {
+    expect(new DateTime().getTT).toBeDefined()
+    expect(new DateTime().getTT).toBeInstanceOf(Function)
+  })
+
+  it('should return a correction of 69.184 seconds for the given date', () => {
+    const TT = new DateTime(datetime).getTerrestrialTime()
+    expect(TT).toBe(new Date(datetime).getTime() + 69.184 * 1000)
+  })
+
+  it('should return a correction of 67.184 seconds for timestamp 1341100800000', () => {
+    const datetime = new Date(1341100800000)
+    const TT = new DateTime(datetime).getTerrestrialTime()
+    expect(TT).toBe(new Date('2012-07-01T00:00:00.000+00:00').getTime() + 67.184 * 1000)
+  })
+})
+
+/*****************************************************************************************************************/
+
 describe('DateTime Global Positioning System Time', () => {
   it('should have a getGlobalPositioningSystemTime method', () => {
     expect(new DateTime().getGlobalPositioningSystemTime).toBeDefined()
