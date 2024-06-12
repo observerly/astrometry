@@ -11,13 +11,15 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
-  getSolarMeanAnomaly,
+  AU_IN_METERS,
+  getSolarDistance,
+  getSolarEclipticLongitude,
   getSolarEquationOfCenter,
+  getSolarEquatorialCoordinate,
+  getSolarMeanAnomaly,
   getSolarMeanGeometricLongitude,
   getSolarTrueAnomaly,
-  getSolarTrueGeometricLongitude,
-  getSolarEclipticLongitude,
-  getSolarEquatorialCoordinate
+  getSolarTrueGeometricLongitude
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -117,6 +119,26 @@ describe('getSolarEquatorialCoordinate', () => {
     const { ra: α, dec: δ } = getSolarEquatorialCoordinate(datetime)
     expect(α).toBe(318.5617376411268)
     expect(δ).toBe(-16.008394691469505)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getSolarDistance', () => {
+  it('should be defined', () => {
+    expect(getSolarDistance).toBeDefined()
+  })
+
+  it('should be correct from the given datetime', () => {
+    // For testing we need to specify a date because most calculations are
+    // differential w.r.t a time component. We set it to the date provided
+    // on p.165 of Meeus, Jean. 1991. Astronomical algorithms.Richmond,
+    // Va: Willmann - Bell.:
+    const d = new Date('1992-10-13T00:00:00.000+00:00')
+
+    const R = getSolarDistance(d)
+
+    expect(R).toBeCloseTo(0.997661843191 * AU_IN_METERS, 0)
   })
 })
 

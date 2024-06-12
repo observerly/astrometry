@@ -10,6 +10,10 @@ import { getObliquityOfTheEcliptic } from './astrometry'
 
 import { type EquatorialCoordinate } from './common'
 
+import { AU_IN_METERS } from './constants'
+
+import { getEccentricityOfOrbit } from './earth'
+
 import { getJulianDate } from './epoch'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
@@ -228,6 +232,26 @@ export const getSolarEquatorialCoordinate = (datetime: Date): EquatorialCoordina
   const dec = degrees(Math.asin(Math.sin(ε) * Math.sin(λ)))
 
   return { ra, dec }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getSolarDistance()
+ *
+ * @param datetime - The date to calculate the distance to the Sun for.
+ * @returns The distance to the Sun in metres forthe given date.
+ */
+export const getSolarDistance = (datetime: Date): number => {
+  // Get the eccentricity of the Earth's orbit:
+  const e = getEccentricityOfOrbit(datetime)
+
+  // Get the solar true anomaly:
+  const ν = getSolarTrueAnomaly(datetime)
+
+  // Calculate the distance to the Sun (in metres) from the Earth:
+  return ((1.000001018 * (1 - Math.pow(e, 2))) / (1 + e * Math.cos(radians(ν)))) * AU_IN_METERS
 }
 
 /*****************************************************************************************************************/
