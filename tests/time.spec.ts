@@ -71,6 +71,25 @@ describe('DateTime Modified Julian Dates', () => {
 
 /*****************************************************************************************************************/
 
+describe('DateTime Heliocentric Julian Dates', () => {
+  it('should have a getHeliocentricJulianDate method', () => {
+    expect(new DateTime().getHeliocentricJulianDate).toBeDefined()
+    expect(new DateTime().getHeliocentricJulianDate).toBeInstanceOf(Function)
+  })
+
+  it('should have a getHJD method', () => {
+    expect(new DateTime().getHJD).toBeDefined()
+    expect(new DateTime().getHJD).toBeInstanceOf(Function)
+  })
+
+  it('should return the Heliocentric Julian Date (HJD) of the given date', () => {
+    const HJD = new DateTime(datetime).getHeliocentricJulianDate()
+    expect(HJD).toBeCloseTo(2459348.49416325)
+  })
+})
+
+/*****************************************************************************************************************/
+
 describe('DateTime International Atomic Time', () => {
   it('should have a getInternationalAtomicTime method', () => {
     expect(new DateTime().getInternationalAtomicTime).toBeDefined()
