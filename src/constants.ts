@@ -39,6 +39,22 @@ export const SECONDS_IN_YEAR = 31556925.445
 
 /**
  *
+ * The speed of light in a vacuum is a fundamental physical constant that is
+ * the speed at which light propagates in a vacuum.
+ *
+ * The speed of light in a vacuum is exactly 299,792,458 meters per second.
+ *
+ */
+export const SPEED_OF_LIGHT = 299792458
+
+/*****************************************************************************************************************/
+
+export const c = SPEED_OF_LIGHT
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * The previous standard epoch "J1900" was defined by international agreement to
  * be equivalent to: The Gregorian date January 0.5, 1900, at 12:00 TT (Terrestrial Time),
  * equivalent to noon on December 31, 1899.
