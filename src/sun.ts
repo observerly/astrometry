@@ -10,7 +10,7 @@ import { getObliquityOfTheEcliptic } from './astrometry'
 
 import { type EquatorialCoordinate } from './common'
 
-import { AU_IN_METERS } from './constants'
+import { AU_IN_METERS, c } from './constants'
 
 import { getEccentricityOfOrbit } from './earth'
 
@@ -252,6 +252,22 @@ export const getSolarDistance = (datetime: Date): number => {
 
   // Calculate the distance to the Sun (in metres) from the Earth:
   return ((1.000001018 * (1 - Math.pow(e, 2))) / (1 + e * Math.cos(radians(ν)))) * AU_IN_METERS
+}
+
+/*****************************************************************************************************************/
+
+export const getHeliocentricJulianDate = (datetime: Date): number => {
+  const JD = getJulianDate(datetime)
+
+  // Get the eccentricity of the Earth's orbit:
+  const R = getSolarDistance(datetime)
+
+  // Determine the distance between the Earth and the Sun and compute the light travel time
+  // to correct the Julian Date to the time of the observation (in seconds):
+  const HJD = JD - R / c / 86400
+
+  // Return the Heliocentric Julian Date:
+  return HJD
 }
 
 /*****************************************************************************************************************/

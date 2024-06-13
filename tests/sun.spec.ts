@@ -12,6 +12,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   AU_IN_METERS,
+  getHeliocentricJulianDate,
+  getJulianDate,
   getSolarDistance,
   getSolarEclipticLongitude,
   getSolarEquationOfCenter,
@@ -139,6 +141,33 @@ describe('getSolarDistance', () => {
     const R = getSolarDistance(d)
 
     expect(R).toBeCloseTo(0.997661843191 * AU_IN_METERS, 0)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getHeliocentricJulianDate', () => {
+  it('should be defined', () => {
+    expect(getHeliocentricJulianDate).toBeDefined()
+  })
+
+  it('should return the correct heliocentric Julian date for the given date', () => {
+    const HJD = getHeliocentricJulianDate(datetime)
+
+    const JD = getJulianDate(datetime)
+
+    // We expect that HJD will be less than JD because the light travel time:
+    expect(HJD).toBeLessThan(JD)
+
+    // The difference should be less than 1 day:
+    expect(JD - HJD).toBeLessThan(1)
+
+    // The difference should be greater than 0:
+    expect(JD - HJD).toBeGreaterThan(0)
+
+    // The difference should be approximately less than ~9minutes:
+    expect(JD - HJD).toBeLessThan(0.00625)
+    expect(Math.round((JD - HJD) * 1440)).toBeCloseTo(8)
   })
 })
 
