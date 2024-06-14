@@ -10,6 +10,8 @@ import { getJulianDate, getModifiedJulianDate } from './epoch'
 
 import { LEAP_SECONDS } from './iers'
 
+import { getHeliocentricJulianDate } from './sun'
+
 /*****************************************************************************************************************/
 
 // This is the number of milliseconds to correct for a given zeroth date according to the IERS table.
@@ -160,6 +162,26 @@ export class DateTime extends Date {
    */
   getMJD(): number {
     return this.getModifiedJulianDate()
+  }
+
+  /**
+   *
+   *
+   * @returns Heliocentric Julian Date as number - the Heliocentric Julian Date (HJD) of the given date.
+   *
+   */
+  getHeliocentricJulianDate(): number {
+    return getHeliocentricJulianDate(this)
+  }
+
+  /**
+   *
+   *
+   * @returns Heliocentric Julian Date as number - the Heliocentric Julian Date (HJD) of the given date.
+   *
+   */
+  getHJD(): number {
+    return this.getHeliocentricJulianDate()
   }
 }
 
