@@ -54,3 +54,37 @@ export const getEccentricityOfOrbit = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getObliquityOfEcliptic()
+ *
+ * @see EQ22.2 p.147 of Meeus, Jean. 1991. Astronomical algorithms. Richmond, Va: Willmann-Bell.
+ *
+ * @note This is adopted by the International Astronomical Union (IAU), however the accuracy
+ * is NOT satisfactory over a long period of time, the error in ε0 reaches 1" over a period
+ * of 2000 years and about 10" over a period of 4000 years.
+ *
+ * @param datetime - The date to get the obliquity of the ecliptic for
+ * @returns The obliquity of the ecliptic in degrees
+ *
+ */
+export const getObliquityOfEcliptic = (datetime: Date): number => {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  // Get the difference in fractional Julian centuries between the target date and J2000.0
+  const T = (JD - 2451545.0) / 36525
+
+  // Get the obliquity of the ecliptic
+  return (
+    23.4392911111 -
+    0.0130041667 * T -
+    0.0000001639 * Math.pow(T, 2) +
+    0.0000005036 * Math.pow(T, 3) -
+    0.0000000006 * Math.pow(T, 4) -
+    0.000000000018 * T * T * T * T * T
+  )
+}
+
+/*****************************************************************************************************************/
