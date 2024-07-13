@@ -92,10 +92,10 @@ export default defineConfig({
       external: ['./playground/*.ts'],
       input: entrypoints,
       output: {
-        preserveModules: false,
-        sourcemap: true
+        preserveModules: false
       }
-    }
+    },
+    sourcemap: true
   }
 })
 
