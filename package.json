@@ -188,6 +188,7 @@
     "format": "prettier \"src/**/*.ts\" --write",
     "lint": "eslint src --ext .ts --fix",
     "test": "vitest",
+    "benchmark": "tsx ./benchmarks/index.ts",
     "coverage": "vitest run --coverage"
   },
   "devDependencies": {
@@ -204,7 +205,9 @@
     "path": "^0.12.7",
     "prettier": "3.0.1",
     "rollup": "^4.14.1",
+    "tinybench": "^2.8.0",
     "tslib": "^2.6.1",
+    "tsx": "^4.16.2",
     "typescript": "5.3.3",
     "vite": "^5.3.3",
     "vitest": "^2.0.2"
