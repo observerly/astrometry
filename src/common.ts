@@ -215,3 +215,24 @@ export const isHorizontalCoordinate = (target: unknown): target is HorizontalCoo
 }
 
 /*****************************************************************************************************************/
+
+export type SphericalCoordinate = {
+  /**
+   *
+   * The polar angle subtended by a point in spherical coordinates is the angle
+   * measured from the positive z-axis to the line segment connecting the
+   * origin to the point.
+   *
+   */
+  θ: number
+  /**
+   *
+   * The azimuthal angle subtended by a point in spherical coordinates is the
+   * angle measured from the positive x-axis to the line segment connecting
+   * the origin to the point.
+   *
+   */
+  φ: number
+}
+
+/*****************************************************************************************************************/
