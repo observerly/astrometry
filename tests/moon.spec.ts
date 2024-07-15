@@ -388,13 +388,15 @@ describe.each([
   }))
 ])('isNewMoon', ({ date }) => {
   it('should return only when the Moon is a New Moon', () => {
-    const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-
-    if ([12, 13, 14].includes(d.getDate()) && d.getMonth() === 0 && d.getFullYear() === 2021) {
-      expect(isNewMoon(d)).toBe(true)
+    if ([12, 13].includes(date.getDate()) && date.getMonth() === 0 && date.getFullYear() === 2021) {
+      expect(isNewMoon(date)).toBe(true)
     } else {
-      expect(isNewMoon(d)).toBe(false)
+      expect(isNewMoon(date)).toBe(false)
     }
+  })
+
+  it('should never return an invalid phase', () => {
+    expect(getLunarPhase(date) === 'Invalid').toBe(false)
   })
 })
 
@@ -406,15 +408,19 @@ describe.each([
   }))
 ])('isFullMoon', ({ date }) => {
   it('should return only when the Moon is a Full Moon', () => {
-    if (
-      [1, 27, 28, 29, 30].includes(date.getDate()) &&
-      date.getMonth() === 0 &&
-      date.getFullYear() === 2021
-    ) {
+    if ([29].includes(date.getDate()) && date.getMonth() === 0 && date.getFullYear() === 2021) {
       expect(isFullMoon(date)).toBe(true)
     } else {
       expect(isFullMoon(date)).toBe(false)
     }
+  })
+
+  it('should never return an invalid phase', () => {
+    if (getLunarPhase(date) === 'Invalid') {
+      console.log(date)
+    }
+
+    expect(getLunarPhase(date) === 'Invalid').toBe(false)
   })
 })
 
