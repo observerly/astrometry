@@ -52,7 +52,8 @@ export const Phases = {
   Full: 'Full',
   WaningGibbous: 'Waning Gibbous',
   LastQuarter: 'Last Quarter',
-  WaningCrescent: 'Waning Crescent'
+  WaningCrescent: 'Waning Crescent',
+  Invalid: 'Invalid'
 } as const
 
 export type Phase = (typeof Phases)[keyof typeof Phases]
@@ -729,11 +730,10 @@ export const getLunarPhase = (datetime: Date): Phase => {
   // Get the age of the Moon:
   const { age } = getLunarAge(datetime)
 
-  // Determine the phase of the Moon:
-  if (age < 1.84566) {
-    return Phases.New
-  }
+  // Get the illuniated fraction of the Moon (as a percentage):
+  const illumination = getLunarIllumination(datetime)
 
+  // Determine the phase of the Moon based off of the age and the illumination:
   if (age < 5.53699) {
     return Phases.WaxingCrescent
   }
@@ -742,11 +742,12 @@ export const getLunarPhase = (datetime: Date): Phase => {
     return Phases.FirstQuarter
   }
 
-  if (age < 12.91963) {
+  if (age < 14.71963) {
     return Phases.WaxingGibbous
   }
 
-  if (age < 16.61096) {
+  // If the illumination is +/- 1% of 100% illumination then the Moon is full:
+  if (age < 15.02096 && Math.abs(illumination - 100) < 1) {
     return Phases.Full
   }
 
