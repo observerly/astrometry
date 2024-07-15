@@ -22,6 +22,7 @@ const modules = [
   'abberation',
   'astrometry',
   'common',
+  'conjunction',
   'constants',
   'constellations',
   'coordinates',
