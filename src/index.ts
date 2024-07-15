@@ -9,6 +9,7 @@
 export * from './abberation'
 export * from './astrometry'
 export * from './common'
+export * from './conjunction'
 export * from './constants'
 export * from './constellations'
 export * from './coordinates'

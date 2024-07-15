@@ -57,6 +57,11 @@
       "require": "./dist/common.cjs",
       "types": "./dist/common.d.ts"
     },
+    "./conjunction": {
+      "import": "./dist/conjunction.js",
+      "require": "./dist/conjunction.cjs",
+      "types": "./dist/conjunction.d.ts"
+    },
     "./constants": {
       "import": "./dist/constants.js",
       "require": "./dist/constants.cjs",
