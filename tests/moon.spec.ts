@@ -34,6 +34,7 @@ import {
   getLunarPhaseAngle,
   getLunarTrueAnomaly,
   getLunarTrueEclipticLongitude,
+  getNextFullMoon,
   isFullMoon,
   isNewMoon
 } from '../src'
@@ -421,6 +422,19 @@ describe.each([
     }
 
     expect(getLunarPhase(date) === 'Invalid').toBe(false)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getNextFullMoon', () => {
+  it('should be defined', () => {
+    expect(getNextFullMoon).toBeDefined()
+  })
+
+  it('should return the correct date of the next Full Moon', () => {
+    const nextFullMoon = getNextFullMoon(datetime)
+    expect(nextFullMoon.toISOString()).toBe('2021-05-26T11:31:20.000Z')
   })
 })
 
