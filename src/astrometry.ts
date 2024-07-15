@@ -6,13 +6,17 @@
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, type GeographicCoordinate } from './common'
+import {
+  type EquatorialCoordinate,
+  type GeographicCoordinate,
+  type SphericalCoordinate
+} from './common'
 
 import { getJulianDate } from './epoch'
 
 import { utc } from './utc'
 
-import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees } from './utilities'
+import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -27,15 +31,13 @@ import { convertDegreesToRadians as radians, convertRadiansToDegrees as degrees 
  * @returns The angular separation between the two objects in degrees.
  *
  */
-export const getAngularSeparation = (A: EquatorialCoordinate, B: EquatorialCoordinate): number => {
+export const getAngularSeparation = (A: SphericalCoordinate, B: SphericalCoordinate): number => {
   // Calculate the angular separation between A and B (in degrees):
   let θ =
     degrees(
       Math.acos(
-        Math.sin(radians(A['dec'])) * Math.sin(radians(B['dec'])) +
-          Math.cos(radians(A['dec'])) *
-            Math.cos(radians(B['dec'])) *
-            Math.cos(radians(A['ra'] - B['ra']))
+        Math.sin(radians(A['θ'])) * Math.sin(radians(B['θ'])) +
+          Math.cos(radians(A['θ'])) * Math.cos(radians(B['θ'])) * Math.cos(radians(A['φ'] - B['φ']))
       )
     ) % 360
 
@@ -85,7 +87,11 @@ export const getGreenwhichSiderealTime = (datetime: Date): number => {
   const d = utc(datetime)
 
   // Convert the UTC time to a decimal fraction of hours:
-  const UTC = d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600 + d.getUTCMilliseconds() / 3600000
+  const UTC =
+    d.getUTCHours() +
+    d.getUTCMinutes() / 60 +
+    d.getUTCSeconds() / 3600 +
+    d.getUTCMilliseconds() / 3600000
 
   const A = UTC * 1.002737909
 
