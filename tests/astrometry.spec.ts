@@ -13,8 +13,8 @@ import { describe, expect, it } from 'vitest'
 import {
   type EquatorialCoordinate,
   getAngularSeparation,
-  getHourAngle,
   getGreenwhichSiderealTime,
+  getHourAngle,
   getLocalSiderealTime,
   getObliquityOfTheEcliptic,
   getParallacticAngle
@@ -47,7 +47,16 @@ describe('getAngularSeparation', () => {
   })
 
   it('should return the angular separation between two objects', () => {
-    const θ = getAngularSeparation(arcturus, spica)
+    const θ = getAngularSeparation(
+      {
+        θ: arcturus.dec,
+        φ: arcturus.ra
+      },
+      {
+        θ: spica.dec,
+        φ: spica.ra
+      }
+    )
     expect(θ).toBe(32.79290589269233)
   })
 })
