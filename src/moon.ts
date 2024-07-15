@@ -819,3 +819,65 @@ export const isNewMoon = (datetime: Date): boolean => getLunarPhase(datetime) ==
 export const isFullMoon = (datetime: Date): boolean => getLunarPhase(datetime) === 'Full'
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getNextFullMoon()
+ *
+ * @param datetime - The date to determine the next full Moon for.
+ * @returns The date of the next full Moon.
+ */
+export const getNextFullMoon = (datetime: Date): Date => {
+  // Amend the date to midnight on the given date:
+  let date = new Date(new Date(datetime).setHours(0, 0, 0, 0))
+
+  // The maximum number of days in a synodic month is 29, so if we increment the
+  // date by 1 hour until we reach a full Moon, we will eventually reach
+  // a full Moon within 29 days (~696 iterations):
+  while (!isFullMoon(date)) {
+    // Increment the date by 1 hour:
+    date = new Date(date.getTime() + 60 * 60 * 1000)
+  }
+
+  let current = date.getTime() - 12 * 60 * 60 * 1000
+
+  const end = date.getTime() + 12 * 60 * 60 * 1000
+
+  // Initialize variables to keep track of the maximum illumination and date:
+  let maximum = -Infinity
+
+  // Initialize the date of the full Moon:
+  let full: Date = date
+
+  // Counter to track how many consecutive times the illumination has not increased
+  let counter = 0
+
+  // Loop between lower and upper to get a more precise time for the full Moon:
+  // Taking into consideration that the date is incremented in 10000ms intervals.
+  while (current <= end) {
+    // Get the illumination of the Moon at the current date:
+    const illumination = getLunarIllumination(new Date(current))
+
+    // Check if the current illumination is greater than the maximum found so far:
+    if (illumination > maximum) {
+      maximum = illumination
+      full = new Date(current)
+      counter = 0 // Reset the counter if the illumination increases
+    } else {
+      counter++
+    }
+
+    // Increment by 10000 milliseconds (10 seconds)
+    current += 10000
+
+    // If illumination hasn't increased for a certain number of iterations, break the loop
+    if (counter > 100) {
+      // The threshold can be adjusted based on specific needs
+      break
+    }
+  }
+
+  return full
+}
+
+/*****************************************************************************************************************/
