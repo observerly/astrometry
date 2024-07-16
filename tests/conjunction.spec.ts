@@ -10,7 +10,14 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type Planet, isPlanetaryConjunction, jupiter, venus } from '../src'
+import {
+  type Planet,
+  findPlanetaryConjunction,
+  isPlanetaryConjunction,
+  jupiter,
+  saturn,
+  venus
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -56,6 +63,72 @@ describe('isPlanetaryConjunction(datetime)', () => {
 
     const conjunction = isPlanetaryConjunction(datetime, { latitude, longitude }, planets)
     expect(conjunction).toBe(false)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('findPlanetaryConjunction()', () => {
+  it('should be defined', () => {
+    expect(findPlanetaryConjunction).toBeDefined()
+  })
+
+  it('should return the next conjunction between Jupiter and Venus', () => {
+    // We are specifically testing for a conjunction between Jupiter and Venus
+    // from the 1st of January 2023 at 10:00 UTC (Coordinated Universal Time).
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    // Searching for the next conjunction between Jupiter and Venus within a year
+    // of the given datetime.
+    const conjunction = findPlanetaryConjunction(
+      {
+        from: datetime,
+        to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24 * 365)
+      },
+      { latitude, longitude },
+      planets
+    )
+
+    expect(conjunction).toBeDefined()
+    expect(conjunction).not.toBe(false)
+
+    if (conjunction) {
+      expect(conjunction.datetime).toMatchObject(new Date('2023-02-24T23:20:00Z'))
+      expect(conjunction.angularSeparation).toBeLessThan(3)
+      expect(conjunction.ra).toBeGreaterThan(0)
+      expect(conjunction.dec).toBeGreaterThan(0)
+    } else {
+      throw new Error('Conjunction is not defined')
+    }
+  })
+
+  it('should return the next conjunction between Saturn and Venus', () => {
+    // We are specifically testing for a conjunction between Saturn and Venus
+    // from the 1st of January 2023 at 10:00 UTC (Coordinated Universal Time).
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    // Searching for the next conjunction between Saturn and Venus within a year
+    // of the given datetime.
+    const conjunction = findPlanetaryConjunction(
+      {
+        from: datetime,
+        to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24 * 365)
+      },
+      { latitude, longitude },
+      [saturn, venus]
+    )
+
+    expect(conjunction).toBeDefined()
+    expect(conjunction).not.toBe(false)
+
+    if (conjunction) {
+      expect(conjunction.datetime).toMatchObject(new Date('2023-01-19T19:20:00.000Z'))
+      expect(conjunction.angularSeparation).toBeLessThan(3)
+      expect(conjunction.ra).toBeGreaterThan(0)
+      expect(conjunction.dec).toBeLessThan(0)
+    } else {
+      throw new Error('Conjunction is not defined')
+    }
   })
 })
 
