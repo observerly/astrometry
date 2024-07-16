@@ -10,6 +10,23 @@ export type Maybe<T> = NonNullable<T> | undefined
 
 /*****************************************************************************************************************/
 
+export type Interval = {
+  /**
+   *
+   * The from date of an interval is the start date of the interval.
+   *
+   */
+  from: Date
+  /**
+   *
+   * The to date of an interval is the end date of the interval.
+   *
+   */
+  to: Date
+}
+
+/*****************************************************************************************************************/
+
 export type Observer = {
   /**
    *
