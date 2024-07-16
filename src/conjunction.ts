@@ -8,7 +8,7 @@
 
 import { getAngularSeparation } from './astrometry'
 
-import { type GeographicCoordinate } from './common'
+import { type GeographicCoordinate, type Interval } from './common'
 
 import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
 
@@ -91,6 +91,52 @@ export const isPlanetaryConjunction = (
     ra: (here.ra + there.ra) / 2,
     dec: (here.dec + there.dec) / 2
   }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ * findPlanetaryConjunction
+ *
+ * Finds the next conjunction of two planets within a given time interval.
+ *
+ * @param startDate - The start date and time of the interval to search for conjunction.
+ * @param endDate - The end date and time of the interval to search for conjunction.
+ * @param observer - The geographic coordinate of the observer.
+ * @param planets - The two planets to test for conjunction.
+ * @param horizon - The minimum altitude of the planets above the horizon.
+ * @param angularSeparationThreshold - The minimum angular separation of the planets.
+ * @param stepMinutes - The step size in minutes for checking conjunction.
+ * @returns The conjunction of the two planets if they are in conjunction, otherwise null.
+ */
+export const findPlanetaryConjunction = (
+  interval: Interval,
+  observer: GeographicCoordinate,
+  planets: [Planet, Planet],
+  horizon: number = 6, // six degrees above the horizon
+  angularSeparationThreshold: number = 3, // one degree of separation
+  stepMinutes: number = 20 // check every 1/3 hour
+): Conjunction | undefined => {
+  /*eslint prefer-const: ["error", {"destructuring": "all"}]*/
+  let { from, to } = interval
+
+  while (from <= to) {
+    const conjunction = isPlanetaryConjunction(
+      from,
+      observer,
+      planets,
+      horizon,
+      angularSeparationThreshold
+    )
+
+    if (conjunction) {
+      return conjunction
+    }
+
+    from = new Date(from.getTime() + stepMinutes * 60000)
+  }
+
+  return undefined
 }
 
 /*****************************************************************************************************************/
