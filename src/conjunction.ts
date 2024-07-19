@@ -26,6 +26,10 @@ export type Conjunction = {
 
 /*****************************************************************************************************************/
 
+const ANGULAR_SEPARATION_THRESHOLD = 3 // in degrees
+
+/*****************************************************************************************************************/
+
 /**
  *
  * isConjunction()
@@ -44,10 +48,17 @@ export const isPlanetaryConjunction = (
   datetime: Date,
   observer: GeographicCoordinate,
   planets: [Planet, Planet],
-  horizon: number = 6,
-  angularSeparationThreshold: number = 3 // one degree of separation
+  params: {
+    horizon?: number // six degrees above the horizon
+    angularSeparationThreshold?: number // three degrees of separation
+  } = {
+    horizon: 6,
+    angularSeparationThreshold: ANGULAR_SEPARATION_THRESHOLD
+  }
 ): Conjunction | false => {
   const [from, to] = planets
+
+  const { horizon = 6, angularSeparationThreshold = ANGULAR_SEPARATION_THRESHOLD } = params
 
   // Get the equatorial coordinates of the target planet:
   const here = convertEclipticToEquatorial(
@@ -113,21 +124,30 @@ export const findPlanetaryConjunction = (
   interval: Interval,
   observer: GeographicCoordinate,
   planets: [Planet, Planet],
-  horizon: number = 6, // six degrees above the horizon
-  angularSeparationThreshold: number = 3, // one degree of separation
-  stepMinutes: number = 20 // check every 1/3 hour
+  params: {
+    horizon?: number // six degrees above the horizon
+    angularSeparationThreshold?: number // three degrees of separation
+    stepMinutes?: number // check every 1/3 hour
+  } = {
+    horizon: 6,
+    angularSeparationThreshold: 3,
+    stepMinutes: 20
+  }
 ): Conjunction | undefined => {
   /*eslint prefer-const: ["error", {"destructuring": "all"}]*/
   let { from, to } = interval
 
+  const {
+    horizon = 6,
+    angularSeparationThreshold = ANGULAR_SEPARATION_THRESHOLD,
+    stepMinutes = 20
+  } = params
+
   while (from <= to) {
-    const conjunction = isPlanetaryConjunction(
-      from,
-      observer,
-      planets,
+    const conjunction = isPlanetaryConjunction(from, observer, planets, {
       horizon,
       angularSeparationThreshold
-    )
+    })
 
     if (conjunction) {
       return conjunction
