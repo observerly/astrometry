@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import {
   type Planet,
   findPlanetaryConjunction,
+  findPlanetaryConjunctions,
   isPlanetaryConjunction,
   jupiter,
   saturn,
@@ -129,6 +130,67 @@ describe('findPlanetaryConjunction()', () => {
     } else {
       throw new Error('Conjunction is not defined')
     }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('findPlanetaryConjunctions()', () => {
+  it('should be defined', () => {
+    expect(findPlanetaryConjunctions).toBeDefined()
+  })
+
+  it('should return the next conjunction between Venus and Saturn, and Venus & Jupiter', () => {
+    // We are specifically testing for a conjunction between Jupiter and Venus
+    // from the 1st of January 2023 at 10:00 UTC (Coordinated Universal Time).
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    // Searching for the next conjunction between Jupiter and Venus within a year
+    // of the given datetime.
+    const conjunctions = findPlanetaryConjunctions(
+      {
+        from: datetime,
+        to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24 * 60)
+      },
+      { latitude, longitude }
+    )
+
+    // We should find two conjunctions between Jupiter and Venus, Saturn and Venus,
+    // Neptune and Venus, and Mercury and Venus.
+    expect(conjunctions).toBeDefined()
+    expect(conjunctions).toHaveLength(4)
+  })
+
+  it('should return the March 13th 2012 conjunction between Venus and Jupiter', () => {
+    const datetime = new Date('2012-03-10T00:00:00Z')
+
+    // Searching for the next conjunction between Mercury, Venus and Jupiter within a week
+    // of the given datetime.
+    const conjunctions = findPlanetaryConjunctions(
+      {
+        from: datetime,
+        to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24 * 3)
+      },
+      { latitude, longitude },
+      {
+        angularSeparationThreshold: 4 // to spot the March 13th 2012 conjunction, we need to increase the threshold to 4 degrees
+      }
+    )
+
+    expect(conjunctions).toBeDefined()
+    expect(conjunctions).toHaveLength(1)
+
+    const conjunction = Array.from(conjunctions.values()).at(0)
+
+    expect(conjunction).toBeDefined()
+
+    if (!conjunction) {
+      throw new Error('Conjunction between Venus & Jupiter is not defined')
+    }
+
+    expect(conjunction.planets).toHaveLength(2)
+    expect(conjunction.planets[0].name).toBe('Venus')
+    expect(conjunction.planets[1].name).toBe('Jupiter')
   })
 })
 
