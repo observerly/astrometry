@@ -11,12 +11,13 @@ import { describe, expect, it } from 'vitest'
 import {
   convertEclipticToEquatorial,
   getPlanetaryEquationOfCenter,
-  getPlanetaryMeanAnomaly,
-  getPlanetaryTrueAnomaly,
-  getPlanetaryHeliocentricEclipticLongitude,
-  getPlanetaryHeliocentricEclipticLatitude,
-  getPlanetaryHeliocentricDistance,
   getPlanetaryGeocentricEclipticCoordinate,
+  getPlanetaryHeliocentricDistance,
+  getPlanetaryHeliocentricEclipticLatitude,
+  getPlanetaryHeliocentricEclipticLongitude,
+  getPlanetaryMeanAnomaly,
+  getPlanetaryPositions,
+  getPlanetaryTrueAnomaly,
   planets
 } from '../src'
 
@@ -25,6 +26,12 @@ import {
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
 export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+
+// For testing we will fix the latitude to be Manua Kea, Hawaii, US
+export const latitude = 19.820611
+
+// For testing we will fix the longitude to be Manua Kea, Hawaii, US:
+export const longitude = -155.468094
 
 /*****************************************************************************************************************/
 
@@ -36,6 +43,11 @@ describe('getPlanetaryMeanAnomaly', () => {
   it('should return the correct value for Venus at the datetime prescribed', () => {
     const venus = planets.find(planet => planet.name === 'Venus')
     expect(venus).toBeDefined()
+
+    if (!venus) {
+      throw new Error('Venus is not defined')
+    }
+
     const M = getPlanetaryMeanAnomaly(new Date('2016-01-04T03:00:00+00:00'), venus)
     expect(M).toBeCloseTo(57.636998)
   })
@@ -51,6 +63,11 @@ describe('getPlanetaryEquationOfCenter', () => {
   it('should return the correct value for Venus at the datetime prescribed', () => {
     const venus = planets.find(planet => planet.name === 'Venus')
     expect(venus).toBeDefined()
+
+    if (!venus) {
+      throw new Error('Venus is not defined')
+    }
+
     const E = getPlanetaryEquationOfCenter(new Date('2016-01-04T03:00:00+00:00'), venus)
     expect(E).toBeCloseTo(0.655907)
   })
@@ -65,6 +82,11 @@ describe('getPlanetaryTrueAnomaly', () => {
 
   it('should return the correct value for Venus at the datetime prescribed', () => {
     const venus = planets.find(planet => planet.name === 'Venus')
+
+    if (!venus) {
+      throw new Error('Venus is not defined')
+    }
+
     expect(venus).toBeDefined()
     const E = getPlanetaryTrueAnomaly(new Date('2016-01-04T03:00:00+00:00'), venus)
     expect(E).toBeCloseTo(58.288946)
@@ -81,6 +103,11 @@ describe('getPlanetaryHeliocentricEclipticLongitude', () => {
   it('should return the correct value for Venus at the datetime prescribed', () => {
     const venus = planets.find(planet => planet.name === 'Venus')
     expect(venus).toBeDefined()
+
+    if (!venus) {
+      throw new Error('Venus is not defined')
+    }
+
     const L = getPlanetaryHeliocentricEclipticLongitude(
       new Date('2016-01-04T03:00:00+00:00'),
       venus
@@ -99,6 +126,11 @@ describe('getPlanetaryHeliocentricEclipticLatitude', () => {
   it('should return the correct value for Venus at the datetime prescribed', () => {
     const venus = planets.find(planet => planet.name === 'Venus')
     expect(venus).toBeDefined()
+
+    if (!venus) {
+      throw new Error('Venus is not defined')
+    }
+
     const Λ = getPlanetaryHeliocentricEclipticLatitude(new Date('2016-01-04T03:00:00+00:00'), venus)
     expect(Λ).toBeCloseTo(3.119613)
   })
@@ -114,6 +146,11 @@ describe('getPlanetaryHeliocentricDistance', () => {
   it('should return the correct value for Venus at the datetime prescribed', () => {
     const venus = planets.find(planet => planet.name === 'Venus')
     expect(venus).toBeDefined()
+
+    if (!venus) {
+      throw new Error('Venus is not defined')
+    }
+
     const R = getPlanetaryHeliocentricDistance(new Date('2016-01-04T03:00:00+00:00'), venus)
     expect(R).toBe(0.7207354164908778)
   })
@@ -129,6 +166,11 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
   it('should return the correct value for Venus (an interior planet) at the datetime prescribed', () => {
     const venus = planets.find(planet => planet.name === 'Venus')
     expect(venus).toBeDefined()
+
+    if (!venus) {
+      throw new Error('Venus is not defined')
+    }
+
     const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(
       new Date('2016-01-04T03:00:00+00:00'),
       venus
@@ -140,6 +182,11 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
   it('should return the correct value for Saturn (an exterior planet) at the datetime prescribed', () => {
     const saturn = planets.find(planet => planet.name === 'Saturn')
     expect(saturn).toBeDefined()
+
+    if (!saturn) {
+      throw new Error('Venus is not defined')
+    }
+
     const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(
       new Date('2016-01-04T03:00:00+00:00'),
       saturn
@@ -151,6 +198,10 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
   it('should return the correct value for Mercury (an inferior planet) at the datetime prescribed', () => {
     const mercury = planets.find(planet => planet.name === 'Mercury')
     expect(mercury).toBeDefined()
+
+    if (!mercury) {
+      throw new Error('Venus is not defined')
+    }
 
     const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(
       new Date('2023-11-01T12:00:00+00:00'),
@@ -170,6 +221,10 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
     const jupiter = planets.find(planet => planet.name === 'Jupiter')
     expect(jupiter).toBeDefined()
 
+    if (!jupiter) {
+      throw new Error('Venus is not defined')
+    }
+
     const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(
       new Date('2023-11-01T12:00:00+00:00'),
       jupiter
@@ -182,6 +237,43 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
 
     expect(ra).toBeCloseTo(38.041925844118374)
     expect(dec).toBeCloseTo(13.764471149937803)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getPlanetaryPositions', () => {
+  it('should be defined', () => {
+    expect(getPlanetaryPositions).toBeDefined()
+  })
+
+  it('should return the correct value for Venus at the datetime prescribed', () => {
+    const positions = getPlanetaryPositions(new Date('2016-01-04T03:00:00+00:00'), {
+      latitude,
+      longitude
+    })
+
+    const venus = positions.find(planet => planet.name === 'Venus')
+
+    expect(venus).toBeDefined()
+
+    if (!venus) {
+      throw new Error('Venus is not defined')
+    }
+
+    expect(venus).toMatchObject({
+      name: 'Venus',
+      symbol: '♀',
+      λ: 245.79403406596947,
+      β: 1.8937944394473665,
+      ra: 244.24799409185357,
+      dec: -19.405675761170443,
+      alt: -23.175487207053806,
+      az: 256.7098995011133
+    })
+
+    expect(venus).toHaveProperty('ra')
+    expect(venus).toHaveProperty('dec')
   })
 })
 
