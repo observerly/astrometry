@@ -6,7 +6,14 @@
 
 /*****************************************************************************************************************/
 
-import { type EclipticCoordinate } from './common'
+import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
+
+import {
+  type EclipticCoordinate,
+  type EquatorialCoordinate,
+  type GeographicCoordinate,
+  type HorizontalCoordinate
+} from './common'
 
 import { J2000 } from './constants'
 
@@ -474,6 +481,37 @@ export const getPlanetaryGeocentricEclipticCoordinate = (
     λ: λp % 360,
     β: βp
   }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ * getPlanetaryPositions
+ *
+ * Gets the ecliptical, equatorial, horizontal positions of all planets other than the Earth
+ * for a given datetime and observer location.
+ *
+ * @param datetime - The date and time of the observation.
+ * @param observer - The geographic coordinate of the observer.
+ * @param planets - The array of planets to get positions for.
+ * @returns An array of horizontal coordinates for all planets.
+ *
+ */
+export const getPlanetaryPositions = (
+  datetime: Date,
+  observer: GeographicCoordinate
+): (Planet & EclipticCoordinate & EquatorialCoordinate & HorizontalCoordinate)[] => {
+  return planets
+    .filter(planet => planet.name !== 'Earth')
+    .map(planet => {
+      const ecliptic = getPlanetaryGeocentricEclipticCoordinate(datetime, planet)
+
+      const equatorial = convertEclipticToEquatorial(datetime, ecliptic)
+
+      const horizontal = convertEquatorialToHorizontal(datetime, observer, equatorial)
+
+      return { ...planet, ...ecliptic, ...equatorial, ...horizontal }
+    })
 }
 
 /*****************************************************************************************************************/
