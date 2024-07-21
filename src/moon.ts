@@ -804,6 +804,68 @@ export const isNewMoon = (datetime: Date): boolean => getLunarPhase(datetime) ==
 
 /*****************************************************************************************************************/
 
+/**
+ *
+ * getNextNewMoon()
+ *
+ * @param datetime - The date to determine the next new Moon for.
+ * @returns The date of the next new Moon.
+ */
+export const getNextNewMoon = (datetime: Date): Date => {
+  // Amend the date to midnight on the given date:
+  let date = new Date(new Date(datetime).setHours(0, 0, 0, 0))
+
+  // The maximum number of days in a synodic month is 29, so if we increment the
+  // date by 1 hour until we reach a new Moon, we will eventually reach
+  // a new Moon within 29 days (~696 iterations):
+  while (!isNewMoon(date)) {
+    // Increment the date by 1 hour:
+    date = new Date(date.getTime() + 60 * 60 * 1000)
+  }
+
+  let current = date.getTime() - 12 * 60 * 60 * 1000
+
+  const end = date.getTime() + 12 * 60 * 60 * 1000
+
+  // Initialize variables to keep track of the minimum illumination and date:
+  let minimum = Infinity
+
+  // Initialize the date of the new Moon:
+  let newMoon: Date = date
+
+  // Counter to track how many consecutive times the illumination has not decreased
+  let counter = 0
+
+  // Loop between lower and upper to get a more precise time for the new Moon:
+  // Taking into consideration that the date is incremented in 10000ms intervals.
+  while (current <= end) {
+    // Get the illumination of the Moon at the current date:
+    const illumination = getLunarIllumination(new Date(current))
+
+    // Check if the current illumination is less than the minimum found so far:
+    if (illumination < minimum) {
+      minimum = illumination
+      newMoon = new Date(current)
+      counter = 0 // Reset the counter if the illumination decreases
+    } else {
+      counter++
+    }
+
+    // Increment by 10000 milliseconds (10 seconds)
+    current += 10000
+
+    // If illumination hasn't decreased for a certain number of iterations, break the loop
+    if (counter > 100) {
+      // The threshold can be adjusted based on specific needs
+      break
+    }
+  }
+
+  return newMoon
+}
+
+/*****************************************************************************************************************/
+
 // This is an exported helper function for determining if the Moon is full, this is
 // useful for determining if a lunar eclipse is possible, as a lunar eclipse can
 // only occur during a full Moon:
@@ -847,7 +909,7 @@ export const getNextFullMoon = (datetime: Date): Date => {
   let maximum = -Infinity
 
   // Initialize the date of the full Moon:
-  let full: Date = date
+  let fullMoon: Date = date
 
   // Counter to track how many consecutive times the illumination has not increased
   let counter = 0
@@ -861,7 +923,7 @@ export const getNextFullMoon = (datetime: Date): Date => {
     // Check if the current illumination is greater than the maximum found so far:
     if (illumination > maximum) {
       maximum = illumination
-      full = new Date(current)
+      fullMoon = new Date(current)
       counter = 0 // Reset the counter if the illumination increases
     } else {
       counter++
@@ -877,7 +939,7 @@ export const getNextFullMoon = (datetime: Date): Date => {
     }
   }
 
-  return full
+  return fullMoon
 }
 
 /*****************************************************************************************************************/
