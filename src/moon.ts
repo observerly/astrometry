@@ -759,7 +759,7 @@ export const getLunarPhase = (datetime: Date): Phase => {
     return Phases.LastQuarter
   }
 
-  if (age < 27.68493) {
+  if (age < 29.08493) {
     return Phases.WaningCrescent
   }
 

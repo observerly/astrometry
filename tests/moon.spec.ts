@@ -389,7 +389,7 @@ describe.each([
   }))
 ])('isNewMoon', ({ date }) => {
   it('should return only when the Moon is a New Moon', () => {
-    if ([12, 13].includes(date.getDate()) && date.getMonth() === 0 && date.getFullYear() === 2021) {
+    if ([13].includes(date.getDate()) && date.getMonth() === 0 && date.getFullYear() === 2021) {
       expect(isNewMoon(date)).toBe(true)
     } else {
       expect(isNewMoon(date)).toBe(false)
