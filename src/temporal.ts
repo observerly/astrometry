@@ -6,9 +6,26 @@
 
 /*****************************************************************************************************************/
 
+import { J1970 } from './constants'
+
 import { type GeographicCoordinate } from './common'
 
 import { getJulianDate } from './epoch'
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * convertJulianDateToUTC()
+ *
+ * @param JD - the Julian Date to convert to UTC
+ * @returns Date - the UTC date from the Julian Date
+ *
+ */
+export const convertJulianDateToUTC = (JD: number): Date => {
+  // Return the UTC date from the Julian Date:
+  return new Date((JD - J1970) * 86400000)
+}
 
 /*****************************************************************************************************************/
 
