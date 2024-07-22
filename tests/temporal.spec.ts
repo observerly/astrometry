@@ -12,8 +12,10 @@ import { describe, expect, it } from 'vitest'
 
 import {
   convertGreenwhichSiderealTimeToUniversalTime,
+  convertJulianDateToUTC,
   convertLocalSiderealTimeToGreenwhichSiderealTime,
   getGreenwhichSiderealTime,
+  getJulianDate,
   getLocalSiderealTime
 } from '../src'
 
@@ -28,6 +30,23 @@ export const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
 export const longitude = -155.468094
+
+/*****************************************************************************************************************/
+
+describe('convertJulianDateToUTC', () => {
+  it('should be defined', () => {
+    expect(convertJulianDateToUTC).toBeDefined()
+  })
+
+  it('should return the correct UTC for a given Julian Date', () => {
+    const JD = getJulianDate(datetime)
+    const UTC = convertJulianDateToUTC(JD)
+
+    expect(UTC).toBeInstanceOf(Date)
+    // Check that the UTC is the same as the datetime:
+    expect(UTC.getTime()).toBe(datetime.getTime())
+  })
+})
 
 /*****************************************************************************************************************/
 
