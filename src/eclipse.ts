@@ -6,6 +6,10 @@
 
 /*****************************************************************************************************************/
 
+import { type HorizontalCoordinate, type Interval } from './common'
+
+/*****************************************************************************************************************/
+
 /**
  * The different types of lunar and solar eclipses.
  *
@@ -50,5 +54,40 @@ export enum EclipseType {
    */
   Total = 'total'
 }
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * A representation of a lunar or solar eclipse.
+ *
+ */
+export type Eclipse = {
+  /**
+   *
+   * @member {enum} EclipseType
+   *
+   * The type of the eclipse, e.g., "total", "annular", "partial", or "penumbral".
+   *
+   */
+  type: EclipseType
+  /**
+   *
+   *
+   * @member {Interval} interval
+   *
+   * When the eclipse begins and ends.
+   *
+   */
+  interval: Interval
+  /**
+   *
+   * @member {Date} maximum
+   *
+   * When the maximum of the eclipse occurs.
+   *
+   */
+  maximum: Date
+} & HorizontalCoordinate
 
 /*****************************************************************************************************************/
