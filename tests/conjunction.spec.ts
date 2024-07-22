@@ -188,9 +188,9 @@ describe('findPlanetaryConjunctions()', () => {
       throw new Error('Conjunction between Venus & Jupiter is not defined')
     }
 
-    expect(conjunction.planets).toHaveLength(2)
-    expect(conjunction.planets[0].name).toBe('Venus')
-    expect(conjunction.planets[1].name).toBe('Jupiter')
+    expect(conjunction.targets).toHaveLength(2)
+    expect(conjunction.targets[0].name).toBe('Venus')
+    expect(conjunction.targets[1].name).toBe('Jupiter')
   })
 })
 

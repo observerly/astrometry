@@ -8,21 +8,30 @@
 
 import { getAngularSeparation } from './astrometry'
 
-import { type GeographicCoordinate, type Interval } from './common'
+import {
+  type EquatorialCoordinate,
+  type GeographicCoordinate,
+  type HorizontalCoordinate,
+  type Interval
+} from './common'
 
 import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
 
 import {
-  type Planet,
   getPlanetaryGeocentricEclipticCoordinate,
-  getPlanetaryPositions
+  getPlanetaryPositions,
+  type Planet
 } from './planets'
+
+/*****************************************************************************************************************/
+
+type Target = { name: string } & HorizontalCoordinate & EquatorialCoordinate
 
 /*****************************************************************************************************************/
 
 export type Conjunction = {
   datetime: Date
-  planets: [Planet, Planet]
+  targets: [Target, Target]
   angularSeparation: number
   ra: number
   dec: number
@@ -99,9 +108,22 @@ export const isPlanetaryConjunction = (
 
   if (separation > angularSeparationThreshold) return false
 
+  const targets = [
+    {
+      name: from.name,
+      ...hither,
+      ...here
+    },
+    {
+      name: to.name,
+      ...tither,
+      ...there
+    }
+  ] satisfies [Target, Target]
+
   return {
     datetime,
-    planets,
+    targets,
     angularSeparation: separation,
     ra: (here.ra + there.ra) / 2,
     dec: (here.dec + there.dec) / 2
@@ -243,7 +265,7 @@ export const findPlanetaryConjunctions = (
         ) {
           const conjunction: Conjunction = {
             datetime: from,
-            planets: [alterior, ulterior],
+            targets: [alterior, ulterior],
             angularSeparation: separation,
             ra: (alterior.ra + ulterior.ra) / 2,
             dec: (alterior.dec + ulterior.dec) / 2
