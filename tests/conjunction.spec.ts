@@ -12,8 +12,13 @@ import { describe, expect, it } from 'vitest'
 
 import {
   type Planet,
+  convertEclipticToEquatorial,
+  convertEquatorialToHorizontal,
   findPlanetaryConjunction,
   findPlanetaryConjunctions,
+  getLunarEquatorialCoordinate,
+  getPlanetaryGeocentricEclipticCoordinate,
+  isConjunction,
   isPlanetaryConjunction,
   jupiter,
   saturn,
@@ -64,6 +69,90 @@ describe('isPlanetaryConjunction(datetime)', () => {
 
     const conjunction = isPlanetaryConjunction(datetime, { latitude, longitude }, planets)
     expect(conjunction).toBe(false)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('isConjunction()', () => {
+  it('should be defined', () => {
+    expect(isConjunction).toBeDefined()
+  })
+
+  it('should return the next conjunction between Jupiter and Venus', () => {
+    // We are specifically testing for a conjunction between Jupiter and Venus
+    // from the 1st of January 2023 at 10:00 UTC (Coordinated Universal Time).
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    const jupiter = {
+      name: 'Jupiter',
+      alt: 64.0599911587097,
+      az: 130.91766651820868,
+      ra: 8.420871680780856,
+      dec: 2.0277241328636877
+    }
+
+    const venus = {
+      name: 'Venus',
+      alt: 65.63530627727039,
+      az: 136.9150698751929,
+      ra: 5.47961736055115,
+      dec: 1.4571416216749102
+    }
+
+    const conjunction = isConjunction(datetime, [jupiter, venus])
+
+    expect(conjunction).toBeDefined()
+    expect(conjunction).not.toBe(false)
+
+    if (conjunction) {
+      expect(conjunction.angularSeparation).toBeLessThan(3)
+      expect(conjunction.ra).toBeGreaterThan(0)
+      expect(conjunction.dec).toBeGreaterThan(0)
+    } else {
+      throw new Error('Conjunction is not defined')
+    }
+  })
+
+  it('should return true when we have a conjunction between Jupiter and the Moon', () => {
+    // We are specifically testing for a conjunction between Jupiter and the Moon
+    // on the 27th of August 2024 at 12:45 UTC (Coordinated Universal Time).
+    const datetime = new Date('2024-08-27T12:45:00Z')
+
+    const { β, λ } = getPlanetaryGeocentricEclipticCoordinate(datetime, jupiter)
+
+    const { ra, dec } = convertEclipticToEquatorial(datetime, { λ, β })
+
+    const planet = {
+      name: 'Jupiter',
+      ra,
+      dec,
+      ...convertEquatorialToHorizontal(datetime, { latitude, longitude }, { ra, dec })
+    }
+
+    const lunar = getLunarEquatorialCoordinate(datetime)
+
+    const moon = {
+      name: 'Moon',
+      ra: lunar.ra,
+      dec: lunar.dec,
+      ...convertEquatorialToHorizontal(datetime, { latitude, longitude }, lunar)
+    }
+
+    const conjunction = isConjunction(datetime, [planet, moon], {
+      angularSeparationThreshold: 6
+    })
+
+    expect(conjunction).toBeDefined()
+    expect(conjunction).not.toBe(false)
+
+    if (conjunction) {
+      expect(conjunction.angularSeparation).toBeLessThan(6)
+      expect(conjunction.ra).toBeGreaterThan(0)
+      expect(conjunction.dec).toBeGreaterThan(0)
+    } else {
+      throw new Error('Conjunction is not defined')
+    }
   })
 })
 

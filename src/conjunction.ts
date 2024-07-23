@@ -45,9 +45,10 @@ const ANGULAR_SEPARATION_THRESHOLD = 3 // in degrees
 
 /**
  *
- * isConjunction()
+ * isPlanetaryConjunction()
  *
- * Technically, a conjunction is a
+ * Technically, a conjunction is when two celestial objects have the same right ascension or ecliptic longitude, however
+ * in practice, it is when they are close together in the sky. This function tests for the latter.
  *
  * @param datetime - The date and time of the observation to test for conjunction.
  * @param observer - The geographic coordinate of the observer.
@@ -127,6 +128,65 @@ export const isPlanetaryConjunction = (
     angularSeparation: separation,
     ra: (here.ra + there.ra) / 2,
     dec: (here.dec + there.dec) / 2
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * isConjunction()
+ *
+ * Tests for a conjunction between two targets, where a conjunction is defined as an angular separation
+ * of less than the threshold given, which is by default three degrees.
+ *
+ * The objects also have to be above the local observer's horizon, which is by default six degrees
+ * to ensure good visibility.
+ *
+ * @param datetime - The date and time of the observation to test for conjunction.
+ * @param targets - The two targets to test for conjunction.
+ * @param params - The parameters for the conjunction test.
+ * @returns The conjunction of the two targets if they are in conjunction, otherwise false.
+ *
+ */
+export const isConjunction = (
+  datetime: Date,
+  targets: [Target, Target],
+  params: {
+    horizon?: number // six degrees above the horizon
+    angularSeparationThreshold?: number // three degrees of separation
+  } = {
+    horizon: 6,
+    angularSeparationThreshold: ANGULAR_SEPARATION_THRESHOLD
+  }
+): Conjunction | false => {
+  const { horizon = 6, angularSeparationThreshold = ANGULAR_SEPARATION_THRESHOLD } = params
+
+  const [hither, tither] = targets
+
+  // If either here or there is below the horizon, return false:
+  if (hither.alt < horizon || tither.alt < horizon) return false
+
+  // Get the angular separation between the two planets:
+  const separation = getAngularSeparation(
+    {
+      θ: hither.alt,
+      φ: hither.az
+    },
+    {
+      θ: tither.alt,
+      φ: tither.az
+    }
+  )
+
+  if (separation > angularSeparationThreshold) return false
+
+  return {
+    datetime,
+    targets,
+    angularSeparation: separation,
+    ra: (hither.ra + tither.ra) / 2,
+    dec: (hither.dec + tither.dec) / 2
   }
 }
 
