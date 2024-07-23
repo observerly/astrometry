@@ -320,7 +320,10 @@ export const findPlanetaryConjunctions = (
         // Update the conjunction if the angular separation is less than the threshold,
         // and the conjunction is the closest one found so far:
         if (
-          separation <= angularSeparationThreshold &&
+          isConjunction(from, [alterior, ulterior], {
+            horizon,
+            angularSeparationThreshold
+          }) &&
           (!conjunctions.has(key) || conjunctions.get(key)!.angularSeparation > separation)
         ) {
           const conjunction: Conjunction = {
