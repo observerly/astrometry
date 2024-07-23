@@ -97,6 +97,23 @@ export type Eclipse = {
    *
    */
   maximum: Date
+  /**
+   *
+   * @member {number} magnitude
+   *
+   * The magnitude of the eclipse (the fraction of the Sun's diameter obscured by the Moon, or vice versa).
+   *
+   */
+  magnitude: number
+  /**
+   *
+   *
+   * There exists a line of central eclipse on the Earth's surface, and for
+   * observers on this line, the center of the Moon's shadow will pass directly
+   * over the center of the Sun. This is known as a central eclipse.
+   *
+   */
+  isCentral: boolean
 } & HorizontalCoordinate
 
 /*****************************************************************************************************************/
