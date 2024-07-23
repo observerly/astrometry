@@ -16,6 +16,8 @@ import { getEccentricityOfOrbit } from './earth'
 
 import { getJulianDate } from './epoch'
 
+import { getFOrbitalParameter } from './orbit'
+
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
@@ -232,6 +234,29 @@ export const getSolarEquatorialCoordinate = (datetime: Date): EquatorialCoordina
   const dec = degrees(Math.asin(Math.sin(ε) * Math.sin(λ)))
 
   return { ra, dec }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getSolarAngularDiameter()
+ *
+ * The Sun's angular diameter is the distance between the Sun's centre and the Sun's limb.
+ *
+ * @param date - The date to calculate the Sun's angular diameter for.
+ * @returns The Sun's angular diameter in degrees
+ *
+ */
+export const getSolarAngularDiameter = (datetime: Date): number => {
+  // Get the true anomaly:
+  const ν = getSolarTrueAnomaly(datetime)
+
+  // Get the F orbital paramater which applies corrections
+  // due to the Sun's orbital eccentricity:
+  const F = getFOrbitalParameter(ν, 0.016708)
+
+  return 0.533128 * F
 }
 
 /*****************************************************************************************************************/
