@@ -52,7 +52,16 @@ export enum EclipseType {
    * A total lunar/solar eclipse.
    *
    */
-  Total = 'total'
+  Total = 'total',
+  /**
+   *
+   * @member {string} AnnularTotal
+   *
+   *
+   * N.B. Never used for a lunar eclipse.
+   *
+   */
+  AnnularTotal = 'annular-total'
 }
 
 /*****************************************************************************************************************/
