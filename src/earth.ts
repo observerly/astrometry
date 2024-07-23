@@ -88,3 +88,27 @@ export const getObliquityOfEcliptic = (datetime: Date): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getCoefficientOfEccentricity()
+ *
+ * The coefficient of eccentricity of the Earth's orbit is a measure of how elliptical the Earth's
+ * orbit is. The coefficient of eccentricity of the Earth's orbit is not constant, but varies over
+ * time. This function returns the coefficient of eccentricity of the Earth's orbit for a given date.
+ *
+ * @param datetime - The date to get the coefficient of eccentricity for
+ * @returns The coefficient of eccentricity of the Earth's orbit
+ */
+export const getCoefficientOfEccentricity = (datetime: Date) => {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  // Get the difference in fractional Julian centuries between the target date and J2000.0
+  const T = (JD - 2451545.0) / 36525
+
+  // Get the coefficient of the eccentricity of the Earth's orbit:
+  return 1 - 0.002516 * T - 0.0000074 * Math.pow(T, 2)
+}
+
+/*****************************************************************************************************************/
