@@ -503,15 +503,9 @@ describe('getBodyNextRise and getBodyNextSet maximum call stack size error', () 
     }
 
     const set = getBodyNextSet(datetime, observer, target, 0.8190762287002356)
-
-    console.log(set)
-
     expect(set).toBeDefined()
 
     const rise = getBodyNextRise(datetime, observer, target, 0.8190762287002356)
-
-    console.log(rise)
-
     expect(rise).toBeDefined()
   })
 
@@ -533,15 +527,9 @@ describe('getBodyNextRise and getBodyNextSet maximum call stack size error', () 
     }
 
     const set = getBodyNextSet(datetime, observer, target, 0.8190762287002356)
-
-    console.log(set)
-
     expect(set).toBeDefined()
 
     const rise = getBodyNextRise(datetime, observer, target, 0.8190762287002356)
-
-    console.log(rise)
-
     expect(rise).toBeDefined()
   })
 
@@ -563,15 +551,9 @@ describe('getBodyNextRise and getBodyNextSet maximum call stack size error', () 
     }
 
     const set = getBodyNextSet(datetime, observer, target, 0.8190762287002356)
-
-    console.log(set)
-
     expect(set).toBeDefined()
 
     const rise = getBodyNextRise(datetime, observer, target, 0.8190762287002356)
-
-    console.log(rise)
-
     expect(rise).toBeDefined()
   })
 })

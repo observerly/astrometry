@@ -418,10 +418,6 @@ describe.each([
   })
 
   it('should never return an invalid phase', () => {
-    if (getLunarPhase(date) === 'Invalid') {
-      console.log(date)
-    }
-
     expect(getLunarPhase(date) === 'Invalid').toBe(false)
   })
 })
