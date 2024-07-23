@@ -14,6 +14,7 @@ import {
   AU_IN_METERS,
   getHeliocentricJulianDate,
   getJulianDate,
+  getSolarAngularDiameter,
   getSolarDistance,
   getSolarEclipticLongitude,
   getSolarEquationOfCenter,
@@ -121,6 +122,20 @@ describe('getSolarEquatorialCoordinate', () => {
     const { ra: α, dec: δ } = getSolarEquatorialCoordinate(datetime)
     expect(α).toBe(318.5617376411268)
     expect(δ).toBe(-16.008394691469505)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getSolarAngularDiameter', () => {
+  it('should be defined', () => {
+    expect(getSolarAngularDiameter).toBeDefined()
+  })
+
+  it('should return the correct Solar angular diameter for the given date', () => {
+    const datetime = new Date('2015-01-15T00:00:00.000+00:00')
+    const δ = getSolarAngularDiameter(datetime)
+    expect(δ).toBeCloseTo(0.5420138437174595)
   })
 })
 
