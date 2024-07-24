@@ -42,4 +42,21 @@ export enum Twilight {
 
 /*****************************************************************************************************************/
 
+
+const getWhatTwilight = (altitude: number) => {
+  switch (true) {
+    case altitude < -18:
+      return Twilight.Night
+    case altitude < -12:
+      return Twilight.Astronomical
+    case altitude < -6:
+      return Twilight.Nautical
+    case altitude < 0:
+      return Twilight.Civil
+    default:
+      return Twilight.Day
+  }
+}
+
+/*****************************************************************************************************************/
 /*****************************************************************************************************************/
