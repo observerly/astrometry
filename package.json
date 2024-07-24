@@ -181,6 +181,11 @@
       "import": "./dist/transit.js",
       "require": "./dist/transit.cjs",
       "types": "./dist/transit.d.ts"
+    },
+    "./twilight": {
+      "import": "./dist/twilight.js",
+      "require": "./dist/twilight.cjs",
+      "types": "./dist/twilight.d.ts"
     }
   },
   "release": {
