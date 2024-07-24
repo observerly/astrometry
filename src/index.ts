@@ -35,5 +35,6 @@ export * from './sun'
 export * from './temporal'
 export * from './time'
 export * from './transit'
+export * from './twilight'
 
 /*****************************************************************************************************************/
