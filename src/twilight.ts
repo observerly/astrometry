@@ -6,6 +6,40 @@
 
 /*****************************************************************************************************************/
 
-export {}
+
+export enum Twilight {
+  /**
+   *
+   * Night - The time when the sun is -18 degrees below the horizon.
+   *
+   */
+  Night = 'Night',
+  /**
+   *
+   * Astronomical - The time when the sun is between -12 and -18 degrees below the horizon.
+   *
+   */
+  Astronomical = 'Astronomical',
+  /**
+   *
+   * Nautical - The time when the sun is between -6 and -12 degrees below the horizon.
+   *
+   */
+  Nautical = 'Nautical',
+  /**
+   *
+   * Civil - The time when the sun is between 0 and -6 degrees below the horizon.
+   *
+   */
+  Civil = 'Civil',
+  /**
+   *
+   * Day - The time when the sun is above the horizon.
+   *
+   */
+  Day = 'Day'
+}
+
+/*****************************************************************************************************************/
 
 /*****************************************************************************************************************/
