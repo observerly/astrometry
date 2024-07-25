@@ -139,6 +139,16 @@ export type Eclipse = {
 
 /*****************************************************************************************************************/
 
+// Snap returns k at specified quarter q nearest year y.
+function snap(datetime: Date, q: number): number {
+  // Get the decimal year to some precision:
+  const y = datetime.getUTCFullYear() + datetime.getUTCMonth() / 12 + datetime.getUTCDate() / 365.25
+  // Get the number of new moons since the standard epoch J
+  const k = (y - 2000) * 12.3685
+  // Snap it to either a new Moon or a full Moon:
+  return Math.floor(k - q + 0.5) + q
+}
+
 /**
  *
  * getSolarEclipse()
@@ -162,7 +172,7 @@ export const getSolarEclipse = (
   const T = (JD - 2451545.0) / 36525
 
   // k represents the number of new moons since the standard epoch J2000:
-  const k = Math.round(T * 1236.85)
+  const k = snap(datetime, 0)
 
   // Get the Julian Date of the last new moon:
   const JDE =
