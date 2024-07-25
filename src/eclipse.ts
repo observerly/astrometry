@@ -19,7 +19,11 @@ import { getCoefficientOfEccentricity } from './earth'
 
 import { getJulianDate } from './epoch'
 
-import { getLunarEquatorialCoordinate } from './moon'
+import {
+  getLunarCorrectedEclipticLongitudeOfTheAscendingNode,
+  getLunarEquatorialCoordinate,
+  getLunarTrueEclipticLongitude
+} from './moon'
 
 import { convertJulianDateToUTC } from './temporal'
 
@@ -330,6 +334,54 @@ export const getSolarEclipse = (
     γ,
     u
   }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * isSolarEclipse()
+ *
+ * @param datetime - The date and time to calculate the solar eclipse for.
+ * @param observer - The geographic coordinates of the observer.
+ * @returns The solar eclipse at the given date and time for the observer or false if no eclipse occurs.
+ *
+ */
+export const isSolarEclipse = (
+  datetime: Date,
+  observer: GeographicCoordinate
+):
+  | (Eclipse &
+      EquatorialCoordinate & {
+        k: number
+        F: number
+        Ω: number
+        γ: number
+        u: number
+      })
+  | false => {
+  // The threshold for a solar eclipse to occur:
+  // Anything greater than this value means that the Moon is not within the
+  // threshold of the ascending node and a solar eclipse cannot occur.
+  const threshold = 18.5166666666667 // in degrees (18°31' in decimal degrees)
+
+  // Get the Moon's true orbital longitude:
+  const λt = getLunarTrueEclipticLongitude(datetime)
+
+  // Get the corrected ecliptic longitude of the ascending node:
+  const Ωcorr = getLunarCorrectedEclipticLongitudeOfTheAscendingNode(datetime)
+
+  // Get the difference in longitude between the Moon and the ascending node,
+  // and take the absolute value of the difference:
+  const d = Math.abs(λt - Ωcorr) % 360
+
+  // Check if the Moon is within the threshold of the ascending node, if not
+  // we cannot have a solar eclipse.
+  // If the Moon is within the threshold of the ascending node, then we can
+  // have a solar eclipse. We can return the parameters of the eclipse:
+  return Math.abs(d % 360) > threshold && Math.abs(d - 180) % 360 > threshold
+    ? false
+    : getSolarEclipse(datetime, observer)
 }
 
 /*****************************************************************************************************************/
