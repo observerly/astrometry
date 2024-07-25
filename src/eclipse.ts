@@ -542,6 +542,54 @@ export const getSolarEclipse = (
 
 /**
  *
+ * isLunarEclipse()
+ *
+ * @param datetime - The date and time to calculate the lunar eclipse for.
+ * @param observer - The geographic coordinates of the observer.
+ * @returns The lunar eclipse at the given date and time for the observer or false if no eclipse occurs.
+ *
+ */
+export const isLunarEclipse = (
+  datetime: Date,
+  observer: GeographicCoordinate
+):
+  | (Eclipse &
+      EquatorialCoordinate & {
+        k: number
+        F: number
+        Ω: number
+        γ: number
+        u: number
+      })
+  | false => {
+  // The threshold for a lunar eclipse to occur:
+  // Anything greater than this value means that the Moon is not within the
+  // threshold of the ascending node and a lunar eclipse cannot occur.
+  const threshold = 18.25 // in degrees (18°15' in decimal degrees)
+
+  // Get the Moon's true orbital longitude:
+  const λt = getLunarTrueEclipticLongitude(datetime)
+
+  // Get the corrected ecliptic longitude of the ascending node:
+  const Ωcorr = getLunarCorrectedEclipticLongitudeOfTheAscendingNode(datetime)
+
+  // Get the difference in longitude between the Moon and the ascending node,
+  // and take the absolute value of the difference:
+  const d = λt - Ωcorr
+
+  // Check if the Moon is within the threshold of the ascending node, if not
+  // we cannot have a lunar eclipse.
+  // If the Moon is within the threshold of the ascending node, then we can
+  // have a lunar eclipse. We can return the parameters of the eclipse:
+  return Math.abs(d) % 360 > threshold && Math.abs(d - 180) % 360 > threshold
+    ? false
+    : getLunarEclipse(datetime, observer)
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * isSolarEclipse()
  *
  * @param datetime - The date and time to calculate the solar eclipse for.
@@ -575,7 +623,7 @@ export const isSolarEclipse = (
 
   // Get the difference in longitude between the Moon and the ascending node,
   // and take the absolute value of the difference:
-  const d = Math.abs(λt - Ωcorr) % 360
+  const d = λt - Ωcorr
 
   // Check if the Moon is within the threshold of the ascending node, if not
   // we cannot have a solar eclipse.
