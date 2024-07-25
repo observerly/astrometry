@@ -8,7 +8,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { getSolarEclipse } from '../src'
+import { getSolarEclipse, isSolarEclipse } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -151,6 +151,35 @@ describe('getSolarEclipse', () => {
 
   it('should not return a solar eclipse on 1st April 2021', () => {
     const eclipse = getSolarEclipse(datetime, { latitude, longitude })
+    expect(eclipse).toBe(false)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('isSolarEclipse', () => {
+  it('should be defined', () => {
+    expect(isSolarEclipse).toBeDefined()
+  })
+
+  it('should return the solar eclipse of 11th August 1999', () => {
+    const datetime = new Date('1999-08-11T11:04:00Z')
+
+    // Give me an observer that is based in Truro, Cornwall, UK
+    const eclipse = isSolarEclipse(datetime, {
+      latitude: 50.2632,
+      longitude: -5.051
+    })
+    expect(eclipse).not.toBe(false)
+  })
+
+  it('should not return a solar eclipse on 1st April 2021', () => {
+    const eclipse = isSolarEclipse(datetime, { latitude, longitude })
+    expect(eclipse).toBe(false)
+  })
+
+  it('should not return a solar eclipse on 14th May 2022', () => {
+    const eclipse = isSolarEclipse(datetime, { latitude, longitude })
     expect(eclipse).toBe(false)
   })
 })
