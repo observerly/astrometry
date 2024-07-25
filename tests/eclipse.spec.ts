@@ -8,7 +8,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { getSolarEclipse, isSolarEclipse } from '../src'
+import { getLunarEclipse, getSolarEclipse, isSolarEclipse } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -21,6 +21,106 @@ export const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
 export const longitude = -155.468094
+
+/*****************************************************************************************************************/
+
+describe('getLunarEclipse', () => {
+  it('should be defined', () => {
+    expect(getLunarEclipse).toBeDefined()
+  })
+
+  it('should return the lunar eclipse of 15th June 1973', () => {
+    // Give me a location in Naples, Italy:
+    const observer = {
+      latitude: 40.8518,
+      longitude: 14.2681,
+      elevation: 0
+    }
+
+    const datetime = new Date('1973-06-15T20:50:41Z')
+
+    const eclipse = getLunarEclipse(datetime, observer)
+
+    expect(eclipse).not.toBe(false)
+
+    if (!eclipse) {
+      throw new Error('Expected a lunar eclipse')
+    }
+
+    expect(eclipse.type).toBe('penumbral')
+    expect(eclipse.magnitude).toBeLessThan(1)
+    expect(eclipse.magnitude).toBeCloseTo(0.4685)
+    expect(eclipse.γ).toBeCloseTo(-1.3216)
+  })
+
+  it('should return the lunar eclipse of 21st January 2000', () => {
+    // Give me a location in New Mexico, USA:
+    const observer = {
+      latitude: 35.0844,
+      longitude: -106.6506,
+      elevation: 0
+    }
+
+    const datetime = new Date('2000-01-21T04:44:34Z')
+    const eclipse = getLunarEclipse(datetime, observer)
+    expect(eclipse).not.toBe(false)
+
+    if (!eclipse) {
+      throw new Error('Expected a solar eclipse')
+    }
+
+    expect(eclipse.type).toBe('total')
+    expect(eclipse.magnitude).toBeGreaterThan(1)
+    expect(eclipse.magnitude).toBeCloseTo(1.3246)
+    expect(eclipse.γ).toBeCloseTo(-0.2995)
+  })
+
+  it('should return the lunar eclipse of 7th Huly 2009', () => {
+    // Give me a location in New York, USA:
+    const observer = {
+      latitude: 40.7128,
+      longitude: -74.006,
+      elevation: 0
+    }
+
+    const datetime = new Date('2009-07-07T07:22:00Z')
+
+    const eclipse = getLunarEclipse(datetime, observer)
+
+    expect(eclipse).not.toBe(false)
+
+    if (!eclipse) {
+      throw new Error('Expected a lunar eclipse')
+    }
+
+    expect(eclipse.type).toBe('penumbral')
+    expect(eclipse.magnitude).toBeLessThan(1)
+    expect(eclipse.magnitude).toBeCloseTo(0.1562)
+    expect(eclipse.γ).toBeCloseTo(-1.4915)
+  })
+
+  it('should return the lunar eclipse of 7th August 2017', () => {
+    // Give me a location in New Dehli, India:
+    const observer = {
+      latitude: 28.6139,
+      longitude: 77.209,
+      elevation: 0
+    }
+
+    const datetime = new Date('2017-08-07T18:20:00Z')
+    const eclipse = getLunarEclipse(datetime, observer)
+    expect(eclipse).not.toBe(false)
+
+    if (!eclipse) {
+      throw new Error('Expected a solar eclipse')
+    }
+
+    expect(eclipse.type).toBe('partial')
+    expect(eclipse.magnitude).toBeLessThan(1)
+    expect(eclipse.magnitude).toBeCloseTo(0.2464)
+    expect(eclipse.γ).toBeCloseTo(0.8668)
+  })
+})
 
 /*****************************************************************************************************************/
 
