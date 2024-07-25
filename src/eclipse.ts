@@ -85,10 +85,10 @@ export type Eclipse = {
    *
    * @member {Interval} interval
    *
-   * When the eclipse begins and ends.
+   * When the eclipse begins and ends for a particular observer.
    *
    */
-  interval: Interval
+  interval?: Interval
   /**
    *
    * @member {Date} maximum
@@ -104,7 +104,7 @@ export type Eclipse = {
    * The magnitude of the eclipse (the fraction of the Sun's diameter obscured by the Moon, or vice versa).
    *
    */
-  magnitude: number
+  magnitude?: number
   /**
    *
    *
