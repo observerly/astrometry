@@ -282,6 +282,18 @@ describe('getLunarAngularDiameter', () => {
     const δ = getLunarAngularDiameter(datetime)
     expect(δ).toBe(0.5480234986129843)
   })
+
+  it('should return the correct Lunar angular diameter for the given date in 1977 from Meeus', () => {
+    const palomer = {
+      latitude: 33.3561111,
+      longitude: -117.1611,
+      elevation: 1706
+    }
+
+    const datetime = new Date('1977-02-13T00:00:00Z')
+    const δ = getLunarAngularDiameter(datetime, palomer)
+    expect(δ).toBe(0.5417666941070021)
+  })
 })
 
 /*****************************************************************************************************************/

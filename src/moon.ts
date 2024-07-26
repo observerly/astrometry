@@ -6,9 +6,15 @@
 
 /*****************************************************************************************************************/
 
-import { getObliquityOfTheEcliptic } from './astrometry'
+import { getHourAngle, getObliquityOfTheEcliptic } from './astrometry'
 
-import { type EclipticCoordinate, type EquatorialCoordinate } from './common'
+import {
+  type EclipticCoordinate,
+  type EquatorialCoordinate,
+  type GeographicCoordinate
+} from './common'
+
+import { earth } from './earth'
 
 import { getJulianDate } from './epoch'
 
@@ -585,15 +591,57 @@ export const getLunarElongation = (datetime: Date): number => {
  * @returns The Moon's angular diameter in degrees
  *
  */
-export const getLunarAngularDiameter = (datetime: Date): number => {
-  // Get the true anomaly:
-  const ν = getLunarTrueAnomaly(datetime)
+export const getLunarAngularDiameter = (
+  datetime: Date,
+  observer?: GeographicCoordinate & { elevation: number }
+): number => {
+  if (!observer) {
+    // Get the true anomaly:
+    const ν = getLunarTrueAnomaly(datetime)
 
-  // Get the F orbital paramater which applies corrections
-  // due to the Moon's orbital eccentricity:
-  const F = getFOrbitalParameter(ν, 0.0549)
+    // Get the F orbital paramater which applies corrections
+    // due to the Moon's orbital eccentricity:
+    const F = getFOrbitalParameter(ν, 0.0549)
 
-  return 0.5181 * F
+    return 0.5181 * F
+  }
+
+  const k = 2 * 0.272481
+
+  // Get the distance to the Moon, and convert to AU:
+  const Δ = getLunarDistance(datetime) / (1.496e8 * 1000)
+
+  // Get the lunar equatorial coordinates:
+  const { ra, dec } = getLunarEquatorialCoordinate(datetime)
+
+  // Get the hour angle of the Moon:
+  const ha = getHourAngle(datetime, observer.longitude, ra)
+
+  const π = 8.794 / Δ // in units of arcseconds
+
+  // Get the parallax constants from the distance to the Moon:
+  const sπ = Math.sin(radians(π / 3600)) // Convert arcseconds to radians
+
+  // Earth radius:
+  const R = earth.r
+
+  const { sin: sδ, cos: cδ } = { sin: Math.sin(radians(dec)), cos: Math.cos(radians(dec)) }
+  const { sin: sH, cos: cH } = { sin: Math.sin(radians(ha)), cos: Math.cos(radians(ha)) }
+
+  const u = Math.atan(0.99664719 * Math.tan(radians(observer.latitude)))
+
+  const ρsφ =
+    0.99664719 * Math.sin(u) + (observer.elevation * Math.sin(radians(observer.latitude))) / R
+
+  const ρcφ = Math.cos(u) + (observer.elevation * Math.cos(radians(observer.latitude))) / R
+
+  const A = cδ * sH
+  const B = cδ * cH - ρcφ * sπ
+  const C = sδ - ρsφ * sπ
+
+  const q = Math.sqrt(Math.pow(A, 2) + Math.pow(B, 2) + Math.pow(C, 2))
+
+  return degrees((k / q) * sπ)
 }
 
 /*****************************************************************************************************************/
