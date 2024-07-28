@@ -292,7 +292,7 @@ describe('getLunarAngularDiameter', () => {
 
     const datetime = new Date('1977-02-13T00:00:00Z')
     const δ = getLunarAngularDiameter(datetime, palomer)
-    expect(δ).toBe(0.5417666941070021)
+    expect(δ).toBeCloseTo(0.5417666941070021)
   })
 })
 

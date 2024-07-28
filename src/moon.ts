@@ -8,6 +8,8 @@
 
 import { getHourAngle, getObliquityOfTheEcliptic } from './astrometry'
 
+import { AU_IN_METERS } from './constants'
+
 import {
   type EclipticCoordinate,
   type EquatorialCoordinate,
@@ -609,7 +611,7 @@ export const getLunarAngularDiameter = (
   const k = 2 * 0.272481
 
   // Get the distance to the Moon, and convert to AU:
-  const Δ = getLunarDistance(datetime) / (1.496e8 * 1000)
+  const Δ = getLunarDistance(datetime) / AU_IN_METERS
 
   // Get the lunar equatorial coordinates:
   const { ra, dec } = getLunarEquatorialCoordinate(datetime)
