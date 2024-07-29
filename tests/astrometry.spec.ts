@@ -59,6 +59,34 @@ describe('getAngularSeparation', () => {
     )
     expect(θ).toBe(32.79290589269233)
   })
+
+  it('should return the greatest possible angular separation for two objects at their antipodes', () => {
+    const θ = getAngularSeparation(
+      {
+        θ: 30,
+        φ: 0
+      },
+      {
+        θ: -30,
+        φ: 180
+      }
+    )
+    expect(θ).toBe(180)
+  })
+
+  it('should return the maximum possible angular separation for two objects at their antipodes', () => {
+    const θ = getAngularSeparation(
+      {
+        θ: 90,
+        φ: 0
+      },
+      {
+        θ: -90,
+        φ: 180
+      }
+    )
+    expect(θ).toBe(180)
+  })
 })
 
 /*****************************************************************************************************************/
