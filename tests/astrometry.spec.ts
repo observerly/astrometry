@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import {
   type EquatorialCoordinate,
   getAngularSeparation,
+  getAntipodeCoordinate,
   getGreenwhichSiderealTime,
   getHourAngle,
   getLocalSiderealTime,
@@ -86,6 +87,34 @@ describe('getAngularSeparation', () => {
       }
     )
     expect(θ).toBe(180)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getAntipodeCoordinate', () => {
+  it('should be defined', () => {
+    expect(getAntipodeCoordinate).toBeDefined()
+  })
+
+  it('should return the antipode of the given object', () => {
+    const antipode = getAntipodeCoordinate({
+      θ: 30,
+      φ: -30
+    })
+
+    expect(antipode.θ).toBe(210)
+    expect(antipode.φ).toBe(30)
+  })
+
+  it('should return the antipode of the given object', () => {
+    const antipode = getAntipodeCoordinate({
+      θ: 90,
+      φ: 60
+    })
+
+    expect(antipode.θ).toBe(270)
+    expect(antipode.φ).toBe(-60)
   })
 })
 
