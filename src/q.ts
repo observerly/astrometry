@@ -6,6 +6,65 @@
 
 /*****************************************************************************************************************/
 
+import { getCorrectionToEquatorialForAbberation } from './abberation'
+
+import { getAngularSeparation } from './astrometry'
+
+import { type EquatorialCoordinate, type GeographicCoordinate } from './common'
+
+import { convertEquatorialToHorizontal } from './coordinates'
+
+import { getLunarEquatorialCoordinate, getLunarIllumination } from './moon'
+
+import { getCorrectionToEquatorialForNutation } from './nutation'
+
+import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
+
+import { getCorrectionToHorizontalForRefraction } from './refraction'
+
+import { getSolarEquatorialCoordinate } from './sun'
+
+import { getNormalizedAzimuthalDegree, getNormalizedInclinationDegree } from './utilities'
+
+/*****************************************************************************************************************/
+
+type Q = EquatorialCoordinate & {
+  /**
+   *
+   * The Q index is a measure of the quality of the an observation, which takes into account the
+   * illumination of the Moon, the altitude of the target, and the altitude of the Sun as well as
+   * the angular separation between the Moon and the target.
+   *
+   * The Q index is a value between -1 and 1.
+   *
+   */
+  Q: number
+  /**
+   *
+   *
+   * The Moon's illumination factor, which has a range of 0 to 100 percent.
+   *
+   */
+  K: number
+  /**
+   *
+   * Angular separation between the Moon and the target, which has a range of 0 to 180 degrees.
+   *
+   */
+  φ: number
+  /**
+   *
+   * The altitude of the target, which has a range of -90 to 90 degrees.
+   *
+   */
+  A: number
+  /**
+   *
+   * The altitude of the Sun, which has a range of -90 to 90 degrees.
+   *
+   */
+  alt: number
+}
 
 /*****************************************************************************************************************/
 
@@ -35,6 +94,87 @@ export const q = (K: number, φ: number, A: number, alt: number): number => {
 
   // The Q index is the average of the Moon Q, Target Q, and Sun Q, which has a range of -1 to 1:
   return (MQ + TQ + SQ) / 3
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getQIndex()
+ *
+ * @brief The Q index is a measure of the quality of the an observation, which takes into account the
+ * illumination of the Moon, the altitude of the target, and the altitude of the Sun as well as
+ * the angular separation between the Moon and the target.
+ *
+ * @param datetime - The date and time of the observation.
+ * @param observer - The geographic coordinates of the observer.
+ * @param target - The equatorial coordinates of the target object (at J2000.0).
+ * @returns The Q index of the observation, a value between -1 and 1.
+ */
+export function getQIndex(
+  datetime: Date,
+  observer: GeographicCoordinate,
+  target: EquatorialCoordinate
+): Q {
+  // Correct the target's equatorial coordinates for the precession of the equinoxes:
+  const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, target)
+
+  // Get the correction to the target's equatorial coordinates for abberation:
+  const abberation = getCorrectionToEquatorialForAbberation(datetime, target)
+
+  // Get the correction to the target's equatorial coordinates for nutation:
+  const nutation = getCorrectionToEquatorialForNutation(datetime, target)
+
+  // Get the normalized azimuthal of the target:
+  const ra = getNormalizedAzimuthalDegree(target.ra + precession.ra + abberation.ra + nutation.ra)
+
+  // Get the normalized declination of the target:
+  const dec = getNormalizedInclinationDegree(
+    target.dec + precession.dec + abberation.dec + nutation.dec
+  )
+
+  // Convert the target's equatorial coordinates to horizontal coordinates:
+  const { alt: A } = getCorrectionToHorizontalForRefraction(
+    convertEquatorialToHorizontal(datetime, observer, {
+      ra,
+      dec
+    })
+  )
+
+  // Get the illumination fraction of the Moon:
+  const K = getLunarIllumination(datetime)
+
+  // Get the horizontal coordinate of the Sun, using the altitude of the Sun:
+  const sun = getCorrectionToHorizontalForRefraction(
+    convertEquatorialToHorizontal(datetime, observer, getSolarEquatorialCoordinate(datetime))
+  )
+
+  // Get the horizontal coordinate of the Moon:
+  const moon = getCorrectionToHorizontalForRefraction(
+    convertEquatorialToHorizontal(datetime, observer, getLunarEquatorialCoordinate(datetime))
+  )
+
+  const φ = getAngularSeparation(
+    {
+      θ: moon.az,
+      φ: moon.alt
+    },
+    {
+      θ: sun.az,
+      φ: sun.alt
+    }
+  )
+
+  // Calculate the Q index, and return the parameters of the observation:
+  return {
+    ra,
+    dec,
+    Q: q(K, φ, A, sun.alt),
+    K,
+    φ,
+    A,
+    alt: sun.alt
+  }
 }
 
 /*****************************************************************************************************************/

@@ -10,7 +10,22 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { q } from '../src'
+import { type EquatorialCoordinate, getQIndex, q } from '../src'
+
+/*****************************************************************************************************************/
+
+// For testing we need to specify a date because most calculations are
+// differential w.r.t a time component. We set it to the author's birthday:
+export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+
+// For testing we will fix the latitude to be Manua Kea, Hawaii, US
+export const latitude = 19.820611
+
+// For testing we will fix the longitude to be Manua Kea, Hawaii, US:
+export const longitude = -155.468094
+
+// For testing
+const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
 
 /*****************************************************************************************************************/
 
@@ -64,6 +79,28 @@ describe('q', () => {
       expect(Q).toBeGreaterThanOrEqual(-1)
       expect(Q).toBeLessThanOrEqual(1)
     })
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getQIndex', () => {
+  it('should be defined', () => {
+    expect(getQIndex).toBeDefined()
+  })
+
+  it('should never return a value that is outside of -1<=Q<=1', () => {
+    const q = getQIndex(new Date(), { latitude: 0, longitude: 0 }, { ra: 0, dec: 0 })
+    expect(q.Q).toBeGreaterThanOrEqual(-1)
+    expect(q.Q).toBeLessThanOrEqual(1)
+  })
+
+  it('should never return a value that is outside of -1<=Q<=1', () => {
+    const q = getQIndex(datetime, { latitude, longitude }, betelgeuse)
+    expect(q.Q).toBeGreaterThanOrEqual(-1)
+    expect(q.Q).toBeLessThanOrEqual(1)
+
+    console.log('Q Index', q.Q)
   })
 })
 
