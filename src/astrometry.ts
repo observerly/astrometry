@@ -53,6 +53,24 @@ export const getAngularSeparation = (A: SphericalCoordinate, B: SphericalCoordin
 
 /**
  *
+ * getAntipodeCoordinate()
+ *
+ * The antipode of an object is the point on the celestial sphere that is diametrically opposite to the observed object.
+ *
+ * @param A - The coordinate of the observed object, in Spherical coordinates (accepts Equatorial, Horizontal, and Ecliptic coordinates).
+ * @returns The antipode of the observed object, in Spherical coordinates.
+ */
+export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordinate => {
+  return {
+    θ: (A.θ + 180) % 360,
+    φ: -A.φ
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * getGreenwhichSiderealTime()
  *
  * The Greenwich Sidereal Time (GST) is the hour angle of the vernal
