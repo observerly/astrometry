@@ -157,6 +157,11 @@
       "require": "./dist/projection.cjs",
       "types": "./dist/projection.d.ts"
     },
+    "./q": {
+      "import": "./dist/q.js",
+      "require": "./dist/q.cjs",
+      "types": "./dist/q.d.ts"
+    },
     "./refraction": {
       "import": "./dist/refraction.js",
       "require": "./dist/refraction.cjs",
