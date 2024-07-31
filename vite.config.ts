@@ -33,6 +33,7 @@ const modules = [
   'galactic',
   'humanize',
   'iers',
+  'maths',
   'moon',
   'night',
   'nutation',
