@@ -38,3 +38,26 @@ export const interpolate = (start: number[], end: number[], precision: number): 
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * Interpolates a rank 2D array of coordinates with a given precision.
+ *
+ * @param {number[][]} coordinates - The array of coordinates to interpolate.
+ * @param {number} precision - The precision of the interpolation. Defaults to 1.
+ * @returns {number[][]} - The interpolated coordinates.
+ *
+ */
+export function interpolateRank2DArray(coordinates: number[][], precision: number = 1): number[][] {
+  const interpolatedCoordinates: number[][] = []
+
+  // Iterate through each pair of consecutive coordinates and interpolate:
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    const start = coordinates[i]
+    const end = coordinates[i + 1]
+    interpolatedCoordinates.push(...interpolate(start, end, precision))
+  }
+  return interpolatedCoordinates
+}
+
+/*****************************************************************************************************************/
