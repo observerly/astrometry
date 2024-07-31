@@ -112,6 +112,11 @@
       "require": "./dist/iers.cjs",
       "types": "./dist/iers.d.ts"
     },
+    "./maths": {
+      "import": "./dist/maths.js",
+      "require": "./dist/maths.cjs",
+      "types": "./dist/maths.d.ts"
+    },
     "./moon": {
       "import": "./dist/moon.js",
       "require": "./dist/moon.cjs",
