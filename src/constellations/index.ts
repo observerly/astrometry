@@ -14,5 +14,6 @@ export { aquila } from './aquila'
 export { ara } from './ara'
 export { aries } from './aries'
 export { auriga } from './auriga'
+export { bootes } from './bootes'
 
 /*****************************************************************************************************************/
