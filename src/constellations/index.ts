@@ -11,5 +11,6 @@ export { antila } from './antila'
 export { apus } from './apus'
 export { aquarius } from './aquarius'
 export { aquila } from './aquila'
+export { ara } from './ara'
 
 /*****************************************************************************************************************/
