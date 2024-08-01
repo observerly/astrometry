@@ -9,5 +9,6 @@
 export { andromeda } from './andromeda'
 export { antila } from './antila'
 export { apus } from './apus'
+export { aquarius } from './aquarius'
 
 /*****************************************************************************************************************/

@@ -17,6 +17,7 @@ import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
 export { andromeda } from './constellations/andromeda'
 export { antila } from './constellations/antila'
 export { apus } from './constellations/apus'
+export { aquarius } from './constellations/aquarius'
 
 /*****************************************************************************************************************/
 
