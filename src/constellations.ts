@@ -27,6 +27,7 @@ export { caelum } from './constellations/caelum'
 export { camelopardalis } from './constellations/camelopardalis'
 export { cancer } from './constellations/cancer'
 export { canesVenatici } from './constellations/canesVenatici'
+export { canisMajor } from './constellations/canisMajor'
 
 /*****************************************************************************************************************/
 
