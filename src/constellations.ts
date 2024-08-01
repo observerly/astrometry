@@ -20,6 +20,7 @@ export { apus } from './constellations/apus'
 export { aquarius } from './constellations/aquarius'
 export { aquila } from './constellations/aquila'
 export { ara } from './constellations/ara'
+export { aries } from './constellations/aries'
 
 /*****************************************************************************************************************/
 
