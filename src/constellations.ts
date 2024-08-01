@@ -14,6 +14,10 @@ import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
 
 /*****************************************************************************************************************/
 
+export { andromeda } from './constellations/andromeda'
+
+/*****************************************************************************************************************/
+
 export type ConstellationName =
   | 'Andromeda'
   | 'Antlia'
