@@ -22,6 +22,7 @@ export { aquila } from './constellations/aquila'
 export { ara } from './constellations/ara'
 export { aries } from './constellations/aries'
 export { auriga } from './constellations/auriga'
+export { bootes } from './constellations/bootes'
 
 /*****************************************************************************************************************/
 
