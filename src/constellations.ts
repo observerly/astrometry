@@ -24,6 +24,7 @@ export { aries } from './constellations/aries'
 export { auriga } from './constellations/auriga'
 export { bootes } from './constellations/bootes'
 export { caelum } from './constellations/caelum'
+export { camelopardalis } from './constellations/camelopardalis'
 
 /*****************************************************************************************************************/
 
