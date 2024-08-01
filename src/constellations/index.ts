@@ -12,5 +12,6 @@ export { apus } from './apus'
 export { aquarius } from './aquarius'
 export { aquila } from './aquila'
 export { ara } from './ara'
+export { aries } from './aries'
 
 /*****************************************************************************************************************/
