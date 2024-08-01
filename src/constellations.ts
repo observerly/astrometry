@@ -18,6 +18,7 @@ export { andromeda } from './constellations/andromeda'
 export { antila } from './constellations/antila'
 export { apus } from './constellations/apus'
 export { aquarius } from './constellations/aquarius'
+export { aquila } from './constellations/aquila'
 
 /*****************************************************************************************************************/
 
