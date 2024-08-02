@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  convertEquatorialToHorizontal,
   type EquatorialCoordinate,
   getAngularSeparation,
   getAntipodeCoordinate,
@@ -128,6 +129,20 @@ describe('getGreenwhichSiderealTime', () => {
   it('should return the Greenwhich Sidereal Time (GST) of the given date', () => {
     const GST = getGreenwhichSiderealTime(datetime)
     expect(GST).toBe(15.463990399019053)
+  })
+
+  it('should return a target that is directly overhead at for ', () => {
+    const GST = getGreenwhichSiderealTime(datetime)
+
+    // The observer is at the same latitude as Betelgeuse's declination, and the same longitude as as
+    // Betelgeuse's right ascension minus the GST times 15 degrees per hour:
+    // This simulates a target directly overhead for the "observer":
+    const observer = { latitude: betelgeuse.dec, longitude: betelgeuse.ra - GST * 15 }
+
+    // Convert the target to horizontal coordinates:
+    const target = convertEquatorialToHorizontal(datetime, observer, betelgeuse)
+    // The target should be directly overhead:
+    expect(target.alt).toBe(90)
   })
 })
 

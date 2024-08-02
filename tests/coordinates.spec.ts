@@ -15,7 +15,8 @@ import {
   convertEclipticToEquatorial,
   convertEquatorialToHorizontal,
   convertGalacticToEquatorial,
-  convertHorizontalToEquatorial
+  convertHorizontalToEquatorial,
+  getGreenwhichSiderealTime
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -63,6 +64,22 @@ describe('convertEquatorialToHorizontal', () => {
     const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
     expect(alt).toBe(72.78539444063765)
     expect(az).toBe(134.44877920325155)
+  })
+
+  it('should return the correct horizontal coodinate for a target directly overhead for the datetime provided', () => {
+    const GST = getGreenwhichSiderealTime(datetime)
+
+    // The observer is at the same latitude as Betelgeuse's declination, and the same longitude as as
+    // Betelgeuse's right ascension minus the GST times 15 degrees per hour:
+    // This simulates a target directly overhead for the "observer":
+    const observer = { latitude: betelgeuse.dec, longitude: betelgeuse.ra - GST * 15 }
+
+    // Convert the target to horizontal coordinates:
+    const target = convertEquatorialToHorizontal(datetime, observer, betelgeuse)
+    // The target should be directly overhead:
+    expect(target.alt).toBe(90)
+    // The target should be at the observer's meridian:
+    expect(target.az).toBe(270)
   })
 })
 

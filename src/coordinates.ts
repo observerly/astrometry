@@ -142,14 +142,29 @@ export const convertEquatorialToHorizontal = (
   // Get the hour angle for the target:
   const ha = radians(getHourAngle(datetime, longitude, target.ra))
 
+  // Calculate the altitude of the target, ensuring it is within the range -π/2 to π/2 for arcsin,
+  // i.e., between [-1, 1]. This accounts for the observer's target being directly overhead, e.g., at the zenith,
+  // or directly below the observer, e.g., at the nadir.
   const altitude = Math.asin(
-    Math.sin(declination) * Math.sin(radians(latitude)) +
-      Math.cos(declination) * Math.cos(radians(latitude)) * Math.cos(ha)
+    Math.max(
+      -1,
+      Math.min(
+        1,
+        Math.sin(declination) * Math.sin(radians(latitude)) +
+          Math.cos(declination) * Math.cos(radians(latitude)) * Math.cos(ha)
+      )
+    )
   )
 
   const azimuth = Math.acos(
-    (Math.sin(declination) - Math.sin(altitude) * Math.sin(radians(latitude))) /
-      (Math.cos(altitude) * Math.cos(radians(latitude)))
+    Math.max(
+      -1,
+      Math.min(
+        1,
+        (Math.sin(declination) - Math.sin(radians(latitude)) * Math.sin(altitude)) /
+          (Math.cos(radians(latitude)) * Math.cos(altitude))
+      )
+    )
   )
 
   return {
