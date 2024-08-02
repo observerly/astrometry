@@ -28,5 +28,6 @@ export { centaurus } from './centaurus'
 export { cepheus } from './cepheus'
 export { cetus } from './cetus'
 export { chamaeleon } from './chamaeleon'
+export { circinus } from './circinus'
 
 /*****************************************************************************************************************/

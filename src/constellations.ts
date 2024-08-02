@@ -36,6 +36,7 @@ export { centaurus } from './constellations/centaurus'
 export { cepheus } from './constellations/cepheus'
 export { cetus } from './constellations/cetus'
 export { chamaeleon } from './constellations/chamaeleon'
+export { circinus } from './constellations/circinus'
 
 /*****************************************************************************************************************/
 
