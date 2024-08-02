@@ -8,7 +8,7 @@
 
 import { J1970 } from './constants'
 
-import { type GeographicCoordinate } from './common'
+import type { GeographicCoordinate } from './common'
 
 import { getJulianDate } from './epoch'
 
@@ -90,7 +90,7 @@ export const convertGreenwhichSiderealTimeToUniversalTime = (GST: number, date: 
   // Calculate the number of centuries since J1900.0 and JD_0:
   const T = (JD_0 - 2415020.0) / 36525
 
-  const R = 6.6460656 + 2400.051262 * T + 0.00002581 * Math.pow(T, 2)
+  const R = 6.6460656 + 2400.051262 * T + 0.00002581 * T ** 2
 
   const B = 24 - R + 24 * (date.getFullYear() - 1900)
 

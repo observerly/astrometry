@@ -30,8 +30,8 @@ export const formatDegreeToDMSHumanized = (degree: number): string => {
   const leadingZero = deg > -10 && deg < 10 ? '0' : ''
 
   return `${sign}${leadingZero}${Math.abs(deg)}° ${
-    min < 10 ? '0' + Math.abs(min) : Math.abs(min)
-  }' ${sec < 10 ? '0' + Math.abs(sec) : Math.abs(sec)}"`
+    min < 10 ? `0${Math.abs(min)}` : Math.abs(min)
+  }' ${sec < 10 ? `0${Math.abs(sec)}` : Math.abs(sec)}"`
 }
 
 /*****************************************************************************************************************/
@@ -48,9 +48,9 @@ export const formatDegreeToDMSHumanized = (degree: number): string => {
  */
 export const formatDegreeToHMSHumanized = (degree: number): string => {
   const { hrs, min, sec } = convertDegreeToHMS(degree)
-  return `${Math.abs(hrs) < 10 ? '0' + Math.abs(hrs) : hrs}ʰ ${
-    min < 10 ? '0' + Math.abs(min) : Math.abs(min)
-  }ᵐ ${sec < 10 ? '0' + Math.abs(sec) : Math.abs(sec)}ˢ`
+  return `${Math.abs(hrs) < 10 ? `0${Math.abs(hrs)}` : hrs}ʰ ${
+    min < 10 ? `0${Math.abs(min)}` : Math.abs(min)
+  }ᵐ ${sec < 10 ? `0${Math.abs(sec)}` : Math.abs(sec)}ˢ`
 }
 
 /*****************************************************************************************************************/

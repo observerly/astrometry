@@ -6,11 +6,11 @@
 
 /*****************************************************************************************************************/
 
-import {
-  type EquatorialCoordinate,
-  type GeographicCoordinate,
-  type HorizontalCoordinate,
-  type Interval
+import type {
+    EquatorialCoordinate,
+    GeographicCoordinate,
+    HorizontalCoordinate,
+    Interval
 } from './common'
 
 import { convertEquatorialToHorizontal } from './coordinates'
@@ -20,9 +20,9 @@ import { getCoefficientOfEccentricity } from './earth'
 import { getJulianDate } from './epoch'
 
 import {
-  getLunarCorrectedEclipticLongitudeOfTheAscendingNode,
-  getLunarEquatorialCoordinate,
-  getLunarTrueEclipticLongitude
+    getLunarCorrectedEclipticLongitudeOfTheAscendingNode,
+    getLunarEquatorialCoordinate,
+    getLunarTrueEclipticLongitude
 } from './moon'
 
 import { convertJulianDateToUTC } from './temporal'
@@ -189,17 +189,17 @@ export const getLunarEclipse = (
   const JDE =
     2451550.09766 +
     29.530588861 * k +
-    0.00015437 * Math.pow(T, 2) -
-    0.00000015 * Math.pow(T, 3) +
-    0.00000000073 * Math.pow(T, 4)
+    0.00015437 * T ** 2 -
+    0.00000015 * T ** 3 +
+    0.00000000073 * T ** 4
 
   // Obtain the Moon's argument of latitude (in degrees):
   let F =
     (160.7108 +
       390.67050284 * k -
-      0.0016118 * Math.pow(T, 2) -
-      0.00000227 * Math.pow(T, 3) +
-      0.000000011 * Math.pow(T, 4)) %
+      0.0016118 * T ** 2 -
+      0.00000227 * T ** 3 +
+      0.000000011 * T ** 4) %
     360
 
   if (F < 0) {
@@ -212,26 +212,26 @@ export const getLunarEclipse = (
 
   // Get the ecliptic longitude of the ascending node of the mode (in degrees):
   const Ω =
-    (124.7746 - 1.56375588 * k + 0.0020672 * Math.pow(T, 2) + 0.00000215 * Math.pow(T, 3)) % 360
+    (124.7746 - 1.56375588 * k + 0.0020672 * T ** 2 + 0.00000215 * T ** 3) % 360
 
   const F1 = F - 0.02665 * Math.sin(radians(Ω))
 
-  const A1 = 299.77 + 0.107408 * k - 0.009173 * Math.pow(T, 2)
+  const A1 = 299.77 + 0.107408 * k - 0.009173 * T ** 2
 
   // Get the coefficient of eccentricity of the Earth's orbit (dimensionless):
   const E = getCoefficientOfEccentricity(datetime)
 
   // Get the solar mean anomaly (in degrees):
   const Ms =
-    (2.5534 + 29.1053567 * k - 0.0000014 * Math.pow(T, 2) - 0.00000011 * Math.pow(T, 3)) % 360
+    (2.5534 + 29.1053567 * k - 0.0000014 * T ** 2 - 0.00000011 * T ** 3) % 360
 
   // Get the lunar mean anomaly (in degrees):
   const Ml =
     (201.5643 +
       385.81693528 * k +
-      0.0107582 * Math.pow(T, 2) +
-      0.00001238 * Math.pow(T, 3) -
-      0.000000058 * Math.pow(T, 4)) %
+      0.0107582 * T ** 2 +
+      0.00001238 * T ** 3 -
+      0.000000058 * T ** 4) %
     360
 
   const corr =
@@ -370,17 +370,17 @@ export const getSolarEclipse = (
   const JDE =
     2451550.09766 +
     29.530588861 * k +
-    0.00015437 * Math.pow(T, 2) -
-    0.00000015 * Math.pow(T, 3) +
-    0.00000000073 * Math.pow(T, 4)
+    0.00015437 * T ** 2 -
+    0.00000015 * T ** 3 +
+    0.00000000073 * T ** 4
 
   // Obtain the Moon's argument of latitude (in degrees):
   let F =
     (160.7108 +
       390.67050284 * k -
-      0.0016118 * Math.pow(T, 2) -
-      0.00000227 * Math.pow(T, 3) +
-      0.000000011 * Math.pow(T, 4)) %
+      0.0016118 * T ** 2 -
+      0.00000227 * T ** 3 +
+      0.000000011 * T ** 4) %
     360
 
   if (F < 0) {
@@ -393,26 +393,26 @@ export const getSolarEclipse = (
 
   // Get the ecliptic longitude of the ascending node of the mode (in degrees):
   const Ω =
-    (124.7746 - 1.56375588 * k + 0.0020672 * Math.pow(T, 2) + 0.00000215 * Math.pow(T, 3)) % 360
+    (124.7746 - 1.56375588 * k + 0.0020672 * T ** 2 + 0.00000215 * T ** 3) % 360
 
   const F1 = F - 0.02665 * Math.sin(radians(Ω))
 
-  const A1 = 299.77 + 0.107408 * k - 0.009173 * Math.pow(T, 2)
+  const A1 = 299.77 + 0.107408 * k - 0.009173 * T ** 2
 
   // Get the coefficient of eccentricity of the Earth's orbit (dimensionless):
   const E = getCoefficientOfEccentricity(datetime)
 
   // Get the solar mean anomaly (in degrees):
   const Ms =
-    (2.5534 + 29.1053567 * k - 0.0000014 * Math.pow(T, 2) - 0.00000011 * Math.pow(T, 3)) % 360
+    (2.5534 + 29.1053567 * k - 0.0000014 * T ** 2 - 0.00000011 * T ** 3) % 360
 
   // Get the lunar mean anomaly (in degrees):
   const Ml =
     (201.5643 +
       385.81693528 * k +
-      0.0107582 * Math.pow(T, 2) +
-      0.00001238 * Math.pow(T, 3) -
-      0.000000058 * Math.pow(T, 4)) %
+      0.0107582 * T ** 2 +
+      0.00001238 * T ** 3 -
+      0.000000058 * T ** 4) %
     360
 
   const corr =
@@ -487,7 +487,7 @@ export const getSolarEclipse = (
 
   if (isCentral && u > 0 && u < 0.0047) {
     eclipseType =
-      u < 0.00464 * Math.sqrt(1 - Math.pow(γ, 2)) ? EclipseType.AnnularTotal : EclipseType.Annular
+      u < 0.00464 * Math.sqrt(1 - γ ** 2) ? EclipseType.AnnularTotal : EclipseType.Annular
   }
 
   let magnitude = undefined

@@ -10,10 +10,10 @@ import { getCorrectionToEquatorialForAbberation } from './abberation'
 
 import { getAngularSeparation } from './astrometry'
 
-import {
+import type {
   HorizontalCoordinate,
-  type EquatorialCoordinate,
-  type GeographicCoordinate
+  EquatorialCoordinate,
+  GeographicCoordinate
 } from './common'
 
 import { convertEquatorialToHorizontal } from './coordinates'

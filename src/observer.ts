@@ -8,7 +8,7 @@
 
 import { EARTH_RADIUS } from './constants'
 
-import { type Observer } from './common'
+import type { Observer } from './common'
 
 import { convertRadiansToDegrees } from './utilities'
 
@@ -25,7 +25,7 @@ import { convertRadiansToDegrees } from './utilities'
  * @param k - The observer's atmospheric refraction (unitless)
  * @returns The local horizon depression (in degrees).
  */
-export const getLocalHorizon = (h: number | Observer, k: number = 0.167): number => {
+export const getLocalHorizon = (h: number | Observer, k = 0.167): number => {
   let elevation = 0
 
   // If the observer is an object, extract the elevation:

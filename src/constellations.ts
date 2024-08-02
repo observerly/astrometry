@@ -8,7 +8,7 @@
 
 import type { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson'
 
-import { type EquatorialCoordinate } from './common'
+import type { EquatorialCoordinate } from './common'
 
 import { NANCY_ROMAN_TABLE_I, isNancyRomanRecord } from './nancy'
 

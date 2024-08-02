@@ -150,7 +150,7 @@ export const isTransitInstance = (value: unknown): value is TransitInstance => {
 export const isBodyCircumpolar = (
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
-  horizon: number = 0
+  horizon = 0
 ): boolean => {
   // We only need to consider the latitude of the observer:
   const { latitude } = observer
@@ -182,7 +182,7 @@ export const isBodyCircumpolar = (
 export const isBodyVisible = (
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
-  horizon: number = 0
+  horizon = 0
 ): boolean => {
   // We only need to consider the latitude of the observer:
   const { latitude } = observer
@@ -214,9 +214,9 @@ export const isBodyAboveHorizon = (
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate | HorizontalCoordinate,
-  horizon: number = 0
+  horizon = 0
 ): boolean => {
-  let alt = -Infinity
+  let alt = Number.NEGATIVE_INFINITY
 
   // Is the target an equatorial coordinate?
   if (isEquatorialCoordinate(target)) {
@@ -357,7 +357,7 @@ export const getBodyNextRise = (
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
-  horizon: number = 0
+  horizon = 0
 ): TransitInstance | false => {
   const tomorrow = new Date(
     Date.UTC(
@@ -422,7 +422,7 @@ export const getBodyNextSet = (
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
-  horizon: number = 0
+  horizon = 0
 ): TransitInstance | boolean => {
   const tomorrow = new Date(
     Date.UTC(
@@ -493,7 +493,7 @@ export const isBodyVisibleForNight = (
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
-  horizon: number = 0
+  horizon = 0
 ): boolean => {
   // Set the datetime to be at 1 minute before midnight for the previous date:
   datetime = new Date(new Date(datetime.setHours(0, 0, 0, 0)).getTime())
