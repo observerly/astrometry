@@ -34,6 +34,7 @@ export { carina } from './constellations/carina'
 export { cassiopeia } from './constellations/cassiopeia'
 export { centaurus } from './constellations/centaurus'
 export { cepheus } from './constellations/cepheus'
+export { cetus } from './constellations/cetus'
 
 /*****************************************************************************************************************/
 
