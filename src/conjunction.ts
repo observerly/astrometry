@@ -248,6 +248,55 @@ export const findPlanetaryConjunction = (
 /*****************************************************************************************************************/
 
 /**
+ *
+ * findConjunction()
+ *
+ * @param interval - The interval to search for the initial conjunction.
+ * @param targets - The two targets to test for conjunction.
+ * @param params - The parameters for the conjunction test.
+ * @returns The conjunction of the two targets if they are in conjunction, otherwise false.
+ */
+export const findConjunction = (
+  interval: Interval,
+  targets: [Target, Target],
+  params: {
+    horizon?: number // six degrees above the horizon
+    angularSeparationThreshold?: number // three degrees of separation
+    stepMinutes?: number // check every 1/3 hour
+  } = {
+    horizon: 6,
+    angularSeparationThreshold: ANGULAR_SEPARATION_THRESHOLD,
+    stepMinutes: 20
+  }
+): Conjunction | false => {
+  /*eslint prefer-const: ["error", {"destructuring": "all"}]*/
+  let { from, to } = interval
+
+  const {
+    horizon = 6,
+    angularSeparationThreshold = ANGULAR_SEPARATION_THRESHOLD,
+    stepMinutes = 20
+  } = params
+
+  while (from <= to) {
+    const conjunction = isConjunction(from, targets, {
+      horizon,
+      angularSeparationThreshold
+    })
+
+    if (conjunction) {
+      return conjunction
+    }
+
+    from = new Date(from.getTime() + stepMinutes * 60000)
+  }
+
+  return false
+}
+
+/*****************************************************************************************************************/
+
+/**
  * findPlanetaryConjunctions
  *
  * Finds all conjunctions of the planets within a given time interval, returning only those that are in
