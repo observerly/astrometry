@@ -44,21 +44,21 @@ describe('q', () => {
   })
 
   it('should return the value of Q = 1 for the best possible set of conditions', () => {
-    const Q = q(0, 180, 90, -90)
+    const Q = q(0, 180, 90, { az: 0, alt: -90 }, { az: 0, alt: -90 })
     expect(Q).toBe(1)
     expect(Q).toBeGreaterThanOrEqual(-1)
     expect(Q).toBeLessThanOrEqual(1)
   })
 
   it('should return the value of Q = -1 for the worst possible set of conditions', () => {
-    const Q = q(100, 0, -90, 90)
+    const Q = q(100, 0, -90, { az: 0, alt: 90 }, { az: 180, alt: 90 })
     expect(Q).toBe(-1)
     expect(Q).toBeGreaterThanOrEqual(-1)
     expect(Q).toBeLessThanOrEqual(1)
   })
 
   it('should return the value of Q = 0 for the base set of conditions', () => {
-    const Q = q(50, 90, 6, -18)
+    const Q = q(50, 90, 6, { az: 0, alt: -18 }, { az: 180, alt: 0.1 })
     expect(Q).toBe(0)
     expect(Q).toBeGreaterThanOrEqual(-1)
     expect(Q).toBeLessThanOrEqual(1)
@@ -75,7 +75,9 @@ describe('q', () => {
 
   cases.forEach(({ K, φ, A, alt }) => {
     it(`should return a value between -1 and 1 for K=${K}, φ=${φ}, A=${A}, alt=${alt}`, () => {
-      const Q = q(K, φ, A, alt)
+      const moon = { az: 270, alt: 18 }
+
+      const Q = q(K, φ, A, { az: 0, alt }, moon)
       expect(Q).toBeGreaterThanOrEqual(-1)
       expect(Q).toBeLessThanOrEqual(1)
     })
