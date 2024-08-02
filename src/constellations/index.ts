@@ -35,5 +35,6 @@ export { coronaAustralis } from './coronaAustralis'
 export { coronaBorealis } from './coronaBorealis'
 export { corvus } from './corvus'
 export { crater } from './crater'
+export { crux } from './crux'
 
 /*****************************************************************************************************************/
