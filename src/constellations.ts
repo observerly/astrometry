@@ -39,6 +39,7 @@ export { chamaeleon } from './constellations/chamaeleon'
 export { circinus } from './constellations/circinus'
 export { columba } from './constellations/columba'
 export { comaBerenices } from './constellations/comaBerenices'
+export { coronaAustralis } from './constellations/coronaAustralis'
 
 /*****************************************************************************************************************/
 
