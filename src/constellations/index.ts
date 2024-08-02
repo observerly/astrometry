@@ -30,5 +30,6 @@ export { cetus } from './cetus'
 export { chamaeleon } from './chamaeleon'
 export { circinus } from './circinus'
 export { columba } from './columba'
+export { comaBerenices } from './comaBerenices'
 
 /*****************************************************************************************************************/
