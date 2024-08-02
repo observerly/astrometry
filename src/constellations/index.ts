@@ -23,5 +23,6 @@ export { canisMajor } from './canisMajor'
 export { canisMinor } from './canisMinor'
 export { capricornus } from './capricornus'
 export { carina } from './carina'
+export { cassiopeia } from './cassiopeia'
 
 /*****************************************************************************************************************/
