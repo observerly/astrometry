@@ -25,5 +25,6 @@ export { capricornus } from './capricornus'
 export { carina } from './carina'
 export { cassiopeia } from './cassiopeia'
 export { centaurus } from './centaurus'
+export { cepheus } from './cepheus'
 
 /*****************************************************************************************************************/
