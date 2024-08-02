@@ -33,5 +33,6 @@ export { columba } from './columba'
 export { comaBerenices } from './comaBerenices'
 export { coronaAustralis } from './coronaAustralis'
 export { coronaBorealis } from './coronaBorealis'
+export { corvus } from './corvus'
 
 /*****************************************************************************************************************/

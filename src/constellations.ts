@@ -41,6 +41,7 @@ export { columba } from './constellations/columba'
 export { comaBerenices } from './constellations/comaBerenices'
 export { coronaAustralis } from './constellations/coronaAustralis'
 export { coronaBorealis } from './constellations/coronaBorealis'
+export { corvus } from './constellations/corvus'
 
 /*****************************************************************************************************************/
 
