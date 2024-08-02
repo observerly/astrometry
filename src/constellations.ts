@@ -32,6 +32,7 @@ export { canisMinor } from './constellations/canisMinor'
 export { capricornus } from './constellations/capricornus'
 export { carina } from './constellations/carina'
 export { cassiopeia } from './constellations/cassiopeia'
+export { centaurus } from './constellations/centaurus'
 
 /*****************************************************************************************************************/
 
