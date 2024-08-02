@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { type EclipticCoordinate, type EquatorialCoordinate } from './common'
+import type { EclipticCoordinate, EquatorialCoordinate } from './common'
 
 import { AU_IN_METERS, c } from './constants'
 
@@ -46,7 +46,7 @@ export const getSolarMeanAnomaly = (datetime: Date): number => {
   const T = (JD - 2451545.0) / 36525
 
   // Get the Sun's mean anomaly at the current epoch relative to J2000:
-  let M = (357.52911 + 35999.05029 * T - 0.0001537 * Math.pow(T, 2)) % 360
+  let M = (357.52911 + 35999.05029 * T - 0.0001537 * T ** 2) % 360
 
   if (M < 0) {
     M += 360
@@ -79,8 +79,8 @@ export const getSolarEquationOfCenter = (datetime: Date): number => {
 
   // Calculate the equation of center:
   const C =
-    (1.914602 - 0.004817 * Math.pow(T, 2) - 0.000014 * Math.pow(T, 3)) * Math.sin(radians(M)) +
-    (0.019993 - 0.000101 * Math.pow(T, 2)) * Math.sin(radians(2 * M)) +
+    (1.914602 - 0.004817 * T ** 2 - 0.000014 * T ** 3) * Math.sin(radians(M)) +
+    (0.019993 - 0.000101 * T ** 2) * Math.sin(radians(2 * M)) +
     0.000289 * Math.sin(radians(3 * M))
 
   return C
@@ -107,7 +107,7 @@ export const getSolarMeanGeometricLongitude = (datetime: Date): number => {
   const T = (JD - 2451545.0) / 36525
 
   // Calculate the mean geometric longitude:
-  let L = (280.46646 + 36000.76983 * T + 0.0003032 * Math.pow(T, 2)) % 360
+  let L = (280.46646 + 36000.76983 * T + 0.0003032 * T ** 2) % 360
 
   // Correct for negative angles
   if (L < 0) {
@@ -241,7 +241,7 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
   // frame for the equatorial coordinates of celestial objects.
 
   // FK5 correction to the latitude (in degrees):
-  const λp = λ - 1.397 * T - 0.00031 * Math.pow(T, 2)
+  const λp = λ - 1.397 * T - 0.00031 * T ** 2
   const Δβ = 1.08778e-5 * (Math.cos(radians(λp)) - Math.sin(radians(λp)))
 
   // FK5 correction to the longitude (in degrees):
@@ -275,8 +275,8 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
     0.0107 * Math.sin(radians(328.517 + 1079981.1857 * τ)) +
     0.309 * τ * Math.sin(radians(241.4518 + 359993.7286 * τ)) +
     0.021 * τ * Math.sin(radians(205.0482 + 719987.4571 * τ)) +
-    0.004 * Math.pow(τ, 2) * Math.sin(radians(297.861 + 4452671.1152 * τ)) +
-    0.01 * Math.pow(τ, 3) * Math.sin(radians(154.7066 + 359993.7286 * τ))
+    0.004 * τ ** 2 * Math.sin(radians(297.861 + 4452671.1152 * τ)) +
+    0.01 * τ ** 3 * Math.sin(radians(154.7066 + 359993.7286 * τ))
 
   // Correction for nutation:
   λ -= 20.4898 / 3600 / RO
@@ -353,7 +353,7 @@ export const getSolarDistance = (datetime: Date): number => {
   const ν = getSolarTrueAnomaly(datetime)
 
   // Calculate the distance to the Sun (in metres) from the Earth:
-  return ((1.000001018 * (1 - Math.pow(e, 2))) / (1 + e * Math.cos(radians(ν)))) * AU_IN_METERS
+  return ((1.000001018 * (1 - e ** 2)) / (1 + e * Math.cos(radians(ν)))) * AU_IN_METERS
 }
 
 /*****************************************************************************************************************/

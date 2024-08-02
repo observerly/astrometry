@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { type GeographicCoordinate } from './common'
+import type { GeographicCoordinate } from './common'
 
 import { convertEquatorialToHorizontal } from './coordinates'
 
@@ -94,9 +94,9 @@ export const getGeneralizedSolarTransit = (
 export const getSolarTransit = (
   datetime: Date,
   observer: GeographicCoordinate,
-  horizon: number = -12,
-  temperature: number = 288.15,
-  pressure: number = 101325
+  horizon = -12,
+  temperature = 288.15,
+  pressure = 101325
 ): {
   sunrise: Date | null
   noon: Date | null
@@ -181,9 +181,9 @@ export const getSolarTransit = (
 export const getNight = (
   datetime: Date,
   observer: GeographicCoordinate,
-  horizon: number = -12,
-  temperature: number = 288.15,
-  pressure: number = 101325
+  horizon = -12,
+  temperature = 288.15,
+  pressure = 101325
 ): {
   start: Date | null
   end: Date | null
@@ -210,9 +210,9 @@ export const getNight = (
 export const isNight = (
   datetime: Date,
   observer: GeographicCoordinate,
-  horizon: number = -12,
-  temperature: number = 288.15,
-  pressure: number = 101325
+  horizon = -12,
+  temperature = 288.15,
+  pressure = 101325
 ): boolean => {
   const when = new Date(
     datetime.getFullYear(),

@@ -8,11 +8,11 @@
 
 import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
 
-import {
-  type EclipticCoordinate,
-  type EquatorialCoordinate,
-  type GeographicCoordinate,
-  type HorizontalCoordinate
+import type {
+  EclipticCoordinate,
+  EquatorialCoordinate,
+  GeographicCoordinate,
+  HorizontalCoordinate
 } from './common'
 
 import { J2000 } from './constants'
@@ -447,7 +447,7 @@ export const getPlanetaryGeocentricEclipticCoordinate = (
   // Get the geocentric distance for Earth:
   const Re = getPlanetaryHeliocentricDistance(datetime, earth)
 
-  let λp = -Infinity
+  let λp = Number.NEGATIVE_INFINITY
 
   if (planet.isInferior) {
     λp =

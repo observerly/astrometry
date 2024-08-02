@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate } from './common'
+import type { EquatorialCoordinate } from './common'
 
 import { getSolarEquatorialCoordinate } from './sun'
 

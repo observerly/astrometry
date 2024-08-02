@@ -100,7 +100,7 @@ export const interpolateGeodesic = (
  * @returns {number[][]} - The interpolated coordinates.
  *
  */
-export function interpolateRank2DArray(coordinates: number[][], precision: number = 1): number[][] {
+export function interpolateRank2DArray(coordinates: number[][], precision = 1): number[][] {
   const interpolatedCoordinates: number[][] = []
 
   // Iterate through each pair of consecutive coordinates and interpolate:
@@ -126,7 +126,7 @@ export function interpolateRank2DArray(coordinates: number[][], precision: numbe
  */
 export function interpolateRank2DGeodesicCoordinateArray(
   coordinates: number[][],
-  precision: number = 1
+  precision = 1
 ): number[][] {
   const interpolatedCoordinates: number[][] = []
 

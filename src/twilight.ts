@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { type GeographicCoordinate, type Interval } from './common'
+import type { GeographicCoordinate, Interval } from './common'
 
 import { convertEquatorialToHorizontal } from './coordinates'
 

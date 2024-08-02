@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { type CartesianCoordinate } from './common'
+import type { CartesianCoordinate } from './common'
 
 import { convertRadiansToDegrees as degrees } from './utilities'
 
@@ -27,11 +27,11 @@ type FocalRatio = `f/${number}`
 export function getFocalRatio(apertureWidth: number, focalLength: number): FocalRatio {
   // Check that the aperterure is a sensible number, e.g., > 0:
   if (apertureWidth < 0) {
-    throw new Error(`Invalid focal ratio as aperture is negative`)
+    throw new Error('Invalid focal ratio as aperture is negative')
   }
 
   if (focalLength < 0) {
-    throw new Error(`Invalid focal ratio as focal length is negative`)
+    throw new Error('Invalid focal ratio as focal length is negative')
   }
 
   return `f/${focalLength / apertureWidth}`
@@ -56,17 +56,17 @@ export function getFieldOfView(
 ): Omit<CartesianCoordinate, 'z'> {
   // Check that the focal length is a sensible number, e.g., > 0:
   if (focalLength < 0) {
-    throw new Error(`Invalid focal ratio as focal length is negative`)
+    throw new Error('Invalid focal ratio as focal length is negative')
   }
 
   // Check that the pixel size is a sensible number, e.g., > 0:
   if (pixelSize < 0) {
-    throw new Error(`Invalid focal ratio as pixel size is negative`)
+    throw new Error('Invalid focal ratio as pixel size is negative')
   }
 
   // Check that the resolution is a sensible number, e.g., > 0:
   if (resolution.x < 0 || resolution.y < 0) {
-    throw new Error(`Invalid focal ratio as resolution is negative`)
+    throw new Error('Invalid focal ratio as resolution is negative')
   }
 
   // Get the angular size of a pixel of the camera (in degrees):
