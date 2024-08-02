@@ -43,6 +43,7 @@ export { coronaAustralis } from './constellations/coronaAustralis'
 export { coronaBorealis } from './constellations/coronaBorealis'
 export { corvus } from './constellations/corvus'
 export { crater } from './constellations/crater'
+export { crux } from './constellations/crux'
 
 /*****************************************************************************************************************/
 
