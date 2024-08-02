@@ -42,6 +42,7 @@ export { comaBerenices } from './constellations/comaBerenices'
 export { coronaAustralis } from './constellations/coronaAustralis'
 export { coronaBorealis } from './constellations/coronaBorealis'
 export { corvus } from './constellations/corvus'
+export { crater } from './constellations/crater'
 
 /*****************************************************************************************************************/
 
