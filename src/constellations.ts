@@ -29,6 +29,7 @@ export { cancer } from './constellations/cancer'
 export { canesVenatici } from './constellations/canesVenatici'
 export { canisMajor } from './constellations/canisMajor'
 export { canisMinor } from './constellations/canisMinor'
+export { capricornus } from './constellations/capricornus'
 
 /*****************************************************************************************************************/
 
