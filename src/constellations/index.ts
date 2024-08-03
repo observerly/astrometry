@@ -38,5 +38,6 @@ export { crater } from './crater'
 export { crux } from './crux'
 export { cygnus } from './cygnus'
 export { delphinus } from './delphinus'
+export { dorado } from './dorado'
 
 /*****************************************************************************************************************/
