@@ -52,6 +52,7 @@ export { equuleus } from './constellations/equuleus'
 export { eridanus } from './constellations/eridanus'
 export { fornax } from './constellations/fornax'
 export { gemini } from './constellations/gemini'
+export { grus } from './constellations/grus'
 
 /*****************************************************************************************************************/
 
