@@ -47,6 +47,7 @@ export { crux } from './constellations/crux'
 export { cygnus } from './constellations/cygnus'
 export { delphinus } from './constellations/delphinus'
 export { dorado } from './constellations/dorado'
+export { draco } from './constellations/draco'
 
 /*****************************************************************************************************************/
 

@@ -39,5 +39,6 @@ export { crux } from './crux'
 export { cygnus } from './cygnus'
 export { delphinus } from './delphinus'
 export { dorado } from './dorado'
+export { draco } from './draco'
 
 /*****************************************************************************************************************/
