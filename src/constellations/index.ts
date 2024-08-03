@@ -43,5 +43,6 @@ export { draco } from './draco'
 export { equuleus } from './equuleus'
 export { eridanus } from './eridanus'
 export { fornax } from './fornax'
+export { gemini } from './gemini'
 
 /*****************************************************************************************************************/
