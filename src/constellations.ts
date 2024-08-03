@@ -48,6 +48,7 @@ export { cygnus } from './constellations/cygnus'
 export { delphinus } from './constellations/delphinus'
 export { dorado } from './constellations/dorado'
 export { draco } from './constellations/draco'
+export { equuleus } from './constellations/equuleus'
 
 /*****************************************************************************************************************/
 
