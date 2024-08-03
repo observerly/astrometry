@@ -45,6 +45,7 @@ export { corvus } from './constellations/corvus'
 export { crater } from './constellations/crater'
 export { crux } from './constellations/crux'
 export { cygnus } from './constellations/cygnus'
+export { delphinus } from './constellations/delphinus'
 
 /*****************************************************************************************************************/
 
