@@ -41,5 +41,6 @@ export { delphinus } from './delphinus'
 export { dorado } from './dorado'
 export { draco } from './draco'
 export { equuleus } from './equuleus'
+export { eridanus } from './eridanus'
 
 /*****************************************************************************************************************/
