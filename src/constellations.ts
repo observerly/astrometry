@@ -50,6 +50,7 @@ export { dorado } from './constellations/dorado'
 export { draco } from './constellations/draco'
 export { equuleus } from './constellations/equuleus'
 export { eridanus } from './constellations/eridanus'
+export { fornax } from './constellations/fornax'
 
 /*****************************************************************************************************************/
 
