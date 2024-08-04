@@ -54,6 +54,7 @@ export { fornax } from './constellations/fornax'
 export { gemini } from './constellations/gemini'
 export { grus } from './constellations/grus'
 export { hercules } from './constellations/hercules'
+export { horologium } from './constellations/horologium'
 
 /*****************************************************************************************************************/
 
