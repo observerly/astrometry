@@ -45,5 +45,6 @@ export { eridanus } from './eridanus'
 export { fornax } from './fornax'
 export { gemini } from './gemini'
 export { grus } from './grus'
+export { hercules } from './hercules'
 
 /*****************************************************************************************************************/
