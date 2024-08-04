@@ -47,5 +47,6 @@ export { gemini } from './gemini'
 export { grus } from './grus'
 export { hercules } from './hercules'
 export { horologium } from './horologium'
+export { hydra } from './hydra'
 
 /*****************************************************************************************************************/
