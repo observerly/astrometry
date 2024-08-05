@@ -61,6 +61,7 @@ export { indus } from './constellations/indus'
 export { lacerta } from './constellations/lacerta'
 export { leo } from './constellations/leo'
 export { leoMinor } from './constellations/leoMinor'
+export { lepus } from './constellations/lepus'
 
 /*****************************************************************************************************************/
 
