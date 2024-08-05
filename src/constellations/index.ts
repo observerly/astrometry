@@ -54,5 +54,6 @@ export { lacerta } from './lacerta'
 export { leo } from './leo'
 export { leoMinor } from './leoMinor'
 export { lepus } from './lepus'
+export { libra } from './libra'
 
 /*****************************************************************************************************************/
