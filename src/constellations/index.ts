@@ -57,5 +57,6 @@ export { lepus } from './lepus'
 export { libra } from './libra'
 export { lupus } from './lupus'
 export { lynx } from './lynx'
+export { lyra } from './lyra'
 
 /*****************************************************************************************************************/

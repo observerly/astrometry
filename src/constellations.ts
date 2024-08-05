@@ -65,6 +65,7 @@ export { lepus } from './constellations/lepus'
 export { libra } from './constellations/libra'
 export { lupus } from './constellations/lupus'
 export { lynx } from './constellations/lynx'
+export { lyra } from './constellations/lyra'
 
 /*****************************************************************************************************************/
 
