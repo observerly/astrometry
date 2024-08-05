@@ -59,6 +59,7 @@ export { hydra } from './constellations/hydra'
 export { hydrus } from './constellations/hydrus'
 export { indus } from './constellations/indus'
 export { lacerta } from './constellations/lacerta'
+export { leo } from './constellations/leo'
 
 /*****************************************************************************************************************/
 
