@@ -50,5 +50,6 @@ export { horologium } from './horologium'
 export { hydra } from './hydra'
 export { hydrus } from './hydrus'
 export { indus } from './indus'
+export { lacerta } from './lacerta'
 
 /*****************************************************************************************************************/
