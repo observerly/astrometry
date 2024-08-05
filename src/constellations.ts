@@ -63,6 +63,7 @@ export { leo } from './constellations/leo'
 export { leoMinor } from './constellations/leoMinor'
 export { lepus } from './constellations/lepus'
 export { libra } from './constellations/libra'
+export { lupus } from './constellations/lupus'
 
 /*****************************************************************************************************************/
 
