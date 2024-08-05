@@ -52,5 +52,6 @@ export { hydrus } from './hydrus'
 export { indus } from './indus'
 export { lacerta } from './lacerta'
 export { leo } from './leo'
+export { leoMinor } from './leoMinor'
 
 /*****************************************************************************************************************/
