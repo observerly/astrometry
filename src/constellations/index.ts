@@ -56,5 +56,6 @@ export { leoMinor } from './leoMinor'
 export { lepus } from './lepus'
 export { libra } from './libra'
 export { lupus } from './lupus'
+export { lynx } from './lynx'
 
 /*****************************************************************************************************************/
