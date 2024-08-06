@@ -78,6 +78,7 @@ export { pavo } from './constellations/pavo'
 export { pegasus } from './constellations/pegasus'
 export { perseus } from './constellations/perseus'
 export { phoenix } from './constellations/phoenix'
+export { pictor } from './constellations/pictor'
 
 /*****************************************************************************************************************/
 
