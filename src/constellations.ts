@@ -70,6 +70,7 @@ export { mensa } from './constellations/mensa'
 export { microscopium } from './constellations/microscopium'
 export { monoceros } from './constellations/monoceros'
 export { musca } from './constellations/musca'
+export { norma } from './constellations/norma'
 
 /*****************************************************************************************************************/
 
