@@ -67,5 +67,6 @@ export { octans } from './octans'
 export { ophiuchus } from './ophiuchus'
 export { orion } from './orion'
 export { pavo } from './pavo'
+export { pegasus } from './pegasus'
 
 /*****************************************************************************************************************/
