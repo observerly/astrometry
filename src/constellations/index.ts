@@ -72,5 +72,6 @@ export { perseus } from './perseus'
 export { phoenix } from './phoenix'
 export { pictor } from './pictor'
 export { pisces } from './pisces'
+export { piscisAustrinus } from './piscisAustrinus'
 
 /*****************************************************************************************************************/
