@@ -68,5 +68,6 @@ export { ophiuchus } from './ophiuchus'
 export { orion } from './orion'
 export { pavo } from './pavo'
 export { pegasus } from './pegasus'
+export { perseus } from './perseus'
 
 /*****************************************************************************************************************/
