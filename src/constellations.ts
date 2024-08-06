@@ -84,6 +84,7 @@ export { piscisAustrinus } from './constellations/piscisAustrinus'
 export { puppis } from './constellations/puppis'
 export { pyxis } from './constellations/pyxis'
 export { reticulum } from './constellations/reticulum'
+export { sagitta } from './constellations/sagitta'
 
 /*****************************************************************************************************************/
 
