@@ -77,5 +77,6 @@ export { puppis } from './puppis'
 export { pyxis } from './pyxis'
 export { reticulum } from './reticulum'
 export { sagitta } from './sagitta'
+export { sagittarius } from './sagittarius'
 
 /*****************************************************************************************************************/
