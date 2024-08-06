@@ -74,5 +74,6 @@ export { pictor } from './pictor'
 export { pisces } from './pisces'
 export { piscisAustrinus } from './piscisAustrinus'
 export { puppis } from './puppis'
+export { pyxis } from './pyxis'
 
 /*****************************************************************************************************************/
