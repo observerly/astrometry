@@ -66,5 +66,6 @@ export { norma } from './norma'
 export { octans } from './octans'
 export { ophiuchus } from './ophiuchus'
 export { orion } from './orion'
+export { pavo } from './pavo'
 
 /*****************************************************************************************************************/

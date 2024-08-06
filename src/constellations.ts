@@ -74,6 +74,7 @@ export { norma } from './constellations/norma'
 export { octans } from './constellations/octans'
 export { ophiuchus } from './constellations/ophiuchus'
 export { orion } from './constellations/orion'
+export { pavo } from './constellations/pavo'
 
 /*****************************************************************************************************************/
 
