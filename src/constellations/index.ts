@@ -80,5 +80,6 @@ export { sagitta } from './sagitta'
 export { sagittarius } from './sagittarius'
 export { scorpius } from './scorpius'
 export { sculptor } from './sculptor'
+export { scutum } from './scutum'
 
 /*****************************************************************************************************************/
