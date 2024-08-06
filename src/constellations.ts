@@ -80,6 +80,7 @@ export { perseus } from './constellations/perseus'
 export { phoenix } from './constellations/phoenix'
 export { pictor } from './constellations/pictor'
 export { pisces } from './constellations/pisces'
+export { piscisAustrinus } from './constellations/piscisAustrinus'
 
 /*****************************************************************************************************************/
 
