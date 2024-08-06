@@ -87,6 +87,7 @@ export { reticulum } from './constellations/reticulum'
 export { sagitta } from './constellations/sagitta'
 export { sagittarius } from './constellations/sagittarius'
 export { scorpius } from './constellations/scorpius'
+export { sculptor } from './constellations/sculptor'
 
 /*****************************************************************************************************************/
 
