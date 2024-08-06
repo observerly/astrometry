@@ -62,5 +62,6 @@ export { mensa } from './mensa'
 export { microscopium } from './microscopium'
 export { monoceros } from './monoceros'
 export { musca } from './musca'
+export { norma } from './norma'
 
 /*****************************************************************************************************************/
