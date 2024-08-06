@@ -64,5 +64,6 @@ export { monoceros } from './monoceros'
 export { musca } from './musca'
 export { norma } from './norma'
 export { octans } from './octans'
+export { ophiuchus } from './ophiuchus'
 
 /*****************************************************************************************************************/
