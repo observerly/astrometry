@@ -83,5 +83,6 @@ export { sculptor } from './sculptor'
 export { scutum } from './scutum'
 export { serpensCaput, serpensCauda } from './serpens'
 export { sextans } from './sextans'
+export { taurus } from './taurus'
 
 /*****************************************************************************************************************/
