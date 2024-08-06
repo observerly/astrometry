@@ -67,6 +67,7 @@ export { lupus } from './constellations/lupus'
 export { lynx } from './constellations/lynx'
 export { lyra } from './constellations/lyra'
 export { mensa } from './constellations/mensa'
+export { microscopium } from './constellations/microscopium'
 
 /*****************************************************************************************************************/
 

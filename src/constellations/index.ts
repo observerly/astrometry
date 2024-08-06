@@ -59,5 +59,6 @@ export { lupus } from './lupus'
 export { lynx } from './lynx'
 export { lyra } from './lyra'
 export { mensa } from './mensa'
+export { microscopium } from './microscopium'
 
 /*****************************************************************************************************************/
