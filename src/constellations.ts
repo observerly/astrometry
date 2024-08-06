@@ -83,6 +83,7 @@ export { pisces } from './constellations/pisces'
 export { piscisAustrinus } from './constellations/piscisAustrinus'
 export { puppis } from './constellations/puppis'
 export { pyxis } from './constellations/pyxis'
+export { reticulum } from './constellations/reticulum'
 
 /*****************************************************************************************************************/
 
