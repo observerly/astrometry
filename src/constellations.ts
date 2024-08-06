@@ -90,6 +90,7 @@ export { scorpius } from './constellations/scorpius'
 export { sculptor } from './constellations/sculptor'
 export { scutum } from './constellations/scutum'
 export { serpensCaput, serpensCauda } from './constellations/serpens'
+export { sextans } from './constellations/sextans'
 
 /*****************************************************************************************************************/
 
