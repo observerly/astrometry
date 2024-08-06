@@ -76,6 +76,7 @@ export { ophiuchus } from './constellations/ophiuchus'
 export { orion } from './constellations/orion'
 export { pavo } from './constellations/pavo'
 export { pegasus } from './constellations/pegasus'
+export { perseus } from './constellations/perseus'
 
 /*****************************************************************************************************************/
 
