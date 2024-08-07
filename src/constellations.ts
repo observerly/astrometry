@@ -101,6 +101,7 @@ export { ursaMinor } from './constellations/ursaMinor'
 export { vela } from './constellations/vela'
 export { virgo } from './constellations/virgo'
 export { volans } from './constellations/volans'
+export { vulpecula } from './constellations/vulpecula'
 
 /*****************************************************************************************************************/
 
