@@ -94,6 +94,7 @@ export { sextans } from './constellations/sextans'
 export { taurus } from './constellations/taurus'
 export { telescopium } from './constellations/telescopium'
 export { triangulum } from './constellations/triangulum'
+export { triangulumAustralae } from './constellations/triangulumAustralae'
 
 /*****************************************************************************************************************/
 
