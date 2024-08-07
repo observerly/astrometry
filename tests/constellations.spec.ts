@@ -30,8 +30,10 @@ describe('constellations', () => {
     expect(constellations).toBeDefined()
   })
 
-  it('should contain all 88 modern constellations', () => {
-    expect(constellations.size).toBe(88)
+  it('should contain all 87+2 modern constellations', () => {
+    // We have 89 constellations in total, as we split Serpens into two separate constellations:
+    // e.g., Serpens Caput and Serpens Cauda:
+    expect(constellations.size).toBe(89)
   })
 })
 
