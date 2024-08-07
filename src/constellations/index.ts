@@ -86,5 +86,6 @@ export { sextans } from './sextans'
 export { taurus } from './taurus'
 export { telescopium } from './telescopium'
 export { triangulum } from './triangulum'
+export { triangulumAustralae } from './triangulumAustralae'
 
 /*****************************************************************************************************************/
