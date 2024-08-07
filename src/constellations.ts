@@ -92,6 +92,7 @@ export { scutum } from './constellations/scutum'
 export { serpensCaput, serpensCauda } from './constellations/serpens'
 export { sextans } from './constellations/sextans'
 export { taurus } from './constellations/taurus'
+export { telescopium } from './constellations/telescopium'
 
 /*****************************************************************************************************************/
 
