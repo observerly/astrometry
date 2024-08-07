@@ -107,7 +107,7 @@ export { vulpecula } from './constellations/vulpecula'
 
 export type ConstellationName =
   | 'Andromeda'
-  | 'Antlia'
+  | 'Antila'
   | 'Apus'
   | 'Aquarius'
   | 'Aquila'
@@ -246,9 +246,9 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     }
   ],
   [
-    'Antlia',
+    'Antila',
     {
-      name: 'Antlia',
+      name: 'Antila',
       meaning: 'The Air Pump',
       abbreviation: 'Ant'
     }
