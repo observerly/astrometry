@@ -91,5 +91,6 @@ export { tucana } from './tucana'
 export { ursaMajor } from './ursaMajor'
 export { ursaMinor } from './ursaMinor'
 export { vela } from './vela'
+export { virgo } from './virgo'
 
 /*****************************************************************************************************************/
