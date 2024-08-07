@@ -88,5 +88,6 @@ export { telescopium } from './telescopium'
 export { triangulum } from './triangulum'
 export { triangulumAustralae } from './triangulumAustralae'
 export { tucana } from './tucana'
+export { ursaMajor } from './ursaMajor'
 
 /*****************************************************************************************************************/
