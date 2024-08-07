@@ -98,6 +98,7 @@ export { triangulumAustralae } from './constellations/triangulumAustralae'
 export { tucana } from './constellations/tucana'
 export { ursaMajor } from './constellations/ursaMajor'
 export { ursaMinor } from './constellations/ursaMinor'
+export { vela } from './constellations/vela'
 
 /*****************************************************************************************************************/
 
