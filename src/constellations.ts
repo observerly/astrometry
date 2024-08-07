@@ -96,6 +96,7 @@ export { telescopium } from './constellations/telescopium'
 export { triangulum } from './constellations/triangulum'
 export { triangulumAustralae } from './constellations/triangulumAustralae'
 export { tucana } from './constellations/tucana'
+export { ursaMajor } from './constellations/ursaMajor'
 
 /*****************************************************************************************************************/
 
