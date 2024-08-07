@@ -95,6 +95,7 @@ export { taurus } from './constellations/taurus'
 export { telescopium } from './constellations/telescopium'
 export { triangulum } from './constellations/triangulum'
 export { triangulumAustralae } from './constellations/triangulumAustralae'
+export { tucana } from './constellations/tucana'
 
 /*****************************************************************************************************************/
 
