@@ -6,6 +6,8 @@
 
 /*****************************************************************************************************************/
 
+import type { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson'
+
 import { type EquatorialCoordinate } from './common'
 
 import { NANCY_ROMAN_TABLE_I, isNancyRomanRecord } from './nancy'
@@ -14,94 +16,94 @@ import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
 
 /*****************************************************************************************************************/
 
-export { andromeda } from './constellations/andromeda'
-export { antila } from './constellations/antila'
-export { apus } from './constellations/apus'
-export { aquarius } from './constellations/aquarius'
-export { aquila } from './constellations/aquila'
-export { ara } from './constellations/ara'
-export { aries } from './constellations/aries'
-export { auriga } from './constellations/auriga'
-export { bootes } from './constellations/bootes'
-export { caelum } from './constellations/caelum'
-export { camelopardalis } from './constellations/camelopardalis'
-export { cancer } from './constellations/cancer'
-export { canesVenatici } from './constellations/canesVenatici'
-export { canisMajor } from './constellations/canisMajor'
-export { canisMinor } from './constellations/canisMinor'
-export { capricornus } from './constellations/capricornus'
-export { carina } from './constellations/carina'
-export { cassiopeia } from './constellations/cassiopeia'
-export { centaurus } from './constellations/centaurus'
-export { cepheus } from './constellations/cepheus'
-export { cetus } from './constellations/cetus'
-export { chamaeleon } from './constellations/chamaeleon'
-export { circinus } from './constellations/circinus'
-export { columba } from './constellations/columba'
-export { comaBerenices } from './constellations/comaBerenices'
-export { coronaAustralis } from './constellations/coronaAustralis'
-export { coronaBorealis } from './constellations/coronaBorealis'
-export { corvus } from './constellations/corvus'
-export { crater } from './constellations/crater'
-export { crux } from './constellations/crux'
-export { cygnus } from './constellations/cygnus'
-export { delphinus } from './constellations/delphinus'
-export { dorado } from './constellations/dorado'
-export { draco } from './constellations/draco'
-export { equuleus } from './constellations/equuleus'
-export { eridanus } from './constellations/eridanus'
-export { fornax } from './constellations/fornax'
-export { gemini } from './constellations/gemini'
-export { grus } from './constellations/grus'
-export { hercules } from './constellations/hercules'
-export { horologium } from './constellations/horologium'
-export { hydra } from './constellations/hydra'
-export { hydrus } from './constellations/hydrus'
-export { indus } from './constellations/indus'
-export { lacerta } from './constellations/lacerta'
-export { leo } from './constellations/leo'
-export { leoMinor } from './constellations/leoMinor'
-export { lepus } from './constellations/lepus'
-export { libra } from './constellations/libra'
-export { lupus } from './constellations/lupus'
-export { lynx } from './constellations/lynx'
-export { lyra } from './constellations/lyra'
-export { mensa } from './constellations/mensa'
-export { microscopium } from './constellations/microscopium'
-export { monoceros } from './constellations/monoceros'
-export { musca } from './constellations/musca'
-export { norma } from './constellations/norma'
-export { octans } from './constellations/octans'
-export { ophiuchus } from './constellations/ophiuchus'
-export { orion } from './constellations/orion'
-export { pavo } from './constellations/pavo'
-export { pegasus } from './constellations/pegasus'
-export { perseus } from './constellations/perseus'
-export { phoenix } from './constellations/phoenix'
-export { pictor } from './constellations/pictor'
-export { pisces } from './constellations/pisces'
-export { piscisAustrinus } from './constellations/piscisAustrinus'
-export { puppis } from './constellations/puppis'
-export { pyxis } from './constellations/pyxis'
-export { reticulum } from './constellations/reticulum'
-export { sagitta } from './constellations/sagitta'
-export { sagittarius } from './constellations/sagittarius'
-export { scorpius } from './constellations/scorpius'
-export { sculptor } from './constellations/sculptor'
-export { scutum } from './constellations/scutum'
-export { serpensCaput, serpensCauda } from './constellations/serpens'
-export { sextans } from './constellations/sextans'
-export { taurus } from './constellations/taurus'
-export { telescopium } from './constellations/telescopium'
-export { triangulum } from './constellations/triangulum'
-export { triangulumAustralae } from './constellations/triangulumAustralae'
-export { tucana } from './constellations/tucana'
-export { ursaMajor } from './constellations/ursaMajor'
-export { ursaMinor } from './constellations/ursaMinor'
-export { vela } from './constellations/vela'
-export { virgo } from './constellations/virgo'
-export { volans } from './constellations/volans'
-export { vulpecula } from './constellations/vulpecula'
+import { andromeda } from './constellations/andromeda'
+import { antila } from './constellations/antila'
+import { apus } from './constellations/apus'
+import { aquarius } from './constellations/aquarius'
+import { aquila } from './constellations/aquila'
+import { ara } from './constellations/ara'
+import { aries } from './constellations/aries'
+import { auriga } from './constellations/auriga'
+import { bootes } from './constellations/bootes'
+import { caelum } from './constellations/caelum'
+import { camelopardalis } from './constellations/camelopardalis'
+import { cancer } from './constellations/cancer'
+import { canesVenatici } from './constellations/canesVenatici'
+import { canisMajor } from './constellations/canisMajor'
+import { canisMinor } from './constellations/canisMinor'
+import { capricornus } from './constellations/capricornus'
+import { carina } from './constellations/carina'
+import { cassiopeia } from './constellations/cassiopeia'
+import { centaurus } from './constellations/centaurus'
+import { cepheus } from './constellations/cepheus'
+import { cetus } from './constellations/cetus'
+import { chamaeleon } from './constellations/chamaeleon'
+import { circinus } from './constellations/circinus'
+import { columba } from './constellations/columba'
+import { comaBerenices } from './constellations/comaBerenices'
+import { coronaAustralis } from './constellations/coronaAustralis'
+import { coronaBorealis } from './constellations/coronaBorealis'
+import { corvus } from './constellations/corvus'
+import { crater } from './constellations/crater'
+import { crux } from './constellations/crux'
+import { cygnus } from './constellations/cygnus'
+import { delphinus } from './constellations/delphinus'
+import { dorado } from './constellations/dorado'
+import { draco } from './constellations/draco'
+import { equuleus } from './constellations/equuleus'
+import { eridanus } from './constellations/eridanus'
+import { fornax } from './constellations/fornax'
+import { gemini } from './constellations/gemini'
+import { grus } from './constellations/grus'
+import { hercules } from './constellations/hercules'
+import { horologium } from './constellations/horologium'
+import { hydra } from './constellations/hydra'
+import { hydrus } from './constellations/hydrus'
+import { indus } from './constellations/indus'
+import { lacerta } from './constellations/lacerta'
+import { leo } from './constellations/leo'
+import { leoMinor } from './constellations/leoMinor'
+import { lepus } from './constellations/lepus'
+import { libra } from './constellations/libra'
+import { lupus } from './constellations/lupus'
+import { lynx } from './constellations/lynx'
+import { lyra } from './constellations/lyra'
+import { mensa } from './constellations/mensa'
+import { microscopium } from './constellations/microscopium'
+import { monoceros } from './constellations/monoceros'
+import { musca } from './constellations/musca'
+import { norma } from './constellations/norma'
+import { octans } from './constellations/octans'
+import { ophiuchus } from './constellations/ophiuchus'
+import { orion } from './constellations/orion'
+import { pavo } from './constellations/pavo'
+import { pegasus } from './constellations/pegasus'
+import { perseus } from './constellations/perseus'
+import { phoenix } from './constellations/phoenix'
+import { pictor } from './constellations/pictor'
+import { pisces } from './constellations/pisces'
+import { piscisAustrinus } from './constellations/piscisAustrinus'
+import { puppis } from './constellations/puppis'
+import { pyxis } from './constellations/pyxis'
+import { reticulum } from './constellations/reticulum'
+import { sagitta } from './constellations/sagitta'
+import { sagittarius } from './constellations/sagittarius'
+import { scorpius } from './constellations/scorpius'
+import { sculptor } from './constellations/sculptor'
+import { scutum } from './constellations/scutum'
+import { serpensCaput, serpensCauda } from './constellations/serpens'
+import { sextans } from './constellations/sextans'
+import { taurus } from './constellations/taurus'
+import { telescopium } from './constellations/telescopium'
+import { triangulum } from './constellations/triangulum'
+import { triangulumAustralae } from './constellations/triangulumAustralae'
+import { tucana } from './constellations/tucana'
+import { ursaMajor } from './constellations/ursaMajor'
+import { ursaMinor } from './constellations/ursaMinor'
+import { vela } from './constellations/vela'
+import { virgo } from './constellations/virgo'
+import { volans } from './constellations/volans'
+import { vulpecula } from './constellations/vulpecula'
 
 /*****************************************************************************************************************/
 
@@ -203,7 +205,8 @@ export type ConstellationName =
  *
  * Constellation
  *
- * Represents a constellation.
+ * Represents one of the 88 official IAU constellations
+ * @see https://www.iau.org/public/themes/constellations/
  *
  */
 export interface Constellation {
@@ -229,6 +232,12 @@ export interface Constellation {
    *
    */
   abbreviation: string
+  /**
+   *
+   * The feature of the constellation, represenmted as a GeoJSON FeatureCollection.
+   *
+   */
+  feature: FeatureCollection<Geometry, GeoJsonProperties>
 }
 
 /*****************************************************************************************************************/
@@ -242,7 +251,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Andromeda',
       meaning: 'The Chained Princess',
-      abbreviation: 'And'
+      abbreviation: 'And',
+      feature: andromeda
     }
   ],
   [
@@ -250,7 +260,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Antila',
       meaning: 'The Air Pump',
-      abbreviation: 'Ant'
+      abbreviation: 'Ant',
+      feature: antila
     }
   ],
   [
@@ -258,7 +269,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Apus',
       meaning: 'The Bird of Paradise',
-      abbreviation: 'Aps'
+      abbreviation: 'Aps',
+      feature: apus
     }
   ],
   [
@@ -266,7 +278,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Aquarius',
       meaning: 'The Water Bearer',
-      abbreviation: 'Aqr'
+      abbreviation: 'Aqr',
+      feature: aquarius
     }
   ],
   [
@@ -274,7 +287,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Aquila',
       meaning: 'The Eagle',
-      abbreviation: 'Aql'
+      abbreviation: 'Aql',
+      feature: aquila
     }
   ],
   [
@@ -282,7 +296,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Ara',
       meaning: 'The Altar',
-      abbreviation: 'Ara'
+      abbreviation: 'Ara',
+      feature: ara
     }
   ],
   [
@@ -290,7 +305,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Aries',
       meaning: 'The Ram',
-      abbreviation: 'Ari'
+      abbreviation: 'Ari',
+      feature: aries
     }
   ],
   [
@@ -298,7 +314,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Auriga',
       meaning: 'The Charioteer',
-      abbreviation: 'Aur'
+      abbreviation: 'Aur',
+      feature: auriga
     }
   ],
   [
@@ -306,7 +323,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Boötes',
       meaning: 'The Herdsman',
-      abbreviation: 'Boo'
+      abbreviation: 'Boo',
+      feature: bootes
     }
   ],
   [
@@ -314,7 +332,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Caelum',
       meaning: 'The Chisel',
-      abbreviation: 'Cae'
+      abbreviation: 'Cae',
+      feature: caelum
     }
   ],
   [
@@ -322,7 +341,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Camelopardalis',
       meaning: 'The Giraffe',
-      abbreviation: 'Cam'
+      abbreviation: 'Cam',
+      feature: camelopardalis
     }
   ],
   [
@@ -330,7 +350,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Cancer',
       meaning: 'The Crab',
-      abbreviation: 'Cnc'
+      abbreviation: 'Cnc',
+      feature: cancer
     }
   ],
   [
@@ -338,7 +359,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Canes Venatici',
       meaning: 'The Hunting Dogs',
-      abbreviation: 'CVn'
+      abbreviation: 'CVn',
+      feature: canesVenatici
     }
   ],
   [
@@ -346,7 +368,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Canis Major',
       meaning: 'The Great Dog',
-      abbreviation: 'CMa'
+      abbreviation: 'CMa',
+      feature: canisMajor
     }
   ],
   [
@@ -354,7 +377,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Canis Minor',
       meaning: 'The Lesser Dog',
-      abbreviation: 'CMi'
+      abbreviation: 'CMi',
+      feature: canisMinor
     }
   ],
   [
@@ -362,7 +386,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Capricornus',
       meaning: 'The Sea Goat',
-      abbreviation: 'Cap'
+      abbreviation: 'Cap',
+      feature: capricornus
     }
   ],
   [
@@ -370,7 +395,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Carina',
       meaning: 'The Keel',
-      abbreviation: 'Car'
+      abbreviation: 'Car',
+      feature: carina
     }
   ],
   [
@@ -378,7 +404,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Cassiopeia',
       meaning: 'The Queen',
-      abbreviation: 'Cas'
+      abbreviation: 'Cas',
+      feature: cassiopeia
     }
   ],
   [
@@ -386,7 +413,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Centaurus',
       meaning: 'The Centaur',
-      abbreviation: 'Cen'
+      abbreviation: 'Cen',
+      feature: centaurus
     }
   ],
   [
@@ -394,7 +422,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Cepheus',
       meaning: 'The King',
-      abbreviation: 'Cep'
+      abbreviation: 'Cep',
+      feature: cepheus
     }
   ],
   [
@@ -402,7 +431,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Cetus',
       meaning: 'The Whale',
-      abbreviation: 'Cet'
+      abbreviation: 'Cet',
+      feature: cetus
     }
   ],
   [
@@ -410,7 +440,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Chamaeleon',
       meaning: 'The Chameleon',
-      abbreviation: 'Cha'
+      abbreviation: 'Cha',
+      feature: chamaeleon
     }
   ],
   [
@@ -418,7 +449,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Circinus',
       meaning: 'The Compasses',
-      abbreviation: 'Cir'
+      abbreviation: 'Cir',
+      feature: circinus
     }
   ],
   [
@@ -426,7 +458,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Columba',
       meaning: 'The Dove',
-      abbreviation: 'Col'
+      abbreviation: 'Col',
+      feature: columba
     }
   ],
   [
@@ -434,7 +467,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Coma Berenices',
       meaning: "Berenice's Hair",
-      abbreviation: 'Com'
+      abbreviation: 'Com',
+      feature: comaBerenices
     }
   ],
   [
@@ -442,7 +476,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Corona Australis',
       meaning: 'The Southern Crown',
-      abbreviation: 'CrA'
+      abbreviation: 'CrA',
+      feature: coronaAustralis
     }
   ],
   [
@@ -450,7 +485,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Corona Borealis',
       meaning: 'The Northern Crown',
-      abbreviation: 'CrB'
+      abbreviation: 'CrB',
+      feature: coronaBorealis
     }
   ],
   [
@@ -458,7 +494,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Corvus',
       meaning: 'The Crow',
-      abbreviation: 'Crv'
+      abbreviation: 'Crv',
+      feature: corvus
     }
   ],
   [
@@ -466,7 +503,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Crater',
       meaning: 'The Cup',
-      abbreviation: 'Crt'
+      abbreviation: 'Crt',
+      feature: crater
     }
   ],
   [
@@ -474,7 +512,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Crux',
       meaning: 'The Southern Cross',
-      abbreviation: 'Cru'
+      abbreviation: 'Cru',
+      feature: crux
     }
   ],
   [
@@ -482,7 +521,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Cygnus',
       meaning: 'The Swan',
-      abbreviation: 'Cyg'
+      abbreviation: 'Cyg',
+      feature: cygnus
     }
   ],
   [
@@ -490,7 +530,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Delphinus',
       meaning: 'The Dolphin',
-      abbreviation: 'Del'
+      abbreviation: 'Del',
+      feature: delphinus
     }
   ],
   [
@@ -498,7 +539,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Dorado',
       meaning: 'The Swordfish',
-      abbreviation: 'Dor'
+      abbreviation: 'Dor',
+      feature: dorado
     }
   ],
   [
@@ -506,7 +548,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Draco',
       meaning: 'The Dragon',
-      abbreviation: 'Dra'
+      abbreviation: 'Dra',
+      feature: draco
     }
   ],
   [
@@ -514,7 +557,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Equuleus',
       meaning: 'The Little Horse',
-      abbreviation: 'Equ'
+      abbreviation: 'Equ',
+      feature: equuleus
     }
   ],
   [
@@ -522,7 +566,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Eridanus',
       meaning: 'The River',
-      abbreviation: 'Eri'
+      abbreviation: 'Eri',
+      feature: eridanus
     }
   ],
   [
@@ -530,7 +575,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Fornax',
       meaning: 'The Furnace',
-      abbreviation: 'For'
+      abbreviation: 'For',
+      feature: fornax
     }
   ],
   [
@@ -538,7 +584,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Gemini',
       meaning: 'The Twins',
-      abbreviation: 'Gem'
+      abbreviation: 'Gem',
+      feature: gemini
     }
   ],
   [
@@ -546,7 +593,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Grus',
       meaning: 'The Crane',
-      abbreviation: 'Gru'
+      abbreviation: 'Gru',
+      feature: grus
     }
   ],
   [
@@ -554,7 +602,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Hercules',
       meaning: 'The Hero',
-      abbreviation: 'Her'
+      abbreviation: 'Her',
+      feature: hercules
     }
   ],
   [
@@ -562,7 +611,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Horologium',
       meaning: 'The Pendulum Clock',
-      abbreviation: 'Hor'
+      abbreviation: 'Hor',
+      feature: horologium
     }
   ],
   [
@@ -570,7 +620,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Hydra',
       meaning: 'The Water Snake',
-      abbreviation: 'Hya'
+      abbreviation: 'Hya',
+      feature: hydra
     }
   ],
   [
@@ -578,7 +629,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Hydrus',
       meaning: 'The Water Snake',
-      abbreviation: 'Hyi'
+      abbreviation: 'Hyi',
+      feature: hydrus
     }
   ],
   [
@@ -586,7 +638,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Indus',
       meaning: 'The Indian',
-      abbreviation: 'Ind'
+      abbreviation: 'Ind',
+      feature: indus
     }
   ],
   [
@@ -594,7 +647,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Lacerta',
       meaning: 'The Lizard',
-      abbreviation: 'Lac'
+      abbreviation: 'Lac',
+      feature: lacerta
     }
   ],
   [
@@ -602,7 +656,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Leo',
       meaning: 'The Lion',
-      abbreviation: 'Leo'
+      abbreviation: 'Leo',
+      feature: leo
     }
   ],
   [
@@ -610,7 +665,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Leo Minor',
       meaning: 'The Lesser Lion',
-      abbreviation: 'LMi'
+      abbreviation: 'LMi',
+      feature: leoMinor
     }
   ],
   [
@@ -618,7 +674,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Lepus',
       meaning: 'The Hare',
-      abbreviation: 'Lep'
+      abbreviation: 'Lep',
+      feature: lepus
     }
   ],
   [
@@ -626,7 +683,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Libra',
       meaning: 'The Scales',
-      abbreviation: 'Lib'
+      abbreviation: 'Lib',
+      feature: libra
     }
   ],
   [
@@ -634,7 +692,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Lupus',
       meaning: 'The Wolf',
-      abbreviation: 'Lup'
+      abbreviation: 'Lup',
+      feature: lupus
     }
   ],
   [
@@ -642,7 +701,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Lynx',
       meaning: 'The Lynx',
-      abbreviation: 'Lyn'
+      abbreviation: 'Lyn',
+      feature: lynx
     }
   ],
   [
@@ -650,7 +710,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Lyra',
       meaning: 'The Lyre',
-      abbreviation: 'Lyr'
+      abbreviation: 'Lyr',
+      feature: lyra
     }
   ],
   [
@@ -658,7 +719,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Mensa',
       meaning: 'The Table Mountain',
-      abbreviation: 'Men'
+      abbreviation: 'Men',
+      feature: mensa
     }
   ],
   [
@@ -666,7 +728,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Microscopium',
       meaning: 'The Microscope',
-      abbreviation: 'Mic'
+      abbreviation: 'Mic',
+      feature: microscopium
     }
   ],
   [
@@ -674,7 +737,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Monoceros',
       meaning: 'The Unicorn',
-      abbreviation: 'Mon'
+      abbreviation: 'Mon',
+      feature: monoceros
     }
   ],
   [
@@ -682,7 +746,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Musca',
       meaning: 'The Fly',
-      abbreviation: 'Mus'
+      abbreviation: 'Mus',
+      feature: musca
     }
   ],
   [
@@ -690,7 +755,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Norma',
       meaning: "The Carpenter's Square",
-      abbreviation: 'Nor'
+      abbreviation: 'Nor',
+      feature: norma
     }
   ],
   [
@@ -698,7 +764,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Octans',
       meaning: 'The Octant',
-      abbreviation: 'Oct'
+      abbreviation: 'Oct',
+      feature: octans
     }
   ],
   [
@@ -706,7 +773,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Ophiuchus',
       meaning: 'The Serpent Bearer',
-      abbreviation: 'Oph'
+      abbreviation: 'Oph',
+      feature: ophiuchus
     }
   ],
   [
@@ -714,7 +782,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Orion',
       meaning: 'Orion the Hunter',
-      abbreviation: 'Ori'
+      abbreviation: 'Ori',
+      feature: orion
     }
   ],
   [
@@ -722,7 +791,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Pavo',
       meaning: 'The Peacock',
-      abbreviation: 'Pav'
+      abbreviation: 'Pav',
+      feature: pavo
     }
   ],
   [
@@ -730,7 +800,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Pegasus',
       meaning: 'The Winged Horse',
-      abbreviation: 'Peg'
+      abbreviation: 'Peg',
+      feature: pegasus
     }
   ],
   [
@@ -738,7 +809,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Perseus',
       meaning: 'Perseus',
-      abbreviation: 'Per'
+      abbreviation: 'Per',
+      feature: perseus
     }
   ],
   [
@@ -746,7 +818,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Phoenix',
       meaning: 'The Phoenix',
-      abbreviation: 'Phe'
+      abbreviation: 'Phe',
+      feature: phoenix
     }
   ],
   [
@@ -754,7 +827,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Pictor',
       meaning: "The Painter's Easel",
-      abbreviation: 'Pic'
+      abbreviation: 'Pic',
+      feature: pictor
     }
   ],
   [
@@ -762,7 +836,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Pisces',
       meaning: 'The Fishes',
-      abbreviation: 'Psc'
+      abbreviation: 'Psc',
+      feature: pisces
     }
   ],
   [
@@ -770,7 +845,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Piscis Austrinus',
       meaning: 'The Southern Fish',
-      abbreviation: 'PsA'
+      abbreviation: 'PsA',
+      feature: piscisAustrinus
     }
   ],
   [
@@ -778,7 +854,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Puppis',
       meaning: 'The Poop Deck',
-      abbreviation: 'Pup'
+      abbreviation: 'Pup',
+      feature: puppis
     }
   ],
   [
@@ -786,7 +863,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Pyxis',
       meaning: 'The Compass',
-      abbreviation: 'Pyx'
+      abbreviation: 'Pyx',
+      feature: pyxis
     }
   ],
   [
@@ -794,7 +872,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Reticulum',
       meaning: 'The Reticle',
-      abbreviation: 'Ret'
+      abbreviation: 'Ret',
+      feature: reticulum
     }
   ],
   [
@@ -802,7 +881,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Sagitta',
       meaning: 'The Arrow',
-      abbreviation: 'Sge'
+      abbreviation: 'Sge',
+      feature: sagitta
     }
   ],
   [
@@ -810,7 +890,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Sagittarius',
       meaning: 'The Archer',
-      abbreviation: 'Sgr'
+      abbreviation: 'Sgr',
+      feature: sagittarius
     }
   ],
   [
@@ -818,7 +899,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Scorpius',
       meaning: 'The Scorpion',
-      abbreviation: 'Sco'
+      abbreviation: 'Sco',
+      feature: scorpius
     }
   ],
   [
@@ -826,7 +908,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Sculptor',
       meaning: "The Sculptor's Studio",
-      abbreviation: 'Scl'
+      abbreviation: 'Scl',
+      feature: sculptor
     }
   ],
   [
@@ -834,15 +917,26 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Scutum',
       meaning: 'The Shield',
-      abbreviation: 'Sct'
+      abbreviation: 'Sct',
+      feature: scutum
     }
   ],
   [
-    'Serpens',
+    'Serpens Caput',
     {
-      name: 'Serpens',
-      meaning: 'The Serpent',
-      abbreviation: 'Ser'
+      name: 'Serpens Caput',
+      meaning: "The Serpent's Head",
+      abbreviation: 'SerCap',
+      feature: serpensCaput
+    }
+  ],
+  [
+    'Serpens Cauda',
+    {
+      name: 'Serpens Cauda',
+      meaning: "The Serpent's Tail",
+      abbreviation: 'SerCad',
+      feature: serpensCauda
     }
   ],
   [
@@ -850,7 +944,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Sextans',
       meaning: 'The Sextant',
-      abbreviation: 'Sex'
+      abbreviation: 'Sex',
+      feature: sextans
     }
   ],
   [
@@ -858,7 +953,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Taurus',
       meaning: 'The Bull',
-      abbreviation: 'Tau'
+      abbreviation: 'Tau',
+      feature: taurus
     }
   ],
   [
@@ -866,7 +962,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Telescopium',
       meaning: 'The Telescope',
-      abbreviation: 'Tel'
+      abbreviation: 'Tel',
+      feature: telescopium
     }
   ],
   [
@@ -874,7 +971,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Triangulum',
       meaning: 'The Triangle',
-      abbreviation: 'Tri'
+      abbreviation: 'Tri',
+      feature: triangulum
     }
   ],
   [
@@ -882,7 +980,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Triangulum Australe',
       meaning: 'The Southern Triangle',
-      abbreviation: 'TrA'
+      abbreviation: 'TrA',
+      feature: triangulumAustralae
     }
   ],
   [
@@ -890,7 +989,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Tucana',
       meaning: 'The Toucan',
-      abbreviation: 'Tuc'
+      abbreviation: 'Tuc',
+      feature: tucana
     }
   ],
   [
@@ -898,7 +998,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Ursa Major',
       meaning: 'The Great Bear',
-      abbreviation: 'UMa'
+      abbreviation: 'UMa',
+      feature: ursaMajor
     }
   ],
   [
@@ -906,7 +1007,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Ursa Minor',
       meaning: 'The Little Bear',
-      abbreviation: 'UMi'
+      abbreviation: 'UMi',
+      feature: ursaMinor
     }
   ],
   [
@@ -914,7 +1016,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Vela',
       meaning: 'The Sails',
-      abbreviation: 'Vel'
+      abbreviation: 'Vel',
+      feature: vela
     }
   ],
   [
@@ -922,7 +1025,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Virgo',
       meaning: 'The Virgin',
-      abbreviation: 'Vir'
+      abbreviation: 'Vir',
+      feature: virgo
     }
   ],
   [
@@ -930,7 +1034,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Volans',
       meaning: 'The Flying Fish',
-      abbreviation: 'Vol'
+      abbreviation: 'Vol',
+      feature: volans
     }
   ],
   [
@@ -938,7 +1043,8 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     {
       name: 'Vulpecula',
       meaning: 'The Little Fox',
-      abbreviation: 'Vul'
+      abbreviation: 'Vul',
+      feature: vulpecula
     }
   ]
 ])
