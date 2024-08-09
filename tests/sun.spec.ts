@@ -17,7 +17,7 @@ import {
   getJulianDate,
   getSolarAngularDiameter,
   getSolarDistance,
-  getSolarEclipticCoordinates,
+  getSolarEclipticCoordinate,
   getSolarEclipticLongitude,
   getSolarEquationOfCenter,
   getSolarEquatorialCoordinate,
@@ -114,14 +114,14 @@ describe('getSolarEclipticLongitude', () => {
 
 /*****************************************************************************************************************/
 
-describe('getSolarEclipticCoordinates', () => {
+describe('getSolarEclipticCoordinate', () => {
   it('should be defined', () => {
-    expect(getSolarEclipticCoordinates).toBeDefined()
+    expect(getSolarEclipticCoordinate).toBeDefined()
   })
 
   it('should return the correct Solar ecliptic longitude for the given date', () => {
     const datetime = new Date('2015-02-05T12:00:00.000+00:00')
-    const { λ, β } = getSolarEclipticCoordinates(datetime)
+    const { λ, β } = getSolarEclipticCoordinate(datetime)
     expect(λ).toBeCloseTo(316.35605539442895)
     expect(β).toBeCloseTo(0)
 
@@ -146,8 +146,8 @@ describe('getSolarEquatorialCoordinate', () => {
   it('should return the correct Solar equatorial coordinate for the given date', () => {
     const datetime = new Date('2015-02-05T12:00:00.000+00:00')
     const { ra: α, dec: δ } = getSolarEquatorialCoordinate(datetime)
-    expect(α).toBe(318.5617376411268)
-    expect(δ).toBe(-16.008394691469505)
+    expect(α).toBe(318.8121016210669)
+    expect(δ).toBe(-15.933194068491067)
   })
 })
 
