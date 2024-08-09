@@ -6,11 +6,11 @@
 
 /*****************************************************************************************************************/
 
-import { getObliquityOfTheEcliptic } from './astrometry'
-
 import { type EclipticCoordinate, type EquatorialCoordinate } from './common'
 
 import { AU_IN_METERS, c } from './constants'
+
+import { convertEclipticToEquatorial } from './coordinates'
 
 import { B, getEccentricityOfOrbit, L, R } from './earth'
 
@@ -18,7 +18,7 @@ import { getJulianDate } from './epoch'
 
 import { getFOrbitalParameter } from './orbit'
 
-import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
+import { convertDegreesToRadians as radians } from './utilities'
 
 import { calculateB, calculateL, calculateR } from './vsop87'
 
@@ -202,7 +202,7 @@ export const getSolarEclipticLongitude = (datetime: Date): number => {
 
 /**
  *
- * getSolarEclipticCoordinates()
+ * getSolarEclipticCoordinate()
  *
  * The ecliptic coordinates of the Sun are the Sun's position in the sky as seen
  * from the centre of the Earth, corrected for the equation of center and the Sun's
@@ -211,7 +211,7 @@ export const getSolarEclipticLongitude = (datetime: Date): number => {
  * @param datetime - The date to calculate the Sun's ecliptic coordinates for.
  * @returns The Sun's ecliptic coordinates at the given date.
  */
-export function getSolarEclipticCoordinates(datetime: Date): EclipticCoordinate & {
+export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate & {
   R: number
 } {
   // Get the Julian date:
@@ -306,29 +306,11 @@ export function getSolarEclipticCoordinates(datetime: Date): EclipticCoordinate 
  *
  */
 export const getSolarEquatorialCoordinate = (datetime: Date): EquatorialCoordinate => {
-  // Get the ecliptic longitude:
-  const λ = radians(getSolarEclipticLongitude(datetime))
-
-  // Get the ecliptic latitude:
-  // This term is zero for the Sun, so we can largely ignore it by refactoring
+  // Get the ecliptic coordinates of the Sun:
+  // The latitude, β, term is close to zero for the Sun, so we can largely ignore it by refactoring
   // the standard equations for the conversion between ecliptic and equatorial
   // coordinates.
-  // const β = 0
-
-  // Get the obliquity of the ecliptic:
-  const ε = radians(getObliquityOfTheEcliptic(datetime))
-
-  // Get the corresponding Right Ascension, α:
-  let ra = degrees(Math.atan2(Math.sin(λ) * Math.cos(ε), Math.cos(λ))) % 360
-
-  // Correct ra for negative angles
-  if (ra < 0) {
-    ra += 360
-  }
-
-  const dec = degrees(Math.asin(Math.sin(ε) * Math.sin(λ)))
-
-  return { ra, dec }
+  return convertEclipticToEquatorial(datetime, getSolarEclipticCoordinate(datetime))
 }
 
 /*****************************************************************************************************************/

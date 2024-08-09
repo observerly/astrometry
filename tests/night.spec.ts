@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getSolarTransit, getNight, isNight } from '../src'
+import { getNight, getSolarTransit, isNight } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -45,9 +45,9 @@ describe('getSolarTransit', () => {
     expect(noon).toBeInstanceOf(Date)
     expect(sunset).toBeInstanceOf(Date)
 
-    expect(sunrise?.toISOString()).toBe('2021-05-14T04:45:57.636Z')
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:46:57.636Z')
     expect(noon?.toISOString()).toBe('2021-05-14T12:21:40.985Z')
-    expect(sunset?.toISOString()).toBe('2021-05-14T19:55:24.334Z')
+    expect(sunset?.toISOString()).toBe('2021-05-14T19:57:24.334Z')
   })
 
   it('should return the correct solar transit for the observer at a horizon of -6 degrees', () => {
@@ -64,9 +64,9 @@ describe('getSolarTransit', () => {
     expect(noon).toBeInstanceOf(Date)
     expect(sunset).toBeInstanceOf(Date)
 
-    expect(sunrise?.toISOString()).toBe('2021-05-14T04:00:57.636Z')
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:01:57.636Z')
     expect(noon?.toISOString()).toBe('2021-05-14T12:21:40.985Z')
-    expect(sunset?.toISOString()).toBe('2021-05-14T20:41:24.334Z')
+    expect(sunset?.toISOString()).toBe('2021-05-14T20:43:24.334Z')
   })
 })
 
@@ -90,8 +90,8 @@ describe('getNight', () => {
     expect(start).toBeInstanceOf(Date)
     expect(end).toBeInstanceOf(Date)
 
-    expect(start?.toISOString()).toBe('2021-05-14T19:55:24.334Z')
-    expect(end?.toISOString()).toBe('2021-05-15T04:45:03.311Z')
+    expect(start?.toISOString()).toBe('2021-05-14T19:57:24.334Z')
+    expect(end?.toISOString()).toBe('2021-05-15T04:46:03.311Z')
   })
 
   it('should return the correct night for the observer at a horizon of -18 degrees', () => {
@@ -107,8 +107,8 @@ describe('getNight', () => {
     expect(start).toBeInstanceOf(Date)
     expect(end).toBeInstanceOf(Date)
 
-    expect(start?.toISOString()).toBe('2021-05-14T22:47:46.972Z')
-    expect(end?.toISOString()).toBe('2021-05-15T10:32:31.677Z')
+    expect(start?.toISOString()).toBe('2021-05-14T22:49:46.972Z')
+    expect(end?.toISOString()).toBe('2021-05-15T10:34:31.677Z')
   })
 })
 
