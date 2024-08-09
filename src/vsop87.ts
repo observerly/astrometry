@@ -29,3 +29,17 @@ export function calculateL(τ: number, terms: { A: number; B: number; C: number 
 }
 
 /*****************************************************************************************************************/
+
+export function calculateB(τ: number, terms: { A: number; B: number; C: number }[][]): number {
+  let B = 0
+
+  for (let i = 0; i < terms.length; i++) {
+    const b = calculateTerms(τ, terms[i])
+    B += b * τ ** i
+  }
+
+  // The result must be converted from 1e-8 radians to radians and then to degrees:
+  return degrees(B / 1e8)
+}
+
+/*****************************************************************************************************************/
