@@ -12,10 +12,12 @@ import { describe, expect, it } from 'vitest'
 
 import {
   AU_IN_METERS,
+  convertEclipticToEquatorial,
   getHeliocentricJulianDate,
   getJulianDate,
   getSolarAngularDiameter,
   getSolarDistance,
+  getSolarEclipticCoordinates,
   getSolarEclipticLongitude,
   getSolarEquationOfCenter,
   getSolarEquatorialCoordinate,
@@ -107,6 +109,30 @@ describe('getSolarEclipticLongitude', () => {
     const datetime = new Date('2015-02-05T12:00:00.000+00:00')
     const λ = getSolarEclipticLongitude(datetime)
     expect(λ).toBe(316.10388080739784)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getSolarEclipticCoordinates', () => {
+  it('should be defined', () => {
+    expect(getSolarEclipticCoordinates).toBeDefined()
+  })
+
+  it('should return the correct Solar ecliptic longitude for the given date', () => {
+    const datetime = new Date('2015-02-05T12:00:00.000+00:00')
+    const { λ, β } = getSolarEclipticCoordinates(datetime)
+    expect(λ).toBeCloseTo(316.35605539442895)
+    expect(β).toBeCloseTo(0)
+
+    const { ra, dec } = convertEclipticToEquatorial(datetime, { λ, β })
+
+    console.log({
+      λ,
+      β,
+      ra,
+      dec
+    })
   })
 })
 

@@ -8,17 +8,19 @@
 
 import { getObliquityOfTheEcliptic } from './astrometry'
 
-import { type EquatorialCoordinate } from './common'
+import { type EclipticCoordinate, type EquatorialCoordinate } from './common'
 
 import { AU_IN_METERS, c } from './constants'
 
-import { getEccentricityOfOrbit } from './earth'
+import { B, getEccentricityOfOrbit, L, R } from './earth'
 
 import { getJulianDate } from './epoch'
 
 import { getFOrbitalParameter } from './orbit'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
+
+import { calculateB, calculateL, calculateR } from './vsop87'
 
 /*****************************************************************************************************************/
 
@@ -194,6 +196,99 @@ export const getSolarEclipticLongitude = (datetime: Date): number => {
   }
 
   return λ
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getSolarEclipticCoordinates()
+ *
+ * The ecliptic coordinates of the Sun are the Sun's position in the sky as seen
+ * from the centre of the Earth, corrected for the equation of center and the Sun's
+ * ecliptic longitude at perigee at the epoch.
+ *
+ * @param datetime - The date to calculate the Sun's ecliptic coordinates for.
+ * @returns The Sun's ecliptic coordinates at the given date.
+ */
+export function getSolarEclipticCoordinates(datetime: Date): EclipticCoordinate & {
+  R: number
+} {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  // Get the number of centuries since J2000.0:
+  const T = (JD - 2451545.0) / 36525
+
+  // Get the Julian millenia since J2000.0:
+  const τ = T / 10
+
+  // Calculate the VSOP87 terms for the Earth's heliocentric ecliptic coordinates
+  // (l and b in degrees, and r in metres):
+  const [l, b, r] = [calculateL(τ, L) % 360, calculateB(τ, B) % 360, calculateR(τ, R)]
+
+  // The Sun's ecliptic longitude is just the anti-podal angle of the mean longitude:
+  let λ = l + 180
+
+  // Radial distance of the Sun from the Earth (in AU):
+  const RO = r / AU_IN_METERS
+
+  // N.B. The Sun's longitude ⨀ and latitude β obtained thus far are referred to
+  // the mean dynamical ecliptic and equinox of the date defined by the VSOP planetary
+  // theory of P. Bretagnon. This reference frame differs slightly from the standard
+  // FK5 system. The FK5 system is a dynamical system that is fixed with respect to
+  // the mean equator and equinox of J2000.0. The FK5 system is the standard reference
+  // frame for the equatorial coordinates of celestial objects.
+
+  // FK5 correction to the latitude (in degrees):
+  const λp = λ - 1.397 * T - 0.00031 * Math.pow(T, 2)
+  const Δβ = 1.08778e-5 * (Math.cos(radians(λp)) - Math.sin(radians(λp)))
+
+  // FK5 correction to the longitude (in degrees):
+  λ -= 2.50833e-5
+
+  if (λ < 0) {
+    λ += 360
+  }
+
+  // Daily variation in the longitude (in arcseconds), for the geocentric
+  // longitude of the Sun in a fixed reference frame:
+  //
+  const Δλ =
+    3548.193 +
+    118.568 * Math.sin(radians(87.5287 + 359993.7286 * τ)) +
+    2.476 * Math.sin(radians(85.0561 + 719987.4571 * τ)) +
+    1.376 * Math.sin(radians(27.8502 + 4452671.1152 * τ)) +
+    0.119 * Math.sin(radians(73.1375 + 450368.8567 * τ)) +
+    0.114 * Math.sin(radians(337.2264 + 329644.6719 * τ)) +
+    0.086 * Math.sin(radians(222.54 + 659289.3436 * τ)) +
+    0.078 * Math.sin(radians(162.8136 + 9224659.7915 * τ)) +
+    0.054 * Math.sin(radians(82.5823 + 1079981.1857 * τ)) +
+    0.052 * Math.sin(radians(171.5189 + 225184.4282 * τ)) +
+    0.034 * Math.sin(radians(30.3214 + 4092677.3866 * τ)) +
+    0.033 * Math.sin(radians(119.8105 + 337181.0415 * τ)) +
+    0.023 * Math.sin(radians(247.5418 + 299295.6151 * τ)) +
+    0.023 * Math.sin(radians(325.1526 + 315559.556 * τ)) +
+    0.021 * Math.sin(radians(155.1241 + 675553.2846 * τ)) +
+    7.311 * Math.sin(radians(333.4515 + 359993.7286 * τ)) +
+    0.305 * Math.sin(radians(330.9814 + 719987.4571 * τ)) +
+    0.0107 * Math.sin(radians(328.517 + 1079981.1857 * τ)) +
+    0.309 * τ * Math.sin(radians(241.4518 + 359993.7286 * τ)) +
+    0.021 * τ * Math.sin(radians(205.0482 + 719987.4571 * τ)) +
+    0.004 * Math.pow(τ, 2) * Math.sin(radians(297.861 + 4452671.1152 * τ)) +
+    0.01 * Math.pow(τ, 3) * Math.sin(radians(154.7066 + 359993.7286 * τ))
+
+  // Correction for nutation:
+  λ -= 20.4898 / 3600 / RO
+
+  // Correction for aberration:
+  λ -= (-0.005775518 * RO * Δλ) / 3600
+
+  return {
+    λ: λ % 360,
+    β: Δβ - b,
+    R: r
+  }
 }
 
 /*****************************************************************************************************************/
