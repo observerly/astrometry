@@ -8,7 +8,7 @@
 
 import { type CartesianCoordinate, type HorizontalCoordinate } from './common'
 
-import { convertDegreesToRadians as radians } from './utilities'
+import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -56,6 +56,51 @@ export const convertHorizontalToStereo = (
   return {
     x: x,
     y: y
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * convertStereoToHorizontal()
+ *
+ * @param cartesianCoordinate representing the { x, y } position of a particular point to transform.
+ * @param width (of type number) representing the width of the projected "canvas"
+ * @param height (of type number) representing the height of the projected "canvas"
+ * @returns the Horizontal Coordinate { alt, az } conversion from the stereographic projection
+ */
+export const convertStereoToHorizontal = (
+  cartesianCoordinate: CartesianCoordinate,
+  extent: { width: number; height: number },
+  focus: number = 0.2
+): HorizontalCoordinate => {
+  const { x, y } = cartesianCoordinate
+
+  const sinalt1 = 0
+
+  const cosalt1 = 1
+
+  const h = extent.height
+
+  const w = extent.width
+
+  const X = (x - w / 2) / h
+
+  const Y = (h - y) / h
+
+  const P = Math.sqrt(Math.pow(X, 2) + Math.pow(Y, 2))
+
+  const c = 2 * Math.atan2(P, 2 * focus)
+
+  const alt = Math.asin(Math.cos(c) * sinalt1 + (Y * Math.sin(c) * cosalt1) / P)
+
+  const az =
+    Math.PI + Math.atan2(X * Math.sin(c), P * cosalt1 * Math.cos(c) - Y * sinalt1 * Math.sin(c))
+
+  return {
+    az: degrees(az),
+    alt: degrees(alt)
   }
 }
 
