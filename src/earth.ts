@@ -10,6 +10,8 @@ import { getJulianDate } from './epoch'
 
 import { type Planet } from './planets'
 
+import { B0, B1, L0, L1, L2, L3, L4, L5, R0, R1, R2, R3, R4 } from './vsop87/earth'
+
 /*****************************************************************************************************************/
 
 export const earth: Planet = {
@@ -27,6 +29,19 @@ export const earth: Planet = {
   Ω: null,
   isInferior: false
 }
+
+/*****************************************************************************************************************/
+
+// VSOP87 l, b, r coefficients for Earth:
+
+// Longitudinal terms:
+export const L = [L0, L1, L2, L3, L4, L5]
+
+// Latitudinal terms:
+export const B = [B0, B1]
+
+// Radial terms:
+export const R = [R0, R1, R2, R3, R4]
 
 /*****************************************************************************************************************/
 
