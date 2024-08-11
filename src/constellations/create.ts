@@ -10,7 +10,7 @@ import type { Feature, FeatureCollection } from 'geojson'
 
 import type { EquatorialCoordinate } from '../common'
 
-import { interpolateRank2DArray } from '../maths'
+import { interpolateRank2DGeodesicCoordinateArray } from '../maths'
 
 /*****************************************************************************************************************/
 
@@ -44,7 +44,7 @@ export function createConstellationAsGeoJSON(
     },
     geometry: {
       type: 'Polygon',
-      coordinates: boundary.map(coordinate => interpolateRank2DArray(coordinate))
+      coordinates: boundary.map(coordinate => interpolateRank2DGeodesicCoordinateArray(coordinate))
     }
   }
 
