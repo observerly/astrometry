@@ -115,7 +115,7 @@ export const getObliquityOfEcliptic = (datetime: Date): number => {
  * @param datetime - The date to get the coefficient of eccentricity for
  * @returns The coefficient of eccentricity of the Earth's orbit
  */
-export const getCoefficientOfEccentricity = (datetime: Date) => {
+export const getCoefficientOfEccentricity = (datetime: Date): number => {
   // Get the Julian date:
   const JD = getJulianDate(datetime)
 
