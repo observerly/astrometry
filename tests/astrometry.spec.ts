@@ -18,6 +18,7 @@ import {
   getGreenwhichSiderealTime,
   getHourAngle,
   getLocalSiderealTime,
+  getNormalisedSphericaCoordinate,
   getObliquityOfTheEcliptic,
   getParallacticAngle
 } from '../src'
@@ -116,6 +117,44 @@ describe('getAntipodeCoordinate', () => {
 
     expect(antipode.θ).toBe(270)
     expect(antipode.φ).toBe(-60)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getNormalisedSphericaCoordinate', () => {
+  it('should be defined', () => {
+    expect(getNormalisedSphericaCoordinate).toBeDefined()
+  })
+
+  it('should return the normalised spherical coordinate when normalisation is not needed', () => {
+    const normalised = getNormalisedSphericaCoordinate({
+      θ: 90,
+      φ: 60
+    })
+
+    expect(normalised.θ).toBe(90)
+    expect(normalised.φ).toBe(60)
+  })
+
+  it('should return the normalised spherical coordinate when positive bounds are exceeded', () => {
+    const normalised = getNormalisedSphericaCoordinate({
+      θ: 450,
+      φ: 120
+    })
+
+    expect(normalised.θ).toBe(90)
+    expect(normalised.φ).toBe(60)
+  })
+
+  it('should return the normalised spherical coordinate when negative bounds are exceeded', () => {
+    const normalised = getNormalisedSphericaCoordinate({
+      θ: -270,
+      φ: -120
+    })
+
+    expect(normalised.θ).toBe(90)
+    expect(normalised.φ).toBe(-60)
   })
 })
 

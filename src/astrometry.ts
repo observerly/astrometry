@@ -16,7 +16,12 @@ import { getJulianDate } from './epoch'
 
 import { utc } from './utc'
 
-import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
+import {
+  convertRadiansToDegrees as degrees,
+  getNormalizedAzimuthalDegree,
+  getNormalizedInclinationDegree,
+  convertDegreesToRadians as radians
+} from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -64,6 +69,28 @@ export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordina
   return {
     θ: (A.θ + 180) % 360,
     φ: -A.φ
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getNormalisedSphericaCoordinate()
+ *
+ * Normalises a Spherical coordinate to a value between 0 and 360 degrees in the
+ * longitude and -90 to 90 degrees in the latitude.
+ *
+ * @param A - The Spherical coordinate to normalise.
+ * @returns The normalised Spherical coordinate.
+ *
+ */
+export const getNormalisedSphericaCoordinate = (A: SphericalCoordinate): SphericalCoordinate => {
+  const { θ, φ } = A
+
+  return {
+    θ: getNormalizedAzimuthalDegree(θ),
+    φ: getNormalizedInclinationDegree(φ)
   }
 }
 
