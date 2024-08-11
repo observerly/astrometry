@@ -76,7 +76,7 @@ export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordina
 
 /**
  *
- * getNormalisedSphericaCoordinate()
+ * getNormalisedSphericalCoordinate()
  *
  * Normalises a Spherical coordinate to a value between 0 and 360 degrees in the
  * longitude and -90 to 90 degrees in the latitude.
@@ -85,7 +85,7 @@ export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordina
  * @returns The normalised Spherical coordinate.
  *
  */
-export const getNormalisedSphericaCoordinate = (A: SphericalCoordinate): SphericalCoordinate => {
+export const getNormalisedSphericalCoordinate = (A: SphericalCoordinate): SphericalCoordinate => {
   const { θ, φ } = A
 
   return {
