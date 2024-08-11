@@ -21,19 +21,19 @@ export const interpolate = (start: number[], end: number[], precision: number): 
   const [startX, startY] = start
   const [endX, endY] = end
 
-  // Calculate the step size based on the precision and direction:
-  const step = Math.sign(endY - startY) * precision
+  // Calculate the distance between start and end points
+  const distance = Math.hypot(endX - startX, endY - startY)
 
-  for (let y = startY; Math.abs(y - startY) < Math.abs(endY - startY); y += step) {
-    // Calculate the corresponding x value using linear interpolation:
-    const x = startX + ((y - startY) * (endX - startX)) / (endY - startY)
-    // Add the interpolated point to the array:
+  // Calculate the number of steps required based on the precision
+  const steps = Math.ceil(distance / precision)
+
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps
+    const x = startX + t * (endX - startX)
+    const y = startY + t * (endY - startY)
     points.push([x, y])
   }
 
-  points.push([endX, endY])
-
-  // Return the array of interpolated points:
   return points
 }
 
@@ -57,6 +57,7 @@ export function interpolateRank2DArray(coordinates: number[][], precision: numbe
     const end = coordinates[i + 1]
     interpolatedCoordinates.push(...interpolate(start, end, precision))
   }
+
   return interpolatedCoordinates
 }
 
