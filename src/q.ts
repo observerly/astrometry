@@ -82,6 +82,11 @@ export const q = (
   sun: HorizontalCoordinate,
   moon: HorizontalCoordinate
 ): number => {
+  // If either the target is below the horizon or the Sun is above the horizon, then the Q index is -1:
+  if (A < 6 || sun.alt > -18) {
+    return -1
+  }
+
   // The Moon's illumination factor, which has a range of 0 to 100 percent:
   const k = 1 - 2 * (K / 100)
 

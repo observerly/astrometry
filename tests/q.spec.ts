@@ -57,6 +57,20 @@ describe('q', () => {
     expect(Q).toBeLessThanOrEqual(1)
   })
 
+  it('should return the value of Q = -1 when the target is below 6 degrees of the horizon', () => {
+    const Q = q(100, 0, 6, { az: 0, alt: 0 }, { az: 180, alt: 90 })
+    expect(Q).toBe(-1)
+    expect(Q).toBeGreaterThanOrEqual(-1)
+    expect(Q).toBeLessThanOrEqual(1)
+  })
+
+  it('should return the value of Q = -1 when the Sun is above -18 degrees of the horizon', () => {
+    const Q = q(100, 0, -90, { az: 0, alt: 0 }, { az: 180, alt: 90 })
+    expect(Q).toBe(-1)
+    expect(Q).toBeGreaterThanOrEqual(-1)
+    expect(Q).toBeLessThanOrEqual(1)
+  })
+
   it('should return the value of Q = 0 for the base set of conditions', () => {
     const Q = q(50, 90, 6, { az: 0, alt: -18 }, { az: 180, alt: 0.1 })
     expect(Q).toBe(0)
