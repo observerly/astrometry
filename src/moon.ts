@@ -993,3 +993,45 @@ export const getNextFullMoon = (datetime: Date): Date => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * isBlueMoon()
+ *
+ * A Blue Moon is a full Moon that occurs twice in a single calendar month.
+ *
+ * I appreciate that the term "Blue Moon" is a colloquial term and that it
+ * is not an astronomical term, but it is a term that is widely used and
+ * understood by the general public. The term "Blue Moon" is also used to
+ * describe the third full Moon in a season that has four full Moons.
+ *
+ * @param datetime - The date to determine if the Moon is a Blue Moon for.
+ * @returns true if the Moon is a Blue Moon, false otherwise.
+ */
+export const isBlueMoon = (datetime: Date): boolean => {
+  // If the Moon is full and it is the second full Moon in a calendar month,
+  // then it is considered a Blue Moon. However, it is impossible to have a
+  // Blue Moon on any other days except the 29th, 30th, or 31st of a given month,
+  // as the synodic month is 29.530588853 days long.
+  const today = datetime.getDate()
+
+  // Calculate the fraction of the current day, in milliseconds, of the synodic month:
+  const f = (LUNAR_SYNODIC_MONTH - 29) * 24 * 60 * 60 * 1000
+
+  const ms =
+    datetime.getHours() * 60 * 60 * 1000 +
+    datetime.getMinutes() * 60 * 1000 +
+    datetime.getSeconds() * 1000 +
+    datetime.getMilliseconds()
+
+  // If the time on the current day is less than the fraction of the day of the synodic month,
+  // then the Moon is not a Blue Moon or if the day is not the 29th, 30th, or 31st:
+  if ((today !== 29 && today !== 30 && today !== 31) || (today === 29 && ms < f)) {
+    return false
+  }
+
+  // Is the Moon full?
+  return isFullMoon(datetime)
+}
+
+/*****************************************************************************************************************/

@@ -36,6 +36,7 @@ import {
   getLunarTrueEclipticLongitude,
   getNextFullMoon,
   getNextNewMoon,
+  isBlueMoon,
   isFullMoon,
   isNewMoon
 } from '../src'
@@ -457,6 +458,37 @@ describe('getNextFullMoon', () => {
   it('should return the correct date of the next Full Moon', () => {
     const nextFullMoon = getNextFullMoon(datetime)
     expect(nextFullMoon.toISOString()).toBe('2021-05-26T11:31:20.000Z')
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('isBlueMoon', () => {
+  it('should be defined', () => {
+    expect(isBlueMoon).toBeDefined()
+  })
+
+  it('should return true for January 31st 1999', () => {
+    // We know there is a second full moon in January 1999:
+    const datetime = new Date('1999-01-31T16:08:00Z')
+    expect(isBlueMoon(datetime)).toBe(true)
+  })
+
+  it('should return true for March 31st 1999', () => {
+    // We know there is a second full moon in March 1999:
+    const datetime = new Date('1999-03-31T23:49:00Z')
+    expect(isBlueMoon(datetime)).toBe(true)
+  })
+
+  it('should return false for May 29th 2021', () => {
+    const datetime = new Date('2021-05-29T12:00:00Z')
+    expect(isBlueMoon(datetime)).toBe(false)
+  })
+
+  it('should return true for August 31st 2023', () => {
+    // We know there is a second full moon in August 2023:
+    const datetime = new Date('2023-08-31T01:35:00Z')
+    expect(isBlueMoon(datetime)).toBe(true)
   })
 })
 
