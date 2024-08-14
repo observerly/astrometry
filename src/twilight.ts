@@ -95,7 +95,7 @@ export const getTwilightBandsForDay = (
   const { stepSeconds = 10 } = params
 
   // Set the time to midnight:
-  const midnight = new Date(datetime.setHours(0, 0, 0, 0))
+  const midnight = new Date(datetime.getFullYear(), datetime.getMonth(), datetime.getDate())
 
   // Set the end time to midnight the next day:
   const end = new Date(midnight.getTime() + 86400000)
@@ -128,16 +128,18 @@ export const getTwilightBandsForDay = (
     const currentTwilight = getWhatTwilight(alt)
 
     if (currentTwilight !== twilight) {
+      const to = new Date(from.getTime())
+
       bands.push({
         name: twilight,
         interval: {
           from: start,
-          to: new Date(from.getTime())
+          to
         }
       })
 
       twilight = currentTwilight
-      start = new Date(from.getTime())
+      start = to
     }
 
     // Add 1 seconds to the current time:
