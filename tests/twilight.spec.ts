@@ -40,8 +40,14 @@ describe('getTwilightBandsForDay', () => {
   it('should start at midnight and end at midnight', () => {
     const bands = getTwilightBandsForDay(datetime, { latitude, longitude })
     expect(bands).toBeDefined()
-    expect(bands[0].interval.from).toEqual(new Date(datetime.setHours(0, 0, 0, 0)))
-    expect(bands[bands.length - 1].interval.to).toEqual(new Date(datetime.setHours(24, 0, 0, 0)))
+
+    expect(bands[0].interval.from).toEqual(
+      new Date(datetime.getFullYear(), datetime.getMonth(), datetime.getDate(), 0, 0, 0, 0)
+    )
+
+    expect(bands[bands.length - 1].interval.to).toEqual(
+      new Date(datetime.getFullYear(), datetime.getMonth(), datetime.getDate(), 24, 0, 0, 0)
+    )
   })
 
   it('should always have bands that proceed in the correct order', () => {
@@ -54,6 +60,9 @@ describe('getTwilightBandsForDay', () => {
       const currentStart = bands[i].interval.from
       expect(currentStart.getTime()).toBe(previousEnd.getTime())
     }
+
+    // We expect that the datetime was not mutated:
+    expect(datetime).toEqual(new Date('2021-05-14T03:00:00.000+00:00'))
   })
 
   it('should always start during the night for UTC+0 timezones', () => {
