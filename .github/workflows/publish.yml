@@ -1,6 +1,10 @@
 name: astrometry/publish
 
 on:
+  pull_request:
+    branches:
+      - main
+
   release:
     types: [published]
 
@@ -33,7 +37,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-          registry-url: 'https://npm.pkg.github.com'
           # Defaults to the user or organization that owns the workflow file:
           scope: '@observerly'
 
@@ -54,11 +57,18 @@ jobs:
       - name: Build the package ready for publishing
         run: pnpm run build
 
-      - uses: JS-DevTools/npm-publish@v3
+      - name: Publish to NPM 📦
+        uses: JS-DevTools/npm-publish@v3
         with:
           registry: 'https://registry.npmjs.org/'
           access: 'public'
           token: ${{ secrets.NPM_OBSERVERLY_PUBLIC_TOKEN }}
+          provenance: true
 
-      - name: Publish to JSR.io 🚀
-        run: npx jsr publish
+      - name: Publish to GitHub Packages 📦
+        uses: JS-DevTools/npm-publish@v3
+        with:
+          registry: 'https://npm.pkg.github.com'
+          access: 'restricted'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          provenance: true
