@@ -24,10 +24,6 @@ jobs:
       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_OBSERVERLY_PUBLIC_TOKEN }}
 
-    permissions:
-      contents: read
-      id-token: write # The OIDC ID token is used for authentication with JSR.
-
     steps:
       - name: Checkout 🛎
         uses: actions/checkout@v4
@@ -63,12 +59,10 @@ jobs:
           registry: 'https://registry.npmjs.org/'
           access: 'public'
           token: ${{ secrets.NPM_OBSERVERLY_PUBLIC_TOKEN }}
-          provenance: true
 
       - name: Publish to GitHub Packages 📦
-        uses: JS-DevTools/npm-publish@v3
+        uses: JS-DevTools/npm-publish@v1
         with:
           registry: 'https://npm.pkg.github.com'
-          access: 'restricted'
           token: ${{ secrets.GITHUB_TOKEN }}
-          provenance: true
+          check-version: true
