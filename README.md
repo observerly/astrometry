@@ -122,6 +122,21 @@ The TL;DR of the guideline is to follow these steps:
 - Before creating an issue, ensure a similar issue does not already exist.
 - Before creating a pull request, ensure a similar pull request does not already exist.
 
+## Private Publishing
+
+To ensure that the private package repository is correctly configured, you will need to add the following to your `.npmrc` file:
+
+```bash
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+@observerly:registry=https://npm.pkg.github.com
+```
+
+And then run the following command from the root of the repository:
+
+```bash
+pnpm publish --registry=https://npm.pkg.github.com/ --access public --//npm.pkg.github.com/:_authToken=$GITHUB_AUTH_TOKEN
+```
+
 ## Miscellany
 
 \*It is dependency-free to ensure it can be used safely within both node, deno, bun and browser environments.
