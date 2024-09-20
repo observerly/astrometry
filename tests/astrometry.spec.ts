@@ -251,7 +251,7 @@ describe('getParallacticAngle', () => {
 
   it('should return the Parallactic Angle (PA) of the given date at longitude 0 at Greenwhich', () => {
     const q = getParallacticAngle(datetime, { latitude, longitude }, betelgeuse)
-    expect(q).toBe(-42.62812646220704)
+    expect(q).toBe(317.37187353779296)
   })
 })
 

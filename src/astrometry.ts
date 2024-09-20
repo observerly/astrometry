@@ -276,12 +276,19 @@ export const getParallacticAngle = (
   const ha = radians(getHourAngle(datetime, longitude, ra))
 
   // Calculate the parallactic angle and return in degrees:
-  return degrees(
+  let q = degrees(
     Math.atan2(
       Math.sin(ha),
       Math.tan(radians(latitude)) * Math.cos(radians(dec)) - Math.sin(radians(dec)) * Math.cos(ha)
     )
   )
+
+  // Correct for negative angles
+  if (q < 0) {
+    q += 360
+  }
+
+  return q % 360
 }
 
 /*****************************************************************************************************************/
