@@ -39,6 +39,7 @@ const modules = [
   'nutation',
   'observation',
   'observation',
+  'optics',
   'orbit',
   'planets',
   'precession',
