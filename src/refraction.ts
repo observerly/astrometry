@@ -16,9 +16,8 @@ import { convertDegreesToRadians as radians } from './utilities'
  *
  * getCorrectionToHorizontalForRefraction()
  *
- * The eccentricity of the Earth's orbit is a measure of how elliptical the Earth's
- * orbit is. The eccentricity of the Earth's orbit is not constant, but varies over
- * time. This function returns the eccentricity of the Earth's orbit for a given date.
+ * The correct to the HorizontalCoordinate for refraction is an adjustment to the observed
+ * HorizontalCoordinate based on pressure and temperature effects.
  *
  * @param target - The equatorial coordinate of the observed object.
  * @param temperature - The temperature in Kelvin.
