@@ -52,6 +52,22 @@ export const LUNAR_SYNODIC_MONTH = 29.530588853
 
 /*****************************************************************************************************************/
 
+export type AnishinaabegMoonNames =
+  | 'Spirit Moon'
+  | 'Bear Moon'
+  | 'Snow Crust Moon'
+  | 'Broken Snowshoe Moon'
+  | 'Sucker Moon'
+  | 'Blooming Moon'
+  | 'Berry Moon'
+  | 'Grain Moon'
+  | 'Changing Leaves Moon'
+  | 'Falling Leaves Moon'
+  | 'Freezing Moon'
+  | 'Little Spirit Moon'
+
+/*****************************************************************************************************************/
+
 export const Phases = {
   New: 'New',
   WaxingCrescent: 'Waxing Crescent',
