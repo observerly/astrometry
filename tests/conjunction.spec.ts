@@ -15,6 +15,7 @@ import {
   convertEclipticToEquatorial,
   convertEquatorialToHorizontal,
   findConjunction,
+  findConjunctions,
   findPlanetaryConjunction,
   findPlanetaryConjunctions,
   getLunarEquatorialCoordinate,
@@ -333,6 +334,14 @@ describe('findPlanetaryConjunctions()', () => {
     expect(conjunction.targets).toHaveLength(2)
     expect(conjunction.targets[0].name).toBe('Venus')
     expect(conjunction.targets[1].name).toBe('Jupiter')
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('findConjunctions', () => {
+  it('should be defined', () => {
+    expect(findConjunctions).toBeDefined()
   })
 })
 
