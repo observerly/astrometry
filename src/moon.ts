@@ -8,6 +8,8 @@
 
 import { getHourAngle, getObliquityOfTheEcliptic } from './astrometry'
 
+import { type GregorianMonth } from './calendar'
+
 import { AU_IN_METERS } from './constants'
 
 import {
@@ -97,6 +99,23 @@ export type ColloquialMoonNames =
   | AnishinaabegMoonNames
   | 'Harvest Moon'
   | 'Blue Moon'
+
+/*****************************************************************************************************************/
+
+export const names = new Map<GregorianMonth, Set<AlgonquinMoonNames | AnishinaabegMoonNames>>([
+  ['January', new Set(['Wolf Moon', 'Spirit Moon'])],
+  ['February', new Set(['Snow Moon', 'Bear Moon'])],
+  ['March', new Set(['Worm Moon', 'Snow Crust Moon'])],
+  ['April', new Set(['Pink Moon', 'Broken Snowshoe Moon'])],
+  ['May', new Set(['Flower Moon', 'Sucker Moon'])],
+  ['June', new Set(['Strawberry Moon', 'Blooming Moon'])],
+  ['July', new Set(['Buck Moon', 'Berry Moon'])],
+  ['August', new Set(['Sturgeon Moon', 'Grain Moon'])],
+  ['September', new Set(['Corn Moon', 'Changing Leaves Moon'])],
+  ['October', new Set(["Hunter's Moon", 'Falling Leaves Moon'])],
+  ['November', new Set(['Beaver Moon', 'Freezing Moon'])],
+  ['December', new Set(['Cold Moon', 'Little Spirit Moon'])]
+])
 
 /*****************************************************************************************************************/
 
