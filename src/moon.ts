@@ -89,6 +89,17 @@ export type AnishinaabegMoonNames =
 
 /*****************************************************************************************************************/
 
+// I have also included the "Blue Moon" as a colloquial name for the second full
+// moon in a calendar month as it is a common term, as well as the "Harvest Moon" which is
+// a common term for the full moon nearest the autumnal equinox.
+export type ColloquialMoonNames =
+  | AlgonquinMoonNames
+  | AnishinaabegMoonNames
+  | 'Harvest Moon'
+  | 'Blue Moon'
+
+/*****************************************************************************************************************/
+
 export const Phases = {
   New: 'New',
   WaxingCrescent: 'Waxing Crescent',
