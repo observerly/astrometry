@@ -52,6 +52,27 @@ export const LUNAR_SYNODIC_MONTH = 29.530588853
 
 /*****************************************************************************************************************/
 
+// I have named the full moons after the Native American names for the full moons in full knowledge that
+// not all Native American tribes have the same names for the full moons (e.g., Moons of the Anishinaabeg).
+// I have chosen to use the names from the Algonquin tribes as they are the most commonly known and used
+// in modern culture, due to colonial "supremecy" and the fact that the Algonquin tribes were the first
+// to be encountered by European settlers in the New World.
+export type AlgonquinMoonNames =
+  | 'Wolf Moon'
+  | 'Snow Moon'
+  | 'Worm Moon'
+  | 'Pink Moon'
+  | 'Flower Moon'
+  | 'Strawberry Moon'
+  | 'Buck Moon'
+  | 'Sturgeon Moon'
+  | 'Corn Moon'
+  | "Hunter's Moon"
+  | 'Beaver Moon'
+  | 'Cold Moon'
+
+/*****************************************************************************************************************/
+
 export const Phases = {
   New: 'New',
   WaxingCrescent: 'Waxing Crescent',
