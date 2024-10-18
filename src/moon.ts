@@ -73,6 +73,22 @@ export type AlgonquinMoonNames =
 
 /*****************************************************************************************************************/
 
+export type AnishinaabegMoonNames =
+  | 'Spirit Moon'
+  | 'Bear Moon'
+  | 'Snow Crust Moon'
+  | 'Broken Snowshoe Moon'
+  | 'Sucker Moon'
+  | 'Blooming Moon'
+  | 'Berry Moon'
+  | 'Grain Moon'
+  | 'Changing Leaves Moon'
+  | 'Falling Leaves Moon'
+  | 'Freezing Moon'
+  | 'Little Spirit Moon'
+
+/*****************************************************************************************************************/
+
 export const Phases = {
   New: 'New',
   WaxingCrescent: 'Waxing Crescent',
