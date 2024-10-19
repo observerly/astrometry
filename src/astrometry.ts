@@ -6,10 +6,10 @@
 
 /*****************************************************************************************************************/
 
-import {
-  type EquatorialCoordinate,
-  type GeographicCoordinate,
-  type SphericalCoordinate
+import type {
+  EquatorialCoordinate,
+  GeographicCoordinate,
+  SphericalCoordinate
 } from './common'
 
 import { getJulianDate } from './epoch'
@@ -41,8 +41,8 @@ export const getAngularSeparation = (A: SphericalCoordinate, B: SphericalCoordin
   let θ =
     degrees(
       Math.acos(
-        Math.sin(radians(A['θ'])) * Math.sin(radians(B['θ'])) +
-          Math.cos(radians(A['θ'])) * Math.cos(radians(B['θ'])) * Math.cos(radians(A['φ'] - B['φ']))
+        Math.sin(radians(A.θ)) * Math.sin(radians(B.θ)) +
+          Math.cos(radians(A.θ)) * Math.cos(radians(B.θ)) * Math.cos(radians(A.φ - B.φ))
       )
     ) % 360
 
@@ -121,7 +121,7 @@ export const getGreenwhichSiderealTime = (datetime: Date): number => {
   const T = S / 36525.0
 
   // Calculate the Greenwich Sidereal Time (GST) at 0h UT:
-  let T_0 = (6.697374558 + 2400.051336 * T + 0.000025862 * Math.pow(T, 2)) % 24
+  let T_0 = (6.697374558 + 2400.051336 * T + 0.000025862 * T ** 2) % 24
 
   // Ensure that the Greenwich Sidereal Time (GST) is positive:
   if (T_0 < 0) {
@@ -244,7 +244,7 @@ export const getObliquityOfTheEcliptic = (datetime: Date): number => {
   const T = (JD - 2451545.0) / 36525
 
   // Calculate the obliquity of the ecliptic:
-  return 23.439292 - (46.845 * T + 0.00059 * Math.pow(T, 2) + 0.001813 * Math.pow(T, 3)) / 3600
+  return 23.439292 - (46.845 * T + 0.00059 * T ** 2 + 0.001813 * T ** 3) / 3600
 }
 
 /*****************************************************************************************************************/

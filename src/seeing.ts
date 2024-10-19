@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { type HorizontalCoordinate } from './common'
+import type { HorizontalCoordinate } from './common'
 
 import { convertDegreesToRadians as radians } from './utilities'
 
@@ -29,7 +29,7 @@ export const getAirmassPickering = (target: HorizontalCoordinate): number => {
   const { alt } = target
 
   // Apply Pickering's formula to the altitude of the object:
-  return 1 / Math.sin(radians(alt + 244 / (165 + 47 * Math.pow(alt, 1.1))))
+  return 1 / Math.sin(radians(alt + 244 / (165 + 47 * alt ** 1.1)))
 }
 
 /*****************************************************************************************************************/

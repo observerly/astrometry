@@ -1,19 +1,17 @@
 {
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "prettier.requireConfig": true,
-  "prettier.singleQuote": true,
-  "prettier.trailingComma": "all",
-  "prettier.tabWidth": 4,
-  "prettier.useTabs": false,
+  "editor.defaultFormatter": "biomejs.biome",
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.format.enable": false,
   "typescript.tsdk": "node_modules/typescript/lib",
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "biomejs.biome"
   },
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
   },
   "files.exclude": {
     "**/node_modules": true,
@@ -30,6 +28,7 @@
     "editor.formatOnSave": "always",
     "source.organizeImports": "always",
     "source.sortImports": "always",
-    "source.fixAll": "always"
+    "source.fixAll": "always",
+     "quickfix.biome": "explicit"
   }
 }

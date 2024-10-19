@@ -8,14 +8,14 @@
 
 import { getHourAngle, getObliquityOfTheEcliptic } from './astrometry'
 
-import { type GregorianMonth } from './calendar'
+import type { GregorianMonth } from './calendar'
 
 import { AU_IN_METERS } from './constants'
 
-import {
-  type EclipticCoordinate,
-  type EquatorialCoordinate,
-  type GeographicCoordinate
+import type {
+  EclipticCoordinate,
+  EquatorialCoordinate,
+  GeographicCoordinate
 } from './common'
 
 import { earth } from './earth'
@@ -166,9 +166,9 @@ export const getLunarMeanAnomaly = (datetime: Date): number => {
   let M =
     (134.9634114 +
       477198.8676313 * T +
-      0.008997 * Math.pow(T, 2) +
-      Math.pow(T, 3) / 69699 -
-      Math.pow(T, 4) / 14712000) %
+      0.008997 * T ** 2 +
+      T ** 3 / 69699 -
+      T ** 4 / 14712000) %
     360
 
   // Correct for negative angles
@@ -202,9 +202,9 @@ export const getLunarMeanGeometricLongitude = (datetime: Date): number => {
   let l =
     (218.3164477 +
       481267.88123421 * T -
-      0.0015786 * Math.pow(T, 2) +
-      Math.pow(T, 3) / 538841 -
-      Math.pow(T, 4) / 65194000) %
+      0.0015786 * T ** 2 +
+      T ** 3 / 538841 -
+      T ** 4 / 65194000) %
     360
 
   // Correct for negative angles
@@ -242,9 +242,9 @@ export const getLunarArgumentOfLatitude = (datetime: Date): number => {
   let F =
     (160.7108 +
       390.67050284 * k -
-      0.0016118 * Math.pow(T, 2) -
-      0.00000227 * Math.pow(T, 3) -
-      0.000000011 * Math.pow(T, 4)) %
+      0.0016118 * T ** 2 -
+      0.00000227 * T ** 3 -
+      0.000000011 * T ** 4) %
     360
 
   if (F < 0) {
@@ -708,7 +708,7 @@ export const getLunarAngularDiameter = (
   const B = cδ * cH - ρcφ * sπ
   const C = sδ - ρsφ * sπ
 
-  const q = Math.sqrt(Math.pow(A, 2) + Math.pow(B, 2) + Math.pow(C, 2))
+  const q = Math.sqrt(A**2 + B**2 + C**2)
 
   return degrees((k / q) * sπ)
 }
@@ -945,7 +945,7 @@ export const getNextNewMoon = (datetime: Date): Date => {
   const end = date.getTime() + 12 * 60 * 60 * 1000
 
   // Initialize variables to keep track of the minimum illumination and date:
-  let minimum = Infinity
+  let minimum = Number.POSITIVE_INFINITY
 
   // Initialize the date of the new Moon:
   let newMoon: Date = date
@@ -1023,7 +1023,7 @@ export const getNextFullMoon = (datetime: Date): Date => {
   const end = date.getTime() + 12 * 60 * 60 * 1000
 
   // Initialize variables to keep track of the maximum illumination and date:
-  let maximum = -Infinity
+  let maximum = Number.NEGATIVE_INFINITY
 
   // Initialize the date of the full Moon:
   let fullMoon: Date = date

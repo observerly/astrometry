@@ -1,0 +1,79 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+  "files": {
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "src/**/*.js",
+      "src/**/*.jsx",
+      "lib/**/*.ts",
+      "lib/**/*.tsx",
+      "lib/**/*.js",
+      "lib/**/*.jsx",
+      "./biome.json",
+      "./package.json",
+      "./tsconfig.json",
+      "./vite.config.ts"
+    ],
+    "ignore": ["node_modules", "**/node_modules/**", "dist", "bin"],
+    "ignoreUnknown": true
+  },
+  "formatter": {
+    "enabled": true,
+    "ignore": ["dist", "node_modules"]
+  },
+  "linter": {
+    "enabled": true,
+    "ignore": ["dist", "node_modules"],
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noParameterAssign": {
+          "level": "info"
+        }
+      },
+      "suspicious": {
+        "noApproximativeNumericConstant": {
+          "level": "info"
+        }
+      }
+    }
+  },
+  "organizeImports": {
+    "enabled": true
+  },
+  "overrides": [
+    {
+      "include": ["*.json"],
+      "formatter": {
+        "indentWidth": 2
+      }
+    }
+  ],
+  "javascript": {
+    "formatter": {
+      "enabled": true,
+      "lineWidth": 100,
+      "semicolons": "asNeeded",
+      "trailingCommas": "none",
+      "indentWidth": 2,
+      "indentStyle": "space",
+      "arrowParentheses": "asNeeded",
+      "quoteStyle": "single"
+    }
+  },
+  "json": {
+    "formatter": {
+      "enabled": true,
+      "indentWidth": 2,
+      "indentStyle": "space"
+    },
+    "linter": {
+      "enabled": true
+    }
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git"
+  }
+}

@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate } from './common'
+import type { EquatorialCoordinate } from './common'
 
 import { getJulianDate } from './epoch'
 
@@ -36,13 +36,13 @@ export const getCorrectionToEquatorialForPrecessionOfEquinoxes = (
   const T = (JD - 2451545.0) / 36525
 
   // Calculate the precession angle ζ (in degrees):
-  const ζ = (2306.2181 * T + 0.30188 * Math.pow(T, 2) + 0.017998 * Math.pow(T, 3)) / 3600
+  const ζ = (2306.2181 * T + 0.30188 * T ** 2 + 0.017998 * T ** 3) / 3600
 
   // Calculate the precession angle z (in degrees):
-  const z = (2306.2181 * T + 1.09468 * Math.pow(T, 2) + 0.018203 * Math.pow(T, 3)) / 3600
+  const z = (2306.2181 * T + 1.09468 * T ** 2 + 0.018203 * T ** 3) / 3600
 
   // Calculate the precession angle θ (in degrees):
-  const θ = (2004.3109 * T - 0.42665 * Math.pow(T, 2) - 0.041833 * Math.pow(T, 3)) / 3600
+  const θ = (2004.3109 * T - 0.42665 * T ** 2 - 0.041833 * T ** 3) / 3600
 
   // Calculate the reduction coordinates of the target:
   const A = Math.cos(radians(target.dec)) * Math.sin(radians(target.ra + ζ))

@@ -8,11 +8,11 @@
 
 import { getAngularSeparation } from './astrometry'
 
-import {
-  type EquatorialCoordinate,
-  type GeographicCoordinate,
-  type HorizontalCoordinate,
-  type Interval
+import type {
+  EquatorialCoordinate,
+  GeographicCoordinate,
+  HorizontalCoordinate,
+  Interval
 } from './common'
 
 import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
@@ -370,6 +370,7 @@ export const findPlanetaryConjunctions = (
         // and the conjunction is the closest one found so far:
         if (
           separation <= angularSeparationThreshold &&
+          // biome-ignore lint/style/noNonNullAssertion: This is a false positive. The conjunctions map is initialized above.
           (!conjunctions.has(key) || conjunctions.get(key)!.angularSeparation > separation)
         ) {
           const conjunction: Conjunction = {

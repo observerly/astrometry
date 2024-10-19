@@ -8,12 +8,12 @@
 
 import { getHourAngle, getLocalSiderealTime, getObliquityOfTheEcliptic } from './astrometry'
 
-import {
-  type EclipticCoordinate,
-  type EquatorialCoordinate,
-  type GalacticCoordinate,
-  type GeographicCoordinate,
-  type HorizontalCoordinate
+import type {
+  EclipticCoordinate,
+  EquatorialCoordinate,
+  GalacticCoordinate,
+  GeographicCoordinate,
+  HorizontalCoordinate
 } from './common'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'

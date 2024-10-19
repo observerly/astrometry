@@ -10,7 +10,7 @@ import { getCorrectionToEquatorialForAbberation } from './abberation'
 
 import { getHourAngle } from './astrometry'
 
-import { type EquatorialCoordinate, type HorizontalCoordinate, type Observer } from './common'
+import type { EquatorialCoordinate, HorizontalCoordinate, Observer } from './common'
 
 import { convertEquatorialToHorizontal } from './coordinates'
 
@@ -36,29 +36,29 @@ import { getNormalizedAzimuthalDegree, getNormalizedInclinationDegree } from './
 export class Observation extends Object {
   // The initial target coordinate in epoch J2000 (ICRS) reference frame:
   public target: EquatorialCoordinate = {
-    ra: -Infinity,
-    dec: -Infinity
+    ra: Number.NEGATIVE_INFINITY,
+    dec: Number.NEGATIVE_INFINITY
   }
 
   // The Right Ascension in the current epoch:
-  public ra: number = -Infinity
+  public ra = Number.NEGATIVE_INFINITY
 
   // The Declination in the current epoch:
-  public dec: number = -Infinity
+  public dec = Number.NEGATIVE_INFINITY
 
-  public az: number = -Infinity
+  public az = Number.NEGATIVE_INFINITY
 
-  public alt: number = -Infinity
+  public alt = Number.NEGATIVE_INFINITY
 
-  public ha: number = -Infinity
+  public ha = Number.NEGATIVE_INFINITY
 
   public datetime: Date = new Date()
 
-  public longitude: number = -Infinity
+  public longitude = Number.NEGATIVE_INFINITY
 
-  public latitude: number = -Infinity
+  public latitude = Number.NEGATIVE_INFINITY
 
-  constructor({ ra = -Infinity, dec = -Infinity }: EquatorialCoordinate, observer?: Observer) {
+  constructor({ ra = Number.NEGATIVE_INFINITY, dec = Number.NEGATIVE_INFINITY }: EquatorialCoordinate, observer?: Observer) {
     super()
 
     const { datetime, longitude, latitude } = observer || {
