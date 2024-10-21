@@ -19,10 +19,10 @@ import { convertDegreesToRadians as radians } from './utilities'
  * The correct to the HorizontalCoordinate for refraction is an adjustment to the observed
  * HorizontalCoordinate based on pressure and temperature effects.
  *
- * @param target - The equatorial coordinate of the observed object.
+ * @param target - The horizontal coordinate of the observed object.
  * @param temperature - The temperature in Kelvin.
  * @param pressure - The pressure in Pascals.
- * @returns The equatorial coordinate of the observed object corrected for atmospheric refraction.
+ * @returns The horizontal coordinate of the observed object corrected for atmospheric refraction.
  *
  */
 export const getCorrectionToHorizontalForRefraction = (
