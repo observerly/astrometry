@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import {
   type EquatorialCoordinate,
   convertEquatorialToHorizontal,
+  getAirmass,
   getCorrectionToHorizontalForRefraction,
   getRefraction
 } from '../src'
@@ -81,6 +82,70 @@ describe('getCorrectionToHorizontalForRefractione', () => {
     expect(az).toBe(target.az)
     expect(alt).toBeGreaterThanOrEqual(72.79061860032508)
     expect(alt).toBeLessThanOrEqual(73.0)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getAirmass', () => {
+  it('should be defined', () => {
+    expect(getAirmass).toBeDefined()
+  })
+
+  it('should return the airmass value for the observed object', () => {
+    const target = convertEquatorialToHorizontal(
+      datetime,
+      {
+        latitude,
+        longitude
+      },
+      betelgeuse
+    )
+
+    expect(target.az).toBe(134.44877920325155)
+    expect(target.alt).toBe(72.78539444063765)
+
+    const X = getAirmass(target)
+    expect(X).toBe(1.0465224571377927)
+  })
+
+  it('should return the airmass value for the observed object', () => {
+    const target = convertEquatorialToHorizontal(
+      datetime,
+      {
+        latitude,
+        longitude
+      },
+      betelgeuse
+    )
+
+    expect(target.az).toBe(134.44877920325155)
+    expect(target.alt).toBe(72.78539444063765)
+
+    const X = getAirmass({ alt: 90, az: target.az })
+    expect(X).toBeCloseTo(1)
+  })
+
+  it('should return the airmass value for the observed object at the horizon', () => {
+    const target = convertEquatorialToHorizontal(
+      datetime,
+      {
+        latitude,
+        longitude
+      },
+      betelgeuse
+    )
+
+    expect(target.az).toBe(134.44877920325155)
+    expect(target.alt).toBe(72.78539444063765)
+
+    const { alt, az } = getCorrectionToHorizontalForRefraction(target)
+    expect(az).toBe(target.az)
+    expect(alt).toBeGreaterThanOrEqual(72.79061860032508)
+    expect(alt).toBeLessThanOrEqual(73.0)
+
+    const X = getAirmass({ alt: 0, az })
+    expect(X).toBe(Number.POSITIVE_INFINITY)
   })
 })
 
