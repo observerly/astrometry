@@ -13,7 +13,8 @@ import { describe, expect, it } from 'vitest'
 import {
   type EquatorialCoordinate,
   convertEquatorialToHorizontal,
-  getCorrectionToHorizontalForRefraction
+  getCorrectionToHorizontalForRefraction,
+  getRefraction
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -30,6 +31,31 @@ export const longitude = -155.468094
 
 // For testing
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
+
+/*****************************************************************************************************************/
+
+describe('getRefraction', () => {
+  it('should be defined', () => {
+    expect(getRefraction).toBeDefined()
+  })
+
+  it('should return the refraction correction to the observed object', () => {
+    const target = convertEquatorialToHorizontal(
+      datetime,
+      {
+        latitude,
+        longitude
+      },
+      betelgeuse
+    )
+
+    expect(target.az).toBe(134.44877920325155)
+    expect(target.alt).toBe(72.78539444063765)
+
+    const R = getRefraction(target, 283.15, 101325)
+    expect(R).toBe(0.005224159687428409)
+  })
+})
 
 /*****************************************************************************************************************/
 
