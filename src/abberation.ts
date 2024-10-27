@@ -8,15 +8,15 @@
 
 import { getObliquityOfTheEcliptic } from './astrometry'
 
-import { type EquatorialCoordinate } from './common'
+import type { EquatorialCoordinate } from './common'
 
 import { getEccentricityOfOrbit } from './earth'
 
 import { getJulianDate } from './epoch'
 
 import {
-  getLunarMeanGeometricLongitude,
-  getLunarMeanEclipticLongitudeOfTheAscendingNode
+    getLunarMeanEclipticLongitudeOfTheAscendingNode,
+    getLunarMeanGeometricLongitude
 } from './moon'
 
 import { getSolarMeanGeometricLongitude, getSolarTrueGeometricLongitude } from './sun'
@@ -77,7 +77,7 @@ export const getCorrectionToEquatorialForAbberation = (
   const e = getEccentricityOfOrbit(datetime)
 
   // Get the longitude of perihelion (in degrees):
-  const ϖ = radians(102.93735 + 1.71953 * T + 0.00046 * Math.pow(T, 2))
+  const ϖ = radians(102.93735 + 1.71953 * T + 0.00046 * T ** 2)
 
   // Get the true geometric longitude of the sun (in degrees):
   const S = radians(getSolarTrueGeometricLongitude(datetime))

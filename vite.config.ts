@@ -10,7 +10,7 @@
 
 /*****************************************************************************************************************/
 
-import { BuildOptions, defineConfig } from 'vite'
+import { type BuildOptions, defineConfig } from 'vite'
 
 import typescript from '@rollup/plugin-typescript'
 

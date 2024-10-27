@@ -14,9 +14,7 @@
     "registry": "https://npm.pkg.github.com/observerly"
   },
   "type": "module",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "keywords": [
     "astronomy",
     "astrometry",
@@ -204,32 +202,26 @@
     }
   },
   "release": {
-    "branches": [
-      "main"
-    ]
+    "branches": ["main"]
   },
   "scripts": {
     "build": "tsc --noEmit && vite build",
-    "format": "prettier \"src/**/*.ts\" --write",
-    "lint": "eslint src --ext .ts --fix",
+    "format": "npx @biomejs/biome format --write",
+    "lint": "npx @biomejs/biome lint --write",
     "test": "vitest",
     "benchmark": "tsx ./benchmarks/index.ts",
     "coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.8.3",
     "@changesets/cli": "^2.26.2",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/geojson": "^7946.0.14",
     "@types/node": "^20.11.19",
-    "@typescript-eslint/eslint-plugin": "^6.3.0",
     "@vitest/coverage-v8": "^2.0.4",
-    "eslint": "^8.47.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.3",
     "path": "^0.12.7",
-    "prettier": "3.0.1",
     "rollup": "^4.14.1",
     "tinybench": "^2.8.0",
     "tslib": "^2.6.1",
@@ -244,10 +236,13 @@
     }
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "prettier --write",
-      "eslint --fix",
-      "git add -A ."
+    "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
+      "biome check --files-ignore-unknown=true",
+      "biome check --write --no-errors-on-unmatched",
+      "biome check --write --organize-imports-enabled=false --no-errors-on-unmatched",
+      "biome check --write --unsafe --no-errors-on-unmatched",
+      "biome format --write --no-errors-on-unmatched",
+      "biome lint --write --no-errors-on-unmatched"
     ]
   }
 }

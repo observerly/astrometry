@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { type HorizontalCoordinate } from './common'
+import type { HorizontalCoordinate } from './common'
 
 import { convertDegreesToRadians as radians } from './utilities'
 
@@ -29,8 +29,8 @@ import { convertDegreesToRadians as radians } from './utilities'
  */
 export const getRefraction = (
   target: HorizontalCoordinate,
-  temperature: number = 283.15,
-  pressure: number = 101325
+  temperature = 283.15,
+  pressure = 101325
 ): number => {
   const { alt } = target
 
@@ -67,8 +67,8 @@ export const getRefraction = (
  */
 export const getCorrectionToHorizontalForRefraction = (
   target: HorizontalCoordinate,
-  temperature: number = 283.15,
-  pressure: number = 101325
+  temperature = 283.15,
+  pressure = 101325
 ): HorizontalCoordinate => {
   const { alt, az } = target
 
