@@ -29,7 +29,8 @@
     "eclipse",
     "conjunction",
     "observer",
-    "observerly"
+    "observerly",
+    "wcs"
   ],
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -199,6 +200,11 @@
       "import": "./dist/twilight.js",
       "require": "./dist/twilight.cjs",
       "types": "./dist/twilight.d.ts"
+    },
+    "./wcs": {
+      "import": "./dist/wcs.js",
+      "require": "./dist/wcs.cjs",
+      "types": "./dist/wcs.d.ts"
     }
   },
   "release": {
