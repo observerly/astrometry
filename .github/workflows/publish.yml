@@ -59,10 +59,3 @@ jobs:
           registry: 'https://registry.npmjs.org/'
           access: 'public'
           token: ${{ secrets.NPM_OBSERVERLY_PUBLIC_TOKEN }}
-
-      - name: Publish to GitHub Packages 📦
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          registry: 'https://npm.pkg.github.com'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          check-version: true
