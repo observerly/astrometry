@@ -6,7 +6,8 @@
 
 /*****************************************************************************************************************/
 
-export type {}
+import type { CartesianCoordinate, EquatorialCoordinate } from './common'
+
 /*****************************************************************************************************************/
 
 // SIP (Simple Imaging Polynomial) is a convention used in FITS (Flexible Image Transport System)
@@ -27,6 +28,85 @@ export type SIP2DParameters = {
 export const parseSIPTerm = (term: string, prefix: 'A' | 'B'): [number, number] | null => {
   const match = term.match(`^${prefix}_(\\d+)_(\\d+)$`)
   return match ? [Number.parseInt(match[1], 10), Number.parseInt(match[2], 10)] : null
+}
+
+/*****************************************************************************************************************/
+
+export type WCS = {
+  /**
+   *
+   *
+   * The central or reference pixel for the WCS, e.g., the central pixel of the image.
+   *
+   *
+   */
+  crpix: CartesianCoordinate
+  /**
+   *
+   *
+   * The central or reference equatorial coordinate for the WCS, corresponding to the pixel at the central reference pixel.
+   *
+   *
+   */
+  crval: EquatorialCoordinate
+  // CD matrix elements for the WCS (correponding to the affine transformation matrix):
+  /**
+   *
+   *
+   * CD Matrix Element 1,1 for the WCS
+   *
+   *
+   */
+  cd11: number
+  /**
+   *
+   *
+   * CD Matrix Element 1,2 for the WCS
+   *
+   *
+   */
+  cd12: number
+  /**
+   *
+   *
+   * CD Matrix Element 2,1 for the WCS
+   *
+   *
+   */
+  cd21: number
+  /**
+   *
+   *
+   * CD Matrix Element 2,2 for the WCS
+   *
+   *
+   */
+  cd22: number
+  /**
+   *
+   *
+   * Constant term for the right ascension (from the Affine transformation matrix)
+   *
+   *
+   */
+  E: number
+  /**
+   *
+   *
+   * Constant term for the declination (from the Affine transformation matrix)
+   *
+   *
+   */
+  F: number
+  // Non-linear correction terms (corresponding to SIP corrections):
+  /**
+   *
+   *
+   * SIP (Simple Imaging Polynomial) parameters for the WCS
+   *
+   *
+   */
+  SIP?: SIP2DParameters
 }
 
 
