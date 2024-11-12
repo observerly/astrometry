@@ -109,5 +109,80 @@ export type WCS = {
   SIP?: SIP2DParameters
 }
 
+/*****************************************************************************************************************/
+
+/**
+ *
+ * convertPixelToWorldCoordinateSystem
+ *
+ * Converts a given image pixel to an equatorial coordinate base on the prescribed WCS
+ *
+ * @param wcs the World Coordinate System (WCS) parameters to use for the conversion
+ * @param pixel the pixel to convert to an equatorial coordinate, e.g., { x: 0, y: 0 }
+ * @returns the equatorial coordinate of a given pixel in the prescribed WCS
+ */
+export const convertPixelToWorldCoordinateSystem = (
+  wcs: WCS,
+  pixel: CartesianCoordinate
+): EquatorialCoordinate => {
+  // Calculate the pixel delta in the X dimension relative to central reference pixel:
+  let deltaX = pixel.x - wcs.crpix.x
+
+  // Calculate the pixel delta in the Y dimension relative to central reference pixel:
+  let deltaY = pixel.y - wcs.crpix.y
+
+  // Initialize SIP correction terms for A and B:
+  let A = 0
+  let B = 0
+
+  // Apply SIP polynomial corrections if SIP parameters are defined
+  if (wcs.SIP) {
+    // Apply A polynomial corrections:
+    for (const term in wcs.SIP.APower) {
+      const coeff = wcs.SIP.APower[term]
+      const indices = parseSIPTerm(term, 'A')
+      if (indices) {
+        const [i, j] = indices
+        A += coeff * deltaX ** i * deltaY ** j
+      }
+    }
+
+    // Apply B polynomial corrections:
+    for (const term in wcs.SIP.BPower) {
+      const coeff = wcs.SIP.BPower[term]
+      const indices = parseSIPTerm(term, 'B')
+      if (indices) {
+        const [i, j] = indices
+        B += coeff * deltaX ** i * deltaY ** j
+      }
+    }
+  }
+
+  // Apply forward SIP transformation to correct for non-linear distortions:
+  deltaX += A
+  deltaY += B
+
+  // Calculate the reference equatorial coordinate for the right ascension:
+  let ra = wcs.cd11 * deltaX + wcs.cd12 * deltaY + wcs.E
+
+  // Correct for large values of RA:
+  ra = ra % 360
+
+  // Correct for negative values of RA:
+  if (ra < 0) {
+    ra += 360
+  }
+
+  // Calculate the reference equatorial coordinate for the declination:
+  let dec = wcs.cd21 * deltaX + wcs.cd22 * deltaY + wcs.F
+
+  // Correct for large values of DEC:
+  dec = dec % 90
+
+  return {
+    ra,
+    dec
+  }
+}
 
 /*****************************************************************************************************************/
