@@ -21,5 +21,13 @@ export type SIP2DParameters = {
   BPower: { [key: string]: number }
 }
 
+/*****************************************************************************************************************/
+
+// Helper function to parse SIP terms like "A_0_1" and extract i, j values
+export const parseSIPTerm = (term: string, prefix: 'A' | 'B'): [number, number] | null => {
+  const match = term.match(`^${prefix}_(\\d+)_(\\d+)$`)
+  return match ? [Number.parseInt(match[1], 10), Number.parseInt(match[2], 10)] : null
+}
+
 
 /*****************************************************************************************************************/
