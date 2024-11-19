@@ -10,11 +10,7 @@ import { getCorrectionToEquatorialForAbberation } from './abberation'
 
 import { getAngularSeparation } from './astrometry'
 
-import type {
-  HorizontalCoordinate,
-  EquatorialCoordinate,
-  GeographicCoordinate
-} from './common'
+import type { EquatorialCoordinate, GeographicCoordinate, HorizontalCoordinate } from './common'
 
 import { convertEquatorialToHorizontal } from './coordinates'
 
@@ -154,7 +150,7 @@ export function getQIndex(
   )
 
   // Convert the target's equatorial coordinates to horizontal coordinates:
-  const { alt: A } = getCorrectionToHorizontalForRefraction(
+  const { alt: a, az: A } = getCorrectionToHorizontalForRefraction(
     convertEquatorialToHorizontal(datetime, observer, {
       ra,
       dec
@@ -180,8 +176,8 @@ export function getQIndex(
       φ: moon.alt
     },
     {
-      θ: sun.az,
-      φ: sun.alt
+      θ: A,
+      φ: a
     }
   )
 
@@ -189,7 +185,7 @@ export function getQIndex(
   return {
     ra,
     dec,
-    Q: q(K, φ, A, sun, moon),
+    Q: q(K, φ, a, sun, moon),
     K,
     φ,
     A,
