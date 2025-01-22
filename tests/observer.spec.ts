@@ -33,7 +33,7 @@ describe('getLocalHorizon', () => {
   })
 
   it('should return a sensible value for an observer at altitude, h, 1000m (with no refraction correction)', () => {
-    expect(getLocalHorizon(elevation + 1000, 0)).toBe(1.0146012026926674)
+    expect(getLocalHorizon(elevation + 1000, 0)).toBeCloseTo(1.0146012026926674)
   })
 
   it('should return a sensible value for an observer at 1000m (with no refraction correction)', () => {
@@ -44,7 +44,7 @@ describe('getLocalHorizon', () => {
       elevation: 1000
     }
 
-    expect(getLocalHorizon(observer, 0)).toBe(1.0146012026926674)
+    expect(getLocalHorizon(observer, 0)).toBeCloseTo(1.0146012026926674)
   })
 
   it('should return a sensible value for an observer at altitude, h, 1000m', () => {

@@ -11,7 +11,7 @@
  * The approximateed average radius of the Earth in meters.
  *
  */
-export const EARTH_RADIUS = 6.378e6 as const
+export const EARTH_RADIUS = 6.3781378e6 as const
 
 /*****************************************************************************************************************/
 
