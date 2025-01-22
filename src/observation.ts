@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { getCorrectionToEquatorialForAnnualAbberation } from './abberation'
+import { getCorrectionToEquatorialForAnnualAberration } from './aberration'
 
 import { getHourAngle } from './astrometry'
 
@@ -141,15 +141,15 @@ export class Observation extends Object {
   }
 
   private setEquatorialCoordinates(target: EquatorialCoordinate) {
-    const abberation = getCorrectionToEquatorialForAnnualAbberation(this.datetime, target)
+    const aberration = getCorrectionToEquatorialForAnnualAberration(this.datetime, target)
 
     const nutation = getCorrectionToEquatorialForNutation(this.datetime, target)
 
     const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(this.datetime, target)
 
-    const α = target.ra + abberation.ra + nutation.ra + precession.ra
+    const α = target.ra + aberration.ra + nutation.ra + precession.ra
 
-    const δ = target.dec + abberation.dec + nutation.dec + precession.dec
+    const δ = target.dec + aberration.dec + nutation.dec + precession.dec
 
     // Ensure the Right Ascension is normalized to the range [0, 360):
     this.ra = getNormalizedAzimuthalDegree(α)

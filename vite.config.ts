@@ -19,7 +19,7 @@ import { resolve } from 'path'
 /*****************************************************************************************************************/
 
 const modules = [
-  'abberation',
+  'aberration',
   'astrometry',
   'common',
   'conjunction',

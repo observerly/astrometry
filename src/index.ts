@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-export * from './abberation'
+export * from './aberration'
 export * from './astrometry'
 export * from './common'
 export * from './conjunction'
