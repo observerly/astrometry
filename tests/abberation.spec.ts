@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, getCorrectionToEquatorialForAnnualAbberation } from '../src'
+import { type EquatorialCoordinate, getCorrectionToEquatorialForAnnualAbberation, getCorrectionToEquatorialForDiurnalAbberation } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -47,6 +47,36 @@ describe('getCorrectionToEquatorialForAnnualAbberation', () => {
     const { ra, dec } = getCorrectionToEquatorialForAnnualAbberation(datetime, betelgeuse)
     expect(ra + betelgeuse.ra).toBe(88.78837512114575)
     expect(dec + betelgeuse.dec).toBe(7.406109156062398)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getCorrectionToEquatorialForDiurnalAbberation', () => {
+  it('should be defined', () => {
+    expect(getCorrectionToEquatorialForDiurnalAbberation).toBeDefined()
+  })
+
+  it('should return the correct abberation correction for the J2000 default epoch', () => {
+    const { ra, dec } = getCorrectionToEquatorialForDiurnalAbberation(
+      new Date('2000-01-01T00:00:00+00:00'),
+      {
+        latitude,
+        longitude
+      },
+      betelgeuse
+    )
+    expect(ra + betelgeuse.ra).toBe(88.79302762705086)
+    expect(dec + betelgeuse.dec).toBe(7.407096948283444)
+  })
+
+  it('should return the correct abberation correction for the designated epoch', () => {
+    const { ra, dec } = getCorrectionToEquatorialForDiurnalAbberation(datetime, {
+      latitude,
+      longitude
+    }, betelgeuse)
+    expect(ra + betelgeuse.ra).toBe(88.79302581496998)
+    expect(dec + betelgeuse.dec).toBe(7.407097343455078)
   })
 })
 

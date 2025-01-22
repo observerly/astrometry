@@ -2,13 +2,15 @@
 
 // @author         Michael Roberts <michael@observerly.com>
 // @package        @observerly/astrometry/abberation
-// @license        Copyright © 2021-2023 observerly
+// @license        Copyright © 2021-2025 observerly
 
 /*****************************************************************************************************************/
 
-import { getObliquityOfTheEcliptic } from './astrometry'
+import { getHourAngle, getObliquityOfTheEcliptic } from './astrometry'
 
-import type { EquatorialCoordinate } from './common'
+import type { EquatorialCoordinate, GeographicCoordinate } from './common'
+
+import { EARTH_RADIUS, c } from './constants'
 
 import { getEccentricityOfOrbit } from './earth'
 
@@ -82,14 +84,14 @@ export const getCorrectionToEquatorialForAnnualAbberation = (
   // Get the true geometric longitude of the sun (in degrees):
   const S = radians(getSolarTrueGeometricLongitude(datetime))
 
-  // Calculate the abberation correction in right ascension (in degrees):
+  // Calculate the abberation correction in right ascension (in radians):
   const Δra =
     -κ * (Math.cos(ra) * Math.cos(S) * Math.cos(ε) + (Math.sin(ra) * Math.sin(S)) / Math.cos(dec)) +
     e *
       κ *
       (Math.cos(ra) * Math.cos(ϖ) * Math.cos(ε) + (Math.sin(ra) * Math.sin(ϖ)) / Math.cos(dec))
 
-  // Calculate the abberation correction in declination (in degrees):
+  // Calculate the abberation correction in declination (in radians):
   const Δdec =
     -κ *
       (Math.cos(S) * Math.cos(ε) * (Math.tan(ε) * Math.cos(dec) - Math.sin(ra) * Math.sin(dec)) +
@@ -98,6 +100,51 @@ export const getCorrectionToEquatorialForAnnualAbberation = (
       κ *
       (Math.cos(ϖ) * Math.cos(ε) * (Math.tan(ε) * Math.cos(dec) - Math.sin(ra) * Math.sin(dec)) +
         Math.cos(ra) * Math.sin(dec) * Math.sin(ϖ))
+
+  return {
+    ra: degrees(Δra),
+    dec: degrees(Δdec)
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getCorrectionToEquatorialForDiurnalAbberation()
+ *
+ * Corrects the equatorial coordinate of a target for abberation in
+ * longitude and obliquity due to the apparent motion of the Earth.
+ *
+ * @param date - The date to correct the equatorial coordinate for.
+ * @param target - The equatorial J2000 coordinate of the target.
+ * @returns The corrected equatorial coordinate of the target.
+ *
+ */
+export const getCorrectionToEquatorialForDiurnalAbberation = (
+  datetime: Date,
+  observer: GeographicCoordinate,
+  target: EquatorialCoordinate
+): EquatorialCoordinate => {
+  const dec = radians(target.dec)
+
+  const phi = radians(observer.latitude)
+
+  // Get the hour angle for the target:
+  const ha = getHourAngle(datetime, observer.longitude, target.ra)
+
+  // Earth's angular velocity (in rad/s):
+  const Ω = 7.292115e-5
+
+  // Calculate the observer's tangential velocity due to Earth's rotation (in m/s):
+  const v = Ω * EARTH_RADIUS * Math.cos(phi)
+
+  // Calculate the abberation correction in right ascension (in radians):
+  const Δra = ((v / c) * (Math.cos(phi) * Math.sin(ha))) / Math.cos(dec)
+
+  // Calculate the abberation correction in declination (in radians):
+  const Δdec =
+    (v / c) * (Math.sin(phi) * Math.cos(dec) - Math.cos(phi) * Math.sin(dec) * Math.cos(ha))
 
   return {
     ra: degrees(Δra),
