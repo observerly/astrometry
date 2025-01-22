@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { getCorrectionToEquatorialForAnnualAbberation } from './abberation'
+import { getCorrectionToEquatorialForAnnualAberration } from './aberration'
 
 import { getAngularSeparation } from './astrometry'
 
@@ -135,18 +135,18 @@ export function getQIndex(
   // Correct the target's equatorial coordinates for the precession of the equinoxes:
   const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, target)
 
-  // Get the correction to the target's equatorial coordinates for abberation:
-  const abberation = getCorrectionToEquatorialForAnnualAbberation(datetime, target)
+  // Get the correction to the target's equatorial coordinates for aberration:
+  const aberration = getCorrectionToEquatorialForAnnualAberration(datetime, target)
 
   // Get the correction to the target's equatorial coordinates for nutation:
   const nutation = getCorrectionToEquatorialForNutation(datetime, target)
 
   // Get the normalized azimuthal of the target:
-  const ra = getNormalizedAzimuthalDegree(target.ra + precession.ra + abberation.ra + nutation.ra)
+  const ra = getNormalizedAzimuthalDegree(target.ra + precession.ra + aberration.ra + nutation.ra)
 
   // Get the normalized declination of the target:
   const dec = getNormalizedInclinationDegree(
-    target.dec + precession.dec + abberation.dec + nutation.dec
+    target.dec + precession.dec + aberration.dec + nutation.dec
   )
 
   // Convert the target's equatorial coordinates to horizontal coordinates:

@@ -41,10 +41,10 @@
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
-    "./abberation": {
-      "import": "./dist/abberation.js",
-      "require": "./dist/abberation.cjs",
-      "types": "./dist/abberation.d.ts"
+    "./aberration": {
+      "import": "./dist/aberration.js",
+      "require": "./dist/aberration.cjs",
+      "types": "./dist/aberration.d.ts"
     },
     "./astrometry": {
       "import": "./dist/astrometry.js",

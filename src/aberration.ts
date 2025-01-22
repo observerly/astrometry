@@ -1,7 +1,7 @@
 /*****************************************************************************************************************/
 
 // @author         Michael Roberts <michael@observerly.com>
-// @package        @observerly/astrometry/abberation
+// @package        @observerly/astrometry/aberration
 // @license        Copyright © 2021-2025 observerly
 
 /*****************************************************************************************************************/
@@ -29,9 +29,9 @@ import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians 
 
 /**
  *
- * getCorrectionToEquatorialForAnnualAbberation()
+ * getCorrectionToEquatorialForAnnualAberration()
  *
- * Corrects the equatorial coordinate of a target for abberation in
+ * Corrects the equatorial coordinate of a target for aberration in
  * longitude and obliquity due to the apparent motion of the Earth.
  *
  * @param date - The date to correct the equatorial coordinate for.
@@ -39,7 +39,7 @@ import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians 
  * @returns The corrected equatorial coordinate of the target.
  *
  */
-export const getCorrectionToEquatorialForAnnualAbberation = (
+export const getCorrectionToEquatorialForAnnualAberration = (
   datetime: Date,
   target: EquatorialCoordinate
 ): EquatorialCoordinate => {
@@ -72,7 +72,7 @@ export const getCorrectionToEquatorialForAnnualAbberation = (
   // Get the true obliquity of the ecliptic (in degrees):
   const ε = radians(getObliquityOfTheEcliptic(datetime) + Δε / 3600)
 
-  // Get the constant of abberation (in degrees):
+  // Get the constant of aberration (in degrees):
   const κ = radians(20.49552 / 3600)
 
   // Get the eccentricity of the Earth's orbit (dimensionless):
@@ -84,14 +84,14 @@ export const getCorrectionToEquatorialForAnnualAbberation = (
   // Get the true geometric longitude of the sun (in degrees):
   const S = radians(getSolarTrueGeometricLongitude(datetime))
 
-  // Calculate the abberation correction in right ascension (in radians):
+  // Calculate the aberration correction in right ascension (in radians):
   const Δra =
     -κ * (Math.cos(ra) * Math.cos(S) * Math.cos(ε) + (Math.sin(ra) * Math.sin(S)) / Math.cos(dec)) +
     e *
       κ *
       (Math.cos(ra) * Math.cos(ϖ) * Math.cos(ε) + (Math.sin(ra) * Math.sin(ϖ)) / Math.cos(dec))
 
-  // Calculate the abberation correction in declination (in radians):
+  // Calculate the aberration correction in declination (in radians):
   const Δdec =
     -κ *
       (Math.cos(S) * Math.cos(ε) * (Math.tan(ε) * Math.cos(dec) - Math.sin(ra) * Math.sin(dec)) +
@@ -111,9 +111,9 @@ export const getCorrectionToEquatorialForAnnualAbberation = (
 
 /**
  *
- * getCorrectionToEquatorialForDiurnalAbberation()
+ * getCorrectionToEquatorialForDiurnalAberration()
  *
- * Corrects the equatorial coordinate of a target for abberation in
+ * Corrects the equatorial coordinate of a target for aberration in
  * longitude and obliquity due to the apparent motion of the Earth.
  *
  * @param date - The date to correct the equatorial coordinate for.
@@ -121,7 +121,7 @@ export const getCorrectionToEquatorialForAnnualAbberation = (
  * @returns The corrected equatorial coordinate of the target.
  *
  */
-export const getCorrectionToEquatorialForDiurnalAbberation = (
+export const getCorrectionToEquatorialForDiurnalAberration = (
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate
@@ -139,10 +139,10 @@ export const getCorrectionToEquatorialForDiurnalAbberation = (
   // Calculate the observer's tangential velocity due to Earth's rotation (in m/s):
   const v = Ω * EARTH_RADIUS * Math.cos(phi)
 
-  // Calculate the abberation correction in right ascension (in radians):
+  // Calculate the aberration correction in right ascension (in radians):
   const Δra = ((v / c) * (Math.cos(phi) * Math.sin(ha))) / Math.cos(dec)
 
-  // Calculate the abberation correction in declination (in radians):
+  // Calculate the aberration correction in declination (in radians):
   const Δdec =
     (v / c) * (Math.sin(phi) * Math.cos(dec) - Math.cos(phi) * Math.sin(dec) * Math.cos(ha))
 
