@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { getCorrectionToEquatorialForAbberation } from './abberation'
+import { getCorrectionToEquatorialForAnnualAbberation } from './abberation'
 
 import { getHourAngle } from './astrometry'
 
@@ -58,7 +58,10 @@ export class Observation extends Object {
 
   public latitude = Number.NEGATIVE_INFINITY
 
-  constructor({ ra = Number.NEGATIVE_INFINITY, dec = Number.NEGATIVE_INFINITY }: EquatorialCoordinate, observer?: Observer) {
+  constructor(
+    { ra = Number.NEGATIVE_INFINITY, dec = Number.NEGATIVE_INFINITY }: EquatorialCoordinate,
+    observer?: Observer
+  ) {
     super()
 
     const { datetime, longitude, latitude } = observer || {
@@ -138,7 +141,7 @@ export class Observation extends Object {
   }
 
   private setEquatorialCoordinates(target: EquatorialCoordinate) {
-    const abberation = getCorrectionToEquatorialForAbberation(this.datetime, target)
+    const abberation = getCorrectionToEquatorialForAnnualAbberation(this.datetime, target)
 
     const nutation = getCorrectionToEquatorialForNutation(this.datetime, target)
 
