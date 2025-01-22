@@ -15,19 +15,19 @@ import { getEccentricityOfOrbit } from './earth'
 import { getJulianDate } from './epoch'
 
 import {
-    getLunarMeanEclipticLongitudeOfTheAscendingNode,
-    getLunarMeanGeometricLongitude
+  getLunarMeanEclipticLongitudeOfTheAscendingNode,
+  getLunarMeanGeometricLongitude
 } from './moon'
 
 import { getSolarMeanGeometricLongitude, getSolarTrueGeometricLongitude } from './sun'
 
-import { convertDegreesToRadians as radians } from './utilities'
+import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
 /**
  *
- * getCorrectionToEquatorialForAbberation()
+ * getCorrectionToEquatorialForAnnualAbberation()
  *
  * Corrects the equatorial coordinate of a target for abberation in
  * longitude and obliquity due to the apparent motion of the Earth.
@@ -37,7 +37,7 @@ import { convertDegreesToRadians as radians } from './utilities'
  * @returns The corrected equatorial coordinate of the target.
  *
  */
-export const getCorrectionToEquatorialForAbberation = (
+export const getCorrectionToEquatorialForAnnualAbberation = (
   datetime: Date,
   target: EquatorialCoordinate
 ): EquatorialCoordinate => {
@@ -71,7 +71,7 @@ export const getCorrectionToEquatorialForAbberation = (
   const ε = radians(getObliquityOfTheEcliptic(datetime) + Δε / 3600)
 
   // Get the constant of abberation (in degrees):
-  const κ = 20.49552
+  const κ = radians(20.49552 / 3600)
 
   // Get the eccentricity of the Earth's orbit (dimensionless):
   const e = getEccentricityOfOrbit(datetime)
@@ -100,8 +100,8 @@ export const getCorrectionToEquatorialForAbberation = (
         Math.cos(ra) * Math.sin(dec) * Math.sin(ϖ))
 
   return {
-    ra: Δra / 3600,
-    dec: Δdec / 3600
+    ra: degrees(Δra),
+    dec: degrees(Δdec)
   }
 }
 

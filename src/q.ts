@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { getCorrectionToEquatorialForAbberation } from './abberation'
+import { getCorrectionToEquatorialForAnnualAbberation } from './abberation'
 
 import { getAngularSeparation } from './astrometry'
 
@@ -136,7 +136,7 @@ export function getQIndex(
   const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, target)
 
   // Get the correction to the target's equatorial coordinates for abberation:
-  const abberation = getCorrectionToEquatorialForAbberation(datetime, target)
+  const abberation = getCorrectionToEquatorialForAnnualAbberation(datetime, target)
 
   // Get the correction to the target's equatorial coordinates for nutation:
   const nutation = getCorrectionToEquatorialForNutation(datetime, target)
