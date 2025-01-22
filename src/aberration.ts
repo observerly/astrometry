@@ -153,3 +153,34 @@ export const getCorrectionToEquatorialForDiurnalAberration = (
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getCorrectionToEquatorialForAberration()
+ *
+ * Corrects the equatorial coordinate of a target for aberration in
+ * longitude and obliquity due to the apparent motion of the Earth.
+ *
+ * @param date - The date to correct the equatorial coordinate for.
+ * @param target - The equatorial J2000 coordinate of the target.
+ * @returns The corrected equatorial coordinate of the target.
+ *
+ */
+export const getCorrectionToEquatorialForAberration = (
+  datetime: Date,
+  observer: GeographicCoordinate,
+  target: EquatorialCoordinate
+): EquatorialCoordinate => {
+  // Get the annual aberration correction:
+  const annual = getCorrectionToEquatorialForAnnualAberration(datetime, target)
+
+  // Get the diurnal aberration correction:
+  const diurnal = getCorrectionToEquatorialForDiurnalAberration(datetime, observer, target)
+
+  return {
+    ra: annual.ra + diurnal.ra,
+    dec: annual.dec + diurnal.dec
+  }
+}
+
+/*****************************************************************************************************************/
