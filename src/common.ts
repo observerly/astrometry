@@ -189,6 +189,16 @@ export type GeographicCoordinate = {
    *
    */
   longitude: number
+  /**
+   *
+   *
+   * The elevation of a geographic coordinate is the distance above sea level of the point
+   * on the Earth's surface, or the height of the point on the Earth's surface above the
+   * surface of the Earth (in SI metres).
+   *
+   *
+   */
+  elevation?: number
 }
 
 /*****************************************************************************************************************/
