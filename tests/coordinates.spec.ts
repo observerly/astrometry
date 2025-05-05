@@ -81,6 +81,12 @@ describe('convertEquatorialToHorizontal', () => {
     // The target should be at the observer's meridian:
     expect(target.az).toBe(270)
   })
+
+  it('should return the correct horizontal coordinate for the star Betelgeuse with an observer elevation greater than 0', () => {
+    const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude, elevation: 100 }, betelgeuse)
+    expect(alt).toBe(73.10623604640716)
+    expect(az).toBe(134.44877920325155)
+  })
 })
 
 /*****************************************************************************************************************/
