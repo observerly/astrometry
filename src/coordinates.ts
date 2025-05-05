@@ -15,6 +15,7 @@ import type {
   GeographicCoordinate,
   HorizontalCoordinate
 } from './common'
+import { EARTH_RADIUS } from './constants'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
@@ -123,11 +124,13 @@ export const convertGalacticToEquatorial = (target: GalacticCoordinate): Equator
 export const convertEquatorialToHorizontal = (
   datetime: Date,
   observer: GeographicCoordinate,
-  target: EquatorialCoordinate
+  target: EquatorialCoordinate & { distance?: number }
 ): HorizontalCoordinate => {
-  const { latitude, longitude } = observer
+  const { latitude, longitude, elevation = 0 } = observer
 
   const declination = radians(target.dec)
+
+  const R = EARTH_RADIUS
 
   // Divide-by-zero errors can occur when we have cos(90), and sin(0)/sin(180) etc
   // cosine: multiples of π/2
@@ -167,9 +170,25 @@ export const convertEquatorialToHorizontal = (
     )
   )
 
+  let p = 0
+
+  if (target.distance !== undefined && target.distance > 0) {
+    // For nearby objects, horizontal parallax (p) is approximated as R/target.distance (in radians)
+    p = R / target.distance
+  }
+
+  // Calculate the topocentric correction for the altitude of the target:
+  const topocentricCorrection: HorizontalCoordinate = {
+    alt: p * Math.cos(altitude) * Math.cos(azimuth),
+    az: (-p * Math.sin(azimuth)) / Math.cos(altitude)
+  }
+
   return {
-    alt: degrees(altitude),
-    az: Math.sin(ha) > 0 ? 360 - degrees(azimuth) : degrees(azimuth)
+    alt: degrees(altitude + Math.sqrt((2 * elevation) / R)) + topocentricCorrection.alt,
+    az:
+      Math.sin(ha) > 0
+        ? 360 - degrees(azimuth + topocentricCorrection.az)
+        : degrees(azimuth + topocentricCorrection.az)
   }
 }
 
