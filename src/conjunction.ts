@@ -17,10 +17,12 @@ import type {
 
 import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
 
+import { getLunarEquatorialCoordinate } from './moon'
+
 import {
+  type Planet,
   getPlanetaryGeocentricEclipticCoordinate,
-  getPlanetaryPositions,
-  type Planet
+  getPlanetaryPositions
 } from './planets'
 
 /*****************************************************************************************************************/
@@ -370,6 +372,142 @@ export const findPlanetaryConjunctions = (
         // and the conjunction is the closest one found so far:
         if (
           separation <= angularSeparationThreshold &&
+          // biome-ignore lint/style/noNonNullAssertion: This is a false positive. The conjunctions map is initialized above.
+          (!conjunctions.has(key) || conjunctions.get(key)!.angularSeparation > separation)
+        ) {
+          const conjunction: Conjunction = {
+            datetime: from,
+            targets: [alterior, ulterior],
+            angularSeparation: separation,
+            ra: (alterior.ra + ulterior.ra) / 2,
+            dec: (alterior.dec + ulterior.dec) / 2
+          }
+
+          conjunctions.set(key, conjunction)
+        }
+      }
+    }
+
+    // Increment the from date by the step size:
+    from = new Date(from.getTime() + stepMinutes * 60000)
+  }
+
+  return conjunctions
+}
+
+/*****************************************************************************************************************/
+
+/**
+ * findConjunctions
+ *
+ * Finds all conjunctions of the planets, Spica, Regulus and the Moon within a given time interval,
+ * returning only those that are inconjunction with each other (as determined by the angular
+ * separation threshold).
+ *
+ * @param interval - The interval to search for the initial conjunction.
+ * @param observer - The geographic coordinate of the observer.
+ * @param horizon - The minimum altitude of the planets above the horizon.
+ * @param angularSeparationThreshold - The minimum angular separation for conjunction.
+ * @param stepMinutes - The step size in minutes for checking conjunction.
+ * @returns An array of conjunctions found.
+ *
+ */
+export const findConjunctions = (
+  interval: Interval,
+  observer: GeographicCoordinate,
+  params: {
+    horizon?: number // six degrees above the horizon
+    angularSeparationThreshold?: number // three degrees of separation
+    stepMinutes?: number // check every 1/3 hour
+  } = {
+    horizon: 6,
+    angularSeparationThreshold: ANGULAR_SEPARATION_THRESHOLD,
+    stepMinutes: 20
+  }
+): Map<string, Conjunction> => {
+  // A conjunction is a close apparent approach of two celestial objects in the sky.
+  const conjunctions = new Map<string, Conjunction>()
+
+  /*eslint prefer-const: ["error", {"destructuring": "all"}]*/
+  let { from, to } = interval
+
+  const {
+    horizon = 6,
+    angularSeparationThreshold = ANGULAR_SEPARATION_THRESHOLD,
+    stepMinutes = 20
+  } = params
+
+  // Spica is close to the ecliptic, so we know that we may see it close to a planet:
+  // We are using the J2000.0 coordinates for Spica, we therefore need to convert them to the current epoch:
+  const spica = {
+    ra: 201.298,
+    dec: -11.1613
+  }
+
+  // Regulus is close to the ecliptic, so we know that we may see it close to a planet:
+  // We are using the J2000.0 coordinates for Regulus, we therefore need to convert them to the current epoch:
+  const regulus = {
+    ra: 152.093,
+    dec: 11.9672
+  }
+
+  while (from <= to) {
+    const moon = getLunarEquatorialCoordinate(from)
+
+    // Collate the positions of all planets other than Earth and those below the horizon in the sky:
+    // N.B. They may be in conjunction, but they won't be visible to our local observer if they are
+    // below the horizon.
+    const positions = [
+      ...getPlanetaryPositions(from, observer),
+      {
+        name: 'Moon',
+        ...moon,
+        ...convertEquatorialToHorizontal(from, observer, moon)
+      },
+      {
+        name: 'Spica',
+        ...spica,
+        ...convertEquatorialToHorizontal(from, observer, spica)
+      },
+      {
+        name: 'Regulus',
+        ...regulus,
+        ...convertEquatorialToHorizontal(from, observer, regulus)
+      }
+    ]
+
+    // Loop over all pairs of planets and check for conjunctions:
+    for (let i = 0; i < positions.length; i++) {
+      for (let j = i + 1; j < positions.length; j++) {
+        // If either of the planets is below the horizon, skip this pair:
+        if (positions[i].alt < horizon || positions[j].alt < horizon) continue
+
+        // Get the positions of the two planets:
+        const alterior = positions[i]
+        const ulterior = positions[j]
+
+        // Create a unique key for the conjunction between the two planets, sorted by name:
+        const key = [alterior.name, ulterior.name].sort().join('-')
+
+        // Check for a conjunction between the two planets by comparing their angular separation:
+        const separation = getAngularSeparation(
+          {
+            θ: positions[i].alt,
+            φ: positions[i].az
+          },
+          {
+            θ: positions[j].alt,
+            φ: positions[j].az
+          }
+        )
+
+        // Update the conjunction if the angular separation is less than the threshold,
+        // and the conjunction is the closest one found so far:
+        if (
+          isConjunction(from, [alterior, ulterior], {
+            horizon,
+            angularSeparationThreshold
+          }) &&
           // biome-ignore lint/style/noNonNullAssertion: This is a false positive. The conjunctions map is initialized above.
           (!conjunctions.has(key) || conjunctions.get(key)!.angularSeparation > separation)
         ) {
