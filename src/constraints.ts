@@ -155,3 +155,75 @@ export class TargetAltitudeConstraint extends Constraint {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * The parameters model for a { SunAltitudeConstraint }.
+ *
+ */
+export type SunAltitudeConstraintParameters = {
+  /**
+   *
+   * The maximum altitude (in degrees) of the Sun for the observation to be dark enough. The Sun must
+   * be at or below this altitude (e.g. -18° for astronomical darkness) for the observation to begin.
+   *
+   */
+  maximum?: number
+  /**
+   *
+   * The minimum altitude (in degrees) of the Sun at which the score is maximal (the Sun at its
+   * deepest below the horizon).
+   *
+   */
+  minimum?: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class SunAltitudeConstraint
+ *
+ * @description A constraint on the altitude of the Sun below the observer's horizon. The Sun must be
+ * at or below a maximum altitude (e.g. -18° for astronomical darkness) for the observation to be
+ * possible; the score then increases the deeper the Sun sinks, reaching 1 at the minimum altitude.
+ *
+ * Note that, unlike the target, a lower Sun altitude scores higher.
+ *
+ *
+ */
+export class SunAltitudeConstraint extends Constraint {
+  public readonly name = 'sun-altitude'
+
+  // A Sun above the maximum altitude (i.e. not dark enough) is unobservable, so this is a hard
+  // constraint:
+  public required = true
+
+  // The maximum altitude (in degrees) of the Sun for the observation to be dark enough:
+  public maximum = -18
+
+  // The minimum altitude (in degrees) of the Sun at which the score is maximal:
+  public minimum = -90
+
+  constructor({ maximum = -18, minimum = -90 }: SunAltitudeConstraintParameters = {}) {
+    super()
+    this.maximum = maximum
+    this.minimum = minimum
+  }
+
+  public score({ sun }: ConstraintContext): ConstraintScore {
+    // Above the maximum altitude it is not dark enough to observe:
+    if (sun.alt > this.maximum) {
+      return -1
+    }
+
+    // Otherwise the score increases linearly from -1 at the maximum altitude to 1 at the minimum
+    // altitude, clamped to 1 for a Sun below the minimum:
+    const score = (2 * (this.maximum - sun.alt)) / (this.maximum - this.minimum) - 1
+
+    return Math.min(1, score)
+  }
+}
+
+/*****************************************************************************************************************/
