@@ -294,3 +294,83 @@ export class IsNight extends Constraint {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * The parameters model for a { MoonAltitudeConstraint }.
+ *
+ */
+export type MoonAltitudeConstraintParameters = {
+  /**
+   *
+   * The altitude (in degrees) at or below which the Moon causes no interference (the score is
+   * maximal). Defaults to the horizon (0°).
+   *
+   */
+  minimum?: number
+  /**
+   *
+   * The altitude (in degrees) at which the Moon causes the most interference (the score is minimal).
+   * Defaults to the zenith (90°).
+   *
+   */
+  maximum?: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class MoonAltitudeConstraint
+ *
+ * @description A constraint on the altitude of the Moon above the observer's horizon. The Moon
+ * interferes with an observation in proportion to how high it sits: the score is maximal (1) when the
+ * Moon is at or below the horizon and decreases linearly to its minimum (-1) at the zenith.
+ *
+ * This is a soft constraint by default (a Moon above the horizon degrades, but does not preclude, an
+ * observation).
+ *
+ *
+ */
+export class MoonAltitudeConstraint extends Constraint {
+  public readonly name = 'moon-altitude'
+
+  // The altitude (in degrees) at or below which the Moon causes no interference:
+  public minimum = 0
+
+  // The altitude (in degrees) at which the Moon causes the most interference:
+  public maximum = 90
+
+  constructor({ minimum = 0, maximum = 90 }: MoonAltitudeConstraintParameters = {}) {
+    super()
+
+    if (minimum < -90 || minimum > 90 || maximum < -90 || maximum > 90) {
+      throw new Error(
+        'Invalid altitude bounds: minimum and maximum must be within [-90, 90] degrees'
+      )
+    }
+
+    if (maximum <= minimum) {
+      throw new Error('Invalid altitude bounds: maximum must be greater than minimum')
+    }
+
+    this.minimum = minimum
+    this.maximum = maximum
+  }
+
+  public score({ moon }: ConstraintContext): ConstraintScore {
+    // At or below the minimum altitude the Moon causes no interference:
+    if (moon.alt <= this.minimum) {
+      return 1
+    }
+
+    // Otherwise the score decreases linearly from 1 at the minimum altitude to -1 at the maximum
+    // altitude, clamped to -1 for a Moon above the maximum:
+    const score = 1 - (2 * (moon.alt - this.minimum)) / (this.maximum - this.minimum)
+
+    return Math.max(-1, score)
+  }
+}
+
+/*****************************************************************************************************************/
