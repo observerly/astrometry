@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, getQIndex, q } from '../src'
+import { type EquatorialCoordinate, getObservationalQuality, getQIndex, q } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -117,6 +117,72 @@ describe('getQIndex', () => {
     expect(q.Q).toBeLessThanOrEqual(1)
 
     console.log('Q Index', q.Q)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getObservationalQuality', () => {
+  it('should be defined', () => {
+    expect(getObservationalQuality).toBeDefined()
+  })
+
+  it('should return 1 for the best possible set of conditions', () => {
+    // Dark Moon, antipodal and below the horizon, target at the zenith, Sun deep below the horizon:
+    const Q = getObservationalQuality(0, 180, 90, { az: 0, alt: -90 }, { az: 0, alt: -90 })
+    expect(Q).toBe(1)
+  })
+
+  it('should return -1 (via the gate) when the target is below the minimum altitude', () => {
+    const Q = getObservationalQuality(100, 0, 5.99, { az: 0, alt: -30 }, { az: 180, alt: 45 })
+    expect(Q).toBe(-1)
+  })
+
+  it('should return -1 (via the gate) when the Sun is above astronomical twilight', () => {
+    const Q = getObservationalQuality(0, 180, 45, { az: 0, alt: -17.99 }, { az: 0, alt: -90 })
+    expect(Q).toBe(-1)
+  })
+
+  it('should return -1 continuously at the worst observable conditions (no cliff)', () => {
+    // Full Moon on the target and above the horizon, target at the minimum altitude, Sun at -18:
+    const Q = getObservationalQuality(100, 0, 6, { az: 0, alt: -18 }, { az: 0, alt: 45 })
+    expect(Q).toBeCloseTo(-1)
+  })
+
+  it('should reach values inside the (-1, -1/3) band that q() cannot', () => {
+    const Q = getObservationalQuality(100, 0, 20, { az: 0, alt: -30 }, { az: 0, alt: 45 })
+    expect(Q).toBeGreaterThan(-1)
+    expect(Q).toBeLessThan(-1 / 3)
+  })
+
+  it('should score a brighter Moon no better than a dimmer one (monotonic in illumination)', () => {
+    const sun = { az: 0, alt: -30 }
+    const moon = { az: 0, alt: 45 }
+    const bright = getObservationalQuality(100, 30, 45, sun, moon)
+    const dim = getObservationalQuality(10, 30, 45, sun, moon)
+    expect(bright).toBeLessThan(dim)
+  })
+
+  it('should ignore the Moon entirely when it is below the horizon', () => {
+    const sun = { az: 0, alt: -30 }
+    const fullMoonUp = getObservationalQuality(100, 0, 45, sun, { az: 0, alt: 45 })
+    const fullMoonDown = getObservationalQuality(100, 0, 45, sun, { az: 0, alt: -1 })
+    expect(fullMoonDown).toBeGreaterThan(fullMoonUp)
+  })
+
+  const cases = [
+    { K: 100, φ: 0, A: 6, alt: -18 },
+    { K: 80, φ: 45, A: 45, alt: -30 },
+    { K: 40, φ: 90, A: 60, alt: -45 },
+    { K: 0, φ: 180, A: 90, alt: -90 }
+  ]
+
+  cases.forEach(({ K, φ, A, alt }) => {
+    it(`should return a value within [-1, 1] for K=${K}, φ=${φ}, A=${A}, alt=${alt}`, () => {
+      const Q = getObservationalQuality(K, φ, A, { az: 0, alt }, { az: 270, alt: 18 })
+      expect(Q).toBeGreaterThanOrEqual(-1)
+      expect(Q).toBeLessThanOrEqual(1)
+    })
   })
 })
 

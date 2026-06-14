@@ -116,6 +116,73 @@ export const q = (
 
 /**
  *
+ * getObservationalQuality()
+ *
+ * @brief A corrected, continuous measure of the observational quality of an observation, in the
+ * range [-1, 1], where 1 is the best possible quality and -1 is the worst.
+ *
+ * Like q() it is the mean of three components — the Moon, the target's altitude, and the Sun's
+ * altitude — but, unlike q(), every component spans the full [-1, 1] range and is continuous, so:
+ *
+ *  - the index spans the whole [-1, 1] range without the unreachable band that q() has, and
+ *  - the Moon component is monotonic: a brighter and/or closer Moon always lowers the score (q()
+ *    inverts this around 25% illumination).
+ *
+ * @param K - The Moon's illuminated fraction, as a percentage in [0, 100].
+ * @param φ - The angular separation between the Moon and the target, in degrees [0, 180].
+ * @param A - The altitude of the target, in degrees [-90, 90].
+ * @param sun - The horizontal coordinate of the Sun.
+ * @param moon - The horizontal coordinate of the Moon.
+ * @returns The observational quality index, a value between -1 and 1.
+ */
+export const getObservationalQuality = (
+  K: number,
+  φ: number,
+  A: number,
+  sun: HorizontalCoordinate,
+  moon: HorizontalCoordinate
+): number => {
+  // The minimum altitude (in degrees) at which we consider the target observable:
+  const MINIMUM_TARGET_ALTITUDE = 6
+
+  // The maximum altitude (in degrees) of the Sun for astronomical darkness:
+  const MAXIMUM_SUN_ALTITUDE = -18
+
+  // If the target is below the minimum altitude, or the Sun is above the astronomical
+  // twilight threshold (i.e. it is not astronomical night), the quality is the worst:
+  if (A < MINIMUM_TARGET_ALTITUDE || sun.alt > MAXIMUM_SUN_ALTITUDE) {
+    return -1
+  }
+
+  // Moon quality (MQ): the Moon degrades the sky in proportion to both its illuminated
+  // fraction and its proximity to the target. A Moon that is both bright and close is the
+  // worst case; a dim and/or distant Moon (or one below the horizon) has no impact:
+  const illumination = K / 100
+
+  const proximity = 1 - φ / 180
+
+  const interference = moon.alt > 0 ? illumination * proximity : 0
+
+  const MQ = 1 - 2 * interference
+
+  // Target quality (TQ): higher targets are better, mapped linearly from the minimum
+  // observable altitude (-1) to the zenith (+1):
+  const TQ = (2 * (A - MINIMUM_TARGET_ALTITUDE)) / (90 - MINIMUM_TARGET_ALTITUDE) - 1
+
+  // Sun quality (SQ): the deeper the Sun is below the astronomical twilight threshold the
+  // better, mapped linearly from -18° (-1) to -90° (+1):
+  const darkness = -sun.alt
+
+  const SQ = (2 * (darkness + MAXIMUM_SUN_ALTITUDE)) / (90 + MAXIMUM_SUN_ALTITUDE) - 1
+
+  // The quality index is the mean of the three components, spanning the full [-1, 1] range:
+  return (MQ + TQ + SQ) / 3
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * getQIndex()
  *
  * @brief The Q index is a measure of the quality of the an observation, which takes into account the
