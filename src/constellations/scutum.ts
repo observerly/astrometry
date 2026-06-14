@@ -2,7 +2,7 @@
 
 // @author         Michael Roberts <michael@observerly.com>
 // @package        @observerly/astrometry/scutum
-// @license        Copyright © 2021-2024 observerly
+// @license        Copyright © 2021-2026 observerly
 
 /*****************************************************************************************************************/
 

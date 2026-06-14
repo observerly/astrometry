@@ -2,7 +2,7 @@
 
 // @author         Michael Roberts <michael@observerly.com>
 // @package        @observerly/astrometry/aberration
-// @license        Copyright © 2021-2025 observerly
+// @license        Copyright © 2021-2026 observerly
 
 /*****************************************************************************************************************/
 

@@ -2,7 +2,7 @@
 
 // @author         Michael Roberts <michael@observerly.com>
 // @package        @observerly/astrometry/sun
-// @license        Copyright © 2021-2023 observerly
+// @license        Copyright © 2021-2026 observerly
 
 /*****************************************************************************************************************/
 
