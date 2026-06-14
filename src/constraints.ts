@@ -136,6 +136,17 @@ export class TargetAltitudeConstraint extends Constraint {
 
   constructor({ minimum = 6, maximum = 90 }: TargetAltitudeConstraintParameters = {}) {
     super()
+
+    if (minimum < -90 || minimum > 90 || maximum < -90 || maximum > 90) {
+      throw new Error(
+        'Invalid altitude bounds: minimum and maximum must be within [-90, 90] degrees'
+      )
+    }
+
+    if (maximum <= minimum) {
+      throw new Error('Invalid altitude bounds: maximum must be greater than minimum')
+    }
+
     this.minimum = minimum
     this.maximum = maximum
   }
@@ -208,6 +219,17 @@ export class SunAltitudeConstraint extends Constraint {
 
   constructor({ maximum = -18, minimum = -90 }: SunAltitudeConstraintParameters = {}) {
     super()
+
+    if (minimum < -90 || minimum > 90 || maximum < -90 || maximum > 90) {
+      throw new Error(
+        'Invalid altitude bounds: minimum and maximum must be within [-90, 90] degrees'
+      )
+    }
+
+    if (maximum <= minimum) {
+      throw new Error('Invalid altitude bounds: maximum must be greater than minimum')
+    }
+
     this.maximum = maximum
     this.minimum = minimum
   }
