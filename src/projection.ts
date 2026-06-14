@@ -160,3 +160,53 @@ export const convertHorizontalToPolar = (
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * convertPolarToHorizontal()
+ *
+ * Performs the inverse of the azimuthal equidistant ("polar") projection,
+ * converting a Cartesian Coordinate { x, y } on the projected "canvas" back to
+ * the Horizontal Coordinate { alt, az } it represents.
+ *
+ * @param cartesianCoordinate the { x, y } position of a particular point to transform.
+ * @param extent the width and height of the projected "canvas".
+ * @param focus a scaling factor for the radial extent of the projection.
+ * @returns the Horizontal Coordinate { alt, az } conversion from the polar projection
+ */
+export const convertPolarToHorizontal = (
+  cartesianCoordinate: CartesianCoordinate,
+  extent: { width: number; height: number },
+  focus = 0.42
+): HorizontalCoordinate => {
+  const { x, y } = cartesianCoordinate
+
+  const { width, height } = extent
+
+  const f = focus
+
+  // The offset from the center of the projection, where the zenith resides:
+  const X = x - width / 2
+
+  const Y = y - height / 2
+
+  // The radial distance from the center of the projection:
+  const r = Math.sqrt(X ** 2 + Y ** 2)
+
+  // Invert the radial distance to recover the zenith distance (in radians):
+  const z = (r * Math.PI) / (2 * f * height)
+
+  // The altitude is the complement of the zenith distance:
+  const alt = 90 - degrees(z)
+
+  // Recover the azimuth from the angular component, undoing the π offset that
+  // was applied in the forward projection:
+  const az = degrees(Math.atan2(X, Y) + Math.PI)
+
+  return {
+    az: az,
+    alt: alt
+  }
+}
+
+/*****************************************************************************************************************/
