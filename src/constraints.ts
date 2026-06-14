@@ -88,3 +88,70 @@ export abstract class Constraint {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * The parameters model for a { TargetAltitudeConstraint }.
+ *
+ */
+export type TargetAltitudeConstraintParameters = {
+  /**
+   *
+   * The minimum altitude (in degrees) at which the target is considered observable.
+   *
+   */
+  minimum?: number
+  /**
+   *
+   * The maximum altitude (in degrees) at which the target's score is maximal.
+   *
+   */
+  maximum?: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class TargetAltitudeConstraint
+ *
+ * @description A constraint on the altitude of the target above the observer's horizon. The target
+ * must be at or above a minimum altitude to be observable; the score then increases linearly with
+ * altitude up to a maximum altitude (the zenith by default), where it reaches 1.
+ *
+ *
+ */
+export class TargetAltitudeConstraint extends Constraint {
+  public readonly name = 'target-altitude'
+
+  // A target below the minimum altitude is unobservable, so this is a hard constraint:
+  public required = true
+
+  // The minimum altitude (in degrees) at which the target is considered observable:
+  public minimum = 6
+
+  // The maximum altitude (in degrees) at which the target's score is maximal:
+  public maximum = 90
+
+  constructor({ minimum = 6, maximum = 90 }: TargetAltitudeConstraintParameters = {}) {
+    super()
+    this.minimum = minimum
+    this.maximum = maximum
+  }
+
+  public score({ target }: ConstraintContext): ConstraintScore {
+    // Below the minimum altitude the target is unobservable:
+    if (target.alt < this.minimum) {
+      return -1
+    }
+
+    // Otherwise the score increases linearly from -1 at the minimum altitude to 1 at the maximum
+    // altitude, clamped to 1 for targets above the maximum:
+    const score = (2 * (target.alt - this.minimum)) / (this.maximum - this.minimum) - 1
+
+    return Math.min(1, score)
+  }
+}
+
+/*****************************************************************************************************************/
