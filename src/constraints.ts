@@ -227,3 +227,48 @@ export class SunAltitudeConstraint extends Constraint {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class IsNight
+ *
+ * @description A convenience constraint that is satisfied when it is astronomical night, i.e. the
+ * Sun is at or below -18° below the horizon (Twilight.Night). It wraps a { SunAltitudeConstraint }
+ * pre-configured with sensible night defaults, and accepts the same parameters should a different
+ * darkness threshold be required.
+ *
+ *
+ */
+export class IsNight extends Constraint {
+  public readonly name = 'is-night'
+
+  // It is not night (and so unobservable) when the Sun is above the threshold, so this is a hard
+  // constraint:
+  public required = true
+
+  // The underlying Sun altitude constraint, pre-configured for astronomical night:
+  private readonly constraint: SunAltitudeConstraint
+
+  constructor(parameters: SunAltitudeConstraintParameters = {}) {
+    super()
+    // Astronomical night is the Sun at or below -18° (Twilight.Night) by default:
+    this.constraint = new SunAltitudeConstraint({ maximum: -18, minimum: -90, ...parameters })
+  }
+
+  // The maximum altitude (in degrees) of the Sun for it to be considered night:
+  public get maximum(): number {
+    return this.constraint.maximum
+  }
+
+  // The minimum altitude (in degrees) of the Sun at which the score is maximal:
+  public get minimum(): number {
+    return this.constraint.minimum
+  }
+
+  public score(context: ConstraintContext): ConstraintScore {
+    return this.constraint.score(context)
+  }
+}
+
+/*****************************************************************************************************************/

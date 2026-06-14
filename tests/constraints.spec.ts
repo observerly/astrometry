@@ -10,7 +10,13 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type ConstraintContext, SunAltitudeConstraint, TargetAltitudeConstraint } from '../src'
+import {
+  Constraint,
+  type ConstraintContext,
+  IsNight,
+  SunAltitudeConstraint,
+  TargetAltitudeConstraint
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -147,6 +153,51 @@ describe('SunAltitudeConstraint', () => {
       expect(score).toBeGreaterThanOrEqual(-1)
       expect(score).toBeLessThanOrEqual(1)
     }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('IsNight', () => {
+  it('should be defined', () => {
+    expect(IsNight).toBeDefined()
+  })
+
+  it('should be a Constraint', () => {
+    expect(new IsNight()).toBeInstanceOf(Constraint)
+  })
+
+  it('should be named "is-night"', () => {
+    expect(new IsNight().name).toBe('is-night')
+  })
+
+  it('should default to astronomical night (Sun at or below -18°)', () => {
+    const constraint = new IsNight()
+    expect(constraint.maximum).toBe(-18)
+    expect(constraint.minimum).toBe(-90)
+  })
+
+  it('should be a required (hard) constraint by default', () => {
+    expect(new IsNight().required).toBe(true)
+  })
+
+  it('should not be satisfied during twilight (Sun above -18°)', () => {
+    const constraint = new IsNight()
+    expect(constraint.score(sunAt(-17))).toBe(-1)
+    expect(constraint.isSatisfiedBy(sunAt(-17))).toBe(false)
+  })
+
+  it('should be satisfied at astronomical night (Sun below -18°)', () => {
+    const constraint = new IsNight()
+    expect(constraint.isSatisfiedBy(sunAt(-19))).toBe(true)
+    expect(constraint.score(sunAt(-90))).toBeCloseTo(1)
+  })
+
+  it('should accept an overridden darkness threshold', () => {
+    const constraint = new IsNight({ maximum: -12 })
+    expect(constraint.maximum).toBe(-12)
+    expect(constraint.isSatisfiedBy(sunAt(-13))).toBe(true)
+    expect(constraint.score(sunAt(-11))).toBe(-1)
   })
 })
 
