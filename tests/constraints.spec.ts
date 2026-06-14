@@ -85,6 +85,21 @@ describe('TargetAltitudeConstraint', () => {
       expect(score).toBeLessThanOrEqual(1)
     }
   })
+
+  it('should throw when an altitude bound is outside [-90, 90]', () => {
+    expect(() => new TargetAltitudeConstraint({ maximum: 120 })).toThrow()
+    expect(() => new TargetAltitudeConstraint({ minimum: -100 })).toThrow()
+  })
+
+  it('should throw when the maximum is not greater than the minimum', () => {
+    expect(() => new TargetAltitudeConstraint({ minimum: 50, maximum: 50 })).toThrow()
+    expect(() => new TargetAltitudeConstraint({ minimum: 60, maximum: 30 })).toThrow()
+  })
+
+  it('should not throw for valid bounds', () => {
+    expect(() => new TargetAltitudeConstraint()).not.toThrow()
+    expect(() => new TargetAltitudeConstraint({ minimum: 20, maximum: 80 })).not.toThrow()
+  })
 })
 
 /*****************************************************************************************************************/
@@ -153,6 +168,21 @@ describe('SunAltitudeConstraint', () => {
       expect(score).toBeGreaterThanOrEqual(-1)
       expect(score).toBeLessThanOrEqual(1)
     }
+  })
+
+  it('should throw when an altitude bound is outside [-90, 90]', () => {
+    expect(() => new SunAltitudeConstraint({ maximum: 120 })).toThrow()
+    expect(() => new SunAltitudeConstraint({ minimum: -100 })).toThrow()
+  })
+
+  it('should throw when the maximum is not greater than the minimum', () => {
+    expect(() => new SunAltitudeConstraint({ maximum: -18, minimum: -18 })).toThrow()
+    expect(() => new SunAltitudeConstraint({ maximum: -90, minimum: -18 })).toThrow()
+  })
+
+  it('should not throw for valid bounds', () => {
+    expect(() => new SunAltitudeConstraint()).not.toThrow()
+    expect(() => new SunAltitudeConstraint({ maximum: -12, minimum: -90 })).not.toThrow()
   })
 })
 
