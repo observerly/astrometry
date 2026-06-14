@@ -10,7 +10,11 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { convertHorizontalToStereo, convertStereoToHorizontal } from '../src'
+import {
+  convertHorizontalToPolar,
+  convertHorizontalToStereo,
+  convertStereoToHorizontal
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -59,6 +63,48 @@ describe('convertStereoToHorizontal', () => {
 
     expect(az).toBeCloseTo(180)
     expect(alt).toBeCloseTo(61.525439)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertHorizontalToPolar', () => {
+  it('should be defined', () => {
+    expect(convertHorizontalToPolar).toBeDefined()
+  })
+
+  it('should map the zenith to the center of the projection', () => {
+    const { x, y } = convertHorizontalToPolar(
+      {
+        az: 0,
+        alt: 90
+      },
+      {
+        width: 2000,
+        height: 2000
+      },
+      0.42
+    )
+
+    expect(x).toBeCloseTo(1000)
+    expect(y).toBeCloseTo(1000)
+  })
+
+  it('should return the correct Cartesian Coordinate { x, y } conversion to the polar projection', () => {
+    const { x, y } = convertHorizontalToPolar(
+      {
+        az: 180,
+        alt: 45
+      },
+      {
+        width: 2000,
+        height: 2000
+      },
+      0.42
+    )
+
+    expect(x).toBeCloseTo(1000)
+    expect(y).toBeCloseTo(1420)
   })
 })
 
