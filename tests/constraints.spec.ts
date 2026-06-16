@@ -15,6 +15,7 @@ import {
   type ConstraintContext,
   IsNight,
   MoonAltitudeConstraint,
+  MoonIlluminationConstraint,
   MoonSeparationConstraint,
   SunAltitudeConstraint,
   TargetAltitudeConstraint
@@ -396,6 +397,81 @@ describe('MoonSeparationConstraint', () => {
     const constraint = new MoonSeparationConstraint()
     for (let separation = 0; separation <= 180; separation += 1) {
       const score = constraint.score(moonSeparationContext(separation, 100))
+      expect(score).toBeGreaterThanOrEqual(-1)
+      expect(score).toBeLessThanOrEqual(1)
+    }
+  })
+})
+
+/*****************************************************************************************************************/
+
+// A baseline context for the Moon illumination tests, varying the Moon's illuminated fraction and
+// the Moon's altitude:
+const moonIlluminationContext = (illumination: number, alt = 45): ConstraintContext => ({
+  target: { az: 0, alt: 45 },
+  sun: { az: 0, alt: -90 },
+  moon: { az: 0, alt },
+  illumination,
+  separation: 0
+})
+
+/*****************************************************************************************************************/
+
+describe('MoonIlluminationConstraint', () => {
+  it('should be defined', () => {
+    expect(MoonIlluminationConstraint).toBeDefined()
+  })
+
+  it('should be a soft (not required) constraint by default', () => {
+    expect(new MoonIlluminationConstraint().required).toBe(false)
+  })
+
+  it('should return 1 when the Moon is below the horizon, regardless of illumination', () => {
+    const constraint = new MoonIlluminationConstraint()
+    expect(constraint.score(moonIlluminationContext(100, -1))).toBe(1)
+  })
+
+  it('should return 1 for a new (dark) Moon', () => {
+    const constraint = new MoonIlluminationConstraint()
+    expect(constraint.score(moonIlluminationContext(0))).toBeCloseTo(1)
+  })
+
+  it('should return -1 for a full Moon', () => {
+    const constraint = new MoonIlluminationConstraint()
+    expect(constraint.score(moonIlluminationContext(100))).toBeCloseTo(-1)
+  })
+
+  it('should return 0 for a half-illuminated Moon', () => {
+    const constraint = new MoonIlluminationConstraint()
+    expect(constraint.score(moonIlluminationContext(50))).toBeCloseTo(0)
+  })
+
+  it('should honour custom illumination bounds', () => {
+    const constraint = new MoonIlluminationConstraint({ minimum: 20, maximum: 80 })
+    expect(constraint.score(moonIlluminationContext(20))).toBeCloseTo(1)
+    expect(constraint.score(moonIlluminationContext(80))).toBeCloseTo(-1)
+    expect(constraint.score(moonIlluminationContext(10))).toBeCloseTo(1)
+  })
+
+  it('should throw when an illumination bound is outside [0, 100]', () => {
+    expect(() => new MoonIlluminationConstraint({ maximum: 120 })).toThrow()
+    expect(() => new MoonIlluminationConstraint({ minimum: -10 })).toThrow()
+  })
+
+  it('should throw when the maximum is not greater than the minimum', () => {
+    expect(() => new MoonIlluminationConstraint({ minimum: 50, maximum: 50 })).toThrow()
+    expect(() => new MoonIlluminationConstraint({ minimum: 80, maximum: 20 })).toThrow()
+  })
+
+  it('should not throw for valid bounds', () => {
+    expect(() => new MoonIlluminationConstraint()).not.toThrow()
+    expect(() => new MoonIlluminationConstraint({ minimum: 20, maximum: 80 })).not.toThrow()
+  })
+
+  it('should always return a value within [-1, 1]', () => {
+    const constraint = new MoonIlluminationConstraint()
+    for (let illumination = 0; illumination <= 100; illumination += 1) {
+      const score = constraint.score(moonIlluminationContext(illumination))
       expect(score).toBeGreaterThanOrEqual(-1)
       expect(score).toBeLessThanOrEqual(1)
     }
