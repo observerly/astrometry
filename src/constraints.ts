@@ -460,3 +460,86 @@ export class MoonSeparationConstraint extends Constraint {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * The parameters model for a { MoonIlluminationConstraint }.
+ *
+ */
+export type MoonIlluminationConstraintParameters = {
+  /**
+   *
+   * The illuminated fraction (as a percentage) at or below which the Moon causes no interference (the
+   * score is maximal). Defaults to a new Moon (0%).
+   *
+   */
+  minimum?: number
+  /**
+   *
+   * The illuminated fraction (as a percentage) at or above which the Moon causes the most
+   * interference (the score is minimal). Defaults to a full Moon (100%).
+   *
+   */
+  maximum?: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class MoonIlluminationConstraint
+ *
+ * @description A constraint on the Moon's illuminated fraction. The Moon interferes most when it is
+ * full and falls to zero as it darkens towards a new Moon, or when the Moon is below the horizon.
+ *
+ * This is a soft constraint by default (a bright Moon degrades, but does not preclude, an
+ * observation).
+ *
+ *
+ */
+export class MoonIlluminationConstraint extends Constraint {
+  public readonly name = 'moon-illumination'
+
+  // The illuminated fraction (as a percentage) at or below which the Moon causes no interference:
+  public minimum = 0
+
+  // The illuminated fraction (as a percentage) at or above which the Moon causes the most interference:
+  public maximum = 100
+
+  constructor({ minimum = 0, maximum = 100 }: MoonIlluminationConstraintParameters = {}) {
+    super()
+
+    if (minimum < 0 || minimum > 100 || maximum < 0 || maximum > 100) {
+      throw new Error(
+        'Invalid illumination bounds: minimum and maximum must be within [0, 100] percent'
+      )
+    }
+
+    if (maximum <= minimum) {
+      throw new Error('Invalid illumination bounds: maximum must be greater than minimum')
+    }
+
+    this.minimum = minimum
+    this.maximum = maximum
+  }
+
+  public score({ moon, illumination }: ConstraintContext): ConstraintScore {
+    // The Moon causes no interference when it is below the horizon:
+    if (moon.alt <= 0) {
+      return 1
+    }
+
+    // The fraction of the illumination range that has been traversed, clamped to [0, 1]: 0 at (or
+    // below) the minimum illumination, rising to 1 at (or above) the maximum:
+    const fraction = Math.min(
+      1,
+      Math.max(0, (illumination - this.minimum) / (this.maximum - this.minimum))
+    )
+
+    // The score decreases linearly from 1 (no interference) to -1 (maximum interference):
+    return 1 - 2 * fraction
+  }
+}
+
+/*****************************************************************************************************************/
