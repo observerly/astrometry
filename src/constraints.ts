@@ -374,3 +374,89 @@ export class MoonAltitudeConstraint extends Constraint {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * The parameters model for a { MoonSeparationConstraint }.
+ *
+ */
+export type MoonSeparationConstraintParameters = {
+  /**
+   *
+   * The angular separation (in degrees) at or below which the Moon causes the most interference (the
+   * score is minimal). Defaults to a coincident Moon (0°).
+   *
+   */
+  minimum?: number
+  /**
+   *
+   * The angular separation (in degrees) at or above which the Moon causes no interference (the score
+   * is maximal). Defaults to an antipodal Moon (180°).
+   *
+   */
+  maximum?: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class MoonSeparationConstraint
+ *
+ * @description A constraint on the angular separation between the Moon and the target, weighted by
+ * the Moon's illuminated fraction. The Moon interferes most when it is bright and close to the
+ * target; the interference falls to zero as the separation grows, as the Moon darkens, or when the
+ * Moon is below the horizon.
+ *
+ * This is a soft constraint by default (a nearby Moon degrades, but does not preclude, an
+ * observation).
+ *
+ *
+ */
+export class MoonSeparationConstraint extends Constraint {
+  public readonly name = 'moon-separation'
+
+  // The separation (in degrees) at or below which the Moon causes the most interference:
+  public minimum = 0
+
+  // The separation (in degrees) at or above which the Moon causes no interference:
+  public maximum = 180
+
+  constructor({ minimum = 0, maximum = 180 }: MoonSeparationConstraintParameters = {}) {
+    super()
+
+    if (minimum < 0 || minimum > 180 || maximum < 0 || maximum > 180) {
+      throw new Error(
+        'Invalid separation bounds: minimum and maximum must be within [0, 180] degrees'
+      )
+    }
+
+    if (maximum <= minimum) {
+      throw new Error('Invalid separation bounds: maximum must be greater than minimum')
+    }
+
+    this.minimum = minimum
+    this.maximum = maximum
+  }
+
+  public score({ moon, illumination, separation }: ConstraintContext): ConstraintScore {
+    // The Moon causes no interference when it is below the horizon:
+    if (moon.alt <= 0) {
+      return 1
+    }
+
+    // The proximity of the Moon to the target, as a fraction in [0, 1]: 1 at (or within) the minimum
+    // separation, falling to 0 at (or beyond) the maximum separation:
+    const proximity =
+      1 - Math.min(1, Math.max(0, (separation - this.minimum) / (this.maximum - this.minimum)))
+
+    // The interference scales with both the Moon's illuminated fraction and its proximity, in [0, 1]:
+    const interference = Math.min(1, Math.max(0, illumination / 100) * proximity)
+
+    // The score decreases from 1 (no interference) to -1 (maximum interference):
+    return 1 - 2 * interference
+  }
+}
+
+/*****************************************************************************************************************/

@@ -15,6 +15,7 @@ import {
   type ConstraintContext,
   IsNight,
   MoonAltitudeConstraint,
+  MoonSeparationConstraint,
   SunAltitudeConstraint,
   TargetAltitudeConstraint
 } from '../src'
@@ -307,6 +308,97 @@ describe('MoonAltitudeConstraint', () => {
   it('should not throw for valid bounds', () => {
     expect(() => new MoonAltitudeConstraint()).not.toThrow()
     expect(() => new MoonAltitudeConstraint({ minimum: 0, maximum: 60 })).not.toThrow()
+  })
+})
+
+/*****************************************************************************************************************/
+
+// A baseline context for the Moon separation tests, varying the Moon's altitude, illumination and
+// the Moon-target angular separation:
+const moonSeparationContext = (
+  separation: number,
+  illumination: number,
+  alt = 45
+): ConstraintContext => ({
+  target: { az: 0, alt: 45 },
+  sun: { az: 0, alt: -90 },
+  moon: { az: 0, alt },
+  illumination,
+  separation
+})
+
+/*****************************************************************************************************************/
+
+describe('MoonSeparationConstraint', () => {
+  it('should be defined', () => {
+    expect(MoonSeparationConstraint).toBeDefined()
+  })
+
+  it('should be a soft (not required) constraint by default', () => {
+    expect(new MoonSeparationConstraint().required).toBe(false)
+  })
+
+  it('should return 1 when the Moon is below the horizon, regardless of separation', () => {
+    const constraint = new MoonSeparationConstraint()
+    expect(constraint.score(moonSeparationContext(0, 100, -1))).toBe(1)
+  })
+
+  it('should return -1 for a full Moon coincident with the target', () => {
+    const constraint = new MoonSeparationConstraint()
+    expect(constraint.score(moonSeparationContext(0, 100))).toBeCloseTo(-1)
+  })
+
+  it('should return 1 for a full Moon antipodal to the target', () => {
+    const constraint = new MoonSeparationConstraint()
+    expect(constraint.score(moonSeparationContext(180, 100))).toBeCloseTo(1)
+  })
+
+  it('should return 1 for a dark (new) Moon regardless of separation', () => {
+    const constraint = new MoonSeparationConstraint()
+    expect(constraint.score(moonSeparationContext(0, 0))).toBeCloseTo(1)
+  })
+
+  it('should return 0 for a full Moon at 90° separation', () => {
+    const constraint = new MoonSeparationConstraint()
+    expect(constraint.score(moonSeparationContext(90, 100))).toBeCloseTo(0)
+  })
+
+  it('should weight the interference by the Moon illumination', () => {
+    const constraint = new MoonSeparationConstraint()
+    // A coincident Moon at 50% illumination interferes half as much as a full Moon:
+    expect(constraint.score(moonSeparationContext(0, 50))).toBeCloseTo(0)
+  })
+
+  it('should honour custom separation bounds', () => {
+    const constraint = new MoonSeparationConstraint({ minimum: 30, maximum: 90 })
+    // At or below the minimum, a full Moon is the worst case:
+    expect(constraint.score(moonSeparationContext(30, 100))).toBeCloseTo(-1)
+    // At or beyond the maximum, there is no interference:
+    expect(constraint.score(moonSeparationContext(90, 100))).toBeCloseTo(1)
+  })
+
+  it('should throw when a separation bound is outside [0, 180]', () => {
+    expect(() => new MoonSeparationConstraint({ maximum: 200 })).toThrow()
+    expect(() => new MoonSeparationConstraint({ minimum: -10 })).toThrow()
+  })
+
+  it('should throw when the maximum is not greater than the minimum', () => {
+    expect(() => new MoonSeparationConstraint({ minimum: 90, maximum: 90 })).toThrow()
+    expect(() => new MoonSeparationConstraint({ minimum: 120, maximum: 60 })).toThrow()
+  })
+
+  it('should not throw for valid bounds', () => {
+    expect(() => new MoonSeparationConstraint()).not.toThrow()
+    expect(() => new MoonSeparationConstraint({ minimum: 30, maximum: 120 })).not.toThrow()
+  })
+
+  it('should always return a value within [-1, 1]', () => {
+    const constraint = new MoonSeparationConstraint()
+    for (let separation = 0; separation <= 180; separation += 1) {
+      const score = constraint.score(moonSeparationContext(separation, 100))
+      expect(score).toBeGreaterThanOrEqual(-1)
+      expect(score).toBeLessThanOrEqual(1)
+    }
   })
 })
 
