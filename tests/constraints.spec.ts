@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  AirmassConstraint,
   Constraint,
   type ConstraintContext,
   IsMoonDown,
@@ -539,6 +540,84 @@ describe('IsMoonDown', () => {
   it('should not throw for valid bounds', () => {
     expect(() => new IsMoonDown()).not.toThrow()
     expect(() => new IsMoonDown({ maximum: -6 })).not.toThrow()
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('AirmassConstraint', () => {
+  it('should be defined', () => {
+    expect(AirmassConstraint).toBeDefined()
+  })
+
+  it('should be named "airmass"', () => {
+    expect(new AirmassConstraint().name).toBe('airmass')
+  })
+
+  it('should be a required (hard) constraint by default', () => {
+    expect(new AirmassConstraint().required).toBe(true)
+  })
+
+  it('should default to a minimum of 1 and a maximum of 2', () => {
+    const constraint = new AirmassConstraint()
+    expect(constraint.minimum).toBe(1)
+    expect(constraint.maximum).toBe(2)
+  })
+
+  it('should return -1 when the target is below the horizon', () => {
+    const constraint = new AirmassConstraint()
+    expect(constraint.score(context(-10))).toBe(-1)
+  })
+
+  it('should return ~1 at the zenith (airmass ~1)', () => {
+    const constraint = new AirmassConstraint()
+    expect(constraint.score(context(90))).toBeCloseTo(1)
+  })
+
+  it('should return -1 when the airmass exceeds the maximum', () => {
+    // At an altitude of 20° the airmass is ~2.7, above the default maximum of 2:
+    const constraint = new AirmassConstraint()
+    expect(constraint.score(context(20))).toBe(-1)
+  })
+
+  it('should increase monotonically with altitude (lower airmass scores higher)', () => {
+    const constraint = new AirmassConstraint({ maximum: 5 })
+    expect(constraint.score(context(80))).toBeGreaterThan(constraint.score(context(40)))
+  })
+
+  it('should honour a custom maximum airmass', () => {
+    // At 20° the airmass (~2.7) is below a maximum of 3, so it is observable (not gated):
+    const constraint = new AirmassConstraint({ maximum: 3 })
+    expect(constraint.score(context(20))).toBeGreaterThan(-1)
+  })
+
+  it('should throw when a bound is below 1', () => {
+    expect(() => new AirmassConstraint({ minimum: 0.5 })).toThrow()
+    expect(() => new AirmassConstraint({ maximum: 0 })).toThrow()
+  })
+
+  it('should throw for a non-finite bound', () => {
+    expect(() => new AirmassConstraint({ maximum: Number.NaN })).toThrow()
+    expect(() => new AirmassConstraint({ maximum: Number.POSITIVE_INFINITY })).toThrow()
+  })
+
+  it('should throw when the maximum is not greater than the minimum', () => {
+    expect(() => new AirmassConstraint({ minimum: 2, maximum: 2 })).toThrow()
+    expect(() => new AirmassConstraint({ minimum: 3, maximum: 2 })).toThrow()
+  })
+
+  it('should not throw for valid bounds', () => {
+    expect(() => new AirmassConstraint()).not.toThrow()
+    expect(() => new AirmassConstraint({ minimum: 1, maximum: 3 })).not.toThrow()
+  })
+
+  it('should always return a value within [-1, 1]', () => {
+    const constraint = new AirmassConstraint()
+    for (let alt = 1; alt <= 90; alt += 1) {
+      const score = constraint.score(context(alt))
+      expect(score).toBeGreaterThanOrEqual(-1)
+      expect(score).toBeLessThanOrEqual(1)
+    }
   })
 })
 

@@ -10,6 +10,10 @@ import type { HorizontalCoordinate } from './common'
 
 /*****************************************************************************************************************/
 
+import { getAirmass } from './refraction'
+
+/*****************************************************************************************************************/
+
 /**
  *
  * A normalized score in the range [-1, 1], where 1 is the ideal observing condition and -1 is
@@ -599,6 +603,92 @@ export class IsMoonDown extends Constraint {
     // The constraint is satisfied (1) only when the Moon is at or below the maximum altitude;
     // otherwise the Moon is up and the observation is unobservable (-1):
     return moon.alt <= this.maximum ? 1 : -1
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * The parameters model for an { AirmassConstraint }.
+ *
+ */
+export type AirmassConstraintParameters = {
+  /**
+   *
+   * The airmass at which the score is maximal (the best case). Defaults to 1 (the zenith), which is
+   * the minimum possible airmass.
+   *
+   */
+  minimum?: number
+  /**
+   *
+   * The airmass at or above which the target is unobservable. Defaults to 2 (an altitude of roughly
+   * 30°).
+   *
+   */
+  maximum?: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class AirmassConstraint
+ *
+ * @description A constraint on the airmass of the target — the path length of light through the
+ * atmosphere, which is minimal (1) at the zenith and rises towards the horizon. The score is maximal
+ * (1) at the minimum airmass and decreases linearly to -1 at the maximum, above which the target is
+ * unobservable.
+ *
+ *
+ */
+export class AirmassConstraint extends Constraint {
+  public readonly name = 'airmass'
+
+  // A target above the maximum airmass is unobservable, so this is a hard constraint:
+  public required = true
+
+  // The airmass at which the score is maximal (the zenith by default):
+  public minimum = 1
+
+  // The airmass at or above which the target is unobservable:
+  public maximum = 2
+
+  constructor({ minimum = 1, maximum = 2 }: AirmassConstraintParameters = {}) {
+    super()
+
+    if (!Number.isFinite(minimum) || !Number.isFinite(maximum) || minimum < 1 || maximum < 1) {
+      throw new Error('Invalid airmass bounds: minimum and maximum must be finite and at least 1')
+    }
+
+    if (maximum <= minimum) {
+      throw new Error('Invalid airmass bounds: maximum must be greater than minimum')
+    }
+
+    this.minimum = minimum
+    this.maximum = maximum
+  }
+
+  public score({ target }: ConstraintContext): ConstraintScore {
+    // Below the horizon the target cannot be observed:
+    if (target.alt <= 0) {
+      return -1
+    }
+
+    const airmass = getAirmass(target)
+
+    // At or above the maximum airmass the target is unobservable:
+    if (airmass > this.maximum) {
+      return -1
+    }
+
+    // Otherwise the score decreases linearly from 1 at the minimum airmass to -1 at the maximum,
+    // clamped to [-1, 1]:
+    const score = 1 - (2 * (airmass - this.minimum)) / (this.maximum - this.minimum)
+
+    return Math.max(-1, Math.min(1, score))
   }
 }
 
