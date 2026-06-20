@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import {
   Constraint,
   type ConstraintContext,
+  IsMoonDown,
   IsNight,
   MoonAltitudeConstraint,
   MoonIlluminationConstraint,
@@ -475,6 +476,69 @@ describe('MoonIlluminationConstraint', () => {
       expect(score).toBeGreaterThanOrEqual(-1)
       expect(score).toBeLessThanOrEqual(1)
     }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('IsMoonDown', () => {
+  it('should be defined', () => {
+    expect(IsMoonDown).toBeDefined()
+  })
+
+  it('should be a Constraint', () => {
+    expect(new IsMoonDown()).toBeInstanceOf(Constraint)
+  })
+
+  it('should be named "is-moon-down"', () => {
+    expect(new IsMoonDown().name).toBe('is-moon-down')
+  })
+
+  it('should be a required (hard) constraint by default', () => {
+    expect(new IsMoonDown().required).toBe(true)
+  })
+
+  it('should default to the horizon (0°)', () => {
+    expect(new IsMoonDown().maximum).toBe(0)
+  })
+
+  it('should be satisfied when the Moon is below the horizon', () => {
+    const constraint = new IsMoonDown()
+    expect(constraint.score(moonAt(-1))).toBe(1)
+    expect(constraint.isSatisfiedBy(moonAt(-1))).toBe(true)
+  })
+
+  it('should be satisfied at exactly the horizon', () => {
+    const constraint = new IsMoonDown()
+    expect(constraint.score(moonAt(0))).toBe(1)
+  })
+
+  it('should not be satisfied when the Moon is above the horizon', () => {
+    const constraint = new IsMoonDown()
+    expect(constraint.score(moonAt(10))).toBe(-1)
+    expect(constraint.isSatisfiedBy(moonAt(10))).toBe(false)
+  })
+
+  it('should honour a custom maximum altitude', () => {
+    const constraint = new IsMoonDown({ maximum: -6 })
+    expect(constraint.isSatisfiedBy(moonAt(-10))).toBe(true)
+    expect(constraint.isSatisfiedBy(moonAt(-3))).toBe(false)
+  })
+
+  it('should throw when the maximum is outside [-90, 90]', () => {
+    expect(() => new IsMoonDown({ maximum: 120 })).toThrow()
+    expect(() => new IsMoonDown({ maximum: -120 })).toThrow()
+  })
+
+  it('should throw for a non-finite maximum', () => {
+    expect(() => new IsMoonDown({ maximum: Number.NaN })).toThrow()
+    expect(() => new IsMoonDown({ maximum: Number.POSITIVE_INFINITY })).toThrow()
+    expect(() => new IsMoonDown({ maximum: Number.NEGATIVE_INFINITY })).toThrow()
+  })
+
+  it('should not throw for valid bounds', () => {
+    expect(() => new IsMoonDown()).not.toThrow()
+    expect(() => new IsMoonDown({ maximum: -6 })).not.toThrow()
   })
 })
 

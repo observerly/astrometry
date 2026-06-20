@@ -543,3 +543,63 @@ export class MoonIlluminationConstraint extends Constraint {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * The parameters model for an { IsMoonDown } constraint.
+ *
+ */
+export type IsMoonDownParameters = {
+  /**
+   *
+   * The altitude (in degrees) at or below which the Moon is considered to be "down". Defaults to the
+   * horizon (0°).
+   *
+   */
+  maximum?: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class IsMoonDown
+ *
+ * @description A convenience constraint that is satisfied only when the Moon is at or below the
+ * horizon (or, more generally, at or below a maximum altitude). It is a hard gate: when the Moon is
+ * above the threshold the observation is unobservable (-1), otherwise it is ideal (1).
+ *
+ * Unlike { IsNight }, which wraps the gating { SunAltitudeConstraint }, the Moon's altitude
+ * constraint is a soft (graded) one, so this constraint gates on the Moon's altitude directly.
+ *
+ *
+ */
+export class IsMoonDown extends Constraint {
+  public readonly name = 'is-moon-down'
+
+  // The Moon being above the threshold makes the observation unobservable, so this is a hard
+  // constraint:
+  public required = true
+
+  // The altitude (in degrees) at or below which the Moon is considered to be down:
+  public maximum = 0
+
+  constructor({ maximum = 0 }: IsMoonDownParameters = {}) {
+    super()
+
+    if (!Number.isFinite(maximum) || maximum < -90 || maximum > 90) {
+      throw new Error('Invalid altitude bounds: maximum must be within [-90, 90] degrees')
+    }
+
+    this.maximum = maximum
+  }
+
+  public score({ moon }: ConstraintContext): ConstraintScore {
+    // The constraint is satisfied (1) only when the Moon is at or below the maximum altitude;
+    // otherwise the Moon is up and the observation is unobservable (-1):
+    return moon.alt <= this.maximum ? 1 : -1
+  }
+}
+
+/*****************************************************************************************************************/
