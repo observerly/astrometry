@@ -603,3 +603,49 @@ export class IsMoonDown extends Constraint {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class IsAstronomicalTwilight
+ *
+ * @description A convenience constraint that is satisfied when the Sun's altitude is strictly below
+ * -12°, i.e. it is at least astronomical twilight (the union of Twilight.Astronomical and
+ * Twilight.Night). The threshold is exclusive: at exactly -12° the constraint is not satisfied. It
+ * wraps a { SunAltitudeConstraint } pre-configured with sensible defaults, and accepts the same
+ * parameters should a different darkness threshold be required.
+ *
+ *
+ */
+export class IsAstronomicalTwilight extends Constraint {
+  public readonly name = 'is-astronomical-twilight'
+
+  // It is not yet astronomical twilight (and so unobservable) when the Sun is above the threshold, so
+  // this is a hard constraint:
+  public required = true
+
+  // The underlying Sun altitude constraint, pre-configured for astronomical twilight or darker:
+  private readonly constraint: SunAltitudeConstraint
+
+  constructor(parameters: SunAltitudeConstraintParameters = {}) {
+    super()
+    // Astronomical twilight (or darker) is the Sun below -12° by default (the maximum is exclusive):
+    this.constraint = new SunAltitudeConstraint({ maximum: -12, minimum: -90, ...parameters })
+  }
+
+  // The maximum altitude (in degrees) of the Sun for it to be considered astronomical twilight:
+  public get maximum(): number {
+    return this.constraint.maximum
+  }
+
+  // The minimum altitude (in degrees) of the Sun at which the score is maximal:
+  public get minimum(): number {
+    return this.constraint.minimum
+  }
+
+  public score(context: ConstraintContext): ConstraintScore {
+    return this.constraint.score(context)
+  }
+}
+
+/*****************************************************************************************************************/

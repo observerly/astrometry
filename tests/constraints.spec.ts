@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import {
   Constraint,
   type ConstraintContext,
+  IsAstronomicalTwilight,
   IsMoonDown,
   IsNight,
   MoonAltitudeConstraint,
@@ -539,6 +540,62 @@ describe('IsMoonDown', () => {
   it('should not throw for valid bounds', () => {
     expect(() => new IsMoonDown()).not.toThrow()
     expect(() => new IsMoonDown({ maximum: -6 })).not.toThrow()
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('IsAstronomicalTwilight', () => {
+  it('should be defined', () => {
+    expect(IsAstronomicalTwilight).toBeDefined()
+  })
+
+  it('should be a Constraint', () => {
+    expect(new IsAstronomicalTwilight()).toBeInstanceOf(Constraint)
+  })
+
+  it('should be named "is-astronomical-twilight"', () => {
+    expect(new IsAstronomicalTwilight().name).toBe('is-astronomical-twilight')
+  })
+
+  it('should default to a Sun maximum of -12° (astronomical twilight)', () => {
+    const constraint = new IsAstronomicalTwilight()
+    expect(constraint.maximum).toBe(-12)
+    expect(constraint.minimum).toBe(-90)
+  })
+
+  it('should be a required (hard) constraint by default', () => {
+    expect(new IsAstronomicalTwilight().required).toBe(true)
+  })
+
+  it('should not be satisfied at exactly the -12° threshold (exclusive)', () => {
+    const constraint = new IsAstronomicalTwilight()
+    expect(constraint.score(sunAt(-12))).toBe(-1)
+    expect(constraint.isSatisfiedBy(sunAt(-12))).toBe(false)
+  })
+
+  it('should not be satisfied during nautical twilight (Sun above -12°)', () => {
+    const constraint = new IsAstronomicalTwilight()
+    expect(constraint.score(sunAt(-10))).toBe(-1)
+    expect(constraint.isSatisfiedBy(sunAt(-10))).toBe(false)
+  })
+
+  it('should be satisfied once the Sun is below -12° (astronomical twilight or darker)', () => {
+    const constraint = new IsAstronomicalTwilight()
+    expect(constraint.isSatisfiedBy(sunAt(-15))).toBe(true)
+  })
+
+  it('should be satisfied at night (Sun below -18°)', () => {
+    const constraint = new IsAstronomicalTwilight()
+    expect(constraint.isSatisfiedBy(sunAt(-20))).toBe(true)
+    expect(constraint.score(sunAt(-90))).toBeCloseTo(1)
+  })
+
+  it('should accept an overridden darkness threshold', () => {
+    const constraint = new IsAstronomicalTwilight({ maximum: -18 })
+    expect(constraint.maximum).toBe(-18)
+    expect(constraint.isSatisfiedBy(sunAt(-15))).toBe(false)
+    expect(constraint.isSatisfiedBy(sunAt(-19))).toBe(true)
   })
 })
 
