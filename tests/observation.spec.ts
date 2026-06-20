@@ -66,6 +66,26 @@ describe('Observation', () => {
     expect(Polaris.dec).toBe(89.350860331493)
     expect(Polaris.ha).toBe(getHourAngle(datetime, longitude, Polaris.ra))
   })
+
+  it('should recompute the hour angle when the datetime changes', () => {
+    const Polaris = new Observation(polaris, {
+      datetime,
+      latitude,
+      longitude
+    })
+
+    // Advance the observation to a new datetime (six hours later):
+    const updated = new Date('2021-05-14T06:00:00.000+00:00')
+
+    Polaris.at({
+      datetime: updated
+    })
+
+    // The hour angle is a function of the datetime (via the local sidereal time), so it must track
+    // the updated datetime and stay consistent with the recomputed Right Ascension:
+    expect(Polaris.datetime.getTime()).toEqual(updated.getTime())
+    expect(Polaris.ha).toBe(getHourAngle(updated, longitude, Polaris.ra))
+  })
 })
 
 /*****************************************************************************************************************/
