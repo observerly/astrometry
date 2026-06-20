@@ -110,6 +110,8 @@ export class Observation extends Object {
 
     this.setEquatorialCoordinates(this.target)
 
+    this.setHourAngle()
+
     this.setHorizontalCoordinates(
       convertEquatorialToHorizontal(
         this.datetime,
