@@ -14,6 +14,7 @@ import {
   AirmassConstraint,
   Constraint,
   type ConstraintContext,
+  getAirmass,
   IsMoonDown,
   IsNight,
   MoonAltitudeConstraint,
@@ -578,6 +579,15 @@ describe('AirmassConstraint', () => {
     // At an altitude of 20° the airmass is ~2.7, above the default maximum of 2:
     const constraint = new AirmassConstraint()
     expect(constraint.score(context(20))).toBe(-1)
+  })
+
+  it('should return -1 at exactly the maximum airmass (the boundary is unobservable)', () => {
+    // Configure the maximum to be exactly the airmass at 40°, which must then be unobservable:
+    const altitude = 40
+    const maximum = getAirmass({ az: 0, alt: altitude })
+    const constraint = new AirmassConstraint({ maximum })
+    expect(constraint.score(context(altitude))).toBe(-1)
+    expect(constraint.isSatisfiedBy(context(altitude))).toBe(false)
   })
 
   it('should increase monotonically with altitude (lower airmass scores higher)', () => {

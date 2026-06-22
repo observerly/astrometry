@@ -638,9 +638,11 @@ export type AirmassConstraintParameters = {
  * @class AirmassConstraint
  *
  * @description A constraint on the airmass of the target — the path length of light through the
- * atmosphere, which is minimal (1) at the zenith and rises towards the horizon. The score is maximal
- * (1) at the minimum airmass and decreases linearly to -1 at the maximum, above which the target is
- * unobservable.
+ * atmosphere, which is minimal (1) at the zenith and rises towards the horizon. The target is
+ * observable only when its airmass is strictly below the maximum (and it is above the horizon). The
+ * score is maximal (1) at the minimum airmass and decreases linearly towards -1 as the airmass
+ * approaches the maximum; at or above the maximum airmass (or below the horizon) the target is
+ * unobservable (-1).
  *
  *
  */
@@ -680,12 +682,12 @@ export class AirmassConstraint extends Constraint {
     const airmass = getAirmass(target)
 
     // At or above the maximum airmass the target is unobservable:
-    if (airmass > this.maximum) {
+    if (airmass >= this.maximum) {
       return -1
     }
 
-    // Otherwise the score decreases linearly from 1 at the minimum airmass to -1 at the maximum,
-    // clamped to [-1, 1]:
+    // Otherwise (airmass strictly below the maximum) the score decreases linearly from 1 at the
+    // minimum airmass towards -1 as it approaches the maximum, clamped to [-1, 1]:
     const score = 1 - (2 * (airmass - this.minimum)) / (this.maximum - this.minimum)
 
     return Math.max(-1, Math.min(1, score))
