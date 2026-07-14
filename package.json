@@ -11,7 +11,7 @@
   "author": "Micheal J. Roberts",
   "prepublish": "tsc",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/observerly"
+    "registry": "https://registry.npmjs.org/"
   },
   "type": "module",
   "files": ["dist"],

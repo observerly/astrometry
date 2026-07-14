@@ -16,19 +16,21 @@ jobs:
         os: [ubuntu-latest]
         node: [26]
 
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_OBSERVERLY_PUBLIC_TOKEN }}
+    # Required for npm trusted publishing via OIDC:
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout 🛎
         uses: actions/checkout@v6
 
-      # Setup .npmrc file to publish to GitHub Packages
-      - name: Setup node env 🏗 and .npmrc file to publish to GitHub Packages
+      # Setup .npmrc file to publish to the public npm registry
+      - name: Setup node env 🏗 and .npmrc file to publish to npm
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
+          registry-url: 'https://registry.npmjs.org/'
           # Defaults to the user or organization that owns the workflow file:
           scope: '@observerly'
 
@@ -50,8 +52,4 @@ jobs:
         run: pnpm run build
 
       - name: Publish to NPM 📦
-        uses: JS-DevTools/npm-publish@v4
-        with:
-          registry: 'https://registry.npmjs.org/'
-          access: 'public'
-          token: ${{ secrets.NPM_OBSERVERLY_PUBLIC_TOKEN }}
+        run: npm publish --access public
