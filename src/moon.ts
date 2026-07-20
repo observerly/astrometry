@@ -844,43 +844,45 @@ export const getLunarIllumination = (datetime: Date): number => {
  *
  */
 export const getLunarPhase = (datetime: Date): Phase => {
-  // Get the age of the Moon:
-  const { age } = getLunarAge(datetime)
+  // Get the elongation of the Moon from the Sun, in degrees, in the range
+  // [0, 360). This is 0° at New Moon, 90° at First Quarter, 180° at Full Moon
+  // and 270° at Last Quarter:
+  const { A } = getLunarAge(datetime)
 
-  // Get the illuniated fraction of the Moon (as a percentage):
-  const illumination = getLunarIllumination(datetime)
+  // The New and Full Moon are reported over a narrow window centred on the
+  // exact syzygy (elongation 0° and 180° respectively). Both windows are
+  // symmetric about the instant, so the moment of New Moon (and the hours
+  // either side of it) reads as New rather than being misclassified as the
+  // adjacent crescent, and Full is not skewed to one side:
+  if (A < 5.47 || A >= 354.53) {
+    return Phases.New
+  }
 
-  // Determine the phase of the Moon based off of the age and the illumination:
-  if (age < 5.53699) {
+  if (A < 67.5) {
     return Phases.WaxingCrescent
   }
 
-  if (age < 9.22831) {
+  if (A < 112.5) {
     return Phases.FirstQuarter
   }
 
-  if (age < 14.71963) {
+  if (A < 175) {
     return Phases.WaxingGibbous
   }
 
-  // If the illumination is +/- 1% of 100% illumination then the Moon is full:
-  if (age < 15.02096 && Math.abs(illumination - 100) < 1) {
+  if (A < 185) {
     return Phases.Full
   }
 
-  if (age < 20.30228) {
+  if (A < 247.5) {
     return Phases.WaningGibbous
   }
 
-  if (age < 23.99361) {
+  if (A < 292.5) {
     return Phases.LastQuarter
   }
 
-  if (age < 29.08493) {
-    return Phases.WaningCrescent
-  }
-
-  return Phases.New
+  return Phases.WaningCrescent
 }
 
 /*****************************************************************************************************************/
