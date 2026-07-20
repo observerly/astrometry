@@ -384,6 +384,27 @@ describe('getLunarPhase', () => {
     const phase = getLunarPhase(datetime)
     expect(phase).toBe('Last Quarter')
   })
+
+  it('should return New at the exact New Moon instant', () => {
+    // New Moon of 2021-01-13 occurred at ~05:00 UTC. Previously this instant
+    // (and the hours after it) was misclassified as Waxing Crescent:
+    const datetime = new Date('2021-01-13T05:00:00.000+00:00')
+    expect(getLunarPhase(datetime)).toBe('New')
+  })
+
+  it('should return New symmetrically on both sides of the New Moon instant', () => {
+    // Hours before and after the New Moon should both read as New; previously
+    // only the time before the instant did, the time after read as Crescent:
+    expect(getLunarPhase(new Date('2021-01-12T20:00:00.000+00:00'))).toBe('New')
+    expect(getLunarPhase(new Date('2021-01-13T13:00:00.000+00:00'))).toBe('New')
+  })
+
+  it('should return Full symmetrically on both sides of the Full Moon instant', () => {
+    // Full Moon of 2021-01-28 occurred at ~19:16 UTC; the window either side
+    // should read as Full, not skewed to one side as Waxing/Waning Gibbous:
+    expect(getLunarPhase(new Date('2021-01-28T13:00:00.000+00:00'))).toBe('Full')
+    expect(getLunarPhase(new Date('2021-01-29T01:00:00.000+00:00'))).toBe('Full')
+  })
 })
 
 /*****************************************************************************************************************/
