@@ -70,8 +70,7 @@ export const getCorrectionToEquatorialForNutation = (
 
   // Calculate the nutation correction in right ascension (in degrees)
   const Δra =
-    Math.cos(ε) +
-    Math.sin(ε) * Math.sin(ra) * Math.tan(dec) * Δψ -
+    (Math.cos(ε) + Math.sin(ε) * Math.sin(ra) * Math.tan(dec)) * Δψ -
     Math.cos(ra) * Math.tan(dec) * Δε
 
   // Calculate the nutation correction in declination (in degrees)
