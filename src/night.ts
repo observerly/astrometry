@@ -70,9 +70,8 @@ export const getGeneralizedSolarTransit = (
 
   const ha = degrees(
     Math.acos(
-      (Math.sin(radians(-0.833) - Math.sin(radians(latitude)) * Math.sin(radians(dec))) /
-        Math.cos(radians(latitude))) *
-        Math.cos(radians(dec))
+      (Math.sin(radians(-0.833)) - Math.sin(radians(latitude)) * Math.sin(radians(dec))) /
+        (Math.cos(radians(latitude)) * Math.cos(radians(dec)))
     )
   )
 
