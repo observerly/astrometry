@@ -45,6 +45,32 @@ describe('getCorrectionToEquatorialForPrecessionOfEquinoxes', () => {
     expect(ra + polaris.ra).toBe(44.745635372429454)
     expect(dec + polaris.dec).toBe(89.35354802815961)
   })
+
+  it.each([{ ra: 10 }, { ra: 200 }, { ra: 359.9 }])(
+    'should return a small correction free of any ±360° branch-cut jump for a target at ra $ra',
+    ({ ra: targetRA }) => {
+      const target: EquatorialCoordinate = { ra: targetRA, dec: 45 }
+
+      const { ra, dec } = getCorrectionToEquatorialForPrecessionOfEquinoxes(
+        new Date('2026-07-22T00:00:00.000+00:00'),
+        target
+      )
+
+      // Precession accumulates ~0.36° over the ~26 years since J2000, so the
+      // correction magnitude must be well under 1°:
+      expect(Math.abs(ra)).toBeLessThan(1)
+      expect(Math.abs(dec)).toBeLessThan(1)
+
+      // Applying the correction (wrapped into [0, 360)) should move the target
+      // by only that small amount:
+      const corrected = (((target.ra + ra) % 360) + 360) % 360
+
+      let delta = corrected - target.ra
+      delta -= 360 * Math.round(delta / 360)
+
+      expect(Math.abs(delta)).toBeLessThan(1)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
