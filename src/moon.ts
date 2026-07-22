@@ -326,10 +326,7 @@ export const getLunarMeanEclipticLongitudeOfTheAscendingNode = (datetime: Date):
     Ω += 360
   }
 
-  // Correct for the Sun's mean anomaly:
-  const M = radians(getSolarMeanAnomaly(datetime))
-
-  return Ω - 0.16 * Math.sin(M)
+  return Ω
 }
 
 /*****************************************************************************************************************/
