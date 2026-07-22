@@ -44,14 +44,14 @@ describe('getCorrectionToEquatorialForAnnualAberration', () => {
       new Date('2000-01-01T00:00:00+00:00'),
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBe(88.79868732900589)
-    expect(dec + betelgeuse.dec).toBe(7.4068039145745)
+    expect(ra + betelgeuse.ra).toBe(88.79868732900594)
+    expect(dec + betelgeuse.dec).toBe(7.406803914569333)
   })
 
   it('should return the correct aberration correction for the designated epoch', () => {
     const { ra, dec } = getCorrectionToEquatorialForAnnualAberration(datetime, betelgeuse)
-    expect(ra + betelgeuse.ra).toBe(88.78837512114575)
-    expect(dec + betelgeuse.dec).toBe(7.406109156062398)
+    expect(ra + betelgeuse.ra).toBe(88.78837512114313)
+    expect(dec + betelgeuse.dec).toBe(7.406109156361687)
   })
 })
 
@@ -101,8 +101,8 @@ describe('getCorrectionToEquatorialForAberration', () => {
       },
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBe(88.79875665605677)
-    expect(dec + betelgeuse.dec).toBe(7.406836962857944)
+    expect(ra + betelgeuse.ra).toBe(88.79875665605681)
+    expect(dec + betelgeuse.dec).toBe(7.406836962852777)
   })
 
   it('should return the correct aberration correction for the designated epoch', () => {
@@ -110,8 +110,8 @@ describe('getCorrectionToEquatorialForAberration', () => {
       latitude,
       longitude
     }, betelgeuse)
-    expect(ra + betelgeuse.ra).toBe(88.78844263611573)
-    expect(dec + betelgeuse.dec).toBe(7.4061425995174766)
+    expect(ra + betelgeuse.ra).toBe(88.78844263611312)
+    expect(dec + betelgeuse.dec).toBe(7.406142599816765)
   })
 })
 
