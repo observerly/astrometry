@@ -30,7 +30,7 @@ describe('formatDegreeToDMSHumanized', () => {
     }
 
     const humanised = formatDegreeToDMSHumanized(betelgeuse.dec)
-    expect(humanised).toBe('+07° 24\' 25.43"')
+    expect(humanised).toBe('+07° 24\' 25.430"')
   })
 
   it('should return the correct humanized value for Spica', () => {
@@ -40,12 +40,12 @@ describe('formatDegreeToDMSHumanized', () => {
     }
 
     const humanised = formatDegreeToDMSHumanized(spica.dec)
-    expect(humanised).toBe('-11° 09\' 41.04"')
+    expect(humanised).toBe('-11° 09\' 41.040"')
   })
 
   it('should return the correct humanized value for -2 degrees', () => {
     const humanised = formatDegreeToDMSHumanized(-2)
-    expect(humanised).toBe('-02° 00\' 00"')
+    expect(humanised).toBe('-02° 00\' 00.000"')
   })
 })
 
@@ -63,7 +63,7 @@ describe('formatDegreeToHMSHumanized', () => {
     }
 
     const humanised = formatDegreeToHMSHumanized(betelgeuse.ra)
-    expect(humanised).toBe('05ʰ 55ᵐ 10.31ˢ')
+    expect(humanised).toBe('05ʰ 55ᵐ 10.310ˢ')
   })
 
   it('should return the correct humanized value for Spica', () => {
@@ -78,7 +78,7 @@ describe('formatDegreeToHMSHumanized', () => {
 
   it('should return the correct humanized value for -2 degrees', () => {
     const humanised = formatDegreeToHMSHumanized(-2)
-    expect(humanised).toBe('23ʰ 52ᵐ 00ˢ')
+    expect(humanised).toBe('23ʰ 52ᵐ 00.000ˢ')
   })
 })
 
