@@ -60,8 +60,12 @@ export const getCorrectionToEquatorialForPrecessionOfEquinoxes = (
 
   const dec = degrees(Math.asin(C))
 
+  // Normalise the right ascension difference into (-180°, 180°] to avoid a
+  // ±360° branch-cut jump from atan2 when the target lies near RA 0°/360°:
+  const dra = ra - target.ra
+
   return {
-    ra: ra - target.ra,
+    ra: dra - 360 * Math.round(dra / 360),
     dec: dec - target.dec
   }
 }
