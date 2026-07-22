@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, getCorrectionToEquatorialForNutation } from '../src'
+import { type EquatorialCoordinate, getCorrectionToEquatorialForNutation, getNutation } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -47,6 +47,31 @@ describe('getCorrectionToEquatorialForNutation', () => {
     const { ra, dec } = getCorrectionToEquatorialForNutation(datetime, betelgeuse)
     expect(ra + betelgeuse.ra).toBe(88.78822826957918)
     expect(dec + betelgeuse.dec).toBe(7.407781283524082)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getNutation', () => {
+  it('should be defined', () => {
+    expect(getNutation).toBeDefined()
+  })
+
+  it('should return the nutation in longitude and obliquity for the Meeus example epoch', () => {
+    // Meeus, Astronomical Algorithms, Example 22.a (1987 April 10.0 TD):
+    const { Δψ, Δε } = getNutation(new Date('1987-04-10T00:00:00.000+00:00'))
+    // The nutation in longitude should be approximately -3.788 arcseconds:
+    expect(Δψ * 3600).toBeCloseTo(-3.788, 0)
+    // The nutation in obliquity should be approximately +9.443 arcseconds:
+    expect(Δε * 3600).toBeCloseTo(9.443, 0)
+  })
+
+  it('should return the nutation in degrees', () => {
+    const { Δψ, Δε } = getNutation(datetime)
+    // The nutation in longitude is always less than ~20 arcseconds in magnitude:
+    expect(Math.abs(Δψ)).toBeLessThan(20 / 3600)
+    // The nutation in obliquity is always less than ~10 arcseconds in magnitude:
+    expect(Math.abs(Δε)).toBeLessThan(10 / 3600)
   })
 })
 
