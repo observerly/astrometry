@@ -76,7 +76,35 @@ describe('convertGreenwichSiderealTimeToUniversalTime', () => {
     const UTC = convertGreenwichSiderealTimeToUniversalTime(GST, datetime)
     expect(UTC).toBeInstanceOf(Date)
     // Check that the UTC is the same as the datetime:
-    expect(UTC.getTime()).toBeCloseTo(datetime.getTime() + datetime.getTimezoneOffset() * 60000, -5)
+    expect(UTC.getTime()).toBeCloseTo(datetime.getTime(), -5)
+  })
+
+  it('should return the correct Universal Coordinated Time for a given Greenwich Sidereal Time at midday', () => {
+    const midday = new Date('2021-05-14T12:34:56.000+00:00')
+    const GST = getGreenwichSiderealTime(midday)
+    const UTC = convertGreenwichSiderealTimeToUniversalTime(GST, midday)
+    expect(UTC.getUTCHours()).toBe(12)
+    expect(UTC.getUTCMinutes()).toBe(34)
+    expect(UTC.getUTCSeconds()).toBe(56)
+  })
+
+  it('should return the same Universal Coordinated Time irrespective of the host timezone', () => {
+    const midday = new Date('2021-05-14T12:34:56.000+00:00')
+    const GST = getGreenwichSiderealTime(midday)
+
+    const TZ = process.env.TZ
+
+    try {
+      // The conversion is performed in UTC, and is therefore independent of the
+      // timezone of the host system the library is running on:
+      process.env.TZ = 'Pacific/Auckland'
+      expect(convertGreenwichSiderealTimeToUniversalTime(GST, midday).getUTCHours()).toBe(12)
+
+      process.env.TZ = 'America/New_York'
+      expect(convertGreenwichSiderealTimeToUniversalTime(GST, midday).getUTCHours()).toBe(12)
+    } finally {
+      process.env.TZ = TZ
+    }
   })
 })
 
