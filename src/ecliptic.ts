@@ -8,6 +8,8 @@
 
 import type { EquatorialCoordinate } from './common'
 
+import { getJulianDate } from './epoch'
+
 import { getSolarEquatorialCoordinate } from './sun'
 
 /*****************************************************************************************************************/
@@ -35,6 +37,30 @@ export const getEclipticPlane = (date: Date): EquatorialCoordinate[] => {
   }
 
   return ecliptic
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getObliquityOfTheEcliptic()
+ *
+ * The obliquity of the ecliptic is the angle between the ecliptic and the celestial
+ * equator, and is used to convert between ecliptic and equatorial coordinates.
+ *
+ * @param date - The date for which to calculate the obliquity of the ecliptic for.
+ * @returns The obliquity of the ecliptic in degrees.
+ *
+ */
+export const getObliquityOfTheEcliptic = (datetime: Date): number => {
+  // Get the Julian date:
+  const JD = getJulianDate(datetime)
+
+  // Calculate the number of centuries since J2000.0:
+  const T = (JD - 2451545.0) / 36525
+
+  // Calculate the obliquity of the ecliptic:
+  return 23.439292 - (46.845 * T + 0.00059 * T ** 2 + 0.001813 * T ** 3) / 3600
 }
 
 /*****************************************************************************************************************/

@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { getHourAngle, getObliquityOfTheEcliptic } from './astrometry'
+import { getHourAngle } from './astrometry'
 
 import type { GregorianMonth } from './calendar'
 
@@ -19,6 +19,8 @@ import type {
 } from './common'
 
 import { earth } from './earth'
+
+import { getObliquityOfTheEcliptic } from './ecliptic'
 
 import { getJulianDate } from './epoch'
 

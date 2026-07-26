@@ -6,9 +6,9 @@
 
 /*****************************************************************************************************************/
 
-import { getObliquityOfTheEcliptic } from './astrometry'
-
 import type { EquatorialCoordinate } from './common'
+
+import { getObliquityOfTheEcliptic } from './ecliptic'
 
 import {
   getLunarMeanGeometricLongitude,

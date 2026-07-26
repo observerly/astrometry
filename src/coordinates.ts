@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { getHourAngle, getLocalSiderealTime, getObliquityOfTheEcliptic } from './astrometry'
+import { getHourAngle, getLocalSiderealTime } from './astrometry'
 
 import type {
   EclipticCoordinate,
@@ -16,6 +16,8 @@ import type {
   HorizontalCoordinate
 } from './common'
 import { EARTH_RADIUS } from './constants'
+
+import { getObliquityOfTheEcliptic } from './ecliptic'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 

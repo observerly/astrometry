@@ -8,7 +8,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { getEclipticPlane } from '../src'
+import { getEclipticPlane, getObliquityOfTheEcliptic } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -26,6 +26,19 @@ describe('getEclipticPlane', () => {
   it('should return the correct amount of coordinate points of the ecliptic plane for the given datetime', () => {
     const ecliptic = getEclipticPlane(datetime)
     expect(ecliptic.length).toBe(366)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getObliquityOfTheEcliptic', () => {
+  it('should be defined', () => {
+    expect(getObliquityOfTheEcliptic).toBeDefined()
+  })
+
+  it('should return the Obliquity of the Ecliptic (e) of the given date', () => {
+    const ε = getObliquityOfTheEcliptic(datetime)
+    expect(ε).toBe(23.436511890585354)
   })
 })
 

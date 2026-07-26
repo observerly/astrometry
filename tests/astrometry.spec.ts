@@ -19,7 +19,6 @@ import {
   getHourAngle,
   getLocalSiderealTime,
   getNormalisedSphericalCoordinate,
-  getObliquityOfTheEcliptic,
   getParallacticAngle
 } from '../src'
 
@@ -226,19 +225,6 @@ describe('getHourAngle', () => {
   it('should return the Hour Angle (HA) of the given date', () => {
     const HA = getHourAngle(datetime, longitude, betelgeuse.ra)
     expect(HA).toBe(347.6988036852858)
-  })
-})
-
-/*****************************************************************************************************************/
-
-describe('getObliquityOfTheEcliptic', () => {
-  it('should be defined', () => {
-    expect(getObliquityOfTheEcliptic).toBeDefined()
-  })
-
-  it('should return the Obliquity of the Ecliptic (e) of the given date', () => {
-    const ε = getObliquityOfTheEcliptic(datetime)
-    expect(ε).toBe(23.436511890585354)
   })
 })
 
