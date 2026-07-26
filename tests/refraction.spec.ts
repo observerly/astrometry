@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import {
   type EquatorialCoordinate,
   convertEquatorialToHorizontal,
+  getAirRefractiveIndex,
   getAirmass,
   getCorrectionToHorizontalForRefraction,
   getRefraction
@@ -162,6 +163,94 @@ describe('getAirmass', () => {
     for (let alt = 1; alt <= 90; alt += 1) {
       expect(getAirmass({ alt: alt - 1, az: 0 })).toBeGreaterThan(getAirmass({ alt, az: 0 }))
     }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getAirRefractiveIndex', () => {
+  it('should be defined', () => {
+    expect(getAirRefractiveIndex).toBeDefined()
+  })
+
+  it('should return the refractive index of standard air for the He-Ne laser wavelength', () => {
+    // Birch & Downs (1994) give a refractive index of 1.00027180 for dry air at 20°C and
+    // 101325 Pascals, observed at the 633nm He-Ne laser wavelength:
+    const n = getAirRefractiveIndex(633, 293.15, 101325, 0)
+    expect(n).toBeCloseTo(1.0002718, 7)
+  })
+
+  it('should return the refractive index of air for the default parameters', () => {
+    const n = getAirRefractiveIndex()
+    expect(n).toBe(1.0002827555732396)
+  })
+
+  it('should return unity for a vacuum, e.g., at zero pressure', () => {
+    expect(getAirRefractiveIndex(550, 293.15, 0, 0)).toBe(1)
+  })
+
+  it('should decrease as the wavelength of the observed light increases', () => {
+    // The dispersion of air is such that blue light is refracted more than red light:
+    const blue = getAirRefractiveIndex(400, 293.15, 101325, 0)
+    const red = getAirRefractiveIndex(700, 293.15, 101325, 0)
+    expect(blue).toBeGreaterThan(red)
+  })
+
+  it('should decrease as the temperature of the air increases', () => {
+    const cold = getAirRefractiveIndex(550, 273.15, 101325, 0)
+    const warm = getAirRefractiveIndex(550, 303.15, 101325, 0)
+    expect(cold).toBeGreaterThan(warm)
+  })
+
+  it('should increase as the pressure of the air increases', () => {
+    const low = getAirRefractiveIndex(550, 293.15, 50000, 0)
+    const high = getAirRefractiveIndex(550, 293.15, 101325, 0)
+    expect(high).toBeGreaterThan(low)
+  })
+
+  it('should decrease as the partial pressure of water vapour increases', () => {
+    const dry = getAirRefractiveIndex(633, 293.15, 101325, 0)
+    const humid = getAirRefractiveIndex(633, 293.15, 101325, 1333)
+    expect(humid).toBeLessThan(dry)
+    expect(humid).toBeCloseTo(1.0002713, 7)
+  })
+
+  it('should throw for a wavelength outside of the bounds of the equation', () => {
+    expect(() => getAirRefractiveIndex(299)).toThrow()
+    expect(() => getAirRefractiveIndex(1701)).toThrow()
+    // The dispersion terms are singular at ~88nm and ~160nm:
+    expect(() => getAirRefractiveIndex(1000 / Math.sqrt(130))).toThrow()
+    expect(() => getAirRefractiveIndex(1000 / Math.sqrt(38.9))).toThrow()
+  })
+
+  it('should throw for a non-finite wavelength', () => {
+    expect(() => getAirRefractiveIndex(Number.NaN)).toThrow()
+    expect(() => getAirRefractiveIndex(Number.POSITIVE_INFINITY)).toThrow()
+  })
+
+  it('should throw for a temperature at or below zero Kelvin', () => {
+    expect(() => getAirRefractiveIndex(550, 0)).toThrow()
+    expect(() => getAirRefractiveIndex(550, -1)).toThrow()
+    expect(() => getAirRefractiveIndex(550, Number.NaN)).toThrow()
+  })
+
+  it('should throw for a negative or non-finite pressure', () => {
+    expect(() => getAirRefractiveIndex(550, 293.15, -1)).toThrow()
+    expect(() => getAirRefractiveIndex(550, 293.15, Number.NaN)).toThrow()
+    expect(() => getAirRefractiveIndex(550, 293.15, Number.POSITIVE_INFINITY)).toThrow()
+  })
+
+  it('should throw for a humidity greater than the pressure of the air', () => {
+    expect(() => getAirRefractiveIndex(550, 293.15, 101325, 101326)).toThrow()
+    expect(() => getAirRefractiveIndex(550, 293.15, 101325, -1)).toThrow()
+    expect(() => getAirRefractiveIndex(550, 293.15, 101325, Number.NaN)).toThrow()
+  })
+
+  it('should not throw for valid parameters', () => {
+    expect(() => getAirRefractiveIndex()).not.toThrow()
+    expect(() => getAirRefractiveIndex(300, 293.15, 101325, 0)).not.toThrow()
+    expect(() => getAirRefractiveIndex(1700, 293.15, 101325, 1333)).not.toThrow()
+    expect(() => getAirRefractiveIndex(550, 293.15, 0, 0)).not.toThrow()
   })
 })
 
