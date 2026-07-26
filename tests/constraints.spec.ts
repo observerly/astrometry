@@ -575,7 +575,7 @@ describe('AirmassConstraint', () => {
   })
 
   it('should return -1 when the airmass exceeds the maximum', () => {
-    // At an altitude of 20° the airmass is ~2.7, above the default maximum of 2:
+    // At an altitude of 20° the airmass is ~2.9, above the default maximum of 2:
     const constraint = new AirmassConstraint()
     expect(constraint.score(context(20))).toBe(-1)
   })
@@ -586,7 +586,7 @@ describe('AirmassConstraint', () => {
   })
 
   it('should honour a custom maximum airmass', () => {
-    // At 20° the airmass (~2.7) is below a maximum of 3, so it is observable (not gated):
+    // At 20° the airmass (~2.9) is below a maximum of 3, so it is observable (not gated):
     const constraint = new AirmassConstraint({ maximum: 3 })
     expect(constraint.score(context(20))).toBeGreaterThan(-1)
   })

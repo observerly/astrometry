@@ -106,7 +106,7 @@ describe('getAirmass', () => {
     expect(target.alt).toBe(72.78539444063765)
 
     const X = getAirmass(target)
-    expect(X).toBe(1.0465224571377927)
+    expect(X).toBe(1.0464619518429332)
   })
 
   it('should return the airmass value for the observed object', () => {
@@ -144,8 +144,24 @@ describe('getAirmass', () => {
     expect(alt).toBeGreaterThanOrEqual(72.79061860032508)
     expect(alt).toBeLessThanOrEqual(73.0)
 
+    // At the horizon the airmass is at a maximum of ~38:
     const X = getAirmass({ alt: 0, az })
-    expect(X).toBe(Number.POSITIVE_INFINITY)
+    expect(X).toBeCloseTo(37.9196, 3)
+  })
+
+  it('should return an infinite airmass for an object below the horizon', () => {
+    expect(getAirmass({ alt: -1, az: 0 })).toBe(Number.POSITIVE_INFINITY)
+  })
+
+  it('should increase monotonically as the altitude of the observed object decreases', () => {
+    // The airmass at 30° is ~2, and at 10° is ~5.6, e.g., the airmass must increase
+    // as the observed object approaches the horizon:
+    expect(getAirmass({ alt: 30, az: 0 })).toBeCloseTo(1.9943, 3)
+    expect(getAirmass({ alt: 10, az: 0 })).toBeCloseTo(5.586, 3)
+
+    for (let alt = 1; alt <= 90; alt += 1) {
+      expect(getAirmass({ alt: alt - 1, az: 0 })).toBeGreaterThan(getAirmass({ alt, az: 0 }))
+    }
   })
 })
 
