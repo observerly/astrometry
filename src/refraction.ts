@@ -116,3 +116,76 @@ export const getAirmass = (target: HorizontalCoordinate): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getAirRefractiveIndex()
+ *
+ * The refractive index of air is the ratio of the speed of light in a vacuum to the speed of
+ * light in air. It is the quantity that gives rise to atmospheric refraction, and is dependent
+ * on the wavelength of the observed light, as well as on the temperature, pressure and humidity
+ * of the air the light is propagating through.
+ *
+ * N.B. The modified Edlén equation is valid for wavelengths between 300nm and 1700nm, for air
+ * at a carbon dioxide concentration of 450 parts per million.
+ *
+ * @see Birch, K. P., & Downs, M. J. (1994). “Correction to the Updated Edlén Equation for the Refractive Index of Air.” Metrologia, 31(4), 315–316.
+ *
+ * @param wavelength - The wavelength of the observed light (in nanometres).
+ * @param temperature - The temperature in Kelvin.
+ * @param pressure - The pressure in Pascals.
+ * @param humidity - The partial pressure of water vapour in the air (in Pascals).
+ * @throws An error if any of the parameters are outside of the bounds of the equation.
+ * @returns The refractive index of the air for the observed wavelength.
+ *
+ */
+export const getAirRefractiveIndex = (
+  wavelength = 550,
+  temperature = 283.15,
+  pressure = 101325,
+  humidity = 0
+): number => {
+  // Outside of the bounds of the equation the dispersion terms are singular, and the
+  // refractive index is no longer physical:
+  if (!Number.isFinite(wavelength) || wavelength < 300 || wavelength > 1700) {
+    throw new Error(
+      'Invalid wavelength: wavelength must be finite and within [300, 1700] nanometres'
+    )
+  }
+
+  // At zero Kelvin the temperature correction is singular, and below it is unphysical:
+  if (!Number.isFinite(temperature) || temperature <= 0) {
+    throw new Error('Invalid temperature: temperature must be finite and greater than zero Kelvin')
+  }
+
+  if (!Number.isFinite(pressure) || pressure < 0) {
+    throw new Error('Invalid pressure: pressure must be finite and at least zero Pascals')
+  }
+
+  // The partial pressure of water vapour is a component of the total pressure of the air:
+  if (!Number.isFinite(humidity) || humidity < 0 || humidity > pressure) {
+    throw new Error(
+      'Invalid humidity: humidity must be finite, at least zero Pascals and no greater than the pressure'
+    )
+  }
+
+  // The temperature, in degrees Celsius:
+  const t = temperature - 273.15
+
+  // The vacuum wavenumber of the observed light, in inverse micrometres:
+  const σ = 1000 / wavelength
+
+  // Get the refractivity of standard air, e.g., dry air at 15°C and 101325 Pascals, as the
+  // dispersion of the air is dependent on the wavelength of the observed light:
+  const N = (8342.54 + 2406147 / (130 - σ ** 2) + 15998 / (38.9 - σ ** 2)) * 1e-8
+
+  // Correct the refractivity of standard air for the temperature and pressure of the air:
+  const n =
+    (N * (pressure * (1 + pressure * (60.1 - 0.972 * t) * 1e-10))) / (96095.43 * (1 + 0.003661 * t))
+
+  // Correct the refractivity for the partial pressure of water vapour in the air, which
+  // reduces the refractive index of the air:
+  return 1 + n - humidity * (3.7345 - 0.0401 * σ ** 2) * 1e-10
+}
+
+/*****************************************************************************************************************/
