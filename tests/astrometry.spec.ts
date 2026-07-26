@@ -18,6 +18,7 @@ import {
   getGreenwichApparentSiderealTime,
   getGreenwichSiderealTime,
   getHourAngle,
+  getLocalApparentSiderealTime,
   getLocalSiderealTime,
   getNormalisedSphericalCoordinate,
   getParallacticAngle
@@ -235,6 +236,32 @@ describe('getLocalSiderealTime', () => {
   it('should return the Local Sidereal Time (LST) of the given date', () => {
     const LST = getLocalSiderealTime(datetime, longitude)
     expect(LST).toBe(5.099450799019053)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getLocalApparentSiderealTime', () => {
+  it('should be defined', () => {
+    expect(getLocalApparentSiderealTime).toBeDefined()
+  })
+
+  it('should return the Greenwich Apparent Sidereal Time (GAST) of the given date at longitude 0 at Greenwich', () => {
+    const LAST = getLocalApparentSiderealTime(datetime, 0)
+    const GAST = getGreenwichApparentSiderealTime(datetime)
+    expect(LAST).toBe(GAST)
+  })
+
+  it('should return the Local Apparent Sidereal Time (LAST) of the given date', () => {
+    const LAST = getLocalApparentSiderealTime(datetime, longitude)
+    expect(LAST).toBe(5.099152202606913)
+  })
+
+  it('should differ from the Local Sidereal Time (LST) by the equation of the equinoxes', () => {
+    const LAST = getLocalApparentSiderealTime(datetime, longitude)
+    const LST = getLocalSiderealTime(datetime, longitude)
+    // The equation of the equinoxes is always less than around one second of time:
+    expect(Math.abs(LAST - LST) * 3600).toBeLessThan(1.2)
   })
 })
 
