@@ -19,8 +19,8 @@ import { convertEquatorialToHorizontal } from './coordinates'
 import { getNight } from './night'
 
 import {
-  convertGreenwhichSiderealTimeToUniversalTime,
-  convertLocalSiderealTimeToGreenwhichSiderealTime
+  convertGreenwichSiderealTimeToUniversalTime,
+  convertLocalSiderealTimeToGreenwichSiderealTime
 } from './temporal'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
@@ -91,7 +91,7 @@ export interface TransitInstance {
   /**
    *
    *
-   * The Greenwhich sidereal time of rise or set.
+   * The Greenwich sidereal time of rise or set.
    *
    */
   GST: number
@@ -385,11 +385,11 @@ export const getBodyNextRise = (
 
   const LSTr = transit.LSTr
 
-  // Convert the local sidereal time of rise to Greenwhich sidereal time:
-  const GSTr = convertLocalSiderealTimeToGreenwhichSiderealTime(LSTr, observer)
+  // Convert the local sidereal time of rise to Greenwich sidereal time:
+  const GSTr = convertLocalSiderealTimeToGreenwichSiderealTime(LSTr, observer)
 
-  // Convert the Greenwhich sidereal time to universal coordinate time for the date specified:
-  const rise = convertGreenwhichSiderealTimeToUniversalTime(GSTr, datetime)
+  // Convert the Greenwich sidereal time to universal coordinate time for the date specified:
+  const rise = convertGreenwichSiderealTimeToUniversalTime(GSTr, datetime)
 
   // If the rise is before the current time, then we know the next rise is tomorrow:
   if (rise.getTime() < datetime.getTime()) {
@@ -455,11 +455,11 @@ export const getBodyNextSet = (
 
   const LSTs = transit.LSTs
 
-  // Convert the local sidereal time of set to Greenwhich sidereal time:
-  const GSTs = convertLocalSiderealTimeToGreenwhichSiderealTime(LSTs, observer)
+  // Convert the local sidereal time of set to Greenwich sidereal time:
+  const GSTs = convertLocalSiderealTimeToGreenwichSiderealTime(LSTs, observer)
 
-  // Convert the Greenwhich sidereal time to universal coordinate time for the date specified:
-  const set = convertGreenwhichSiderealTimeToUniversalTime(GSTs, datetime)
+  // Convert the Greenwich sidereal time to universal coordinate time for the date specified:
+  const set = convertGreenwichSiderealTimeToUniversalTime(GSTs, datetime)
 
   // If the set is before the current time, then we know the next set is tomorrow:
   if (set < datetime) {
