@@ -68,6 +68,44 @@ describe('getSolarTransit', () => {
     expect(noon?.toISOString()).toBe('2021-05-14T12:21:40.985Z')
     expect(sunset?.toISOString()).toBe('2021-05-14T20:43:23.430Z')
   })
+
+  it('should not modify the datetime given by the caller', () => {
+    const when = new Date('2021-05-14T12:34:56.000+00:00')
+
+    getSolarTransit(when, {
+      latitude,
+      longitude
+    })
+
+    expect(when.toISOString()).toBe('2021-05-14T12:34:56.000Z')
+  })
+
+  it('should return the same solar transit irrespective of the host timezone', () => {
+    const TZ = process.env.TZ
+
+    try {
+      // The day boundary is derived in UTC, and is therefore independent of the timezone
+      // of the host system the library is running on:
+      for (const timezone of ['Pacific/Auckland', 'America/New_York']) {
+        process.env.TZ = timezone
+
+        const { sunrise, noon, sunset } = getSolarTransit(
+          datetime,
+          {
+            latitude,
+            longitude
+          },
+          -6
+        )
+
+        expect(sunrise?.toISOString()).toBe('2021-05-14T04:01:58.540Z')
+        expect(noon?.toISOString()).toBe('2021-05-14T12:21:40.985Z')
+        expect(sunset?.toISOString()).toBe('2021-05-14T20:43:23.430Z')
+      }
+    } finally {
+      process.env.TZ = TZ
+    }
+  })
 })
 
 /*****************************************************************************************************************/

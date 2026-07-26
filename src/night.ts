@@ -101,11 +101,15 @@ export const getSolarTransit = (
   noon: Date | null
   sunset: Date | null
 } => {
-  // Set the datetime to be at 1 minute before midnight for the previous date:
-  datetime = new Date(new Date(datetime.setHours(0, 0, 0, 0)).getTime())
+  // Set the datetime to be at midnight UTC for the date specified, taking a copy of the
+  // datetime so as to not modify the date given by the caller, and deriving the day
+  // boundary in UTC so as to be independent of the timezone of the host system:
+  const midnight = new Date(
+    Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), datetime.getUTCDate(), 0, 0, 0, 0)
+  )
 
   // Get the generalized (approximated) solar transit for the date:
-  const { sunrise, noon, sunset } = getGeneralizedSolarTransit(datetime, observer)
+  const { sunrise, noon, sunset } = getGeneralizedSolarTransit(midnight, observer)
 
   // If the observer is in perpetual daylight or perpetual night, return null:
   if (sunrise === null || sunset === null) {
