@@ -15,6 +15,7 @@ import {
   type EquatorialCoordinate,
   getAngularSeparation,
   getAntipodeCoordinate,
+  getGreenwichApparentSiderealTime,
   getGreenwhichSiderealTime,
   getHourAngle,
   getLocalSiderealTime,
@@ -181,6 +182,33 @@ describe('getGreenwhichSiderealTime', () => {
     const target = convertEquatorialToHorizontal(datetime, observer, betelgeuse)
     // The target should be directly overhead:
     expect(target.alt).toBe(90)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getGreenwichApparentSiderealTime', () => {
+  it('should be defined', () => {
+    expect(getGreenwichApparentSiderealTime).toBeDefined()
+  })
+
+  it('should return the Greenwich Apparent Sidereal Time (GAST) of the given date', () => {
+    const GAST = getGreenwichApparentSiderealTime(datetime)
+    expect(GAST).toBe(15.463691802606913)
+  })
+
+  it('should differ from the Greenwich Mean Sidereal Time (GMST) by the equation of the equinoxes', () => {
+    const GAST = getGreenwichApparentSiderealTime(datetime)
+    const GMST = getGreenwhichSiderealTime(datetime)
+    // The equation of the equinoxes is always less than around one second of time:
+    expect(Math.abs(GAST - GMST) * 3600).toBeLessThan(1.2)
+  })
+
+  it('should return the Greenwich Apparent Sidereal Time (GAST) for the Meeus example epoch', () => {
+    // Meeus, Astronomical Algorithms, Example 12.a, for 1987 April 10 at 0h UT, for which the
+    // apparent sidereal time at Greenwich is 13h 10m 46.1351s:
+    const GAST = getGreenwichApparentSiderealTime(new Date('1987-04-10T00:00:00.000+00:00'))
+    expect(GAST).toBeCloseTo(13 + 10 / 60 + 46.1351 / 3600, 4)
   })
 })
 
