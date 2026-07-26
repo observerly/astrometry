@@ -73,16 +73,13 @@ export const convertLocalSiderealTimeToGreenwichSiderealTime = (
  *
  */
 export const convertGreenwichSiderealTimeToUniversalTime = (GST: number, date: Date): Date => {
-  // Adjust the date to UTC:
-  date = new Date(date.getTime() + date.getTimezoneOffset() * 60000)
-
-  // Get the Julian Date at 0h:
+  // Get the Julian Date at 0h UTC:
   const JD = getJulianDate(
-    new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0))
+    new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0))
   )
 
   // Get the Julian Date at 0h on 1st January for the current year:
-  const JD_0 = getJulianDate(new Date(Date.UTC(date.getFullYear(), 1, 1, 0, 0, 0, 0))) - 1
+  const JD_0 = getJulianDate(new Date(Date.UTC(date.getUTCFullYear(), 1, 1, 0, 0, 0, 0))) - 1
 
   // Get the number of Julian days since 1st January for the current year:
   const d = JD - JD_0
@@ -92,7 +89,7 @@ export const convertGreenwichSiderealTimeToUniversalTime = (GST: number, date: D
 
   const R = 6.6460656 + 2400.051262 * T + 0.00002581 * T ** 2
 
-  const B = 24 - R + 24 * (date.getFullYear() - 1900)
+  const B = 24 - R + 24 * (date.getUTCFullYear() - 1900)
 
   let T_0 = 0.0657098 * d - B
 
@@ -123,13 +120,15 @@ export const convertGreenwichSiderealTimeToUniversalTime = (GST: number, date: D
   const milliseconds = Math.floor((((UTC - hours) * 60 - minutes) * 60 - seconds) * 1000)
 
   return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-    hours,
-    minutes,
-    seconds,
-    milliseconds
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      hours,
+      minutes,
+      seconds,
+      milliseconds
+    )
   )
 }
 
