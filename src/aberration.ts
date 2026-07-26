@@ -6,13 +6,15 @@
 
 /*****************************************************************************************************************/
 
-import { getHourAngle, getObliquityOfTheEcliptic } from './astrometry'
+import { getHourAngle } from './astrometry'
 
 import type { EquatorialCoordinate, GeographicCoordinate } from './common'
 
 import { EARTH_RADIUS, c } from './constants'
 
 import { getEccentricityOfOrbit } from './earth'
+
+import { getObliquityOfTheEcliptic } from './ecliptic'
 
 import { getJulianDate } from './epoch'
 
