@@ -12,7 +12,11 @@ import type {
   SphericalCoordinate
 } from './common'
 
+import { getObliquityOfTheEcliptic } from './ecliptic'
+
 import { getJulianDate } from './epoch'
+
+import { getNutation } from './nutation'
 
 import { utc } from './utc'
 
@@ -155,6 +159,48 @@ export const getGreenwhichSiderealTime = (datetime: Date): number => {
  *
  */
 export const GST = getGreenwhichSiderealTime
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getGreenwichApparentSiderealTime()
+ *
+ * The Greenwich Apparent Sidereal Time (GAST) is the hour angle of the true vernal equinox,
+ * that is, the mean sidereal time (GMST) corrected for the equation of the equinoxes, which
+ * accounts for the nutation of the Earth's axis of rotation.
+ *
+ * @param datetime - The date for which to calculate the Greenwich Apparent Sidereal Time (GAST).
+ * @returns Greenwich Apparent Sidereal Time as number - the Greenwich Apparent Sidereal Time (GAST) of the given date normalised to UTC.
+ *
+ */
+export const getGreenwichApparentSiderealTime = (datetime: Date): number => {
+  // Get the Greenwich Mean Sidereal Time (GMST) of the given date (in hours):
+  const GMST = getGreenwhichSiderealTime(datetime)
+
+  // Get the nutation in longitude (Δψ) and obliquity (Δε) of the given date (in degrees):
+  const { Δψ, Δε } = getNutation(datetime)
+
+  // Get the true obliquity of the ecliptic, e.g., the mean obliquity corrected for nutation (in degrees):
+  const ε = getObliquityOfTheEcliptic(datetime) + Δε
+
+  // Calculate the equation of the equinoxes, converted from degrees to hours:
+  const EQ = (Δψ * Math.cos(radians(ε))) / 15
+
+  // Apply the equation of the equinoxes to the Greenwich Mean Sidereal Time (GMST):
+  const GAST = (GMST + EQ) % 24
+
+  return GAST < 0 ? GAST + 24 : GAST
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * @alias getGreenwichApparentSiderealTime()
+ *
+ */
+export const GAST = getGreenwichApparentSiderealTime
 
 /*****************************************************************************************************************/
 
