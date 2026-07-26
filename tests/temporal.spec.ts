@@ -11,10 +11,10 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
-  convertGreenwhichSiderealTimeToUniversalTime,
+  convertGreenwichSiderealTimeToUniversalTime,
   convertJulianDateToUTC,
-  convertLocalSiderealTimeToGreenwhichSiderealTime,
-  getGreenwhichSiderealTime,
+  convertLocalSiderealTimeToGreenwichSiderealTime,
+  getGreenwichSiderealTime,
   getJulianDate,
   getLocalSiderealTime
 } from '../src'
@@ -50,30 +50,30 @@ describe('convertJulianDateToUTC', () => {
 
 /*****************************************************************************************************************/
 
-describe('convertLocalSiderealTimeToGreenwhichSiderealTime', () => {
+describe('convertLocalSiderealTimeToGreenwichSiderealTime', () => {
   it('should be defined', () => {
-    expect(convertLocalSiderealTimeToGreenwhichSiderealTime).toBeDefined()
+    expect(convertLocalSiderealTimeToGreenwichSiderealTime).toBeDefined()
   })
 
   it('should return the correct Local Sidereal Time for a given Greenwich Sidereal Time', () => {
     const LST = getLocalSiderealTime(datetime, longitude)
-    const GST = getGreenwhichSiderealTime(datetime)
+    const GST = getGreenwichSiderealTime(datetime)
     expect(
-      convertLocalSiderealTimeToGreenwhichSiderealTime(LST, { latitude, longitude })
+      convertLocalSiderealTimeToGreenwichSiderealTime(LST, { latitude, longitude })
     ).toBeCloseTo(GST)
   })
 })
 
 /*****************************************************************************************************************/
 
-describe('convertGreenwhichSiderealTimeToUniversalTime', () => {
+describe('convertGreenwichSiderealTimeToUniversalTime', () => {
   it('should be defined', () => {
-    expect(convertGreenwhichSiderealTimeToUniversalTime).toBeDefined()
+    expect(convertGreenwichSiderealTimeToUniversalTime).toBeDefined()
   })
 
   it('should return the correct Universal Coordinated Time for a given Greenwich Sidereal Time', () => {
-    const GST = getGreenwhichSiderealTime(datetime)
-    const UTC = convertGreenwhichSiderealTimeToUniversalTime(GST, datetime)
+    const GST = getGreenwichSiderealTime(datetime)
+    const UTC = convertGreenwichSiderealTimeToUniversalTime(GST, datetime)
     expect(UTC).toBeInstanceOf(Date)
     // Check that the UTC is the same as the datetime:
     expect(UTC.getTime()).toBeCloseTo(datetime.getTime() + datetime.getTimezoneOffset() * 60000, -5)

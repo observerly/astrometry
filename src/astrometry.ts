@@ -102,7 +102,7 @@ export const getNormalisedSphericalCoordinate = (A: SphericalCoordinate): Spheri
 
 /**
  *
- * getGreenwhichSiderealTime()
+ * getGreenwichSiderealTime()
  *
  * The Greenwich Sidereal Time (GST) is the hour angle of the vernal
  * equinox, the ascending node of the ecliptic on the celestial equator.
@@ -111,7 +111,7 @@ export const getNormalisedSphericalCoordinate = (A: SphericalCoordinate): Spheri
  * @returns Greenwich Sidereal Time as number - the Greenwich Sidereal Time (GST) of the given date normalised to UTC.
  *
  */
-export const getGreenwhichSiderealTime = (datetime: Date): number => {
+export const getGreenwichSiderealTime = (datetime: Date): number => {
   // Get the Julian Date of the given date:
   const JD = getJulianDate(datetime)
 
@@ -155,10 +155,10 @@ export const getGreenwhichSiderealTime = (datetime: Date): number => {
 
 /**
  *
- * @alias getGreenwhichSiderealTime()
+ * @alias getGreenwichSiderealTime()
  *
  */
-export const GST = getGreenwhichSiderealTime
+export const GST = getGreenwichSiderealTime
 
 /*****************************************************************************************************************/
 
@@ -176,7 +176,7 @@ export const GST = getGreenwhichSiderealTime
  */
 export const getGreenwichApparentSiderealTime = (datetime: Date): number => {
   // Get the Greenwich Mean Sidereal Time (GMST) of the given date (in hours):
-  const GMST = getGreenwhichSiderealTime(datetime)
+  const GMST = getGreenwichSiderealTime(datetime)
 
   // Get the nutation in longitude (Δψ) and obliquity (Δε) of the given date (in degrees):
   const { Δψ, Δε } = getNutation(datetime)
@@ -218,7 +218,7 @@ export const GAST = getGreenwichApparentSiderealTime
  */
 export const getLocalSiderealTime = (datetime: Date, longitude: number): number => {
   // Get the Greenwich Sidereal Time (GST) of the given date:
-  const GST = getGreenwhichSiderealTime(datetime)
+  const GST = getGreenwichSiderealTime(datetime)
 
   let d = (GST + longitude / 15.0) / 24.0
 

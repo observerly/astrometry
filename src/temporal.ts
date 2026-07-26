@@ -31,7 +31,7 @@ export const convertJulianDateToUTC = (JD: number): Date => {
 
 /**
  *
- * convertLocalSiderealTimeToGreenwhichSiderealTime()
+ * convertLocalSiderealTimeToGreenwichSiderealTime()
  *
  * Makes the conversion from Greenwich Sidereal Time to Local Sidereal Time.
  *
@@ -40,7 +40,7 @@ export const convertJulianDateToUTC = (JD: number): Date => {
  * @returns GST - the Greenwich Sidereal Time for the given Local Sidereal Times
  *
  */
-export const convertLocalSiderealTimeToGreenwhichSiderealTime = (
+export const convertLocalSiderealTimeToGreenwichSiderealTime = (
   LST: number,
   observer: GeographicCoordinate
 ): number => {
@@ -63,7 +63,7 @@ export const convertLocalSiderealTimeToGreenwhichSiderealTime = (
 
 /**
  *
- * convertGreenwhichSiderealTimeToUniversalTime()
+ * convertGreenwichSiderealTimeToUniversalTime()
  *
  * Makes the conversion from Greenwich Sidereal Time to Universal Coordinated Time.
  *
@@ -72,7 +72,7 @@ export const convertLocalSiderealTimeToGreenwhichSiderealTime = (
  * @returns UTC - The Universal Coordinated Time (UTC) of the given date normalised to UTC.
  *
  */
-export const convertGreenwhichSiderealTimeToUniversalTime = (GST: number, date: Date): Date => {
+export const convertGreenwichSiderealTimeToUniversalTime = (GST: number, date: Date): Date => {
   // Adjust the date to UTC:
   date = new Date(date.getTime() + date.getTimezoneOffset() * 60000)
 

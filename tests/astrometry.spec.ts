@@ -16,7 +16,7 @@ import {
   getAngularSeparation,
   getAntipodeCoordinate,
   getGreenwichApparentSiderealTime,
-  getGreenwhichSiderealTime,
+  getGreenwichSiderealTime,
   getHourAngle,
   getLocalSiderealTime,
   getNormalisedSphericalCoordinate,
@@ -160,18 +160,18 @@ describe('getNormalisedSphericalCoordinate', () => {
 
 /*****************************************************************************************************************/
 
-describe('getGreenwhichSiderealTime', () => {
+describe('getGreenwichSiderealTime', () => {
   it('should be defined', () => {
-    expect(getGreenwhichSiderealTime).toBeDefined()
+    expect(getGreenwichSiderealTime).toBeDefined()
   })
 
-  it('should return the Greenwhich Sidereal Time (GST) of the given date', () => {
-    const GST = getGreenwhichSiderealTime(datetime)
+  it('should return the Greenwich Sidereal Time (GST) of the given date', () => {
+    const GST = getGreenwichSiderealTime(datetime)
     expect(GST).toBe(15.463990399019053)
   })
 
   it('should return a target that is directly overhead at for ', () => {
-    const GST = getGreenwhichSiderealTime(datetime)
+    const GST = getGreenwichSiderealTime(datetime)
 
     // The observer is at the same latitude as Betelgeuse's declination, and the same longitude as as
     // Betelgeuse's right ascension minus the GST times 15 degrees per hour:
@@ -199,7 +199,7 @@ describe('getGreenwichApparentSiderealTime', () => {
 
   it('should differ from the Greenwich Mean Sidereal Time (GMST) by the equation of the equinoxes', () => {
     const GAST = getGreenwichApparentSiderealTime(datetime)
-    const GMST = getGreenwhichSiderealTime(datetime)
+    const GMST = getGreenwichSiderealTime(datetime)
     // The equation of the equinoxes is always less than around one second of time:
     expect(Math.abs(GAST - GMST) * 3600).toBeLessThan(1.2)
   })
@@ -219,16 +219,16 @@ describe('getLocalSiderealTime', () => {
     expect(getLocalSiderealTime).toBeDefined()
   })
 
-  it('should return the Local Sidereal Time (LST) of the given date at longitude 0 at Greenwhich', () => {
+  it('should return the Local Sidereal Time (LST) of the given date at longitude 0 at Greenwich', () => {
     const LST = getLocalSiderealTime(datetime, 0)
-    const GST = getGreenwhichSiderealTime(datetime)
+    const GST = getGreenwichSiderealTime(datetime)
     expect(LST).toBe(GST)
   })
 
-  it('should return the Local Sidereal Time (LST) of the given date at longitude 0 at Greenwhich', () => {
+  it('should return the Local Sidereal Time (LST) of the given date at longitude 0 at Greenwich', () => {
     const datetime = new Date('2021-05-14T01:06:33.99870+00:00')
     const LST = getLocalSiderealTime(datetime, 0)
-    const GST = getGreenwhichSiderealTime(datetime)
+    const GST = getGreenwichSiderealTime(datetime)
     expect(LST).toBe(GST)
   })
 
@@ -245,7 +245,7 @@ describe('getHourAngle', () => {
     expect(getHourAngle).toBeDefined()
   })
 
-  it('should return the Hour Angle (HA) of the given date at longitude 0 at Greenwhich', () => {
+  it('should return the Hour Angle (HA) of the given date at longitude 0 at Greenwich', () => {
     const HA = getHourAngle(datetime, 0, betelgeuse.ra)
     expect(HA).toBe(143.1668976852858)
   })
@@ -263,7 +263,7 @@ describe('getParallacticAngle', () => {
     expect(getParallacticAngle).toBeDefined()
   })
 
-  it('should return the Parallactic Angle (PA) of the given date at longitude 0 at Greenwhich', () => {
+  it('should return the Parallactic Angle (PA) of the given date at longitude 0 at Greenwich', () => {
     const q = getParallacticAngle(datetime, { latitude, longitude }, betelgeuse)
     expect(q).toBe(317.37187353779296)
   })

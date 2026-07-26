@@ -16,7 +16,7 @@ import {
   convertEquatorialToHorizontal,
   convertGalacticToEquatorial,
   convertHorizontalToEquatorial,
-  getGreenwhichSiderealTime
+  getGreenwichSiderealTime
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -67,7 +67,7 @@ describe('convertEquatorialToHorizontal', () => {
   })
 
   it('should return the correct horizontal coodinate for a target directly overhead for the datetime provided', () => {
-    const GST = getGreenwhichSiderealTime(datetime)
+    const GST = getGreenwichSiderealTime(datetime)
 
     // The observer is at the same latitude as Betelgeuse's declination, and the same longitude as as
     // Betelgeuse's right ascension minus the GST times 15 degrees per hour:
