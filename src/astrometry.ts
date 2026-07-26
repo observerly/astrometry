@@ -244,6 +244,46 @@ export const LST = getLocalSiderealTime
 
 /**
  *
+ * getLocalApparentSiderealTime()
+ *
+ * The Local Apparent Sidereal Time (LAST) is the hour angle of the true vernal equinox for
+ * the observer's meridian, that is, the Greenwich Apparent Sidereal Time (GAST) corrected
+ * for the longitude of the observer.
+ *
+ * @param date - The date for which to calculate the Local Apparent Sidereal Time (LAST).
+ * @param longitude - The longitude of the observer in degrees.
+ * @returns Local Apparent Sidereal Time as number - the Local Apparent Sidereal Time (LAST) of the given date normalised to UTC.
+ *
+ */
+export const getLocalApparentSiderealTime = (datetime: Date, longitude: number): number => {
+  // Get the Greenwich Apparent Sidereal Time (GAST) of the given date (in hours):
+  const GAST = getGreenwichApparentSiderealTime(datetime)
+
+  // Apply the longitude of the observer, converted from degrees to hours:
+  let d = (GAST + longitude / 15.0) / 24.0
+
+  d = d - Math.floor(d)
+
+  if (d < 0) {
+    d += 1
+  }
+
+  return 24.0 * d
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * @alias getLocalApparentSiderealTime()
+ *
+ */
+export const LAST = getLocalApparentSiderealTime
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * getHourAngle()
  *
  * The Hour Angle (HA) is the angular distance along the celestial equator
