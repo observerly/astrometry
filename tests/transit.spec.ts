@@ -351,9 +351,7 @@ describe('getBodyNextRise', () => {
     expect(LST).toBe(23.740485646638913)
     expect(az).toBeCloseTo(82.12362992591511)
 
-    const date = new Date('2021-05-15T18:31:28.713Z')
-
-    expect(d).toStrictEqual(new Date(date.getTime() + date.getTimezoneOffset() * 60000))
+    expect(d).toStrictEqual(new Date('2021-05-15T18:31:28.713Z'))
   })
 
   it('should return transit parameters for a souther hemisphere object for a postive latitude', () => {
@@ -378,9 +376,7 @@ describe('getBodyNextRise', () => {
     expect(LST).toBe(0.09857546002774953)
     expect(az).toBeCloseTo(82.12362992591511)
 
-    const date = new Date('2021-10-02T09:42:26.990Z')
-
-    expect(d).toStrictEqual(new Date(date.getTime() + date.getTimezoneOffset() * 60000))
+    expect(d).toStrictEqual(new Date('2021-10-02T09:42:26.990Z'))
   })
 })
 
@@ -413,9 +409,7 @@ describe('getBodyNextSet', () => {
     expect(LST).toBe(12.098575460027751)
     expect(az).toBeCloseTo(277.8763700740849)
 
-    const date = new Date('2021-05-15T06:54:52.253Z')
-
-    expect(d).toStrictEqual(new Date(date.getTime() + date.getTimezoneOffset() * 60000))
+    expect(d).toStrictEqual(new Date('2021-05-15T06:54:52.253Z'))
   })
 })
 
@@ -479,6 +473,48 @@ describe('isBodyVisibleForNight', () => {
         }
       )
     ).toBe(false)
+  })
+
+  it('should not modify the datetime given by the caller', () => {
+    const when = new Date('2021-01-01T12:34:56.000+00:00')
+
+    isBodyVisibleForNight(
+      when,
+      {
+        latitude,
+        longitude
+      },
+      polaris
+    )
+
+    expect(when.toISOString()).toBe('2021-01-01T12:34:56.000Z')
+  })
+
+  it('should return the same visibility irrespective of the host timezone', () => {
+    // Betelgeuse is not visible for the night of the 31st May 2021 from Mauna Kea, but is
+    // visible for the night before, e.g., the day boundary must be derived in UTC:
+    const when = new Date('2021-05-31T03:00:00.000+00:00')
+
+    const TZ = process.env.TZ
+
+    try {
+      for (const timezone of ['Pacific/Auckland', 'America/New_York']) {
+        process.env.TZ = timezone
+
+        expect(
+          isBodyVisibleForNight(
+            when,
+            {
+              latitude,
+              longitude
+            },
+            betelgeuse
+          )
+        ).toBe(false)
+      }
+    } finally {
+      process.env.TZ = TZ
+    }
   })
 })
 
