@@ -71,6 +71,24 @@ describe('isPlanetaryConjunction(datetime)', () => {
     const conjunction = isPlanetaryConjunction(datetime, { latitude, longitude }, planets)
     expect(conjunction).toBe(false)
   })
+
+  it('should return a midpoint on the same side of the sky when the targets straddle 0h', () => {
+    // On the 2nd of May 2022 Venus and Jupiter are either side of the vernal equinox at 0h,
+    // e.g., Venus is at a right ascension of ~0.5° and Jupiter is at ~358.4°:
+    const datetime = new Date('2022-05-02T16:00:00Z')
+
+    const conjunction = isPlanetaryConjunction(datetime, { latitude, longitude }, planets)
+
+    expect(conjunction).not.toBe(false)
+
+    if (!conjunction) {
+      throw new Error('Conjunction is not defined')
+    }
+
+    // The midpoint must lie between the two targets, and not on the opposite side of the sky:
+    expect(conjunction.ra).toBeCloseTo(359.467, 3)
+    expect(conjunction.dec).toBeCloseTo(-1.5568, 4)
+  })
 })
 
 /*****************************************************************************************************************/
@@ -154,6 +172,43 @@ describe('isConjunction()', () => {
     } else {
       throw new Error('Conjunction is not defined')
     }
+  })
+
+  it('should return the midpoint of two targets either side of 0h right ascension', () => {
+    const datetime = new Date('2021-05-14T00:00:00Z')
+
+    const conjunction = isConjunction(datetime, [
+      { name: 'A', alt: 45, az: 180, ra: 359, dec: 0 },
+      { name: 'B', alt: 45, az: 182, ra: 3, dec: 0 }
+    ])
+
+    expect(conjunction).not.toBe(false)
+
+    if (!conjunction) {
+      throw new Error('Conjunction is not defined')
+    }
+
+    // The midpoint of 359° and 3° is 1°, and not the arithmetic mean of 181°:
+    expect(conjunction.ra).toBeCloseTo(1, 9)
+    expect(conjunction.dec).toBeCloseTo(0, 9)
+  })
+
+  it('should return the midpoint of two targets which do not straddle 0h right ascension', () => {
+    const datetime = new Date('2021-05-14T00:00:00Z')
+
+    const conjunction = isConjunction(datetime, [
+      { name: 'A', alt: 45, az: 180, ra: 179, dec: -20 },
+      { name: 'B', alt: 45, az: 182, ra: 181, dec: 20 }
+    ])
+
+    expect(conjunction).not.toBe(false)
+
+    if (!conjunction) {
+      throw new Error('Conjunction is not defined')
+    }
+
+    expect(conjunction.ra).toBeCloseTo(180, 9)
+    expect(conjunction.dec).toBeCloseTo(0, 9)
   })
 })
 

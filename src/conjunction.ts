@@ -18,10 +18,16 @@ import type {
 import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
 
 import {
+  type Planet,
   getPlanetaryGeocentricEclipticCoordinate,
-  getPlanetaryPositions,
-  type Planet
+  getPlanetaryPositions
 } from './planets'
+
+import {
+  convertRadiansToDegrees as degrees,
+  getNormalizedAzimuthalDegree,
+  convertDegreesToRadians as radians
+} from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -40,6 +46,42 @@ export type Conjunction = {
 /*****************************************************************************************************************/
 
 const ANGULAR_SEPARATION_THRESHOLD = 3 // in degrees
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getMidpointEquatorialCoordinate()
+ *
+ * Calculates the midpoint of two equatorial coordinates on the celestial sphere, by taking the
+ * mean of the two coordinates as unit vectors, so as to correctly handle the wrap of right
+ * ascension across the vernal equinox at 0h.
+ *
+ * @param A - The equatorial coordinate of the first target.
+ * @param B - The equatorial coordinate of the second target.
+ * @returns The equatorial coordinate of the midpoint between the two targets.
+ *
+ */
+const getMidpointEquatorialCoordinate = (
+  A: EquatorialCoordinate,
+  B: EquatorialCoordinate
+): EquatorialCoordinate => {
+  // Convert both coordinates to unit vectors, and sum them component-wise:
+  const x =
+    Math.cos(radians(A.dec)) * Math.cos(radians(A.ra)) +
+    Math.cos(radians(B.dec)) * Math.cos(radians(B.ra))
+
+  const y =
+    Math.cos(radians(A.dec)) * Math.sin(radians(A.ra)) +
+    Math.cos(radians(B.dec)) * Math.sin(radians(B.ra))
+
+  const z = Math.sin(radians(A.dec)) + Math.sin(radians(B.dec))
+
+  return {
+    ra: getNormalizedAzimuthalDegree(degrees(Math.atan2(y, x))),
+    dec: degrees(Math.atan2(z, Math.sqrt(x ** 2 + y ** 2)))
+  }
+}
 
 /*****************************************************************************************************************/
 
@@ -122,12 +164,15 @@ export const isPlanetaryConjunction = (
     }
   ] satisfies [Target, Target]
 
+  // Get the midpoint of the two targets on the celestial sphere:
+  const { ra, dec } = getMidpointEquatorialCoordinate(here, there)
+
   return {
     datetime,
     targets,
     angularSeparation: separation,
-    ra: (here.ra + there.ra) / 2,
-    dec: (here.dec + there.dec) / 2
+    ra,
+    dec
   }
 }
 
@@ -181,12 +226,15 @@ export const isConjunction = (
 
   if (separation > angularSeparationThreshold) return false
 
+  // Get the midpoint of the two targets on the celestial sphere:
+  const { ra, dec } = getMidpointEquatorialCoordinate(hither, tither)
+
   return {
     datetime,
     targets,
     angularSeparation: separation,
-    ra: (hither.ra + tither.ra) / 2,
-    dec: (hither.dec + tither.dec) / 2
+    ra,
+    dec
   }
 }
 
@@ -373,12 +421,15 @@ export const findPlanetaryConjunctions = (
           // biome-ignore lint/style/noNonNullAssertion: This is a false positive. The conjunctions map is initialized above.
           (!conjunctions.has(key) || conjunctions.get(key)!.angularSeparation > separation)
         ) {
+          // Get the midpoint of the two planets on the celestial sphere:
+          const { ra, dec } = getMidpointEquatorialCoordinate(alterior, ulterior)
+
           const conjunction: Conjunction = {
             datetime: from,
             targets: [alterior, ulterior],
             angularSeparation: separation,
-            ra: (alterior.ra + ulterior.ra) / 2,
-            dec: (alterior.dec + ulterior.dec) / 2
+            ra,
+            dec
           }
 
           conjunctions.set(key, conjunction)
