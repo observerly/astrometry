@@ -252,6 +252,7 @@ export const isConjunction = (
  * @param horizon - The minimum altitude of the planets above the horizon.
  * @param angularSeparationThreshold - The minimum angular separation of the planets.
  * @param stepMinutes - The step size in minutes for checking conjunction.
+ * @throws An error if the step size is not greater than zero.
  * @returns The conjunction of the two planets if they are in conjunction, otherwise null.
  */
 export const findPlanetaryConjunction = (
@@ -276,6 +277,12 @@ export const findPlanetaryConjunction = (
     angularSeparationThreshold = ANGULAR_SEPARATION_THRESHOLD,
     stepMinutes = 20
   } = params
+
+  // A step of zero (or less) would never advance through the interval, and would therefore
+  // search for a conjunction indefinitely:
+  if (!Number.isFinite(stepMinutes) || stepMinutes <= 0) {
+    throw new Error('Invalid step: stepMinutes must be finite and greater than zero')
+  }
 
   while (from <= to) {
     const conjunction = isPlanetaryConjunction(from, observer, planets, {
@@ -302,6 +309,7 @@ export const findPlanetaryConjunction = (
  * @param interval - The interval to search for the initial conjunction.
  * @param targets - The two targets to test for conjunction.
  * @param params - The parameters for the conjunction test.
+ * @throws An error if the step size is not greater than zero.
  * @returns The conjunction of the two targets if they are in conjunction, otherwise false.
  */
 export const findConjunction = (
@@ -325,6 +333,12 @@ export const findConjunction = (
     angularSeparationThreshold = ANGULAR_SEPARATION_THRESHOLD,
     stepMinutes = 20
   } = params
+
+  // A step of zero (or less) would never advance through the interval, and would therefore
+  // search for a conjunction indefinitely:
+  if (!Number.isFinite(stepMinutes) || stepMinutes <= 0) {
+    throw new Error('Invalid step: stepMinutes must be finite and greater than zero')
+  }
 
   while (from <= to) {
     const conjunction = isConjunction(from, targets, {
@@ -355,6 +369,7 @@ export const findConjunction = (
  * @param horizon - The minimum altitude of the planets above the horizon.
  * @param angularSeparationThreshold - The minimum angular separation for conjunction.
  * @param stepMinutes - The step size in minutes for checking conjunction.
+ * @throws An error if the step size is not greater than zero.
  * @returns An array of conjunctions found.
  *
  */
@@ -382,6 +397,12 @@ export const findPlanetaryConjunctions = (
     angularSeparationThreshold = ANGULAR_SEPARATION_THRESHOLD,
     stepMinutes = 20
   } = params
+
+  // A step of zero (or less) would never advance through the interval, and would therefore
+  // search for a conjunction indefinitely:
+  if (!Number.isFinite(stepMinutes) || stepMinutes <= 0) {
+    throw new Error('Invalid step: stepMinutes must be finite and greater than zero')
+  }
 
   while (from <= to) {
     // Collate the positions of all planets other than Earth and those below the horizon in the sky:

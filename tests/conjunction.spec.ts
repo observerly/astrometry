@@ -317,6 +317,25 @@ describe('findPlanetaryConjunction()', () => {
       throw new Error('Conjunction is not defined')
     }
   })
+
+  it('should throw for a step size which would never advance through the interval', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    const interval = {
+      from: datetime,
+      to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24)
+    }
+
+    for (const stepMinutes of [0, -20, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() =>
+        findPlanetaryConjunction(interval, { latitude, longitude }, planets, { stepMinutes })
+      ).toThrow()
+    }
+
+    expect(() =>
+      findPlanetaryConjunction(interval, { latitude, longitude }, planets, { stepMinutes: 20 })
+    ).not.toThrow()
+  })
 })
 
 /*****************************************************************************************************************/
@@ -368,6 +387,27 @@ describe('findConjunction()', () => {
     } else {
       throw new Error('Conjunction is not defined')
     }
+  })
+
+  it('should throw for a step size which would never advance through the interval', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    const interval = {
+      from: datetime,
+      to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24)
+    }
+
+    // Two targets which are below the horizon, so as to never return a conjunction:
+    const targets: Parameters<typeof findConjunction>[1] = [
+      { name: 'A', alt: -45, az: 180, ra: 179, dec: -20 },
+      { name: 'B', alt: -45, az: 182, ra: 181, dec: 20 }
+    ]
+
+    for (const stepMinutes of [0, -20, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => findConjunction(interval, targets, { stepMinutes })).toThrow()
+    }
+
+    expect(() => findConjunction(interval, targets, { stepMinutes: 20 })).not.toThrow()
   })
 })
 
@@ -429,6 +469,23 @@ describe('findPlanetaryConjunctions()', () => {
     expect(conjunction.targets).toHaveLength(2)
     expect(conjunction.targets[0].name).toBe('Venus')
     expect(conjunction.targets[1].name).toBe('Jupiter')
+  })
+
+  it('should throw for a step size which would never advance through the interval', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    const interval = {
+      from: datetime,
+      to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24)
+    }
+
+    for (const stepMinutes of [0, -20, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => findPlanetaryConjunctions(interval, { latitude, longitude }, { stepMinutes })).toThrow()
+    }
+
+    expect(() =>
+      findPlanetaryConjunctions(interval, { latitude, longitude }, { stepMinutes: 120 })
+    ).not.toThrow()
   })
 })
 
