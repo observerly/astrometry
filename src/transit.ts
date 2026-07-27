@@ -495,8 +495,12 @@ export const isBodyVisibleForNight = (
   target: EquatorialCoordinate,
   horizon = 0
 ): boolean => {
-  // Set the datetime to be at 1 minute before midnight for the previous date:
-  datetime = new Date(new Date(datetime.setHours(0, 0, 0, 0)).getTime())
+  // Set the datetime to be at midnight UTC for the date specified, taking a copy of the
+  // datetime so as to not modify the date given by the caller, and deriving the day
+  // boundary in UTC so as to be independent of the timezone of the host system:
+  const midnight = new Date(
+    Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), datetime.getUTCDate(), 0, 0, 0, 0)
+  )
 
   // If the object is never visible, it never rises:
   if (!isBodyVisible(observer, target, horizon)) {
@@ -509,7 +513,7 @@ export const isBodyVisibleForNight = (
   }
 
   // Get night for the date specified:
-  const { start, end } = getNight(datetime, observer)
+  const { start, end } = getNight(midnight, observer)
 
   // If we are at the poles, then there is (potentially) no night:
   if (!start || !end) {
