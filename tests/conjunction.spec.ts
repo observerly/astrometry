@@ -18,6 +18,7 @@ import {
   findPlanetaryConjunction,
   findPlanetaryConjunctions,
   getLunarEquatorialCoordinate,
+  getMidpointEquatorialCoordinate,
   getPlanetaryGeocentricEclipticCoordinate,
   isConjunction,
   isPlanetaryConjunction,
@@ -36,6 +37,46 @@ export const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
 export const longitude = -155.468094
+
+/*****************************************************************************************************************/
+
+describe('getMidpointEquatorialCoordinate', () => {
+  it('should be defined', () => {
+    expect(getMidpointEquatorialCoordinate).toBeDefined()
+  })
+
+  it('should return the midpoint of two equatorial coordinates', () => {
+    const { ra, dec } = getMidpointEquatorialCoordinate(
+      { ra: 179, dec: -20 },
+      { ra: 181, dec: 20 }
+    )
+
+    expect(ra).toBeCloseTo(180, 9)
+    expect(dec).toBeCloseTo(0, 9)
+  })
+
+  it('should return the midpoint of two equatorial coordinates either side of 0h', () => {
+    // The midpoint of 359° and 3° is 1°, and not the arithmetic mean of 181°:
+    const { ra, dec } = getMidpointEquatorialCoordinate({ ra: 359, dec: 0 }, { ra: 3, dec: 0 })
+
+    expect(ra).toBeCloseTo(1, 9)
+    expect(dec).toBeCloseTo(0, 9)
+  })
+
+  it('should return the midpoint of two equatorial coordinates close to the pole', () => {
+    const { ra, dec } = getMidpointEquatorialCoordinate({ ra: 0, dec: 89 }, { ra: 180, dec: 89 })
+
+    expect(ra).toBeCloseTo(90, 9)
+    expect(dec).toBeCloseTo(90, 9)
+  })
+
+  it('should be commutative in the order of the two equatorial coordinates', () => {
+    const A = { ra: 359.2, dec: -1.4 }
+    const B = { ra: 0.8, dec: -1.7 }
+
+    expect(getMidpointEquatorialCoordinate(A, B)).toEqual(getMidpointEquatorialCoordinate(B, A))
+  })
+})
 
 /*****************************************************************************************************************/
 
@@ -70,6 +111,24 @@ describe('isPlanetaryConjunction(datetime)', () => {
 
     const conjunction = isPlanetaryConjunction(datetime, { latitude, longitude }, planets)
     expect(conjunction).toBe(false)
+  })
+
+  it('should return a midpoint on the same side of the sky when the targets straddle 0h', () => {
+    // On the 2nd of May 2022 Venus and Jupiter are either side of the vernal equinox at 0h,
+    // e.g., Venus is at a right ascension of ~0.5° and Jupiter is at ~358.4°:
+    const datetime = new Date('2022-05-02T16:00:00Z')
+
+    const conjunction = isPlanetaryConjunction(datetime, { latitude, longitude }, planets)
+
+    expect(conjunction).not.toBe(false)
+
+    if (!conjunction) {
+      throw new Error('Conjunction is not defined')
+    }
+
+    // The midpoint must lie between the two targets, and not on the opposite side of the sky:
+    expect(conjunction.ra).toBeCloseTo(359.467, 3)
+    expect(conjunction.dec).toBeCloseTo(-1.5568, 4)
   })
 })
 
@@ -154,6 +213,43 @@ describe('isConjunction()', () => {
     } else {
       throw new Error('Conjunction is not defined')
     }
+  })
+
+  it('should return the midpoint of two targets either side of 0h right ascension', () => {
+    const datetime = new Date('2021-05-14T00:00:00Z')
+
+    const conjunction = isConjunction(datetime, [
+      { name: 'A', alt: 45, az: 180, ra: 359, dec: 0 },
+      { name: 'B', alt: 45, az: 182, ra: 3, dec: 0 }
+    ])
+
+    expect(conjunction).not.toBe(false)
+
+    if (!conjunction) {
+      throw new Error('Conjunction is not defined')
+    }
+
+    // The midpoint of 359° and 3° is 1°, and not the arithmetic mean of 181°:
+    expect(conjunction.ra).toBeCloseTo(1, 9)
+    expect(conjunction.dec).toBeCloseTo(0, 9)
+  })
+
+  it('should return the midpoint of two targets which do not straddle 0h right ascension', () => {
+    const datetime = new Date('2021-05-14T00:00:00Z')
+
+    const conjunction = isConjunction(datetime, [
+      { name: 'A', alt: 45, az: 180, ra: 179, dec: -20 },
+      { name: 'B', alt: 45, az: 182, ra: 181, dec: 20 }
+    ])
+
+    expect(conjunction).not.toBe(false)
+
+    if (!conjunction) {
+      throw new Error('Conjunction is not defined')
+    }
+
+    expect(conjunction.ra).toBeCloseTo(180, 9)
+    expect(conjunction.dec).toBeCloseTo(0, 9)
   })
 })
 
