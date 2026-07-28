@@ -172,25 +172,28 @@ export const convertEquatorialToHorizontal = (
     )
   )
 
-  let p = 0
+  // The topocentric correction for the diurnal parallax of the target, e.g., the displacement of a
+  // nearby object as seen from the surface of the Earth, rather than from its center (in radians):
+  let parallax = 0
 
   if (target.distance !== undefined && target.distance > 0) {
-    // For nearby objects, horizontal parallax (p) is approximated as R/target.distance (in radians)
-    p = R / target.distance
+    // For nearby objects, the horizontal parallax (p) is the angle subtended at the target by the
+    // radius of the Earth (in radians):
+    const p = Math.asin(Math.min(1, R / target.distance))
+
+    // The parallax displaces the target along its vertical circle, towards the horizon, and so it
+    // is at a maximum at the horizon and vanishes at the zenith. The azimuth is unaffected:
+    parallax = p * Math.cos(altitude)
   }
 
-  // Calculate the topocentric correction for the altitude of the target:
-  const topocentricCorrection: HorizontalCoordinate = {
-    alt: p * Math.cos(altitude) * Math.cos(azimuth),
-    az: (-p * Math.sin(azimuth)) / Math.cos(altitude)
-  }
+  // The dip of the horizon for an observer at some elevation above sea level, e.g., the angle by
+  // which their horizon lies below the astronomical horizon (in radians). N.B. An observer below
+  // sea level is taken to be at sea level, where the dip of the horizon vanishes:
+  const dip = elevation > 0 ? Math.acos(R / (R + elevation)) : 0
 
   return {
-    alt: degrees(altitude + Math.sqrt((2 * elevation) / R)) + topocentricCorrection.alt,
-    az:
-      Math.sin(ha) > 0
-        ? 360 - degrees(azimuth + topocentricCorrection.az)
-        : degrees(azimuth + topocentricCorrection.az)
+    alt: degrees(altitude - parallax + dip),
+    az: Math.sin(ha) > 0 ? 360 - degrees(azimuth) : degrees(azimuth)
   }
 }
 
