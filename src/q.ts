@@ -170,14 +170,16 @@ export function getQIndex(
     convertEquatorialToHorizontal(datetime, observer, getLunarEquatorialCoordinate(datetime))
   )
 
+  // The Moon-target angular separation. N.B. getAngularSeparation() takes the polar angle, θ, to be
+  // the altitude, and the azimuthal angle, φ, to be the azimuth:
   const φ = getAngularSeparation(
     {
-      θ: moon.az,
-      φ: moon.alt
+      θ: moon.alt,
+      φ: moon.az
     },
     {
-      θ: A,
-      φ: a
+      θ: a,
+      φ: A
     }
   )
 

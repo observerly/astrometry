@@ -10,7 +10,15 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, getQIndex, q } from '../src'
+import {
+  convertEquatorialToHorizontal,
+  type EquatorialCoordinate,
+  getAngularSeparation,
+  getCorrectionToHorizontalForRefraction,
+  getLunarEquatorialCoordinate,
+  getQIndex,
+  q
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -117,6 +125,33 @@ describe('getQIndex', () => {
     expect(q.Q).toBeLessThanOrEqual(1)
 
     console.log('Q Index', q.Q)
+  })
+
+  it('should return the angular separation between the Moon and the target', () => {
+    const { φ, ra, dec, A } = getQIndex(datetime, { latitude, longitude }, betelgeuse)
+
+    // The refracted horizontal coordinate of the Moon for the observation:
+    const moon = getCorrectionToHorizontalForRefraction(
+      convertEquatorialToHorizontal(
+        datetime,
+        { latitude, longitude },
+        getLunarEquatorialCoordinate(datetime)
+      )
+    )
+
+    // The refracted horizontal coordinate of the target for the observation:
+    const target = getCorrectionToHorizontalForRefraction(
+      convertEquatorialToHorizontal(datetime, { latitude, longitude }, { ra, dec })
+    )
+
+    // The target's azimuth, as resolved by the Q index:
+    expect(target.az).toBeCloseTo(A)
+
+    // N.B. getAngularSeparation() takes the polar angle, θ, to be the altitude, and the azimuthal
+    // angle, φ, to be the azimuth:
+    expect(φ).toBeCloseTo(
+      getAngularSeparation({ θ: moon.alt, φ: moon.az }, { θ: target.alt, φ: target.az })
+    )
   })
 })
 
