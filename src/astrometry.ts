@@ -23,7 +23,6 @@ import { utc } from './utc'
 import {
   convertRadiansToDegrees as degrees,
   getNormalizedAzimuthalDegree,
-  getNormalizedInclinationDegree,
   convertDegreesToRadians as radians
 } from './utilities'
 
@@ -85,6 +84,10 @@ export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordina
  * Normalises a Spherical coordinate to a value between 0 and 360 degrees in the
  * longitude and -90 to 90 degrees in the latitude.
  *
+ * N.B. A latitude beyond a pole is reflected back over that pole, and, as the point then lies on
+ * the opposite side of the sphere, the longitude is rotated by 180°, e.g., a latitude of 92° is a
+ * latitude of 88° at the antipodal longitude.
+ *
  * @param A - The Spherical coordinate to normalise.
  * @returns The normalised Spherical coordinate.
  *
@@ -92,9 +95,21 @@ export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordina
 export const getNormalisedSphericalCoordinate = (A: SphericalCoordinate): SphericalCoordinate => {
   const { θ, φ } = A
 
+  // Wrap the latitude onto the range [-90, 270), e.g., a single meridian of the sphere, traversed
+  // from the south pole, over the north pole, and back down to the south pole:
+  const meridian = getNormalizedAzimuthalDegree(φ + 90) - 90
+
+  // Reflect a latitude that lies beyond a pole back over that pole, e.g., a latitude of 120° is a
+  // latitude of 60°, and a latitude of -120° is a latitude of -60°:
+  const latitude = 90 - Math.abs(90 - meridian)
+
+  // A reflected latitude lies on the opposite side of the sphere, and so its longitude is rotated
+  // to the antipodal meridian:
+  const longitude = θ + (latitude === meridian ? 0 : 180)
+
   return {
-    θ: getNormalizedAzimuthalDegree(θ),
-    φ: getNormalizedInclinationDegree(φ)
+    θ: getNormalizedAzimuthalDegree(longitude),
+    φ: latitude
   }
 }
 
