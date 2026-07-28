@@ -67,6 +67,36 @@ describe('convertPixelToWorldCoordinateSystem', () => {
     expect(equatorial.ra).toBeCloseTo(220.36, 1)
     expect(equatorial.dec).toBeCloseTo(-39.99, 1)
   })
+
+  // A WCS whose declination is simply the pixel offset in the y-dimension, in degrees:
+  const wcs = {
+    crpix: { x: 0, y: 0 },
+    crval: { ra: 0, dec: 0 },
+    cd11: 0,
+    cd12: 0,
+    cd21: 0,
+    cd22: 1,
+    E: 0,
+    F: 0
+  } satisfies WCS
+
+  it('should convert a pixel at the north celestial pole to a declination of +90 degrees', () => {
+    expect(convertPixelToWorldCoordinateSystem(wcs, { x: 0, y: 90 }).dec).toBe(90)
+  })
+
+  it('should convert a pixel at the south celestial pole to a declination of -90 degrees', () => {
+    expect(convertPixelToWorldCoordinateSystem(wcs, { x: 0, y: -90 }).dec).toBe(-90)
+  })
+
+  it('should clamp a declination beyond the north celestial pole to +90 degrees', () => {
+    expect(convertPixelToWorldCoordinateSystem(wcs, { x: 0, y: 91 }).dec).toBe(90)
+    expect(convertPixelToWorldCoordinateSystem(wcs, { x: 0, y: 180 }).dec).toBe(90)
+  })
+
+  it('should clamp a declination beyond the south celestial pole to -90 degrees', () => {
+    expect(convertPixelToWorldCoordinateSystem(wcs, { x: 0, y: -91 }).dec).toBe(-90)
+    expect(convertPixelToWorldCoordinateSystem(wcs, { x: 0, y: -180 }).dec).toBe(-90)
+  })
 })
 
 /*****************************************************************************************************************/
