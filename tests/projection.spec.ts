@@ -65,6 +65,44 @@ describe('convertStereoToHorizontal', () => {
     expect(az).toBeCloseTo(180)
     expect(alt).toBeCloseTo(61.525439)
   })
+
+  it('should invert convertHorizontalToStereo for the default focus', () => {
+    const extent = { width: 2000, height: 2000 }
+
+    // The forward and the inverse projection share the same default focus, and so the projection
+    // round trips without the focus having to be given explicitly:
+    for (const target of [
+      { az: 45, alt: 5 },
+      { az: 90, alt: 30 },
+      { az: 180, alt: 61.525439 },
+      { az: 245, alt: 15 },
+      { az: 359, alt: 75 }
+    ]) {
+      const { az, alt } = convertStereoToHorizontal(
+        convertHorizontalToStereo(target, extent),
+        extent
+      )
+
+      expect(az).toBeCloseTo(target.az)
+      expect(alt).toBeCloseTo(target.alt)
+    }
+  })
+
+  it('should return the center of the projection for the center of the canvas', () => {
+    const extent = { width: 2000, height: 2000 }
+
+    // The center of the projection is the point on the horizon due south of the observer, which the
+    // forward projection maps to the bottom center of the canvas:
+    const { x, y } = convertHorizontalToStereo({ az: 180, alt: 0 }, extent)
+
+    expect(x).toBeCloseTo(1000)
+    expect(y).toBeCloseTo(2000)
+
+    const { az, alt } = convertStereoToHorizontal({ x, y }, extent)
+
+    expect(az).toBe(180)
+    expect(alt).toBe(0)
+  })
 })
 
 /*****************************************************************************************************************/
