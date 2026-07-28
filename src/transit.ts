@@ -161,8 +161,10 @@ export const isBodyCircumpolar = (
   // Whether a given star is circumpolar at the observer's latitude (θ) may be
   // calculated in terms of the star's declination (δ). The star is circumpolar
   // if θ + δ is greater than +90° (observer in Northern Hemisphere), or θ + δ is
-  // less than −90° (observer in Southern Hemisphere).
-  return latitude >= horizon ? latitude + dec > 90 : latitude + dec < -90
+  // less than −90° (observer in Southern Hemisphere). The hemisphere of the
+  // observer is determined by the sign of their latitude, and the altitude of
+  // the object at its lower culmination must exceed the observer's horizon:
+  return latitude >= 0 ? latitude + dec > 90 + horizon : latitude + dec < -90 - horizon
 }
 
 /*****************************************************************************************************************/

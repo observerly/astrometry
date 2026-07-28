@@ -128,6 +128,82 @@ describe('isBodyCircumpolar', () => {
       )
     ).toBe(false)
   })
+
+  it('should determine the hemisphere of the observer from their latitude, and not from the horizon', () => {
+    // For an observer just south of the equator, σ Octantis never sets below a
+    // horizon of -6°, e.g., it is circumpolar, despite the observer's latitude
+    // being greater than the horizon:
+    expect(
+      isBodyCircumpolar(
+        {
+          latitude: -3,
+          longitude
+        },
+        sigmaOctantis,
+        -6
+      )
+    ).toBe(true)
+  })
+
+  it('should return true for a northern hemisphere object that stays above the observer horizon', () => {
+    // Polaris is at its lowest at an altitude of latitude + dec - 90 ≈ 19.1° for
+    // the observer, and so it never sets below a horizon of 15°:
+    expect(
+      isBodyCircumpolar(
+        {
+          latitude,
+          longitude
+        },
+        polaris,
+        15
+      )
+    ).toBe(true)
+  })
+
+  it('should return false for a northern hemisphere object that sets below the observer horizon', () => {
+    // Polaris is at its lowest at an altitude of latitude + dec - 90 ≈ 19.1° for
+    // the observer, and so it does set below a horizon of 30°:
+    expect(
+      isBodyCircumpolar(
+        {
+          latitude,
+          longitude
+        },
+        polaris,
+        30
+      )
+    ).toBe(false)
+  })
+
+  it('should return true for a southern hemisphere object that stays above the observer horizon', () => {
+    // σ Octantis is at its lowest at an altitude of ~18.8° for the observer, and
+    // so it never sets below a horizon of 15°:
+    expect(
+      isBodyCircumpolar(
+        {
+          latitude: -latitude,
+          longitude
+        },
+        sigmaOctantis,
+        15
+      )
+    ).toBe(true)
+  })
+
+  it('should return false for a southern hemisphere object that sets below the observer horizon', () => {
+    // σ Octantis is at its lowest at an altitude of ~18.8° for the observer, and
+    // so it does set below a horizon of 20°:
+    expect(
+      isBodyCircumpolar(
+        {
+          latitude: -latitude,
+          longitude
+        },
+        sigmaOctantis,
+        20
+      )
+    ).toBe(false)
+  })
 })
 
 /*****************************************************************************************************************/
