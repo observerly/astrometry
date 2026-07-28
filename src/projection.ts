@@ -73,7 +73,7 @@ export const convertHorizontalToStereo = (
 export const convertStereoToHorizontal = (
   cartesianCoordinate: CartesianCoordinate,
   extent: { width: number; height: number },
-  focus = 0.2
+  focus = 0.42
 ): HorizontalCoordinate => {
   const { x, y } = cartesianCoordinate
 
@@ -90,6 +90,15 @@ export const convertStereoToHorizontal = (
   const Y = (h - y) / h
 
   const P = Math.sqrt(X ** 2 + Y ** 2)
+
+  // The center of the projection, where the radial distance vanishes, is the point on the horizon
+  // due south of the observer, e.g., the point about which the projection is made:
+  if (P === 0) {
+    return {
+      az: 180,
+      alt: 0
+    }
+  }
 
   const c = 2 * Math.atan2(P, 2 * focus)
 
