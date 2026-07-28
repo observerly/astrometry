@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  EARTH_RADIUS,
   type EquatorialCoordinate,
   convertEclipticToEquatorial,
   convertEquatorialToHorizontal,
@@ -18,6 +19,11 @@ import {
   convertHorizontalToEquatorial,
   getGreenwichSiderealTime
 } from '../src'
+
+import {
+  convertDegreesToRadians as radians,
+  convertRadiansToDegrees as degrees
+} from '../src/utilities'
 
 /*****************************************************************************************************************/
 
@@ -84,8 +90,78 @@ describe('convertEquatorialToHorizontal', () => {
 
   it('should return the correct horizontal coordinate for the star Betelgeuse with an observer elevation greater than 0', () => {
     const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude, elevation: 100 }, betelgeuse)
-    expect(alt).toBe(73.10623604640716)
+    expect(alt).toBe(73.10623395045637)
     expect(az).toBe(134.44877920325155)
+  })
+
+  it('should return the correct horizontal coordinate for an observer below sea level', () => {
+    // The dip of the horizon vanishes at sea level, and so an observer below sea level resolves
+    // the same horizontal coordinate as an observer at sea level:
+    const { alt, az } = convertEquatorialToHorizontal(
+      datetime,
+      { latitude, longitude, elevation: -430 },
+      betelgeuse
+    )
+
+    expect(alt).toBe(72.78539444063765)
+    expect(az).toBe(134.44877920325155)
+  })
+
+  it('should apply the exact dip of the horizon for an observer at a large elevation', () => {
+    // The small angle approximation of the dip of the horizon diverges for elevations that are an
+    // appreciable fraction of the radius of the Earth, e.g., for an observer in low Earth orbit:
+    const elevation = 400000
+
+    const { alt } = convertEquatorialToHorizontal(
+      datetime,
+      { latitude, longitude, elevation },
+      betelgeuse
+    )
+
+    const { alt: sea } = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
+
+    expect(alt - sea).toBeCloseTo(degrees(Math.acos(EARTH_RADIUS / (EARTH_RADIUS + elevation))), 9)
+
+    // The dip of the horizon is ~19.78°, and not the ~20.29° of the small angle approximation:
+    expect(alt - sea).toBeCloseTo(19.78, 2)
+  })
+
+  it('should correct the altitude of a nearby target for its diurnal parallax', () => {
+    // The geocentric horizontal coordinate of the target, e.g., with no distance to the target:
+    const geocentric = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
+
+    // The topocentric horizontal coordinate of the target, at the mean distance of the Moon:
+    const topocentric = convertEquatorialToHorizontal(datetime, { latitude, longitude }, {
+      ...betelgeuse,
+      distance: 384400000
+    })
+
+    // The horizontal parallax at the mean distance of the Moon is ~0.95°, and the parallax at the
+    // altitude of the target is that parallax projected onto the vertical circle of the target:
+    const p = degrees(Math.asin(EARTH_RADIUS / 384400000)) * Math.cos(radians(geocentric.alt))
+
+    expect(p).toBeCloseTo(0.28, 2)
+
+    // The parallax displaces the target towards the horizon, and so the topocentric altitude is
+    // always lower than the geocentric altitude:
+    expect(topocentric.alt).toBeCloseTo(geocentric.alt - p, 6)
+    expect(topocentric.alt).toBeLessThan(geocentric.alt)
+
+    // The parallax acts along the vertical circle of the target, and so the azimuth is unchanged:
+    expect(topocentric.az).toBe(geocentric.az)
+  })
+
+  it('should not correct the altitude of a distant target for its diurnal parallax', () => {
+    const geocentric = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
+
+    // At the distance of Betelgeuse, e.g., ~548 light years, the parallax is negligible:
+    const topocentric = convertEquatorialToHorizontal(datetime, { latitude, longitude }, {
+      ...betelgeuse,
+      distance: 5.18e18
+    })
+
+    expect(topocentric.alt).toBeCloseTo(geocentric.alt, 9)
+    expect(topocentric.az).toBe(geocentric.az)
   })
 })
 
