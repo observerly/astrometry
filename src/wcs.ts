@@ -176,8 +176,10 @@ export const convertPixelToWorldCoordinateSystem = (
   // Calculate the reference equatorial coordinate for the declination:
   let dec = wcs.cd21 * deltaX + wcs.cd22 * deltaY + wcs.F
 
-  // Correct for large values of DEC:
-  dec = dec % 90
+  // Declination is a latitudinal angle, and is therefore bounded by the poles at ±90°. A pixel
+  // that transforms beyond a pole lies outside of the tangent plane of the projection, so we
+  // clamp it to the pole rather than wrapping it into the opposite hemisphere:
+  dec = Math.max(-90, Math.min(90, dec))
 
   return {
     ra,
