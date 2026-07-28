@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getNight, getSolarTransit, isNight } from '../src'
+import { getGeneralizedSolarTransit, getNight, getSolarTransit, isNight } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -23,6 +23,72 @@ export const latitude: number = 49.914425
 
 // For testing, we will fix the longitude to be the Isles of Scilly, Cornwall, UK.
 export const longitude: number = -6.315165
+
+// For testing the poles, we will fix the observer to be at Alert, Nunavut, Canada, which is within
+// the Arctic Circle, and therefore experiences both perpetual daylight and perpetual night:
+const alert = { latitude: 82.501944, longitude: -62.348056 }
+
+/*****************************************************************************************************************/
+
+describe('getGeneralizedSolarTransit', () => {
+  it('should be defined', () => {
+    expect(getGeneralizedSolarTransit).toBeDefined()
+  })
+
+  it('should return the sunrise, noon and sunset for an observer for whom the Sun crosses the horizon', () => {
+    const { sunrise, noon, sunset, ha } = getGeneralizedSolarTransit(datetime, {
+      latitude,
+      longitude
+    })
+
+    expect(sunrise).toBeInstanceOf(Date)
+    expect(noon).toBeInstanceOf(Date)
+    expect(sunset).toBeInstanceOf(Date)
+
+    expect(Number.isNaN(sunrise?.getTime())).toBe(false)
+    expect(Number.isNaN(noon?.getTime())).toBe(false)
+    expect(Number.isNaN(sunset?.getTime())).toBe(false)
+
+    expect(Number.isFinite(ha)).toBe(true)
+  })
+
+  it('should return no sunrise or sunset for an observer in perpetual daylight', () => {
+    const { sunrise, noon, sunset } = getGeneralizedSolarTransit(
+      new Date('2021-06-21T00:00:00.000+00:00'),
+      alert
+    )
+
+    expect(sunrise).toBeNull()
+    expect(sunset).toBeNull()
+
+    // The Sun still culminates at local noon, even when it does not cross the horizon:
+    expect(noon).toBeInstanceOf(Date)
+    expect(Number.isNaN(noon?.getTime())).toBe(false)
+  })
+
+  it('should return no sunrise or sunset for an observer in perpetual night', () => {
+    const { sunrise, noon, sunset } = getGeneralizedSolarTransit(
+      new Date('2021-12-21T00:00:00.000+00:00'),
+      alert
+    )
+
+    expect(sunrise).toBeNull()
+    expect(sunset).toBeNull()
+
+    expect(noon).toBeInstanceOf(Date)
+    expect(Number.isNaN(noon?.getTime())).toBe(false)
+  })
+
+  it('should return no sunrise or sunset for an observer at the north pole', () => {
+    const { sunrise, sunset } = getGeneralizedSolarTransit(
+      new Date('2021-06-21T00:00:00.000+00:00'),
+      { latitude: 90, longitude: 0 }
+    )
+
+    expect(sunrise).toBeNull()
+    expect(sunset).toBeNull()
+  })
+})
 
 /*****************************************************************************************************************/
 
@@ -220,6 +286,36 @@ describe('isNight', () => {
         0
       )
     ).toBe(true)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('perpetual daylight and perpetual night', () => {
+  it('should return a null solar transit for an observer in perpetual daylight', () => {
+    const { sunrise, noon, sunset } = getSolarTransit(
+      new Date('2021-06-21T00:00:00.000+00:00'),
+      alert,
+      0
+    )
+
+    expect(sunrise).toBeNull()
+    expect(noon).toBeNull()
+    expect(sunset).toBeNull()
+  })
+
+  it('should return a null night for an observer in perpetual daylight', () => {
+    const { start, end } = getNight(new Date('2021-06-21T00:00:00.000+00:00'), alert)
+
+    expect(start).toBeNull()
+    expect(end).toBeNull()
+  })
+
+  it('should return a null night for an observer in perpetual night', () => {
+    const { start, end } = getNight(new Date('2021-12-21T00:00:00.000+00:00'), alert)
+
+    expect(start).toBeNull()
+    expect(end).toBeNull()
   })
 })
 

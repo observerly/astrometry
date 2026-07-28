@@ -68,12 +68,26 @@ export const getGeneralizedSolarTransit = (
 
   const dec = degrees(Math.asin(Math.sin(radians(λ)) * Math.sin(radians(23.45))))
 
-  const ha = degrees(
-    Math.acos(
-      (Math.sin(radians(-0.833)) - Math.sin(radians(latitude)) * Math.sin(radians(dec))) /
-        (Math.cos(radians(latitude)) * Math.cos(radians(dec)))
-    )
-  )
+  // The cosine of the hour angle of the Sun at the horizon:
+  const cosha =
+    (Math.sin(radians(-0.833)) - Math.sin(radians(latitude)) * Math.sin(radians(dec))) /
+    (Math.cos(radians(latitude)) * Math.cos(radians(dec)))
+
+  const noon = new Date((Jt - 2440587.5) * 86400 * 1000)
+
+  // The Sun does not cross the horizon for an observer in perpetual daylight or in perpetual
+  // night, e.g., at the poles, and so there is no sunrise or sunset for the date given:
+  if (!Number.isFinite(cosha) || Math.abs(cosha) > 1) {
+    return {
+      sunrise: null,
+      noon,
+      sunset: null,
+      J,
+      ha: Number.NaN
+    }
+  }
+
+  const ha = degrees(Math.acos(cosha))
 
   const Jr = Jt - ha / 360
 
@@ -81,7 +95,7 @@ export const getGeneralizedSolarTransit = (
 
   return {
     sunrise: new Date((Jr - 2440587.5) * 86400 * 1000),
-    noon: new Date((Jt - 2440587.5) * 86400 * 1000),
+    noon,
     sunset: new Date((Js - 2440587.5) * 86400 * 1000),
     J,
     ha
