@@ -23,8 +23,10 @@ import { convertDegreeToDMS, convertDegreeToHMS } from './utilities'
 export const formatDegreeToDMSHumanized = (degree: number): string => {
   const { deg, min, sec } = convertDegreeToDMS(degree)
 
-  // Add a plus sign if positive, minus if negative:
-  const sign = deg >= 0 ? '+' : '-'
+  // Add a plus sign if positive, minus if negative. N.B. The sign is taken from the value given, as
+  // the degrees component is zero for a value between -1° and 0°, e.g., -0.5°, and so it does not
+  // carry the sign of the value it was resolved from:
+  const sign = degree < 0 ? '-' : '+'
 
   // Parse the result ensuring that the values are padded with a leading zero (for both negative and positive values) if necessary:
   const leadingZero = deg > -10 && deg < 10 ? '0' : ''

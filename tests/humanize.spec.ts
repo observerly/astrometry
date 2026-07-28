@@ -47,6 +47,21 @@ describe('formatDegreeToDMSHumanized', () => {
     const humanised = formatDegreeToDMSHumanized(-2)
     expect(humanised).toBe('-02° 00\' 00.000"')
   })
+
+  it('should return the correct humanized value for a value between -1 and 0 degrees', () => {
+    // The degrees component is zero for such a value, and so the sign is carried by the value
+    // given, and not by its degrees component:
+    expect(formatDegreeToDMSHumanized(-0.5)).toBe('-00° 30\' 00.000"')
+    expect(formatDegreeToDMSHumanized(-0.008)).toBe('-00° 00\' 28.800"')
+  })
+
+  it('should return the correct humanized value for a value between 0 and 1 degrees', () => {
+    expect(formatDegreeToDMSHumanized(0.5)).toBe('+00° 30\' 00.000"')
+  })
+
+  it('should return the correct humanized value for zero degrees', () => {
+    expect(formatDegreeToDMSHumanized(0)).toBe('+00° 00\' 00.000"')
+  })
 })
 
 /*****************************************************************************************************************/
