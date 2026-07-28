@@ -144,7 +144,9 @@ describe('getNormalisedSphericalCoordinate', () => {
       φ: 120
     })
 
-    expect(normalised.θ).toBe(90)
+    // The latitude is reflected back over the north pole, and so the longitude is rotated to the
+    // antipodal meridian:
+    expect(normalised.θ).toBe(270)
     expect(normalised.φ).toBe(60)
   })
 
@@ -154,8 +156,49 @@ describe('getNormalisedSphericalCoordinate', () => {
       φ: -120
     })
 
-    expect(normalised.θ).toBe(90)
+    // The latitude is reflected back over the south pole, and so the longitude is rotated to the
+    // antipodal meridian:
+    expect(normalised.θ).toBe(270)
     expect(normalised.φ).toBe(-60)
+  })
+
+  it('should not rotate the longitude when the latitude is within the bounds of the poles', () => {
+    for (const φ of [-90, -45, 0, 45, 90]) {
+      expect(getNormalisedSphericalCoordinate({ θ: 90, φ })).toEqual({ θ: 90, φ })
+    }
+  })
+
+  it('should return the same point on the sphere as the coordinate given', () => {
+    // The angular separation between a coordinate and its normalisation is zero if, and only if,
+    // both describe the same point on the sphere. N.B. getAngularSeparation() takes the polar
+    // angle, θ, to be the latitude, and the azimuthal angle, φ, to be the longitude:
+    for (const A of [
+      { θ: 45, φ: 92 },
+      { θ: 45, φ: -92 },
+      { θ: 200, φ: 179 },
+      { θ: 200, φ: -179 },
+      { θ: -30, φ: 271 },
+      { θ: 450, φ: 120 }
+    ]) {
+      const normalised = getNormalisedSphericalCoordinate(A)
+
+      expect(
+        getAngularSeparation({ θ: A.φ, φ: A.θ }, { θ: normalised.φ, φ: normalised.θ })
+      ).toBeCloseTo(0, 9)
+    }
+  })
+
+  it('should normalise the longitude to the range [0, 360) and the latitude to the range [-90, 90]', () => {
+    for (let θ = -720; θ <= 720; θ += 37) {
+      for (let φ = -720; φ <= 720; φ += 13) {
+        const normalised = getNormalisedSphericalCoordinate({ θ, φ })
+
+        expect(normalised.θ).toBeGreaterThanOrEqual(0)
+        expect(normalised.θ).toBeLessThan(360)
+        expect(normalised.φ).toBeGreaterThanOrEqual(-90)
+        expect(normalised.φ).toBeLessThanOrEqual(90)
+      }
+    }
   })
 })
 
