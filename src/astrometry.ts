@@ -34,8 +34,12 @@ import {
  *
  * The angular separation between two objects is the angle in degrees between the two objects as seen by an observer on Earth.
  *
- * @param A - The equatorial coordinate of the observed object.
- * @param B - The equatorial coordinate of the observed object.
+ * N.B. Per ISO 80000-2, the polar angle, θ, is the latitudinal angle of the coordinate, e.g., the
+ * altitude or the declination of the object, and the azimuthal angle, φ, is its longitudinal
+ * angle, e.g., the azimuth or the right ascension of the object.
+ *
+ * @param A - The spherical coordinate of the observed object.
+ * @param B - The spherical coordinate of the observed object.
  * @returns The angular separation between the two objects in degrees.
  *
  */
@@ -70,8 +74,8 @@ export const getAngularSeparation = (A: SphericalCoordinate, B: SphericalCoordin
  */
 export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordinate => {
   return {
-    θ: (A.θ + 180) % 360,
-    φ: -A.φ
+    θ: -A.θ,
+    φ: getNormalizedAzimuthalDegree(A.φ + 180)
   }
 }
 
@@ -81,12 +85,12 @@ export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordina
  *
  * getNormalisedSphericalCoordinate()
  *
- * Normalises a Spherical coordinate to a value between 0 and 360 degrees in the
- * longitude and -90 to 90 degrees in the latitude.
+ * Normalises a Spherical coordinate to a value between -90 and 90 degrees in the
+ * polar angle and 0 to 360 degrees in the azimuthal angle.
  *
- * N.B. A latitude beyond a pole is reflected back over that pole, and, as the point then lies on
- * the opposite side of the sphere, the longitude is rotated by 180°, e.g., a latitude of 92° is a
- * latitude of 88° at the antipodal longitude.
+ * N.B. A polar angle beyond a pole is reflected back over that pole, and, as the point then lies
+ * on the opposite side of the sphere, the azimuthal angle is rotated by 180°, e.g., a polar angle
+ * of 92° is a polar angle of 88° at the antipodal azimuthal angle.
  *
  * @param A - The Spherical coordinate to normalise.
  * @returns The normalised Spherical coordinate.
@@ -95,21 +99,21 @@ export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordina
 export const getNormalisedSphericalCoordinate = (A: SphericalCoordinate): SphericalCoordinate => {
   const { θ, φ } = A
 
-  // Wrap the latitude onto the range [-90, 270), e.g., a single meridian of the sphere, traversed
-  // from the south pole, over the north pole, and back down to the south pole:
-  const meridian = getNormalizedAzimuthalDegree(φ + 90) - 90
+  // Wrap the polar angle onto the range [-90, 270), e.g., a single meridian of the sphere,
+  // traversed from the south pole, over the north pole, and back down to the south pole:
+  const meridian = getNormalizedAzimuthalDegree(θ + 90) - 90
 
-  // Reflect a latitude that lies beyond a pole back over that pole, e.g., a latitude of 120° is a
-  // latitude of 60°, and a latitude of -120° is a latitude of -60°:
-  const latitude = 90 - Math.abs(90 - meridian)
+  // Reflect a polar angle that lies beyond a pole back over that pole, e.g., a polar angle of 120°
+  // is a polar angle of 60°, and a polar angle of -120° is a polar angle of -60°:
+  const polar = 90 - Math.abs(90 - meridian)
 
-  // A reflected latitude lies on the opposite side of the sphere, and so its longitude is rotated
-  // to the antipodal meridian:
-  const longitude = θ + (latitude === meridian ? 0 : 180)
+  // A reflected polar angle lies on the opposite side of the sphere, and so its azimuthal angle is
+  // rotated to the antipodal meridian:
+  const azimuthal = φ + (polar === meridian ? 0 : 180)
 
   return {
-    θ: getNormalizedAzimuthalDegree(longitude),
-    φ: latitude
+    θ: polar,
+    φ: getNormalizedAzimuthalDegree(azimuthal)
   }
 }
 

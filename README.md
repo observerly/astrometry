@@ -44,6 +44,33 @@ yarn add @observerly/astrometry
 pnpm add @observerly/astrometry
 ```
 
+### Conventions
+
+Spherical coordinates follow [ISO 80000-2](https://www.iso.org/standard/64973.html), in which the polar angle is denoted θ (theta) and the azimuthal angle is denoted φ (phi):
+
+| Angle           | Symbol | Range      | Corresponds to                                     |
+| --------------- | ------ | ---------- | -------------------------------------------------- |
+| Polar angle     | θ      | [-90, 90]  | altitude (alt), declination (dec), latitude        |
+| Azimuthal angle | φ      | [0, 360)   | azimuth (az), right ascension (ra), longitude      |
+
+N.B. ISO 80000-2 measures the polar angle from the zenith, e.g., the positive z-axis, giving a range of [0, 180]. As is conventional in astronomy, we instead measure it from the reference plane, e.g., the horizon or the celestial equator, giving a range of [-90, 90], such that θ is the altitude or the declination of a target directly, and not its complement.
+
+The mathematical convention, in which θ and φ are transposed, is **not** used. Both angles are of type `number`, so transposing them is silent, e.g.:
+
+```ts
+import { getAngularSeparation } from '@observerly/astrometry'
+
+// The polar angle, θ, is the declination, and the azimuthal angle, φ, is the right ascension:
+const separation = getAngularSeparation(
+  { θ: arcturus.dec, φ: arcturus.ra },
+  { θ: spica.dec, φ: spica.ra }
+)
+```
+
+θ and φ are reserved for the two angles above, and are not used to denote any other quantity, e.g., the angular separation resolved by `getQIndex()` is named `separation`, and not φ.
+
+Other symbols follow their conventional usage for the quantity in question, and are unrelated to the above, e.g., λ and β for ecliptic longitude and latitude, l and b for galactic longitude and latitude, and φ for the geographic latitude of an observer in the local scope of a calculation.
+
 ### Documentation
 
 TBD

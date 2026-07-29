@@ -51,7 +51,7 @@ type Q = EquatorialCoordinate & {
    * Angular separation between the Moon and the target, which has a range of 0 to 180 degrees.
    *
    */
-  φ: number
+  separation: number
   /**
    *
    * The altitude of the target, which has a range of -90 to 90 degrees.
@@ -73,7 +73,7 @@ type Q = EquatorialCoordinate & {
 // the angular separation between the Moon and the target.
 export const q = (
   K: number,
-  φ: number,
+  separation: number,
   A: number,
   sun: HorizontalCoordinate,
   moon: HorizontalCoordinate
@@ -88,12 +88,12 @@ export const q = (
 
   // Angular separation between the Moon and the target, which has a range of 0 to 180 degrees:
   // e.g., the maximum antipodal angular separation is 180 degrees:
-  const a = 2 * (φ / 180) - 1
+  const a = 2 * (separation / 180) - 1
 
   // Moon Q, which takes into account the Moon's illumination and the distance from
   // the Moon to the target (e.g., we can discount the Lunar illumination factor if
   // the distance is greater than 60 degrees):
-  let MQ = φ >= 60 ? a : K < 25 ? a : -(a * k)
+  let MQ = separation >= 60 ? a : K < 25 ? a : -(a * k)
 
   // If the Moon is below the horizon, then the Moon Q is 1:
   if (moon.alt <= 0) {
@@ -172,7 +172,7 @@ export function getQIndex(
 
   // The Moon-target angular separation. N.B. getAngularSeparation() takes the polar angle, θ, to be
   // the altitude, and the azimuthal angle, φ, to be the azimuth:
-  const φ = getAngularSeparation(
+  const separation = getAngularSeparation(
     {
       θ: moon.alt,
       φ: moon.az
@@ -187,9 +187,9 @@ export function getQIndex(
   return {
     ra,
     dec,
-    Q: q(K, φ, a, sun, moon),
+    Q: q(K, separation, a, sun, moon),
     K,
-    φ,
+    separation,
     A,
     alt: sun.alt
   }
