@@ -150,7 +150,7 @@ export function getQIndex(
   )
 
   // Convert the target's equatorial coordinates to horizontal coordinates:
-  const { alt: a, az: A } = getCorrectionToHorizontalForRefraction(
+  const { alt, az } = getCorrectionToHorizontalForRefraction(
     convertEquatorialToHorizontal(datetime, observer, {
       ra,
       dec
@@ -178,8 +178,8 @@ export function getQIndex(
       φ: moon.az
     },
     {
-      θ: a,
-      φ: A
+      θ: alt,
+      φ: az
     }
   )
 
@@ -187,10 +187,10 @@ export function getQIndex(
   return {
     ra,
     dec,
-    Q: q(K, separation, a, sun, moon),
+    Q: q(K, separation, alt, sun, moon),
     K,
     separation,
-    A,
+    A: alt,
     alt: sun.alt
   }
 }

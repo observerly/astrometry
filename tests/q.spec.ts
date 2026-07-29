@@ -127,6 +127,23 @@ describe('getQIndex', () => {
     console.log('Q Index', q.Q)
   })
 
+  it('should return the altitude of the target, and not its azimuth', () => {
+    const { A, alt, ra, dec } = getQIndex(datetime, { latitude, longitude }, betelgeuse)
+
+    // The altitude of the target, and the altitude of the Sun, are both bounded by the zenith and
+    // the nadir, e.g., neither is an azimuth:
+    for (const altitude of [A, alt]) {
+      expect(altitude).toBeGreaterThanOrEqual(-90)
+      expect(altitude).toBeLessThanOrEqual(90)
+    }
+
+    const { alt: altitude } = getCorrectionToHorizontalForRefraction(
+      convertEquatorialToHorizontal(datetime, { latitude, longitude }, { ra, dec })
+    )
+
+    expect(A).toBeCloseTo(altitude)
+  })
+
   it('should return the angular separation between the Moon and the target', () => {
     const { separation, ra, dec, A } = getQIndex(datetime, { latitude, longitude }, betelgeuse)
 
@@ -144,8 +161,11 @@ describe('getQIndex', () => {
       convertEquatorialToHorizontal(datetime, { latitude, longitude }, { ra, dec })
     )
 
-    // The target's azimuth, as resolved by the Q index:
-    expect(target.az).toBeCloseTo(A)
+    // The altitude of the target, as resolved by the Q index:
+    expect(A).toBeCloseTo(target.alt)
+
+    // N.B. The altitude of the target is not its azimuth, which is not returned:
+    expect(A).not.toBeCloseTo(target.az)
 
     // N.B. getAngularSeparation() takes the polar angle, θ, to be the altitude, and the azimuthal
     // angle, φ, to be the azimuth:
