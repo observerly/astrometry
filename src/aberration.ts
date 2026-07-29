@@ -132,21 +132,27 @@ export const getCorrectionToEquatorialForDiurnalAberration = (
 
   const phi = radians(observer.latitude)
 
-  // Get the hour angle for the target:
-  const ha = getHourAngle(datetime, observer.longitude, target.ra)
+  // Get the hour angle for the target (in radians):
+  const ha = radians(getHourAngle(datetime, observer.longitude, target.ra))
 
   // Earth's angular velocity (in rad/s):
   const Ω = 7.292115e-5
 
-  // Calculate the observer's tangential velocity due to Earth's rotation (in m/s):
-  const v = Ω * EARTH_RADIUS * Math.cos(phi)
+  // Calculate the observer's tangential velocity at the equator due to Earth's rotation (in m/s):
+  const v = Ω * EARTH_RADIUS
 
-  // Calculate the aberration correction in right ascension (in radians):
-  const Δra = ((v / c) * (Math.cos(phi) * Math.sin(ha))) / Math.cos(dec)
+  // The constant of diurnal aberration, e.g., the ratio of the observer's velocity to the speed of
+  // light, which is ~0.32 arcseconds for an observer at the equator (in radians):
+  const k = v / c
+
+  // The observer is carried eastward by the rotation of the Earth, and so the target is displaced
+  // towards the east point of the observer's horizon. The displacement is at a maximum in right
+  // ascension when the target is on the observer's meridian, and it vanishes at the poles, where
+  // the observer is not carried by the rotation of the Earth at all:
+  const Δra = (k * Math.cos(phi) * Math.cos(ha)) / Math.cos(dec)
 
   // Calculate the aberration correction in declination (in radians):
-  const Δdec =
-    (v / c) * (Math.sin(phi) * Math.cos(dec) - Math.cos(phi) * Math.sin(dec) * Math.cos(ha))
+  const Δdec = k * Math.cos(phi) * Math.sin(ha) * Math.sin(dec)
 
   return {
     ra: degrees(Δra),
