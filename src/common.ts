@@ -243,12 +243,30 @@ export const isHorizontalCoordinate = (target: unknown): target is HorizontalCoo
 
 /*****************************************************************************************************************/
 
+/**
+ *
+ * A spherical coordinate follows the ISO 80000-2 convention, in which the polar angle is denoted θ
+ * and the azimuthal angle is denoted φ, and not the mathematical convention, in which the two are
+ * transposed.
+ *
+ * N.B. ISO 80000-2 measures the polar angle from the zenith, e.g., the positive z-axis, giving a
+ * range of [0, 180]. As is conventional in astronomy, we instead measure it from the reference
+ * plane, e.g., the horizon or the celestial equator, giving a range of [-90, 90], such that θ is
+ * the altitude or the declination of a target directly, and not its complement.
+ *
+ * @see https://www.iso.org/standard/64973.html
+ *
+ */
 export type SphericalCoordinate = {
   /**
    *
    * The polar angle subtended by a point in spherical coordinates is the angle
-   * measured from the positive z-axis to the line segment connecting the
-   * origin to the point.
+   * measured from the reference plane to the line segment connecting the origin
+   * to the point, in the range [-90, 90].
+   *
+   * N.B. The polar angle is the latitudinal angle of a coordinate, e.g., the
+   * altitude of a { HorizontalCoordinate }, the declination of an
+   * { EquatorialCoordinate }, or the latitude of a { GeographicCoordinate }.
    *
    */
   θ: number
@@ -256,7 +274,12 @@ export type SphericalCoordinate = {
    *
    * The azimuthal angle subtended by a point in spherical coordinates is the
    * angle measured from the positive x-axis to the line segment connecting
-   * the origin to the point.
+   * the origin to the projection of the point onto the reference plane, in the
+   * range [0, 360).
+   *
+   * N.B. The azimuthal angle is the longitudinal angle of a coordinate, e.g.,
+   * the azimuth of a { HorizontalCoordinate }, the right ascension of an
+   * { EquatorialCoordinate }, or the longitude of a { GeographicCoordinate }.
    *
    */
   φ: number

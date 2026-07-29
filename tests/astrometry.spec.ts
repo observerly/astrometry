@@ -102,22 +102,45 @@ describe('getAntipodeCoordinate', () => {
 
   it('should return the antipode of the given object', () => {
     const antipode = getAntipodeCoordinate({
-      θ: 30,
-      φ: -30
+      θ: -30,
+      φ: 30
     })
 
-    expect(antipode.θ).toBe(210)
-    expect(antipode.φ).toBe(30)
+    expect(antipode.θ).toBe(30)
+    expect(antipode.φ).toBe(210)
   })
 
   it('should return the antipode of the given object', () => {
     const antipode = getAntipodeCoordinate({
-      θ: 90,
-      φ: 60
+      θ: 60,
+      φ: 90
     })
 
-    expect(antipode.θ).toBe(270)
-    expect(antipode.φ).toBe(-60)
+    expect(antipode.θ).toBe(-60)
+    expect(antipode.φ).toBe(270)
+  })
+
+  it('should return an azimuthal angle within the range [0, 360) for any coordinate given', () => {
+    for (let φ = -720; φ <= 720; φ += 13) {
+      const antipode = getAntipodeCoordinate({ θ: 0, φ })
+
+      expect(antipode.φ).toBeGreaterThanOrEqual(0)
+      expect(antipode.φ).toBeLessThan(360)
+    }
+  })
+
+  it('should be diametrically opposite to the coordinate given', () => {
+    // The angular separation between a coordinate and its antipode is 180°, e.g., the two points
+    // lie at either end of a diameter of the sphere:
+    for (const A of [
+      { θ: 0, φ: 0 },
+      { θ: 45, φ: 30 },
+      { θ: -45, φ: 200 },
+      { θ: 90, φ: 123 },
+      { θ: 19.182409, φ: 213.9153 }
+    ]) {
+      expect(getAngularSeparation(A, getAntipodeCoordinate(A))).toBeCloseTo(180, 9)
+    }
   })
 })
 
@@ -130,73 +153,68 @@ describe('getNormalisedSphericalCoordinate', () => {
 
   it('should return the normalised spherical coordinate when normalisation is not needed', () => {
     const normalised = getNormalisedSphericalCoordinate({
-      θ: 90,
-      φ: 60
+      θ: 60,
+      φ: 90
     })
 
-    expect(normalised.θ).toBe(90)
-    expect(normalised.φ).toBe(60)
+    expect(normalised.θ).toBe(60)
+    expect(normalised.φ).toBe(90)
   })
 
   it('should return the normalised spherical coordinate when positive bounds are exceeded', () => {
     const normalised = getNormalisedSphericalCoordinate({
-      θ: 450,
-      φ: 120
+      θ: 120,
+      φ: 450
     })
 
-    // The latitude is reflected back over the north pole, and so the longitude is rotated to the
-    // antipodal meridian:
-    expect(normalised.θ).toBe(270)
-    expect(normalised.φ).toBe(60)
+    // The polar angle is reflected back over the north pole, and so the azimuthal angle is rotated
+    // to the antipodal meridian:
+    expect(normalised.θ).toBe(60)
+    expect(normalised.φ).toBe(270)
   })
 
   it('should return the normalised spherical coordinate when negative bounds are exceeded', () => {
     const normalised = getNormalisedSphericalCoordinate({
-      θ: -270,
-      φ: -120
+      θ: -120,
+      φ: -270
     })
 
-    // The latitude is reflected back over the south pole, and so the longitude is rotated to the
-    // antipodal meridian:
-    expect(normalised.θ).toBe(270)
-    expect(normalised.φ).toBe(-60)
+    // The polar angle is reflected back over the south pole, and so the azimuthal angle is rotated
+    // to the antipodal meridian:
+    expect(normalised.θ).toBe(-60)
+    expect(normalised.φ).toBe(270)
   })
 
-  it('should not rotate the longitude when the latitude is within the bounds of the poles', () => {
-    for (const φ of [-90, -45, 0, 45, 90]) {
-      expect(getNormalisedSphericalCoordinate({ θ: 90, φ })).toEqual({ θ: 90, φ })
+  it('should not rotate the azimuthal angle when the polar angle is within the bounds of the poles', () => {
+    for (const θ of [-90, -45, 0, 45, 90]) {
+      expect(getNormalisedSphericalCoordinate({ θ, φ: 90 })).toEqual({ θ, φ: 90 })
     }
   })
 
   it('should return the same point on the sphere as the coordinate given', () => {
     // The angular separation between a coordinate and its normalisation is zero if, and only if,
-    // both describe the same point on the sphere. N.B. getAngularSeparation() takes the polar
-    // angle, θ, to be the latitude, and the azimuthal angle, φ, to be the longitude:
+    // both describe the same point on the sphere:
     for (const A of [
-      { θ: 45, φ: 92 },
-      { θ: 45, φ: -92 },
-      { θ: 200, φ: 179 },
-      { θ: 200, φ: -179 },
-      { θ: -30, φ: 271 },
-      { θ: 450, φ: 120 }
+      { θ: 92, φ: 45 },
+      { θ: -92, φ: 45 },
+      { θ: 179, φ: 200 },
+      { θ: -179, φ: 200 },
+      { θ: 271, φ: -30 },
+      { θ: 120, φ: 450 }
     ]) {
-      const normalised = getNormalisedSphericalCoordinate(A)
-
-      expect(
-        getAngularSeparation({ θ: A.φ, φ: A.θ }, { θ: normalised.φ, φ: normalised.θ })
-      ).toBeCloseTo(0, 9)
+      expect(getAngularSeparation(A, getNormalisedSphericalCoordinate(A))).toBeCloseTo(0, 9)
     }
   })
 
-  it('should normalise the longitude to the range [0, 360) and the latitude to the range [-90, 90]', () => {
+  it('should normalise the polar angle to the range [-90, 90] and the azimuthal angle to the range [0, 360)', () => {
     for (let θ = -720; θ <= 720; θ += 37) {
       for (let φ = -720; φ <= 720; φ += 13) {
         const normalised = getNormalisedSphericalCoordinate({ θ, φ })
 
-        expect(normalised.θ).toBeGreaterThanOrEqual(0)
-        expect(normalised.θ).toBeLessThan(360)
-        expect(normalised.φ).toBeGreaterThanOrEqual(-90)
-        expect(normalised.φ).toBeLessThanOrEqual(90)
+        expect(normalised.θ).toBeGreaterThanOrEqual(-90)
+        expect(normalised.θ).toBeLessThanOrEqual(90)
+        expect(normalised.φ).toBeGreaterThanOrEqual(0)
+        expect(normalised.φ).toBeLessThan(360)
       }
     }
   })

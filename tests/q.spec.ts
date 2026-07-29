@@ -39,7 +39,7 @@ const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
 
 interface Q {
   K: number
-  φ: number
+  separation: number
   A: number
   alt: number
 }
@@ -87,19 +87,19 @@ describe('q', () => {
   })
 
   const cases: Q[] = [
-    { K: 100, φ: 0, A: -90, alt: 90 },
-    { K: 80, φ: 45, A: 45, alt: 45 },
-    { K: 60, φ: 45, A: 45, alt: 45 },
-    { K: 40, φ: 45, A: 45, alt: 45 },
-    { K: 20, φ: 45, A: 45, alt: 45 },
-    { K: 0, φ: 180, A: 90, alt: -90 }
+    { K: 100, separation: 0, A: -90, alt: 90 },
+    { K: 80, separation: 45, A: 45, alt: 45 },
+    { K: 60, separation: 45, A: 45, alt: 45 },
+    { K: 40, separation: 45, A: 45, alt: 45 },
+    { K: 20, separation: 45, A: 45, alt: 45 },
+    { K: 0, separation: 180, A: 90, alt: -90 }
   ]
 
-  cases.forEach(({ K, φ, A, alt }) => {
-    it(`should return a value between -1 and 1 for K=${K}, φ=${φ}, A=${A}, alt=${alt}`, () => {
+  cases.forEach(({ K, separation, A, alt }) => {
+    it(`should return a value between -1 and 1 for K=${K}, separation=${separation}, A=${A}, alt=${alt}`, () => {
       const moon = { az: 270, alt: 18 }
 
-      const Q = q(K, φ, A, { az: 0, alt }, moon)
+      const Q = q(K, separation, A, { az: 0, alt }, moon)
       expect(Q).toBeGreaterThanOrEqual(-1)
       expect(Q).toBeLessThanOrEqual(1)
     })
@@ -128,7 +128,7 @@ describe('getQIndex', () => {
   })
 
   it('should return the angular separation between the Moon and the target', () => {
-    const { φ, ra, dec, A } = getQIndex(datetime, { latitude, longitude }, betelgeuse)
+    const { separation, ra, dec, A } = getQIndex(datetime, { latitude, longitude }, betelgeuse)
 
     // The refracted horizontal coordinate of the Moon for the observation:
     const moon = getCorrectionToHorizontalForRefraction(
@@ -149,7 +149,7 @@ describe('getQIndex', () => {
 
     // N.B. getAngularSeparation() takes the polar angle, θ, to be the altitude, and the azimuthal
     // angle, φ, to be the azimuth:
-    expect(φ).toBeCloseTo(
+    expect(separation).toBeCloseTo(
       getAngularSeparation({ θ: moon.alt, φ: moon.az }, { θ: target.alt, φ: target.az })
     )
   })
