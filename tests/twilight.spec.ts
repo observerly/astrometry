@@ -42,12 +42,42 @@ describe('getTwilightBandsForDay', () => {
     expect(bands).toBeDefined()
 
     expect(bands[0].interval.from).toEqual(
-      new Date(datetime.getFullYear(), datetime.getMonth(), datetime.getDate(), 0, 0, 0, 0)
+      new Date(
+        Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), datetime.getUTCDate(), 0, 0, 0, 0)
+      )
     )
 
     expect(bands[bands.length - 1].interval.to).toEqual(
-      new Date(datetime.getFullYear(), datetime.getMonth(), datetime.getDate(), 24, 0, 0, 0)
+      new Date(
+        Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), datetime.getUTCDate(), 24, 0, 0, 0)
+      )
     )
+  })
+
+  it('should return the same twilight bands irrespective of the host timezone', () => {
+    const TZ = process.env.TZ
+
+    // The day boundary is derived in UTC, and the bands are therefore independent of the timezone
+    // of the host system the library is running on:
+    const expected = getTwilightBandsForDay(datetime, { latitude, longitude })
+
+    try {
+      for (const timezone of ['Pacific/Auckland', 'America/New_York', 'Asia/Kolkata']) {
+        process.env.TZ = timezone
+
+        const bands = getTwilightBandsForDay(datetime, { latitude, longitude })
+
+        expect(bands.length).toBe(expected.length)
+
+        for (let i = 0; i < bands.length; i++) {
+          expect(bands[i].name).toBe(expected[i].name)
+          expect(bands[i].interval.from.getTime()).toBe(expected[i].interval.from.getTime())
+          expect(bands[i].interval.to.getTime()).toBe(expected[i].interval.to.getTime())
+        }
+      }
+    } finally {
+      process.env.TZ = TZ
+    }
   })
 
   it('should always have bands that proceed in the correct order', () => {
