@@ -21,6 +21,9 @@ import { convertDegreesToRadians as radians } from './utilities'
  *
  * N.B. There is no correction for the azimuthal angle.
  *
+ * N.B. The approximation is not defined below the horizon, where the correction is taken to be
+ * zero, as getCorrectionToHorizontalForRefraction() likewise leaves such an object uncorrected.
+ *
  * @param target - The horizontal coordinate of the observed object.
  * @param temperature - The temperature in Kelvin.
  * @param pressure - The pressure in Pascals.
@@ -34,8 +37,9 @@ export const getRefraction = (
 ): number => {
   const { alt } = target
 
+  // Below the horizon the approximation is not defined, and so the object is left uncorrected:
   if (alt < 0) {
-    return Number.POSITIVE_INFINITY
+    return 0
   }
 
   // The pressure, in Pascals:
