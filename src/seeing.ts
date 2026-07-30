@@ -28,6 +28,11 @@ import { convertDegreesToRadians as radians } from './utilities'
 export const getAirmassPickering = (target: HorizontalCoordinate): number => {
   const { alt } = target
 
+  // Below the horizon the light path is not defined, so the airmass is infinite:
+  if (alt < 0) {
+    return Number.POSITIVE_INFINITY
+  }
+
   // Apply Pickering's formula to the altitude of the object:
   return 1 / Math.sin(radians(alt + 244 / (165 + 47 * alt ** 1.1)))
 }

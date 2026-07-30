@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getAirmassPickering } from '../src'
+import { getAirmass, getAirmassPickering } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -30,6 +30,20 @@ describe('getAirmassPickering', () => {
     expect(X).toBeCloseTo(38.75)
     X = getAirmassPickering({ alt: 72.78539444063767, az: 0 })
     expect(X).toBe(1.0466433379575284)
+  })
+
+  it('should return an infinite airmass for an object below the horizon', () => {
+    // N.B. Pickering's formula raises the altitude to a fractional power, which is not defined for
+    // a negative altitude, and so the airmass below the horizon must be resolved separately:
+    for (const alt of [-0.1, -18, -90]) {
+      expect(getAirmassPickering({ alt, az: 0 })).toBe(Number.POSITIVE_INFINITY)
+    }
+  })
+
+  it('should return the same airmass below the horizon as the Kasten & Young approximation', () => {
+    // Both approximations are of the same quantity, and so they agree that the light path of an
+    // object below the horizon is not defined:
+    expect(getAirmassPickering({ alt: -10, az: 0 })).toBe(getAirmass({ alt: -10, az: 0 }))
   })
 })
 
