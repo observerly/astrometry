@@ -26,12 +26,12 @@ type FocalRatio = `f/${number}`
  */
 export function getFocalRatio(apertureWidth: number, focalLength: number): FocalRatio {
   // Check that the aperterure is a sensible number, e.g., > 0:
-  if (apertureWidth < 0) {
-    throw new Error('Invalid focal ratio as aperture is negative')
+  if (apertureWidth <= 0) {
+    throw new Error('Invalid focal ratio as aperture is not greater than zero')
   }
 
-  if (focalLength < 0) {
-    throw new Error('Invalid focal ratio as focal length is negative')
+  if (focalLength <= 0) {
+    throw new Error('Invalid focal ratio as focal length is not greater than zero')
   }
 
   return `f/${focalLength / apertureWidth}`
@@ -55,18 +55,18 @@ export function getFieldOfView(
   resolution: Omit<CartesianCoordinate, 'z'>
 ): Omit<CartesianCoordinate, 'z'> {
   // Check that the focal length is a sensible number, e.g., > 0:
-  if (focalLength < 0) {
-    throw new Error('Invalid focal ratio as focal length is negative')
+  if (focalLength <= 0) {
+    throw new Error('Invalid field of view as focal length is not greater than zero')
   }
 
   // Check that the pixel size is a sensible number, e.g., > 0:
-  if (pixelSize < 0) {
-    throw new Error('Invalid focal ratio as pixel size is negative')
+  if (pixelSize <= 0) {
+    throw new Error('Invalid field of view as pixel size is not greater than zero')
   }
 
   // Check that the resolution is a sensible number, e.g., > 0:
-  if (resolution.x < 0 || resolution.y < 0) {
-    throw new Error('Invalid focal ratio as resolution is negative')
+  if (resolution.x <= 0 || resolution.y <= 0) {
+    throw new Error('Invalid field of view as resolution is not greater than zero')
   }
 
   // Get the angular size of a pixel of the camera (in degrees):
