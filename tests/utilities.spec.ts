@@ -187,6 +187,59 @@ describe('convertDegreeToDMS', () => {
 
 /*****************************************************************************************************************/
 
+describe('convertDegreeToDMS rounding', () => {
+  it('should carry a rounded second into the minutes and the degrees', () => {
+    // The value rounds up to a whole degree, and so it must not resolve as 59 minutes and 60
+    // seconds:
+    expect(convertDegreeToDMS(7.99999999)).toEqual({ deg: 8, min: 0, sec: 0 })
+
+    expect(convertDegreeToDMS(-7.99999999)).toEqual({ deg: -8, min: 0, sec: 0 })
+
+    expect(convertDegreeToDMS(89.99999999)).toEqual({ deg: 90, min: 0, sec: 0 })
+  })
+
+  it('should never resolve as 60 minutes or 60 seconds', () => {
+    const violations: number[] = []
+
+    for (let degree = -90; degree <= 90; degree += 0.00013) {
+      const { min, sec } = convertDegreeToDMS(degree)
+
+      if (min >= 60 || sec >= 60) {
+        violations.push(degree)
+      }
+    }
+
+    expect(violations).toEqual([])
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertDegreeToHMS rounding', () => {
+  it('should carry a rounded second into the minutes and the hours', () => {
+    expect(convertDegreeToHMS(14.99999999)).toEqual({ hrs: 1, min: 0, sec: 0 })
+
+    // A value that carries into a whole rotation is the zeroth hour, and not the twenty-fourth:
+    expect(convertDegreeToHMS(359.99999999)).toEqual({ hrs: 0, min: 0, sec: 0 })
+  })
+
+  it('should never resolve as 24 hours, 60 minutes or 60 seconds', () => {
+    const violations: number[] = []
+
+    for (let degree = 0; degree <= 360; degree += 0.00017) {
+      const { hrs, min, sec } = convertDegreeToHMS(degree)
+
+      if (hrs >= 24 || min >= 60 || sec >= 60) {
+        violations.push(degree)
+      }
+    }
+
+    expect(violations).toEqual([])
+  })
+})
+
+/*****************************************************************************************************************/
+
 describe('convertDegreeToHMS', () => {
   it('should be defined', () => {
     expect(convertDegreeToHMS).toBeDefined()
