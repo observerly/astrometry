@@ -8,7 +8,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { getEclipticPlane, getObliquityOfTheEcliptic } from '../src'
+import { getEclipticPlane, getObliquityOfTheEcliptic, getSolarEquatorialCoordinate } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -26,6 +26,51 @@ describe('getEclipticPlane', () => {
   it('should return the correct amount of coordinate points of the ecliptic plane for the given datetime', () => {
     const ecliptic = getEclipticPlane(datetime)
     expect(ecliptic.length).toBe(366)
+  })
+
+  it('should return a coordinate point for every day of a leap year, and for the following 1st January', () => {
+    const ecliptic = getEclipticPlane(new Date('2024-05-14T00:00:00.000+00:00'))
+    expect(ecliptic.length).toBe(367)
+  })
+
+  it('should start at the 1st January of the year of the datetime given', () => {
+    const [first] = getEclipticPlane(datetime)
+
+    const { ra, dec } = getSolarEquatorialCoordinate(new Date('2021-01-01T00:00:00.000+00:00'))
+
+    expect(first.ra).toBe(ra)
+    expect(first.dec).toBe(dec)
+  })
+
+  it('should not modify the datetime given', () => {
+    getEclipticPlane(datetime)
+
+    expect(datetime).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
+  })
+
+  it('should return the same ecliptic plane irrespective of the host timezone', () => {
+    const TZ = process.env.TZ
+
+    // The year boundary is derived in UTC, and the plane is therefore independent of the timezone of
+    // the host system the library is running on:
+    const expected = getEclipticPlane(datetime)
+
+    try {
+      for (const timezone of ['Pacific/Auckland', 'America/New_York', 'Asia/Kolkata']) {
+        process.env.TZ = timezone
+
+        const ecliptic = getEclipticPlane(datetime)
+
+        expect(ecliptic.length).toBe(expected.length)
+
+        for (let i = 0; i < ecliptic.length; i++) {
+          expect(ecliptic[i].ra).toBe(expected[i].ra)
+          expect(ecliptic[i].dec).toBe(expected[i].dec)
+        }
+      }
+    } finally {
+      process.env.TZ = TZ
+    }
   })
 })
 
