@@ -57,6 +57,25 @@ describe('getRefraction', () => {
     const R = getRefraction(target, 283.15, 101325)
     expect(R).toBe(0.005224159687428409)
   })
+
+  it('should return no correction for an object below the horizon', () => {
+    for (const alt of [-0.1, -18, -90]) {
+      expect(getRefraction({ alt, az: 0 })).toBe(0)
+    }
+  })
+
+  it('should be the correction that getCorrectionToHorizontalForRefraction applies', () => {
+    // The correction returned is the correction applied, at every altitude, e.g., the two functions
+    // agree both above and below the horizon:
+    for (let alt = -90; alt <= 90; alt += 0.5) {
+      const target = { alt, az: 45 }
+
+      expect(getCorrectionToHorizontalForRefraction(target).alt).toBeCloseTo(
+        alt + getRefraction(target),
+        9
+      )
+    }
+  })
 })
 
 /*****************************************************************************************************************/
