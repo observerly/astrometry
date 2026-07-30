@@ -89,11 +89,15 @@ export const getNormalizedInclinationDegree = (degrees: number): number => {
  *
  */
 export const convertDegreeToDMS = (degree: number): { deg: number; min: number; sec: number } => {
-  const deg = Math.floor(Math.abs(degree))
+  // Round the angle to the nearest milliarcsecond before resolving its components, so that a
+  // rounded value carries into the minutes and the degrees, and does not resolve as 60 seconds:
+  const arcseconds = Math.round(Math.abs(degree) * 3600 * 1000) / 1000
 
-  const min = Math.floor((Math.abs(degree) - deg) * 60)
+  const deg = Math.floor(arcseconds / 3600)
 
-  const sec = Math.round((Math.abs(degree) - deg - min / 60) * 3600 * 1000) / 1000
+  const min = Math.floor((arcseconds - deg * 3600) / 60)
+
+  const sec = Math.round((arcseconds - deg * 3600 - min * 60) * 1000) / 1000
 
   return {
     deg: degree < 0 ? -deg : deg,
@@ -119,13 +123,16 @@ export const convertDegreeToHMS = (degree: number): { hrs: number; min: number; 
     degree += 360
   }
 
-  const deg = degree / 15
+  // Round the angle to the nearest millisecond of time before resolving its components, so that a
+  // rounded value carries into the minutes and the hours, and does not resolve as 60 seconds. A
+  // value that carries into a whole rotation is the zeroth hour:
+  const seconds = (Math.round((degree / 15) * 3600 * 1000) / 1000) % 86400
 
-  const hrs = Math.floor(deg)
+  const hrs = Math.floor(seconds / 3600)
 
-  const min = Math.floor((deg - hrs) * 60)
+  const min = Math.floor((seconds - hrs * 3600) / 60)
 
-  const sec = Math.round((deg - hrs - min / 60) * 3600 * 1000) / 1000
+  const sec = Math.round((seconds - hrs * 3600 - min * 60) * 1000) / 1000
 
   return {
     hrs: hrs,
