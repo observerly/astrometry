@@ -32,6 +32,8 @@ export * from './orbit'
 export * from './planets'
 export * from './precession'
 export * from './projection'
+
+export * from './propermotion'
 export * from './q'
 export * from './quality'
 export * from './refraction'

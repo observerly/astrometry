@@ -166,6 +166,11 @@
       "require": "./dist/projection.cjs",
       "types": "./dist/projection.d.ts"
     },
+    "./propermotion": {
+      "import": "./dist/propermotion.js",
+      "require": "./dist/propermotion.cjs",
+      "types": "./dist/propermotion.d.ts"
+    },
     "./q": {
       "import": "./dist/q.js",
       "require": "./dist/q.cjs",
