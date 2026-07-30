@@ -94,8 +94,12 @@ export const getTwilightBandsForDay = (
 ): TwilightBand[] => {
   const { stepSeconds = 10 } = params
 
-  // Set the time to midnight:
-  const midnight = new Date(datetime.getFullYear(), datetime.getMonth(), datetime.getDate())
+  // Set the datetime to be at midnight UTC for the date specified, taking a copy of the datetime so
+  // as to not modify the date given by the caller, and deriving the day boundary in UTC so as to be
+  // independent of the timezone of the host system:
+  const midnight = new Date(
+    Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), datetime.getUTCDate(), 0, 0, 0, 0)
+  )
 
   // Set the end time to midnight the next day:
   const end = new Date(midnight.getTime() + 86400000)
