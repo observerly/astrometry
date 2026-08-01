@@ -185,6 +185,52 @@ export const isEquatorialCoordinate = (target: unknown): target is EquatorialCoo
 
 /*****************************************************************************************************************/
 
+export type EquatorialProperMotion = {
+  /**
+   *
+   *
+   * The proper motion of a celestial object in right ascension, μα*, is the rate at which the
+   * object appears to move along the celestial equator, in arcseconds per Julian year.
+   *
+   * As the IAU defines it for the ICRS, the rate is measured towards increasing right ascension,
+   * and so it is positive for an object moving eastward, and negative for an object moving
+   * westward.
+   *
+   * N.B. As published by, e.g., the Gaia and Hipparcos catalogues, the proper motion in right
+   * ascension is the great-circle rate, μα* = μα cos δ, e.g., it is scaled by the cosine of the
+   * declination of the object, and is therefore not the rate of change of the right ascension
+   * itself.
+   *
+   *
+   */
+  ra: number
+  /**
+   *
+   *
+   * The proper motion of a celestial object in declination, μδ, is the rate at which the object
+   * appears to move along its hour circle, in arcseconds per Julian year.
+   *
+   * As the IAU defines it for the ICRS, the rate is measured towards increasing declination, and
+   * so it is positive for an object moving northward, and negative for an object moving southward.
+   *
+   *
+   */
+  dec: number
+}
+
+/*****************************************************************************************************************/
+
+export const isEquatorialProperMotion = (target: unknown): target is EquatorialProperMotion => {
+  return (
+    typeof target === 'object' &&
+    target !== null &&
+    Number.isFinite((target as EquatorialProperMotion).dec) &&
+    Number.isFinite((target as EquatorialProperMotion).ra)
+  )
+}
+
+/*****************************************************************************************************************/
+
 export type GeographicCoordinate = {
   /**
    *

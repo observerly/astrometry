@@ -8,9 +8,12 @@
 
 import type {
   EquatorialCoordinate,
+  EquatorialProperMotion,
   GeographicCoordinate,
   SphericalCoordinate
 } from './common'
+
+import { J2000 } from './constants'
 
 import { getObliquityOfTheEcliptic } from './ecliptic'
 
@@ -370,6 +373,65 @@ export const getParallacticAngle = (
   }
 
   return q % 360
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getCorrectionToEquatorialForProperMotion()
+ *
+ * Calculates the correction terms (Δra, Δdec) to the equatorial coordinate of a target for the
+ * proper motion of the target, e.g., the apparent motion of the target across the celestial
+ * sphere, relative to the barycenter of the solar system, over the interval between the epoch of
+ * the coordinate and the datetime given. The correction terms should be added to the target's
+ * coordinate by the caller.
+ *
+ * N.B. The proper motion in right ascension is the great-circle rate, as published, and so it is
+ * divided through by the cosine of the declination to obtain the rate of change of the right
+ * ascension itself.
+ *
+ * N.B. The motion is treated as linear over the interval, which is accurate for the intervals of
+ * decades that separate the epoch of a catalogue from the present day. A rigorous treatment
+ * resolves the space motion of the target, for which its parallax and its radial velocity are
+ * also required.
+ *
+ * @param datetime - The date to calculate the equatorial correction for.
+ * @param target - The equatorial coordinate of the target, of its epoch, or of J2000.
+ * @param properMotion - The proper motion of the target (in arcseconds per Julian year).
+ * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
+ *
+ */
+export const getCorrectionToEquatorialForProperMotion = (
+  datetime: Date,
+  target: EquatorialCoordinate,
+  properMotion: EquatorialProperMotion
+): EquatorialCoordinate => {
+  // The number of Julian years between the epoch of the coordinate and the datetime given:
+  const years = (getJulianDate(datetime) - (target.epoch ?? J2000)) / 365.25
+
+  // The proper motion in declination is the rate of change of the declination itself, converted
+  // from arcseconds to degrees:
+  const Δdec = (properMotion.dec * years) / 3600
+
+  // The right ascension of a target at either celestial pole is degenerate, and its proper motion
+  // in right ascension is therefore not resolvable. N.B. The cosine of the declination is tested
+  // for through the declination itself, as the cosine of ±90° is not exactly zero:
+  if (Math.abs(target.dec) >= 90) {
+    return {
+      ra: 0,
+      dec: Δdec
+    }
+  }
+
+  // The proper motion in right ascension is the great-circle rate, and so it is divided through by
+  // the cosine of the declination to obtain the rate of change of the right ascension itself:
+  const Δra = (properMotion.ra * years) / Math.cos(radians(target.dec)) / 3600
+
+  return {
+    ra: Δra,
+    dec: Δdec
+  }
 }
 
 /*****************************************************************************************************************/
