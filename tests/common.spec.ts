@@ -12,6 +12,8 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import {
   type EquatorialCoordinate,
+  type EquatorialProperMotion,
+  isEquatorialProperMotion,
   type HorizontalCoordinate,
   isEquatorialCoordinate,
   isHorizontalCoordinate
@@ -90,6 +92,35 @@ describe('isEquatorialCoordinate', () => {
     const result = isEquatorialCoordinate(eq)
     expect(result).toBe(false)
     expectTypeOf(eq).not.toEqualTypeOf<EquatorialCoordinate>()
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('isEquatorialProperMotion', () => {
+  it('should be defined', () => {
+    expect(isEquatorialProperMotion).toBeDefined()
+  })
+
+  it('should return true for a valid equatorial proper motion', () => {
+    // The proper motion of Barnard's Star, in arcseconds per Julian year:
+    const pm: EquatorialProperMotion = { ra: -0.79858, dec: 10.32812 }
+    expect(isEquatorialProperMotion(pm)).toBe(true)
+    expectTypeOf(pm).toEqualTypeOf<EquatorialProperMotion>()
+  })
+
+  it('should return false for a proper motion that is not finite', () => {
+    for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      expect(isEquatorialProperMotion({ ra: value, dec: 0 })).toBe(false)
+      expect(isEquatorialProperMotion({ ra: 0, dec: value })).toBe(false)
+    }
+  })
+
+  it('should return false for an unknown value', () => {
+    expect(isEquatorialProperMotion('proper_motion')).toBe(false)
+    expect(isEquatorialProperMotion(45)).toBe(false)
+    expect(isEquatorialProperMotion(null)).toBe(false)
+    expect(isEquatorialProperMotion({ alt: 0, az: 0 })).toBe(false)
   })
 })
 
