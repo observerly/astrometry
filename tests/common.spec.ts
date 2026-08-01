@@ -17,6 +17,8 @@ import {
   isHorizontalCoordinate
 } from '../src/common'
 
+import { J2000 } from '../src/constants'
+
 /*****************************************************************************************************************/
 
 describe('isEquatorialCoordinate', () => {
@@ -43,6 +45,19 @@ describe('isEquatorialCoordinate', () => {
     const result = isEquatorialCoordinate(eq)
     expect(result).toBe(true)
     expectTypeOf(eq).toEqualTypeOf<EquatorialCoordinate>()
+  })
+
+  it('should return true for valid equatorial coordinates of a given epoch', () => {
+    const eq = { ra: 0, dec: 0, epoch: J2000 }
+    const result = isEquatorialCoordinate(eq)
+    expect(result).toBe(true)
+    expectTypeOf(eq).toEqualTypeOf<EquatorialCoordinate>()
+  })
+
+  it('should return true for valid equatorial coordinates of a catalogue epoch', () => {
+    // The Gaia DR3 catalogue resolves its coordinates at the J2016.0 epoch:
+    const eq = { ra: 0, dec: 0, epoch: 2457388.5 }
+    expect(isEquatorialCoordinate(eq)).toBe(true)
   })
 
   it('should return false for invalid equatorial coordinates', () => {
