@@ -55,45 +55,100 @@ describe('getObservationalQuality', () => {
   })
 
   it('should return the mean of the constraint scores', () => {
-    const quality = getObservationalQuality(datetime, observer, betelgeuse, [
+    const { quality, observable } = getObservationalQuality(datetime, observer, betelgeuse, [
       new FixedConstraint(1),
       new FixedConstraint(0),
       new FixedConstraint(-1)
     ])
 
     expect(quality).toBeCloseTo(0)
+    expect(observable).toBe(true)
   })
 
-  it('should return -1 when a required constraint fails', () => {
-    const quality = getObservationalQuality(datetime, observer, betelgeuse, [
+  it('should return a quality of -1 when a required constraint fails', () => {
+    const { quality, observable } = getObservationalQuality(datetime, observer, betelgeuse, [
       new FixedConstraint(1),
       new FixedConstraint(-1, true)
     ])
 
     expect(quality).toBe(-1)
+    expect(observable).toBe(false)
   })
 
   it('should not gate on a failing constraint that is not required', () => {
-    const quality = getObservationalQuality(datetime, observer, betelgeuse, [
+    const { quality, observable } = getObservationalQuality(datetime, observer, betelgeuse, [
       new FixedConstraint(1),
       new FixedConstraint(-1, false)
     ])
 
     expect(quality).toBeCloseTo(0)
+    expect(observable).toBe(true)
   })
 
-  it('should return -1 when no constraints are supplied', () => {
-    expect(getObservationalQuality(datetime, observer, betelgeuse, [])).toBe(-1)
+  it('should identify the constraint that makes the observation unobservable', () => {
+    const { scores } = getObservationalQuality(datetime, observer, betelgeuse, [
+      new FixedConstraint(1),
+      new FixedConstraint(-1, true)
+    ])
+
+    // The evaluations are returned in the order the constraints were given:
+    expect(scores).toEqual([
+      { name: 'fixed', score: 1, required: false, satisfied: true },
+      { name: 'fixed', score: -1, required: true, satisfied: false }
+    ])
+
+    // The failing hard constraint is identifiable from the evaluations alone:
+    const culprits = scores.filter(({ required, satisfied }) => required && !satisfied)
+    expect(culprits).toHaveLength(1)
   })
 
-  it('should never return a value outside of [-1, 1] for the default constraints', () => {
-    const quality = getObservationalQuality(datetime, observer, betelgeuse)
+  it('should return an evaluation for every constraint even when the observation is unobservable', () => {
+    const { scores } = getObservationalQuality(datetime, observer, betelgeuse, [
+      new FixedConstraint(-1, true),
+      new FixedConstraint(0.5),
+      new FixedConstraint(0.25)
+    ])
+
+    expect(scores).toHaveLength(3)
+    expect(scores[1].score).toBe(0.5)
+    expect(scores[2].score).toBe(0.25)
+  })
+
+  it('should return an unobservable quality when no constraints are supplied', () => {
+    const { quality, observable, scores } = getObservationalQuality(datetime, observer, betelgeuse, [])
+
+    expect(quality).toBe(-1)
+    expect(observable).toBe(false)
+    expect(scores).toEqual([])
+  })
+
+  it('should return the resolved context the constraints were evaluated against', () => {
+    const { context } = getObservationalQuality(datetime, observer, betelgeuse)
+
+    // The context carries the horizontal coordinates of the target, the Sun and the Moon, the
+    // Moon's illuminated fraction, and the Moon-target angular separation:
+    for (const coordinate of [context.target, context.sun, context.moon]) {
+      expect(coordinate.alt).toBeGreaterThanOrEqual(-90)
+      expect(coordinate.alt).toBeLessThanOrEqual(90)
+      expect(coordinate.az).toBeGreaterThanOrEqual(0)
+      expect(coordinate.az).toBeLessThan(360)
+    }
+
+    expect(context.illumination).toBeGreaterThanOrEqual(0)
+    expect(context.illumination).toBeLessThanOrEqual(100)
+
+    expect(context.separation).toBeGreaterThanOrEqual(0)
+    expect(context.separation).toBeLessThanOrEqual(180)
+  })
+
+  it('should never return a quality outside of [-1, 1] for the default constraints', () => {
+    const { quality } = getObservationalQuality(datetime, observer, betelgeuse)
     expect(quality).toBeGreaterThanOrEqual(-1)
     expect(quality).toBeLessThanOrEqual(1)
   })
 
-  it('should return a value within [-1, 1] for an arbitrary observation', () => {
-    const quality = getObservationalQuality(new Date(), { latitude: 0, longitude: 0 }, { ra: 0, dec: 0 })
+  it('should return a quality within [-1, 1] for an arbitrary observation', () => {
+    const { quality } = getObservationalQuality(new Date(), { latitude: 0, longitude: 0 }, { ra: 0, dec: 0 })
     expect(quality).toBeGreaterThanOrEqual(-1)
     expect(quality).toBeLessThanOrEqual(1)
   })
