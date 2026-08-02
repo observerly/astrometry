@@ -44,7 +44,6 @@ const modules = [
   'planets',
   'precession',
   'projection',
-  'q',
   'refraction',
   'seeing',
   'sun',
