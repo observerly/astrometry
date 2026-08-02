@@ -67,7 +67,7 @@ const separation = getAngularSeparation(
 )
 ```
 
-θ and φ are reserved for the two angles above, and are not used to denote any other quantity, e.g., the angular separation resolved by `getQIndex()` is named `separation`, and not φ.
+θ and φ are reserved for the two angles above, and are not used to denote any other quantity, e.g., an angular separation is named `separation`, and not φ.
 
 Other symbols follow their conventional usage for the quantity in question, and are unrelated to the above, e.g., λ and β for ecliptic longitude and latitude, l and b for galactic longitude and latitude, and φ for the geographic latitude of an observer in the local scope of a calculation.
 
