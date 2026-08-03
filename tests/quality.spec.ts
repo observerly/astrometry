@@ -22,6 +22,7 @@ import {
   getCorrectionToHorizontalForRefraction,
   getNormalisedSphericalCoordinate,
   getObservationalQuality,
+  getObservationalQualityRanking,
   getObservationalQualityWindows,
   TargetAltitudeConstraint
 } from '../src'
@@ -388,6 +389,129 @@ describe('getObservationalQualityWindows', () => {
         getObservationalQualityWindows(interval, observer, betelgeuse, undefined, { stepSeconds })
       ).toThrow()
     }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getObservationalQualityRanking', () => {
+  // Targets of differing altitude for the observer at the datetime under test:
+  const targets = [
+    { name: 'Spica', ra: 201.2983, dec: -11.1614 },
+    { name: 'Betelgeuse', ra: 88.7929583, dec: 7.4070639 },
+    { name: 'Arcturus', ra: 213.9153, dec: 19.182409 }
+  ]
+
+  it('should be defined', () => {
+    expect(getObservationalQualityRanking).toBeDefined()
+  })
+
+  it('should return a rank for every target given', () => {
+    const ranking = getObservationalQualityRanking(datetime, observer, targets, [
+      new TargetAltitudeConstraint({ minimum: 6 })
+    ])
+
+    expect(ranking).toHaveLength(targets.length)
+  })
+
+  it('should order the ranking by quality, from the best to the worst', () => {
+    const ranking = getObservationalQualityRanking(datetime, observer, targets, [
+      new TargetAltitudeConstraint({ minimum: 6 })
+    ])
+
+    for (let i = 1; i < ranking.length; i++) {
+      expect(ranking[i].quality).toBeLessThanOrEqual(ranking[i - 1].quality)
+    }
+  })
+
+  it('should resolve the same quality for each target as getObservationalQuality', () => {
+    const ranking = getObservationalQualityRanking(datetime, observer, targets, [
+      new TargetAltitudeConstraint({ minimum: 6 })
+    ])
+
+    for (const rank of ranking) {
+      const { quality, observable } = getObservationalQuality(datetime, observer, rank.target, [
+        new TargetAltitudeConstraint({ minimum: 6 })
+      ])
+
+      expect(rank.quality).toBe(quality)
+      expect(rank.observable).toBe(observable)
+    }
+  })
+
+  it('should rank an unobservable target below every observable target', () => {
+    const ranking = getObservationalQualityRanking(datetime, observer, targets, [
+      new TargetAltitudeConstraint({ minimum: 6 })
+    ])
+
+    const unobservable = ranking.findIndex(({ observable }) => !observable)
+
+    if (unobservable !== -1) {
+      for (const rank of ranking.slice(unobservable)) {
+        expect(rank.observable).toBe(false)
+      }
+    }
+  })
+
+  it('should rank an observable target above an unobservable target of equal quality', () => {
+    // A required constraint that is satisfied only when the target is above the horizon:
+    class RequiredAboveHorizon extends Constraint {
+      public readonly name = 'required-above-horizon'
+
+      public required = true
+
+      public score(context: ConstraintContext): ConstraintScore {
+        return context.target.alt > 0 ? 1 : -1
+      }
+    }
+
+    // Betelgeuse is above the horizon for the observer at the datetime, and the southern target
+    // is below it. The soft constraint, at a weight that swamps the required one, resolves a
+    // quality of exactly -1 for the observable target, e.g., it ties the unobservable target:
+    const above = { name: 'above', ra: 88.7929583, dec: 7.4070639 }
+
+    const below = { name: 'below', ra: 88.7929583, dec: -80 }
+
+    const ranking = getObservationalQualityRanking(datetime, observer, [below, above], [
+      new FixedConstraint(-1, false, 1e16),
+      new RequiredAboveHorizon()
+    ])
+
+    expect(ranking[0].quality).toBe(-1)
+    expect(ranking[1].quality).toBe(-1)
+
+    // The observable target ranks first, whatever the order the targets were given in:
+    expect(ranking[0].target.name).toBe('above')
+    expect(ranking[0].observable).toBe(true)
+
+    expect(ranking[1].target.name).toBe('below')
+    expect(ranking[1].observable).toBe(false)
+  })
+
+  it('should retain the order given for targets of equal quality', () => {
+    const equal = [targets[0], targets[1], targets[2]]
+
+    const ranking = getObservationalQualityRanking(datetime, observer, equal, [
+      new FixedConstraint(0.5)
+    ])
+
+    // Every target scores the same, and so the ranking is the order they were given in:
+    expect(ranking.map(({ target }) => target)).toEqual(equal)
+  })
+
+  it('should return the target as it was given, e.g., with any additional properties', () => {
+    const ranking = getObservationalQualityRanking(datetime, observer, targets, [
+      new FixedConstraint(1)
+    ])
+
+    for (const rank of ranking) {
+      expect(targets).toContain(rank.target)
+      expect(typeof rank.target.name).toBe('string')
+    }
+  })
+
+  it('should return no ranking for no targets', () => {
+    expect(getObservationalQualityRanking(datetime, observer, [])).toEqual([])
   })
 })
 
