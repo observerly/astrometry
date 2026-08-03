@@ -46,9 +46,7 @@ export const getLocalHorizon = (h: number | Observer, k = 0.167): number => {
   // Takes into account refraction (k) if provided, otherwise defaults to 0.167.
   // N.B. The depression is the exact angle subtended, and not its small angle approximation,
   // which diverges for elevations that are an appreciable fraction of the radius of the Earth:
-  return convertRadiansToDegrees(
-    Math.acos(EARTH_RADIUS / (EARTH_RADIUS + (1 - k) * elevation))
-  )
+  return convertRadiansToDegrees(Math.acos(EARTH_RADIUS / (EARTH_RADIUS + (1 - k) * elevation)))
 }
 
 /*****************************************************************************************************************/

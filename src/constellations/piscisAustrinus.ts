@@ -29,11 +29,11 @@ const aster: number[][][] = [
   // δ Piscis Austrini to γ Piscis Austrini:
   [
     [343.987042, -32.539694],
-    [343.131500, -32.875444]
+    [343.1315, -32.875444]
   ],
   // γ Piscis Austrini to β Piscis Austrini:
   [
-    [343.131500, -32.875444],
+    [343.1315, -32.875444],
     [337.876208, -32.346028]
   ],
   // β Piscis Austrini to μ Piscis Austrini:
