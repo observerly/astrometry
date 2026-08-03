@@ -37,9 +37,18 @@ export const getLocalHorizon = (h: number | Observer, k = 0.167): number => {
     elevation = h
   }
 
+  // An observer at or below sea level is taken to be at sea level, where the depression vanishes:
+  if (elevation <= 0) {
+    return 0
+  }
+
   // Return the local horizon depression (in degrees) for the observer:
   // Takes into account refraction (k) if provided, otherwise defaults to 0.167.
-  return convertRadiansToDegrees(Math.sqrt((2 * (1 - k) * elevation) / EARTH_RADIUS))
+  // N.B. The depression is the exact angle subtended, and not its small angle approximation,
+  // which diverges for elevations that are an appreciable fraction of the radius of the Earth:
+  return convertRadiansToDegrees(
+    Math.acos(EARTH_RADIUS / (EARTH_RADIUS + (1 - k) * elevation))
+  )
 }
 
 /*****************************************************************************************************************/

@@ -18,6 +18,8 @@ import { convertEquatorialToHorizontal } from './coordinates'
 
 import { getNight } from './night'
 
+import { getLocalHorizon } from './observer'
+
 import {
   convertGreenwichSiderealTimeToUniversalTime,
   convertLocalSiderealTimeToGreenwichSiderealTime
@@ -158,13 +160,16 @@ export const isBodyCircumpolar = (
   // We only need to consider the declination of the target object:
   const { dec } = target
 
+  // The elevation of the observer depresses their local horizon below the astronomical horizon:
+  const h = horizon - getLocalHorizon(observer.elevation ?? 0)
+
   // Whether a given star is circumpolar at the observer's latitude (θ) may be
   // calculated in terms of the star's declination (δ). The star is circumpolar
   // if θ + δ is greater than +90° (observer in Northern Hemisphere), or θ + δ is
   // less than −90° (observer in Southern Hemisphere). The hemisphere of the
   // observer is determined by the sign of their latitude, and the altitude of
   // the object at its lower culmination must exceed the observer's horizon:
-  return latitude >= 0 ? latitude + dec > 90 + horizon : latitude + dec < -90 - horizon
+  return latitude >= 0 ? latitude + dec > 90 + h : latitude + dec < -90 - h
 }
 
 /*****************************************************************************************************************/
@@ -192,9 +197,12 @@ export const isBodyVisible = (
   // We only need to consider the declination of the target object:
   const { dec } = target
 
+  // The elevation of the observer depresses their local horizon below the astronomical horizon:
+  const h = horizon - getLocalHorizon(observer.elevation ?? 0)
+
   // Calculate the maximum altitude at culmination, and if that is greater than the observer's horizon,
   // then the object is going to be visible at some future time.
-  return 90 - Math.abs(latitude - dec) > horizon
+  return 90 - Math.abs(latitude - dec) > h
 }
 
 /*****************************************************************************************************************/
@@ -233,9 +241,13 @@ export const isBodyAboveHorizon = (
     alt = target.alt
   }
 
+  // The elevation of the observer depresses their local horizon below the astronomical horizon,
+  // and so an object is visible down to the depressed horizon:
+  const depression = getLocalHorizon(observer.elevation ?? 0)
+
   // If the object's altitude is greater than the observer's horizon,
   // then the object is visible (ever above the observer's horizon).
-  return alt > horizon
+  return alt > horizon - depression
 }
 
 /*****************************************************************************************************************/

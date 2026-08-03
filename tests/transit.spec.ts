@@ -332,6 +332,68 @@ describe('isBodyAboveHorizon', () => {
 
 /*****************************************************************************************************************/
 
+describe('isBodyAboveHorizon for an elevated observer', () => {
+  it('should see an object below the astronomical horizon that is above the depressed horizon', () => {
+    // The local horizon of an observer at the elevation of Mauna Kea is depressed by ~1.9°, and so
+    // an object at an altitude of -1° is above their local horizon, and below the horizon of an
+    // observer at sea level:
+    const target = { alt: -1, az: 90 }
+
+    expect(isBodyAboveHorizon(datetime, { latitude, longitude, elevation: 4207 }, target, 0)).toBe(
+      true
+    )
+
+    expect(isBodyAboveHorizon(datetime, { latitude, longitude }, target, 0)).toBe(false)
+  })
+
+  it('should not see an object below the depressed horizon', () => {
+    const target = { alt: -3, az: 90 }
+
+    expect(isBodyAboveHorizon(datetime, { latitude, longitude, elevation: 4207 }, target, 0)).toBe(
+      false
+    )
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('isBodyVisible and isBodyCircumpolar for an elevated observer', () => {
+  it('should see an object whose culmination is below the horizon but above the depressed horizon', () => {
+    // The object culminates at an altitude of ~29° for the observer, e.g., below a horizon of 30°,
+    // but above the horizon of 30° as depressed by ~1.9° for the elevation of Mauna Kea:
+    const target = { ra: 0, dec: latitude - 61 }
+
+    expect(isBodyVisible({ latitude, longitude, elevation: 4207 }, target, 30)).toBe(true)
+
+    expect(isBodyVisible({ latitude, longitude }, target, 30)).toBe(false)
+  })
+
+  it('should resolve an object as circumpolar when its lower culmination stays above the depressed horizon', () => {
+    // Polaris is at its lowest at an altitude of ~19.1° for the observer, e.g., below a horizon of
+    // 20°, but above the horizon of 20° as depressed for the elevation of Mauna Kea:
+    expect(isBodyCircumpolar({ latitude, longitude, elevation: 4207 }, polaris, 20)).toBe(true)
+
+    expect(isBodyCircumpolar({ latitude, longitude }, polaris, 20)).toBe(false)
+  })
+
+  it('should agree with isBodyAboveHorizon for an object above the depressed horizon alone', () => {
+    // The object culminates at an altitude of ~-1°, e.g., below the astronomical horizon, and
+    // above the depressed horizon of the elevated observer. Both predicates agree that it is
+    // visible for the elevated observer, and that it is not for an observer at sea level:
+    const target = { ra: 0, dec: latitude - 91 }
+
+    const elevated = { latitude, longitude, elevation: 4207 }
+
+    expect(isBodyVisible(elevated, target, 0)).toBe(true)
+    expect(isBodyAboveHorizon(datetime, elevated, { alt: -1, az: 90 }, 0)).toBe(true)
+
+    expect(isBodyVisible({ latitude, longitude }, target, 0)).toBe(false)
+    expect(isBodyAboveHorizon(datetime, { latitude, longitude }, { alt: -1, az: 90 }, 0)).toBe(false)
+  })
+})
+
+/*****************************************************************************************************************/
+
 describe('doesBodyRiseOrSet', () => {
   it('should be defined', () => {
     expect(doesBodyRiseOrSet).toBeDefined()

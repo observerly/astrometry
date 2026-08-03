@@ -64,3 +64,33 @@ describe('getLocalHorizon', () => {
 })
 
 /*****************************************************************************************************************/
+
+describe('getLocalHorizon edge cases', () => {
+  it('should return no depression for an observer below sea level', () => {
+    // An observer below sea level is taken to be at sea level, where the depression vanishes:
+    expect(getLocalHorizon(-430)).toBe(0)
+    expect(getLocalHorizon(-430, 0)).toBe(0)
+  })
+
+  it('should return a depression bounded by the pole for a very large elevation', () => {
+    // The small angle approximation of the depression diverges for elevations that are an
+    // appreciable fraction of the radius of the Earth, e.g., for an observer at a geostationary
+    // altitude, where the exact depression is ~81.3°:
+    expect(getLocalHorizon(35786000, 0)).toBeCloseTo(81.3, 1)
+    expect(getLocalHorizon(35786000, 0)).toBeLessThan(90)
+  })
+
+  it('should increase monotonically with the elevation of the observer', () => {
+    let previous = 0
+
+    for (const elevation of [0, 10, 100, 1000, 4207, 8849, 400000]) {
+      const depression = getLocalHorizon(elevation)
+
+      expect(depression).toBeGreaterThanOrEqual(previous)
+
+      previous = depression
+    }
+  })
+})
+
+/*****************************************************************************************************************/

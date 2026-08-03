@@ -88,10 +88,28 @@ describe('convertEquatorialToHorizontal', () => {
     expect(target.az).toBe(270)
   })
 
-  it('should return the correct horizontal coordinate for the star Betelgeuse with an observer elevation greater than 0', () => {
+  it('should not displace a distant target for an observer at an elevation greater than 0', () => {
+    // The elevation of the observer does not change where a distant target is on the celestial
+    // sphere: it depresses the observer's horizon, which the horizon-relative predicates apply:
     const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude, elevation: 100 }, betelgeuse)
-    expect(alt).toBe(73.10623395045637)
+    expect(alt).toBe(72.78539444063765)
     expect(az).toBe(134.44877920325155)
+  })
+
+  it('should return a target at the zenith at an altitude of 90 degrees for an elevated observer', () => {
+    const GST = getGreenwichSiderealTime(datetime)
+
+    // The observer is directly beneath the target, at the elevation of Mauna Kea:
+    const observer = {
+      latitude: betelgeuse.dec,
+      longitude: betelgeuse.ra - GST * 15,
+      elevation: 4207
+    }
+
+    const target = convertEquatorialToHorizontal(datetime, observer, betelgeuse)
+
+    // The altitude of a target is bounded by the zenith, whatever the observer's elevation:
+    expect(target.alt).toBe(90)
   })
 
   it('should return the correct horizontal coordinate for an observer below sea level', () => {
@@ -107,23 +125,18 @@ describe('convertEquatorialToHorizontal', () => {
     expect(az).toBe(134.44877920325155)
   })
 
-  it('should apply the exact dip of the horizon for an observer at a large elevation', () => {
-    // The small angle approximation of the dip of the horizon diverges for elevations that are an
-    // appreciable fraction of the radius of the Earth, e.g., for an observer in low Earth orbit:
-    const elevation = 400000
-
+  it('should not displace a distant target for an observer at a very large elevation', () => {
+    // The altitude of a distant target is the same for an observer in low Earth orbit as it is at
+    // sea level, as the depression of the horizon belongs to the horizon, and not to the target:
     const { alt } = convertEquatorialToHorizontal(
       datetime,
-      { latitude, longitude, elevation },
+      { latitude, longitude, elevation: 400000 },
       betelgeuse
     )
 
     const { alt: sea } = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
 
-    expect(alt - sea).toBeCloseTo(degrees(Math.acos(EARTH_RADIUS / (EARTH_RADIUS + elevation))), 9)
-
-    // The dip of the horizon is ~19.78°, and not the ~20.29° of the small angle approximation:
-    expect(alt - sea).toBeCloseTo(19.78, 2)
+    expect(alt).toBeCloseTo(sea, 9)
   })
 
   it('should correct the altitude of a nearby target for its diurnal parallax', () => {

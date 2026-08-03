@@ -291,6 +291,21 @@ describe('isNight', () => {
 
 /*****************************************************************************************************************/
 
+describe('getSolarTransit for an elevated observer', () => {
+  it('should return an earlier sunrise and a later sunset than at sea level', () => {
+    // The local horizon of an elevated observer is depressed below the astronomical horizon, and
+    // so the Sun crosses it earlier at sunrise, and later at sunset:
+    const sea = getSolarTransit(datetime, { latitude, longitude }, 0)
+
+    const elevated = getSolarTransit(datetime, { latitude, longitude, elevation: 4000 }, 0)
+
+    expect(elevated.sunrise?.getTime()).toBeLessThan(sea.sunrise?.getTime() as number)
+    expect(elevated.sunset?.getTime()).toBeGreaterThan(sea.sunset?.getTime() as number)
+  })
+})
+
+/*****************************************************************************************************************/
+
 describe('perpetual daylight and perpetual night', () => {
   it('should return a null solar transit for an observer in perpetual daylight', () => {
     const { sunrise, noon, sunset } = getSolarTransit(
