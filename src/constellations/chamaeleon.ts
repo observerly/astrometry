@@ -39,7 +39,7 @@ const aster: number[][][] = [
   // δ² Chamaeleontis to β Chamaeleontis
   [
     [161.446417, -80.540194],
-    [184.587250, -79.312278]
+    [184.58725, -79.312278]
   ],
   // γ Chamaeleontis to ε Chamaeleontis
   [
@@ -49,7 +49,7 @@ const aster: number[][][] = [
   // ε Chamaeleontis to β Chamaeleontis
   [
     [179.907042, -78.221806],
-    [184.587250, -79.312278]
+    [184.58725, -79.312278]
   ]
 ]
 

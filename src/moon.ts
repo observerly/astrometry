@@ -12,11 +12,7 @@ import type { GregorianMonth } from './calendar'
 
 import { AU_IN_METERS } from './constants'
 
-import type {
-  EclipticCoordinate,
-  EquatorialCoordinate,
-  GeographicCoordinate
-} from './common'
+import type { EclipticCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
 
 import { earth } from './earth'
 
@@ -166,11 +162,7 @@ export const getLunarMeanAnomaly = (datetime: Date): number => {
 
   // Get the Moon's mean anomaly at the current epoch relative to J2000:
   let M =
-    (134.9634114 +
-      477198.8676313 * T +
-      0.008997 * T ** 2 +
-      T ** 3 / 69699 -
-      T ** 4 / 14712000) %
+    (134.9634114 + 477198.8676313 * T + 0.008997 * T ** 2 + T ** 3 / 69699 - T ** 4 / 14712000) %
     360
 
   // Correct for negative angles
@@ -202,11 +194,7 @@ export const getLunarMeanGeometricLongitude = (datetime: Date): number => {
   const T = (JD - 2451545.0) / 36525
 
   let l =
-    (218.3164477 +
-      481267.88123421 * T -
-      0.0015786 * T ** 2 +
-      T ** 3 / 538841 -
-      T ** 4 / 65194000) %
+    (218.3164477 + 481267.88123421 * T - 0.0015786 * T ** 2 + T ** 3 / 538841 - T ** 4 / 65194000) %
     360
 
   // Correct for negative angles
@@ -707,7 +695,7 @@ export const getLunarAngularDiameter = (
   const B = cδ * cH - ρcφ * sπ
   const C = sδ - ρsφ * sπ
 
-  const q = Math.sqrt(A**2 + B**2 + C**2)
+  const q = Math.sqrt(A ** 2 + B ** 2 + C ** 2)
 
   return degrees((k / q) * sπ)
 }

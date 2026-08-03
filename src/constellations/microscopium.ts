@@ -23,12 +23,12 @@ const centrum: EquatorialCoordinate = {
 const aster: number[][][] = [
   // α Microscopii to γ Microscopii:
   [
-    [312.492000, -33.779667],
-    [315.322750, -32.257778]
+    [312.492, -33.779667],
+    [315.32275, -32.257778]
   ],
   // γ Microscopii to ε Microscopii:
   [
-    [315.322750, -32.257778],
+    [315.32275, -32.257778],
     [319.484375, -32.172472]
   ]
 ]
