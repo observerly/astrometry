@@ -14,7 +14,13 @@ import {
   Constraint,
   type ConstraintContext,
   type ConstraintScore,
+  convertEquatorialToHorizontal,
   type EquatorialCoordinate,
+  getCorrectionToEquatorialForAnnualAberration,
+  getCorrectionToEquatorialForNutation,
+  getCorrectionToEquatorialForPrecessionOfEquinoxes,
+  getCorrectionToHorizontalForRefraction,
+  getNormalisedSphericalCoordinate,
   getObservationalQuality
 } from '../src'
 
@@ -151,6 +157,38 @@ describe('getObservationalQuality', () => {
     const { quality } = getObservationalQuality(new Date(), { latitude: 0, longitude: 0 }, { ra: 0, dec: 0 })
     expect(quality).toBeGreaterThanOrEqual(-1)
     expect(quality).toBeLessThanOrEqual(1)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getObservationalQuality for a target whose corrected declination crosses the pole', () => {
+  it('should resolve the context from the same point on the celestial sphere', () => {
+    // The summed corrections carry this target across the north celestial pole for the datetime:
+    const target: EquatorialCoordinate = { ra: 0, dec: 89.91108342 }
+
+    const when = new Date('2015-12-22T00:00:00.000+00:00')
+
+    const { context } = getObservationalQuality(when, observer, target)
+
+    // The corrected coordinate, normalised as a pair, resolved from the same corrections:
+    const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, target)
+
+    const aberration = getCorrectionToEquatorialForAnnualAberration(when, target)
+
+    const nutation = getCorrectionToEquatorialForNutation(when, target)
+
+    const { θ: dec, φ: ra } = getNormalisedSphericalCoordinate({
+      θ: target.dec + precession.dec + aberration.dec + nutation.dec,
+      φ: target.ra + precession.ra + aberration.ra + nutation.ra
+    })
+
+    const expected = getCorrectionToHorizontalForRefraction(
+      convertEquatorialToHorizontal(when, observer, { ra, dec })
+    )
+
+    expect(context.target.alt).toBeCloseTo(expected.alt, 9)
+    expect(context.target.az).toBeCloseTo(expected.az, 9)
   })
 })
 

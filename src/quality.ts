@@ -8,7 +8,7 @@
 
 import { getCorrectionToEquatorialForAnnualAberration } from './aberration'
 
-import { getAngularSeparation } from './astrometry'
+import { getAngularSeparation, getNormalisedSphericalCoordinate } from './astrometry'
 
 import type { EquatorialCoordinate, GeographicCoordinate } from './common'
 
@@ -32,8 +32,6 @@ import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
 import { getCorrectionToHorizontalForRefraction } from './refraction'
 
 import { getSolarEquatorialCoordinate } from './sun'
-
-import { getNormalizedAzimuthalDegree, getNormalizedInclinationDegree } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -62,11 +60,13 @@ const getConstraintContext = (
 
   const nutation = getCorrectionToEquatorialForNutation(datetime, target)
 
-  const ra = getNormalizedAzimuthalDegree(target.ra + precession.ra + aberration.ra + nutation.ra)
-
-  const dec = getNormalizedInclinationDegree(
-    target.dec + precession.dec + aberration.dec + nutation.dec
-  )
+  // Normalise the corrected coordinate as a pair: a declination that crosses a pole is reflected
+  // back over it, and its right ascension is rotated to the antipodal meridian, such that the
+  // coordinate describes the same point on the celestial sphere:
+  const { θ: dec, φ: ra } = getNormalisedSphericalCoordinate({
+    θ: target.dec + precession.dec + aberration.dec + nutation.dec,
+    φ: target.ra + precession.ra + aberration.ra + nutation.ra
+  })
 
   // Resolve the refracted horizontal coordinates of the target, the Sun and the Moon:
   const t = getCorrectionToHorizontalForRefraction(

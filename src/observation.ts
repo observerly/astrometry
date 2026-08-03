@@ -8,7 +8,7 @@
 
 import { getCorrectionToEquatorialForAnnualAberration } from './aberration'
 
-import { getHourAngle } from './astrometry'
+import { getHourAngle, getNormalisedSphericalCoordinate } from './astrometry'
 
 import type { EquatorialCoordinate, HorizontalCoordinate, Observer } from './common'
 
@@ -17,8 +17,6 @@ import { convertEquatorialToHorizontal } from './coordinates'
 import { getCorrectionToEquatorialForNutation } from './nutation'
 
 import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
-
-import { getNormalizedAzimuthalDegree, getNormalizedInclinationDegree } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -153,10 +151,15 @@ export class Observation extends Object {
 
     const δ = target.dec + aberration.dec + nutation.dec + precession.dec
 
-    // Ensure the Right Ascension is normalized to the range [0, 360):
-    this.ra = getNormalizedAzimuthalDegree(α)
-    // Ensure the declination is normalized to the range [-90, 90]:
-    this.dec = getNormalizedInclinationDegree(δ)
+    // Normalise the corrected coordinate to the range [0, 360) in Right Ascension and [-90, 90]
+    // in declination. N.B. The two are normalised as a pair: a declination that crosses a pole is
+    // reflected back over it, and its Right Ascension is rotated to the antipodal meridian, such
+    // that the coordinate describes the same point on the celestial sphere:
+    const { θ, φ } = getNormalisedSphericalCoordinate({ θ: δ, φ: α })
+
+    this.ra = φ
+
+    this.dec = θ
   }
 
   private setHourAngle() {
