@@ -152,6 +152,15 @@ describe('isHorizontalCoordinate', () => {
     expectTypeOf(eq).toEqualTypeOf<HorizontalCoordinate>()
   })
 
+  it('should return false for horizontal coordinates that are not finite', () => {
+    // An altitude and an azimuth are finite angles, e.g., the NaN that a failed conversion
+    // resolves is not a horizontal coordinate:
+    for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      expect(isHorizontalCoordinate({ alt: value, az: 0 })).toBe(false)
+      expect(isHorizontalCoordinate({ alt: 0, az: value })).toBe(false)
+    }
+  })
+
   it('should return false for invalid horizontal coordinates', () => {
     const eq = { ra: 0, dec: 0 }
     const result = isHorizontalCoordinate(eq)

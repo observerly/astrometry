@@ -297,8 +297,8 @@ export const isHorizontalCoordinate = (target: unknown): target is HorizontalCoo
   return (
     typeof target === 'object' &&
     target !== null &&
-    typeof (target as HorizontalCoordinate).alt === 'number' &&
-    typeof (target as HorizontalCoordinate).az === 'number'
+    Number.isFinite((target as HorizontalCoordinate).alt) &&
+    Number.isFinite((target as HorizontalCoordinate).az)
   )
 }
 
