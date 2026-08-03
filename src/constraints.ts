@@ -82,6 +82,18 @@ export abstract class Constraint {
   // Whether failing this constraint (a score of -1) makes the whole observation unobservable:
   public required = false
 
+  // The relative weight of the constraint in the aggregate of a set of constraints, e.g., the
+  // weighted mean quality of an observation:
+  public weight: number
+
+  constructor(weight = 1) {
+    if (!Number.isFinite(weight) || weight <= 0) {
+      throw new Error('Invalid weight: weight must be finite and greater than zero')
+    }
+
+    this.weight = weight
+  }
+
   // Score the given context on the range [-1, 1] (implemented by each concrete constraint):
   public abstract score(context: ConstraintContext): ConstraintScore
 
@@ -95,10 +107,28 @@ export abstract class Constraint {
 
 /**
  *
+ * The parameters model shared by every { Constraint }.
+ *
+ */
+export type ConstraintParameters = {
+  /**
+   *
+   * The relative weight of the constraint in the aggregate of a set of constraints, e.g., the
+   * weighted mean quality of an observation. Defaults to 1, e.g., every constraint contributes
+   * equally.
+   *
+   */
+  weight?: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * The parameters model for a { TargetAltitudeConstraint }.
  *
  */
-export type TargetAltitudeConstraintParameters = {
+export type TargetAltitudeConstraintParameters = ConstraintParameters & {
   /**
    *
    * The minimum altitude (in degrees) at which the target is considered observable.
@@ -138,8 +168,8 @@ export class TargetAltitudeConstraint extends Constraint {
   // The maximum altitude (in degrees) at which the target's score is maximal:
   public maximum = 90
 
-  constructor({ minimum = 6, maximum = 90 }: TargetAltitudeConstraintParameters = {}) {
-    super()
+  constructor({ minimum = 6, maximum = 90, weight }: TargetAltitudeConstraintParameters = {}) {
+    super(weight)
 
     if (minimum < -90 || minimum > 90 || maximum < -90 || maximum > 90) {
       throw new Error(
@@ -176,7 +206,7 @@ export class TargetAltitudeConstraint extends Constraint {
  * The parameters model for a { SunAltitudeConstraint }.
  *
  */
-export type SunAltitudeConstraintParameters = {
+export type SunAltitudeConstraintParameters = ConstraintParameters & {
   /**
    *
    * The maximum altitude (in degrees) of the Sun for the observation to be dark enough. The Sun must
@@ -221,8 +251,8 @@ export class SunAltitudeConstraint extends Constraint {
   // The minimum altitude (in degrees) of the Sun at which the score is maximal:
   public minimum = -90
 
-  constructor({ maximum = -18, minimum = -90 }: SunAltitudeConstraintParameters = {}) {
-    super()
+  constructor({ maximum = -18, minimum = -90, weight }: SunAltitudeConstraintParameters = {}) {
+    super(weight)
 
     if (minimum < -90 || minimum > 90 || maximum < -90 || maximum > 90) {
       throw new Error(
@@ -277,7 +307,7 @@ export class IsNight extends Constraint {
   private readonly constraint: SunAltitudeConstraint
 
   constructor(parameters: SunAltitudeConstraintParameters = {}) {
-    super()
+    super(parameters.weight)
     // Astronomical night is the Sun at or below -18° (Twilight.Night) by default:
     this.constraint = new SunAltitudeConstraint({ maximum: -18, minimum: -90, ...parameters })
   }
@@ -304,7 +334,7 @@ export class IsNight extends Constraint {
  * The parameters model for a { MoonAltitudeConstraint }.
  *
  */
-export type MoonAltitudeConstraintParameters = {
+export type MoonAltitudeConstraintParameters = ConstraintParameters & {
   /**
    *
    * The altitude (in degrees) at or below which the Moon causes no interference (the score is
@@ -346,8 +376,8 @@ export class MoonAltitudeConstraint extends Constraint {
   // The altitude (in degrees) at which the Moon causes the most interference:
   public maximum = 90
 
-  constructor({ minimum = 0, maximum = 90 }: MoonAltitudeConstraintParameters = {}) {
-    super()
+  constructor({ minimum = 0, maximum = 90, weight }: MoonAltitudeConstraintParameters = {}) {
+    super(weight)
 
     if (minimum < -90 || minimum > 90 || maximum < -90 || maximum > 90) {
       throw new Error(
@@ -384,7 +414,7 @@ export class MoonAltitudeConstraint extends Constraint {
  * The parameters model for a { MoonSeparationConstraint }.
  *
  */
-export type MoonSeparationConstraintParameters = {
+export type MoonSeparationConstraintParameters = ConstraintParameters & {
   /**
    *
    * The angular separation (in degrees) at or below which the Moon causes the most interference (the
@@ -427,8 +457,8 @@ export class MoonSeparationConstraint extends Constraint {
   // The separation (in degrees) at or above which the Moon causes no interference:
   public maximum = 180
 
-  constructor({ minimum = 0, maximum = 180 }: MoonSeparationConstraintParameters = {}) {
-    super()
+  constructor({ minimum = 0, maximum = 180, weight }: MoonSeparationConstraintParameters = {}) {
+    super(weight)
 
     if (minimum < 0 || minimum > 180 || maximum < 0 || maximum > 180) {
       throw new Error(
@@ -470,7 +500,7 @@ export class MoonSeparationConstraint extends Constraint {
  * The parameters model for a { MoonIlluminationConstraint }.
  *
  */
-export type MoonIlluminationConstraintParameters = {
+export type MoonIlluminationConstraintParameters = ConstraintParameters & {
   /**
    *
    * The illuminated fraction (as a percentage) at or below which the Moon causes no interference (the
@@ -511,8 +541,8 @@ export class MoonIlluminationConstraint extends Constraint {
   // The illuminated fraction (as a percentage) at or above which the Moon causes the most interference:
   public maximum = 100
 
-  constructor({ minimum = 0, maximum = 100 }: MoonIlluminationConstraintParameters = {}) {
-    super()
+  constructor({ minimum = 0, maximum = 100, weight }: MoonIlluminationConstraintParameters = {}) {
+    super(weight)
 
     if (minimum < 0 || minimum > 100 || maximum < 0 || maximum > 100) {
       throw new Error(
@@ -553,7 +583,7 @@ export class MoonIlluminationConstraint extends Constraint {
  * The parameters model for an { IsMoonDown } constraint.
  *
  */
-export type IsMoonDownParameters = {
+export type IsMoonDownParameters = ConstraintParameters & {
   /**
    *
    * The altitude (in degrees) at or below which the Moon is considered to be "down". Defaults to the
@@ -589,8 +619,8 @@ export class IsMoonDown extends Constraint {
   // The altitude (in degrees) at or below which the Moon is considered to be down:
   public maximum = 0
 
-  constructor({ maximum = 0 }: IsMoonDownParameters = {}) {
-    super()
+  constructor({ maximum = 0, weight }: IsMoonDownParameters = {}) {
+    super(weight)
 
     if (!Number.isFinite(maximum) || maximum < -90 || maximum > 90) {
       throw new Error('Invalid altitude bounds: maximum must be within [-90, 90] degrees')
@@ -613,7 +643,7 @@ export class IsMoonDown extends Constraint {
  * The parameters model for an { AirmassConstraint }.
  *
  */
-export type AirmassConstraintParameters = {
+export type AirmassConstraintParameters = ConstraintParameters & {
   /**
    *
    * The airmass at which the score is maximal (the best case). Defaults to 1 (the zenith), which is
@@ -656,8 +686,8 @@ export class AirmassConstraint extends Constraint {
   // The airmass at or above which the target is unobservable:
   public maximum = 2
 
-  constructor({ minimum = 1, maximum = 2 }: AirmassConstraintParameters = {}) {
-    super()
+  constructor({ minimum = 1, maximum = 2, weight }: AirmassConstraintParameters = {}) {
+    super(weight)
 
     if (!Number.isFinite(minimum) || !Number.isFinite(maximum) || minimum < 1 || maximum < 1) {
       throw new Error('Invalid airmass bounds: minimum and maximum must be finite and at least 1')

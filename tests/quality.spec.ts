@@ -44,8 +44,8 @@ class FixedConstraint extends Constraint {
 
   public value: ConstraintScore
 
-  constructor(value: ConstraintScore, required = false) {
-    super()
+  constructor(value: ConstraintScore, required = false, weight = 1) {
+    super(weight)
     this.value = value
     this.required = required
   }
@@ -101,13 +101,42 @@ describe('getObservationalQuality', () => {
 
     // The evaluations are returned in the order the constraints were given:
     expect(scores).toEqual([
-      { name: 'fixed', score: 1, required: false, satisfied: true },
-      { name: 'fixed', score: -1, required: true, satisfied: false }
+      { name: 'fixed', score: 1, required: false, satisfied: true, weight: 1 },
+      { name: 'fixed', score: -1, required: true, satisfied: false, weight: 1 }
     ])
 
     // The failing hard constraint is identifiable from the evaluations alone:
     const culprits = scores.filter(({ required, satisfied }) => required && !satisfied)
     expect(culprits).toHaveLength(1)
+  })
+
+  it('should return the weighted mean of the constraint scores', () => {
+    // The score of 1, at three times the weight of the score of -1, e.g., (3 - 1) / 4:
+    const { quality } = getObservationalQuality(datetime, observer, betelgeuse, [
+      new FixedConstraint(1, false, 3),
+      new FixedConstraint(-1, false, 1)
+    ])
+
+    expect(quality).toBeCloseTo(0.5)
+  })
+
+  it('should return the same quality as the unweighted mean for equal weights', () => {
+    const constraints = [new FixedConstraint(0.75), new FixedConstraint(0.25), new FixedConstraint(-0.5)]
+
+    const { quality } = getObservationalQuality(datetime, observer, betelgeuse, constraints)
+
+    expect(quality).toBeCloseTo((0.75 + 0.25 - 0.5) / 3)
+  })
+
+  it('should gate on a failing required constraint whatever its weight', () => {
+    // The weight of a constraint scales its contribution to the mean, and not its gating:
+    const { quality, observable } = getObservationalQuality(datetime, observer, betelgeuse, [
+      new FixedConstraint(1, false, 1000),
+      new FixedConstraint(-1, true, 0.001)
+    ])
+
+    expect(quality).toBe(-1)
+    expect(observable).toBe(false)
   })
 
   it('should return an evaluation for every constraint even when the observation is unobservable', () => {

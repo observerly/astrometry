@@ -622,3 +622,24 @@ describe('AirmassConstraint', () => {
 })
 
 /*****************************************************************************************************************/
+
+describe('Constraint weight', () => {
+  it('should default to a weight of 1', () => {
+    expect(new TargetAltitudeConstraint().weight).toBe(1)
+    expect(new MoonSeparationConstraint().weight).toBe(1)
+  })
+
+  it('should carry the weight given', () => {
+    expect(new TargetAltitudeConstraint({ weight: 2.5 }).weight).toBe(2.5)
+    expect(new IsNight({ weight: 0.5 }).weight).toBe(0.5)
+    expect(new AirmassConstraint({ weight: 3 }).weight).toBe(3)
+  })
+
+  it('should throw for a weight that is not finite and greater than zero', () => {
+    for (const weight of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => new TargetAltitudeConstraint({ weight })).toThrow()
+    }
+  })
+})
+
+/*****************************************************************************************************************/
