@@ -8,7 +8,15 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { type EquatorialCoordinate, Observation, getHourAngle } from '../src'
+import {
+  type EquatorialCoordinate,
+  Observation,
+  getAngularSeparation,
+  getCorrectionToEquatorialForAnnualAberration,
+  getCorrectionToEquatorialForNutation,
+  getCorrectionToEquatorialForPrecessionOfEquinoxes,
+  getHourAngle
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -85,6 +93,53 @@ describe('Observation', () => {
     // the updated datetime and stay consistent with the recomputed Right Ascension:
     expect(Polaris.datetime.getTime()).toEqual(updated.getTime())
     expect(Polaris.ha).toBe(getHourAngle(updated, longitude, Polaris.ra))
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('Observation for a target whose corrected declination crosses the pole', () => {
+  // The summed corrections carry this target across the north celestial pole for the datetime,
+  // e.g., its corrected declination exceeds 90°:
+  const target: EquatorialCoordinate = { ra: 0, dec: 89.91108342 }
+
+  const when = new Date('2015-12-22T00:00:00.000+00:00')
+
+  it('should normalise the declination back over the pole', () => {
+    const observation = new Observation(target, { datetime: when, latitude, longitude })
+
+    expect(observation.dec).toBeLessThanOrEqual(90)
+    expect(observation.dec).toBeGreaterThanOrEqual(-90)
+
+    expect(observation.ra).toBeGreaterThanOrEqual(0)
+    expect(observation.ra).toBeLessThan(360)
+  })
+
+  it('should describe the same point on the celestial sphere as the corrected coordinate', () => {
+    const observation = new Observation(target, { datetime: when, latitude, longitude })
+
+    // The corrected coordinate, summed from the same corrections the observation applies:
+    const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, target)
+
+    const aberration = getCorrectionToEquatorialForAnnualAberration(when, target)
+
+    const nutation = getCorrectionToEquatorialForNutation(when, target)
+
+    const corrected = {
+      θ: target.dec + precession.dec + aberration.dec + nutation.dec,
+      φ: target.ra + precession.ra + aberration.ra + nutation.ra
+    }
+
+    // The corrected declination crosses the pole, e.g., the case under test is exercised:
+    expect(corrected.θ).toBeGreaterThan(90)
+
+    // The angular separation between the corrected coordinate and the normalised coordinate of
+    // the observation is zero if, and only if, both describe the same point on the sphere. A
+    // declination reflected without its right ascension rotated lies on the opposite side of the
+    // pole, e.g., a separation of twice the crossing:
+    expect(
+      getAngularSeparation(corrected, { θ: observation.dec, φ: observation.ra })
+    ).toBeCloseTo(0, 5)
   })
 })
 
