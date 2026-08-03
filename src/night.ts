@@ -12,6 +12,8 @@ import { convertEquatorialToHorizontal } from './coordinates'
 
 import { getJulianDate } from './epoch'
 
+import { getLocalHorizon } from './observer'
+
 import { getCorrectionToHorizontalForRefraction } from './refraction'
 
 import { getSolarEquatorialCoordinate } from './sun'
@@ -125,6 +127,10 @@ export const getSolarTransit = (
   // Get the generalized (approximated) solar transit for the date:
   const { sunrise, noon, sunset } = getGeneralizedSolarTransit(midnight, observer)
 
+  // The elevation of the observer depresses their local horizon below the astronomical horizon,
+  // and so the Sun rises earlier, and sets later, than it does at sea level:
+  const depression = getLocalHorizon(observer.elevation ?? 0)
+
   // If the observer is in perpetual daylight or perpetual night, return null:
   if (sunrise === null || sunset === null) {
     return { sunrise: null, noon: null, sunset: null }
@@ -146,8 +152,8 @@ export const getSolarTransit = (
 
     const refraction = getCorrectionToHorizontalForRefraction(target, temperature, pressure)
 
-    // Find the altitude where the sun passes above the horizon:
-    if (refraction.alt > horizon && rise === null) {
+    // Find the altitude where the sun passes above the observer's depressed horizon:
+    if (refraction.alt > horizon - depression && rise === null) {
       rise = when
       break
     }
@@ -169,8 +175,8 @@ export const getSolarTransit = (
 
     const refraction = getCorrectionToHorizontalForRefraction(target, temperature, pressure)
 
-    // Find the altitude where the sun passes above the horizon:
-    if (refraction.alt < horizon && set === null) {
+    // Find the altitude where the sun passes below the observer's depressed horizon:
+    if (refraction.alt < horizon - depression && set === null) {
       set = when
       break
     }

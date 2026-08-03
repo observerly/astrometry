@@ -178,21 +178,19 @@ export const convertEquatorialToHorizontal = (
 
   if (target.distance !== undefined && target.distance > 0) {
     // For nearby objects, the horizontal parallax (p) is the angle subtended at the target by the
-    // radius of the Earth (in radians):
-    const p = Math.asin(Math.min(1, R / target.distance))
+    // geocentric distance of the observer (in radians):
+    const p = Math.asin(Math.min(1, (R + Math.max(0, elevation)) / target.distance))
 
     // The parallax displaces the target along its vertical circle, towards the horizon, and so it
     // is at a maximum at the horizon and vanishes at the zenith. The azimuth is unaffected:
     parallax = p * Math.cos(altitude)
   }
 
-  // The dip of the horizon for an observer at some elevation above sea level, e.g., the angle by
-  // which their horizon lies below the astronomical horizon (in radians). N.B. An observer below
-  // sea level is taken to be at sea level, where the dip of the horizon vanishes:
-  const dip = elevation > 0 ? Math.acos(R / (R + elevation)) : 0
-
+  // N.B. The elevation of the observer does not displace the target: it depresses the observer's
+  // horizon, e.g., getLocalHorizon(), which the horizon-relative predicates apply to the horizon
+  // they compare the altitude of the target against:
   return {
-    alt: degrees(altitude - parallax + dip),
+    alt: degrees(altitude - parallax),
     az: Math.sin(ha) > 0 ? 360 - degrees(azimuth) : degrees(azimuth)
   }
 }
