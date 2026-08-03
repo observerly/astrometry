@@ -73,6 +73,12 @@ export default defineConfig({
     globalSetup: './tests/setup.ts',
     passWithNoTests: true,
     setupFiles: ['./tests/setup.ts'],
+    // Typecheck the specs alongside running them, such that the type-level assertions, e.g.,
+    // expectTypeOf(), are enforced, and are not silently inert:
+    typecheck: {
+      enabled: true,
+      include: ['tests/**/*.spec.ts']
+    },
     watch: false
   },
   plugins: [
