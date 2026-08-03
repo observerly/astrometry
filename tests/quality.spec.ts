@@ -21,7 +21,9 @@ import {
   getCorrectionToEquatorialForPrecessionOfEquinoxes,
   getCorrectionToHorizontalForRefraction,
   getNormalisedSphericalCoordinate,
-  getObservationalQuality
+  getObservationalQuality,
+  getObservationalQualityWindows,
+  TargetAltitudeConstraint
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -189,6 +191,174 @@ describe('getObservationalQuality for a target whose corrected declination cross
 
     expect(context.target.alt).toBeCloseTo(expected.alt, 9)
     expect(context.target.az).toBeCloseTo(expected.az, 9)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getObservationalQualityWindows', () => {
+  // A day-long interval, sampled coarsely to keep the resolution inexpensive:
+  const interval = {
+    from: new Date('2021-05-14T00:00:00.000+00:00'),
+    to: new Date('2021-05-15T00:00:00.000+00:00')
+  }
+
+  it('should be defined', () => {
+    expect(getObservationalQualityWindows).toBeDefined()
+  })
+
+  it('should return a single window spanning the interval when every sample is observable', () => {
+    const windows = getObservationalQualityWindows(interval, observer, betelgeuse, [
+      new FixedConstraint(0.5, true)
+    ])
+
+    expect(windows).toHaveLength(1)
+
+    expect(windows[0].interval.from).toEqual(interval.from)
+    expect(windows[0].interval.to).toEqual(interval.to)
+    expect(windows[0].quality).toBeCloseTo(0.5)
+  })
+
+  it('should return no windows when no sample is observable', () => {
+    const windows = getObservationalQualityWindows(interval, observer, betelgeuse, [
+      new FixedConstraint(-1, true)
+    ])
+
+    expect(windows).toEqual([])
+  })
+
+  it('should return the windows over which the target is above the minimum altitude', () => {
+    // Betelgeuse is above 30° at the start of the day for the observer, sets below it during the
+    // day, and rises above it again towards the end of it:
+    const windows = getObservationalQualityWindows(
+      interval,
+      observer,
+      betelgeuse,
+      [new TargetAltitudeConstraint({ minimum: 30 })],
+      { stepSeconds: 300 }
+    )
+
+    expect(windows).toHaveLength(2)
+
+    // The first window opens at the start of the interval, as the target is observable there:
+    expect(windows[0].interval.from).toEqual(interval.from)
+
+    // The last window is still open at the end of the interval, and so it closes at the end of it:
+    expect(windows[1].interval.to).toEqual(interval.to)
+  })
+
+  it('should return windows that are chronological, non-overlapping and within the interval', () => {
+    const windows = getObservationalQualityWindows(interval, observer, betelgeuse, undefined, {
+      stepSeconds: 300
+    })
+
+    for (let i = 0; i < windows.length; i++) {
+      const { interval: window, quality } = windows[i]
+
+      expect(window.from.getTime()).toBeGreaterThanOrEqual(interval.from.getTime())
+      expect(window.to.getTime()).toBeLessThanOrEqual(interval.to.getTime())
+      expect(window.from.getTime()).toBeLessThan(window.to.getTime())
+
+      expect(quality).toBeGreaterThanOrEqual(-1)
+      expect(quality).toBeLessThanOrEqual(1)
+
+      if (i > 0) {
+        expect(window.from.getTime()).toBeGreaterThanOrEqual(windows[i - 1].interval.to.getTime())
+      }
+    }
+  })
+
+  it('should be observable at every sample within each window', () => {
+    const stepSeconds = 300
+
+    const windows = getObservationalQualityWindows(interval, observer, betelgeuse, undefined, {
+      stepSeconds
+    })
+
+    for (const { interval: window } of windows) {
+      for (let when = window.from.getTime(); when < window.to.getTime(); when += stepSeconds * 1000) {
+        expect(getObservationalQuality(new Date(when), observer, betelgeuse).observable).toBe(true)
+      }
+    }
+  })
+
+  it('should not share a Date reference with the interval given', () => {
+    const from = new Date('2021-05-14T00:00:00.000+00:00')
+
+    const to = new Date('2021-05-15T00:00:00.000+00:00')
+
+    const windows = getObservationalQualityWindows({ from, to }, observer, betelgeuse, [
+      new FixedConstraint(1)
+    ])
+
+    expect(windows).toHaveLength(1)
+
+    // Mutating the returned window must not mutate the interval given by the caller:
+    windows[0].interval.to.setUTCFullYear(1999)
+    windows[0].interval.from.setUTCFullYear(1999)
+
+    expect(from).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
+    expect(to).toEqual(new Date('2021-05-15T00:00:00.000+00:00'))
+  })
+
+  it('should not modify the interval given', () => {
+    getObservationalQualityWindows(interval, observer, betelgeuse, [new FixedConstraint(1)], {
+      stepSeconds: 300
+    })
+
+    expect(interval.from).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
+    expect(interval.to).toEqual(new Date('2021-05-15T00:00:00.000+00:00'))
+  })
+
+  it('should not sample the end of the interval, e.g., the windows are half-open', () => {
+    // A constraint that counts its evaluations, e.g., one per sampled instant:
+    class CountingConstraint extends FixedConstraint {
+      public evaluations = 0
+
+      public score(context: ConstraintContext): ConstraintScore {
+        this.evaluations += 1
+        return super.score(context)
+      }
+    }
+
+    const constraint = new CountingConstraint(1)
+
+    // An hour, sampled every ten minutes, e.g., at 00, 10, 20, 30, 40 and 50 minutes past:
+    const windows = getObservationalQualityWindows(
+      {
+        from: new Date('2021-05-14T00:00:00.000+00:00'),
+        to: new Date('2021-05-14T01:00:00.000+00:00')
+      },
+      observer,
+      betelgeuse,
+      [constraint],
+      { stepSeconds: 600 }
+    )
+
+    expect(constraint.evaluations).toBe(6)
+
+    // The window that is still open at the end of the interval closes at it:
+    expect(windows).toHaveLength(1)
+    expect(windows[0].interval.to).toEqual(new Date('2021-05-14T01:00:00.000+00:00'))
+  })
+
+  it('should return no windows for an interval of a single instant', () => {
+    // An interval of no extent has no half-open sample within it, and so it has no windows:
+    const instant = new Date('2021-05-14T00:00:00.000+00:00')
+
+    expect(
+      getObservationalQualityWindows({ from: instant, to: instant }, observer, betelgeuse, [
+        new FixedConstraint(1)
+      ])
+    ).toEqual([])
+  })
+
+  it('should throw for a step that is not greater than zero', () => {
+    for (const stepSeconds of [0, -60, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() =>
+        getObservationalQualityWindows(interval, observer, betelgeuse, undefined, { stepSeconds })
+      ).toThrow()
+    }
   })
 })
 
