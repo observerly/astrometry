@@ -129,6 +129,12 @@ export type ConstraintEvaluation = {
    *
    */
   satisfied: boolean
+  /**
+   *
+   * The relative weight of the constraint in the weighted mean quality.
+   *
+   */
+  weight: number
 }
 
 /*****************************************************************************************************************/
@@ -179,8 +185,9 @@ export type ObservationalQuality = {
  * @brief A measure of the observational quality of an observation, in the range [-1, 1], where 1 is
  * the best possible quality and -1 is the worst (or unobservable).
  *
- * The quality is the mean of the scores of a set of standardised { Constraint } instances, evaluated
- * against the observation's resolved context. Any failed required (hard) constraint makes the whole
+ * The quality is the weighted mean of the scores of a set of standardised { Constraint } instances,
+ * evaluated against the observation's resolved context, e.g., each score contributes in proportion
+ * to the weight of its constraint. Any failed required (hard) constraint makes the whole
  * observation unobservable, with a quality of -1, and the evaluation of every constraint is
  * returned such that the failing constraint may be identified.
  *
@@ -212,7 +219,8 @@ export const getObservationalQuality = (
       name: constraint.name,
       score,
       required: constraint.required,
-      satisfied: score > -1
+      satisfied: score > -1,
+      weight: constraint.weight
     }
   })
 
@@ -236,9 +244,11 @@ export const getObservationalQuality = (
     }
   }
 
-  // Otherwise the quality is the mean of every constraint's score, in the range [-1, 1]:
+  // Otherwise the quality is the weighted mean of every constraint's score, in the range [-1, 1]:
   return {
-    quality: scores.reduce((total, { score }) => total + score, 0) / scores.length,
+    quality:
+      scores.reduce((total, { score, weight }) => total + score * weight, 0) /
+      scores.reduce((total, { weight }) => total + weight, 0),
     observable: true,
     scores,
     context
