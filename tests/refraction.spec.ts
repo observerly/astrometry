@@ -58,9 +58,44 @@ describe('getRefraction', () => {
     expect(R).toBe(0.005224159687428409)
   })
 
-  it('should return no correction for an object below the horizon', () => {
-    for (const alt of [-0.1, -18, -90]) {
+  it('should return no correction for an object below the floor of the approximation', () => {
+    // Below a true altitude of -1° the approximation is no longer physical, and an object there is
+    // below the apparent horizon whatever the refraction:
+    for (const alt of [-1.1, -18, -90]) {
       expect(getRefraction({ alt, az: 0 })).toBe(0)
+    }
+  })
+
+  it('should refract an object below the horizon that is above the floor of the approximation', () => {
+    // The Sun rises before it crosses the horizon geometrically, e.g., the refraction of an object
+    // just below the horizon lifts it above it:
+    for (const alt of [-0.1, -0.5, -0.9]) {
+      expect(getRefraction({ alt, az: 0 })).toBeGreaterThan(0)
+    }
+  })
+
+  it('should refract an object at a true altitude of -0.57 degrees to the horizon', () => {
+    // The refraction at the horizon is ~34 arcminutes, e.g., the standard value, and so an object
+    // at a true altitude of -0.57° is refracted to an apparent altitude of 0:
+    const alt = -0.57
+
+    const R = getRefraction({ alt, az: 0 })
+
+    expect(R * 60).toBeCloseTo(34.4, 1)
+
+    expect(alt + R).toBeCloseTo(0, 2)
+  })
+
+  it('should decrease monotonically with the altitude of the object', () => {
+    // The refraction is greatest at the horizon, and vanishes at the zenith:
+    let previous = Number.POSITIVE_INFINITY
+
+    for (let alt = -1; alt <= 90; alt += 0.25) {
+      const R = getRefraction({ alt, az: 0 })
+
+      expect(R).toBeLessThanOrEqual(previous)
+
+      previous = R
     }
   })
 

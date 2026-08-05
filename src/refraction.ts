@@ -12,6 +12,14 @@ import { convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
+// The altitude (in degrees) below which the approximation of the refraction is no longer
+// resolved. Sæmundsson's formula is monotonic to ~-1°, below which it is no longer physical, and
+// an object below it is below the apparent horizon whatever the refraction, e.g., the refraction
+// at a true altitude of -0.57° is the ~34 arcminutes that places the object at the horizon.
+const REFRACTION_ALTITUDE_FLOOR = -1
+
+/*****************************************************************************************************************/
+
 /**
  *
  * getRefraction()
@@ -21,8 +29,11 @@ import { convertDegreesToRadians as radians } from './utilities'
  *
  * N.B. There is no correction for the azimuthal angle.
  *
- * N.B. The approximation is not defined below the horizon, where the correction is taken to be
- * zero, as getCorrectionToHorizontalForRefraction() likewise leaves such an object uncorrected.
+ * N.B. The refraction is resolved below the horizon, down to a true altitude of -1°: an object at
+ * a true altitude of -0.57° is refracted to the horizon, which is why the Sun rises before it
+ * crosses the horizon geometrically. Below -1° the approximation is no longer physical, and the
+ * correction is taken to be zero, as getCorrectionToHorizontalForRefraction() likewise leaves such
+ * an object uncorrected.
  *
  * @param target - The horizontal coordinate of the observed object.
  * @param temperature - The temperature in Kelvin.
@@ -37,8 +48,9 @@ export const getRefraction = (
 ): number => {
   const { alt } = target
 
-  // Below the horizon the approximation is not defined, and so the object is left uncorrected:
-  if (alt < 0) {
+  // Below the floor of the approximation the refraction is not defined, and so the object is left
+  // uncorrected:
+  if (alt < REFRACTION_ALTITUDE_FLOOR) {
     return 0
   }
 
@@ -76,7 +88,9 @@ export const getCorrectionToHorizontalForRefraction = (
 ): HorizontalCoordinate => {
   const { alt, az } = target
 
-  if (alt < 0) {
+  // Below the floor of the approximation the refraction is not defined, and so the object is left
+  // uncorrected:
+  if (alt < REFRACTION_ALTITUDE_FLOOR) {
     return target
   }
 
