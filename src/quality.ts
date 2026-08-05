@@ -390,3 +390,67 @@ export const getObservationalQualityWindows = (
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * The observational quality of a single target within a ranking, e.g., the target given together
+ * with the quality resolved for it.
+ *
+ */
+export type ObservationalQualityRank<T extends EquatorialCoordinate> = ObservationalQuality & {
+  /**
+   *
+   * The target the quality was resolved for, as it was given.
+   *
+   */
+  target: T
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getObservationalQualityRanking()
+ *
+ * @brief Ranks a set of targets by their observational quality for a given datetime and observer,
+ * e.g., the best target to observe first.
+ *
+ * Every target is scored with the same set of constraints, and the ranking is ordered by quality,
+ * from the best to the worst. A target that is not observable, e.g., a required (hard) constraint
+ * fails for it, ranks below every observable target, and the targets of equal quality retain the
+ * order they were given in.
+ *
+ * @param datetime - The date and time of the observation.
+ * @param observer - The geographic coordinates of the observer.
+ * @param targets - The equatorial coordinates of the target objects (at J2000.0).
+ * @param constraints - The constraints to evaluate (defaults to target altitude, Sun altitude and
+ * Moon separation).
+ * @returns The targets, each together with its observational quality, ordered from the best to
+ * the worst.
+ */
+export const getObservationalQualityRanking = <T extends EquatorialCoordinate>(
+  datetime: Date,
+  observer: GeographicCoordinate,
+  targets: T[],
+  constraints: Constraint[] = [
+    new TargetAltitudeConstraint(),
+    new SunAltitudeConstraint(),
+    new MoonSeparationConstraint()
+  ]
+): ObservationalQualityRank<T>[] => {
+  // Score every target with the same set of constraints:
+  const ranks = targets.map(target => ({
+    target,
+    ...getObservationalQuality(datetime, observer, target, constraints)
+  }))
+
+  // Order the ranking by observability first, e.g., every observable target ranks above every
+  // unobservable target, whatever their qualities, and by quality within each, from the best to
+  // the worst. N.B. sort() is stable, and so the targets of equal order retain the order they
+  // were given in:
+  return ranks.sort(
+    (a, b) => Number(b.observable) - Number(a.observable) || b.quality - a.quality
+  )
+}
+
+/*****************************************************************************************************************/
