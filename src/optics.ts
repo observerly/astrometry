@@ -80,3 +80,42 @@ export function getFieldOfView(
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getAiryDiskDiameter()
+ *
+ * The Airy disk is the diffraction pattern a circular aperture forms of a point source, e.g., of a
+ * star, and its angular diameter is the resolution the optics are capable of. It is the appearance
+ * of a star for an observer above the atmosphere, for whom the seeing does not blur it further.
+ *
+ * The diameter is taken to the first minimum of the pattern, e.g., the first dark ring, which
+ * subtends 2.44 λ/D, and within which ~84% of the light of the source falls. The angular radius,
+ * 1.22 λ/D, is the Rayleigh criterion, e.g., the separation at which two sources are resolved.
+ *
+ * @param apertureWidth - The aperture of the optics (in SI metres).
+ * @param wavelength - The wavelength of the light observed (in SI metres). Defaults to 550e-9, e.g.,
+ * the green light at which the eye is most sensitive.
+ * @returns The angular diameter of the Airy disk (in degrees).
+ *
+ */
+export function getAiryDiskDiameter(apertureWidth: number, wavelength = 550e-9): number {
+  // Check that the aperture is a sensible number, e.g., > 0:
+  if (!Number.isFinite(apertureWidth) || apertureWidth <= 0) {
+    throw new Error('Invalid Airy disk as aperture is not greater than zero')
+  }
+
+  // Check that the wavelength is a sensible number, e.g., > 0:
+  if (!Number.isFinite(wavelength) || wavelength <= 0) {
+    throw new Error('Invalid Airy disk as wavelength is not greater than zero')
+  }
+
+  // The first minimum of the diffraction pattern of a circular aperture is at 1.22 λ/D, and so the
+  // diameter to it is twice that (in radians):
+  const θ = (2 * 1.22 * wavelength) / apertureWidth
+
+  // Return the angular diameter (in degrees):
+  return degrees(θ)
+}
+
+/*****************************************************************************************************************/
