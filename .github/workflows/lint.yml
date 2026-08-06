@@ -40,7 +40,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install pnpm globally
-        run: npm install -g pnpm@8.6.12
+        run: npm install -g pnpm@11.20.0
 
       - name: Install project dependencies 👨🏻‍💻
         run: pnpm install

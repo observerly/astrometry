@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: [18, 20, 22, 24, 26]
+        node: [22, 24, 26]
 
     env:
       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -43,7 +43,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install pnpm globally
-        run: npm install -g pnpm@8.6.1
+        run: npm install -g pnpm@11.20.0
 
       - name: Install project dependencies 👨🏻‍💻
         run: pnpm install
