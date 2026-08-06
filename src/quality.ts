@@ -448,9 +448,7 @@ export const getObservationalQualityRanking = <T extends EquatorialCoordinate>(
   // unobservable target, whatever their qualities, and by quality within each, from the best to
   // the worst. N.B. sort() is stable, and so the targets of equal order retain the order they
   // were given in:
-  return ranks.sort(
-    (a, b) => Number(b.observable) - Number(a.observable) || b.quality - a.quality
-  )
+  return ranks.sort((a, b) => Number(b.observable) - Number(a.observable) || b.quality - a.quality)
 }
 
 /*****************************************************************************************************************/
