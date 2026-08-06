@@ -645,6 +645,23 @@ describe('getBodyNextRise', () => {
 
     expect(d).toStrictEqual(new Date('2021-10-02T09:42:26.990Z'))
   })
+
+  it('should return false, and not recurse indefinitely, for an object that has no transit', () => {
+    // The object circles the south celestial pole, which lies on the horizon of an observer at the
+    // equator, and so it stays within 5° of the horizon and never crosses one that is depressed to
+    // -12°. It is therefore visible at culmination, but has no transit for the observer on any day:
+    expect(
+      getBodyNextRise(
+        datetime,
+        {
+          latitude: 0,
+          longitude
+        },
+        { ra: 100, dec: -85 },
+        -12
+      )
+    ).toBe(false)
+  })
 })
 
 /*****************************************************************************************************************/
@@ -710,6 +727,23 @@ describe('getBodyNextSet', () => {
     expect(az).toBeCloseTo(set.az, 3)
 
     expect(set.datetime).toStrictEqual(new Date('2021-05-15T05:50:58.753Z'))
+  })
+
+  it('should return true, and not recurse indefinitely, for an object that has no transit', () => {
+    // The object circles the south celestial pole, which lies on the horizon of an observer at the
+    // equator, and so it stays within 5° of the horizon and never crosses one that is depressed to
+    // -12°. It is therefore always above that horizon, and so it never sets:
+    expect(
+      getBodyNextSet(
+        datetime,
+        {
+          latitude: 0,
+          longitude
+        },
+        { ra: 100, dec: -85 },
+        -12
+      )
+    ).toBe(true)
   })
 })
 

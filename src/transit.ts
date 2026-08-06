@@ -410,9 +410,12 @@ export const getBodyNextRise = (
 
   const transit = getBodyTransit(observer, target, horizon)
 
+  // The transit of a body is resolved at the horizon of the observer, and depends only on the
+  // observer and the target, and not on the datetime, so if the body has no transit for the
+  // observer it has no transit on any subsequent day either. The body is visible at culmination,
+  // and so it is always above the horizon, and therefore never rises across it:
   if (!transit) {
-    // Get the next rise time for the next day:
-    return getBodyNextRise(tomorrow, observer, target, horizon)
+    return false
   }
 
   const LSTr = transit.LSTr
@@ -480,9 +483,13 @@ export const getBodyNextSet = (
 
   const transit = getBodyTransit(observer, target, horizon)
 
+  // The transit of a body is resolved at the horizon of the observer, and depends only on the
+  // observer and the target, and not on the datetime, so if the body has no transit for the
+  // observer it has no transit on any subsequent day either. A body that is never above the
+  // horizon is returned above, and so the body here is visible at culmination, and as it never
+  // crosses the horizon it is always above it, and therefore never sets:
   if (!transit) {
-    // Get the next set time for the next day:
-    return getBodyNextSet(tomorrow, observer, target, horizon)
+    return true
   }
 
   const LSTs = transit.LSTs
