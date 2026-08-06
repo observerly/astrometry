@@ -40,6 +40,7 @@ const modules = [
   'nutation',
   'observation',
   'observer',
+  'occultation',
   'optics',
   'orbit',
   'planets',
