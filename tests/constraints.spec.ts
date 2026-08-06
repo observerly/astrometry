@@ -17,6 +17,7 @@ import {
   IsMoonDown,
   IsNight,
   MoonAltitudeConstraint,
+  MoonAvoidanceConstraint,
   MoonIlluminationConstraint,
   MoonSeparationConstraint,
   SunAltitudeConstraint,
@@ -766,6 +767,113 @@ describe('SunAvoidanceConstraint', () => {
     expect(() => new SunAvoidanceConstraint({ maximum: 181 })).toThrow()
     expect(() => new SunAvoidanceConstraint({ minimum: 90, maximum: 45 })).toThrow()
     expect(() => new SunAvoidanceConstraint({ weight: 0 })).toThrow()
+  })
+})
+
+/*****************************************************************************************************************/
+
+// A context whose only relevant field for these tests is the Moon-target angular separation:
+const moonAvoidanceContext = (
+  separation: number,
+  illumination = 100,
+  alt = 45
+): ConstraintContext => ({
+  target: { az: 0, alt: 45 },
+  sun: { az: 180, alt: -90 },
+  moon: { az: 0, alt },
+  illumination,
+  separation
+})
+
+/*****************************************************************************************************************/
+
+describe('MoonAvoidanceConstraint', () => {
+  it('should be defined', () => {
+    expect(MoonAvoidanceConstraint).toBeDefined()
+  })
+
+  it('should be a required (hard) constraint by default', () => {
+    expect(new MoonAvoidanceConstraint().required).toBe(true)
+  })
+
+  it('should return -1 for a target coincident with the Moon', () => {
+    expect(new MoonAvoidanceConstraint().score(moonAvoidanceContext(0))).toBe(-1)
+  })
+
+  it('should return -1 at exactly the exclusion cone', () => {
+    expect(new MoonAvoidanceConstraint({ minimum: 15 }).score(moonAvoidanceContext(15))).toBe(-1)
+  })
+
+  it('should return 1 at and beyond the separation at which the Moon causes no interference', () => {
+    const constraint = new MoonAvoidanceConstraint({ minimum: 15, maximum: 30 })
+
+    expect(constraint.score(moonAvoidanceContext(30))).toBeCloseTo(1)
+    expect(constraint.score(moonAvoidanceContext(90))).toBeCloseTo(1)
+    expect(constraint.score(moonAvoidanceContext(180))).toBeCloseTo(1)
+  })
+
+  it('should return 0 midway between the exclusion cone and the maximum separation', () => {
+    const constraint = new MoonAvoidanceConstraint({ minimum: 15, maximum: 30 })
+
+    expect(constraint.score(moonAvoidanceContext(22.5))).toBeCloseTo(0)
+  })
+
+  it('should not be satisfied within the exclusion cone, and satisfied beyond it', () => {
+    const constraint = new MoonAvoidanceConstraint({ minimum: 15 })
+
+    expect(constraint.isSatisfiedBy(moonAvoidanceContext(14.9))).toBe(false)
+    expect(constraint.isSatisfiedBy(moonAvoidanceContext(15.1))).toBe(true)
+  })
+
+  it('should increase monotonically with separation, and stay within [-1, 1]', () => {
+    const constraint = new MoonAvoidanceConstraint()
+
+    let previous = Number.NEGATIVE_INFINITY
+
+    for (let separation = 0; separation <= 180; separation += 0.5) {
+      const score = constraint.score(moonAvoidanceContext(separation))
+
+      expect(score).toBeGreaterThanOrEqual(previous - 1e-12)
+      expect(score).toBeGreaterThanOrEqual(-1)
+      expect(score).toBeLessThanOrEqual(1)
+
+      previous = score
+    }
+  })
+
+  it('should apply the exclusion cone irrespective of the altitude of the Moon', () => {
+    // An observer in space has no horizon behind which the Moon is hidden, and so a Moon below the
+    // horizon of a geographic observer still excludes the target:
+    const constraint = new MoonAvoidanceConstraint({ minimum: 15, maximum: 30 })
+
+    expect(constraint.score(moonAvoidanceContext(10, 100, -90))).toBe(-1)
+  })
+
+  it('should apply the exclusion cone irrespective of the illuminated fraction of the Moon', () => {
+    // The exclusion cone limits where the instrument may be pointed, and is not a measure of the
+    // interference of the Moon, and so a new Moon excludes the target as a full Moon does:
+    const constraint = new MoonAvoidanceConstraint({ minimum: 15, maximum: 30 })
+
+    expect(constraint.score(moonAvoidanceContext(10, 0))).toBe(-1)
+    expect(constraint.score(moonAvoidanceContext(10, 100))).toBe(-1)
+
+    expect(constraint.score(moonAvoidanceContext(30, 0))).toBeCloseTo(1)
+    expect(constraint.score(moonAvoidanceContext(30, 100))).toBeCloseTo(1)
+  })
+
+  it('should accept a custom exclusion cone and weight', () => {
+    const constraint = new MoonAvoidanceConstraint({ minimum: 5, maximum: 45, weight: 2 })
+
+    expect(constraint.weight).toBe(2)
+    expect(constraint.score(moonAvoidanceContext(4))).toBe(-1)
+    expect(constraint.score(moonAvoidanceContext(45))).toBeCloseTo(1)
+  })
+
+  it('should throw for separation bounds that are out of range or inverted', () => {
+    expect(() => new MoonAvoidanceConstraint({ minimum: -1 })).toThrow()
+    expect(() => new MoonAvoidanceConstraint({ maximum: 181 })).toThrow()
+    expect(() => new MoonAvoidanceConstraint({ minimum: 90, maximum: 45 })).toThrow()
+    expect(() => new MoonAvoidanceConstraint({ weight: 0 })).toThrow()
   })
 })
 

@@ -821,3 +821,92 @@ export class SunAvoidanceConstraint extends Constraint {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * The parameters model for a { MoonAvoidanceConstraint }.
+ *
+ */
+export type MoonAvoidanceConstraintParameters = ConstraintParameters & {
+  /**
+   *
+   * The angular separation (in degrees) from the Moon at or within which the target is unobservable,
+   * e.g., the half-angle of the lunar exclusion cone. Defaults to 15°.
+   *
+   */
+  minimum?: number
+  /**
+   *
+   * The angular separation (in degrees) from the Moon at or beyond which the Moon causes no
+   * interference (the score is maximal). Defaults to 30°.
+   *
+   */
+  maximum?: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class MoonAvoidanceConstraint
+ *
+ * @description A constraint on the angular separation between the target and the Moon. The target
+ * is unobservable within the lunar exclusion cone, beyond which the score increases linearly with
+ * separation as the scattered and stray light of the Moon falls away.
+ *
+ * N.B. The constraint is deliberately horizon-agnostic, e.g., it does not treat a Moon below the
+ * horizon as causing no interference, as an observer in space has no horizon behind which the Moon
+ * is hidden, and it is the pointing of the instrument relative to the Moon that is constrained. Nor
+ * does it scale with the illuminated fraction of the Moon, as the exclusion cone is a limit on
+ * where the instrument may be pointed, and not a measure of interference. An observer on the ground
+ * is served by { MoonSeparationConstraint }, { MoonAltitudeConstraint } or { IsMoonDown }.
+ *
+ * This is a hard constraint, e.g., a target within the exclusion cone makes the whole observation
+ * unobservable.
+ *
+ *
+ */
+export class MoonAvoidanceConstraint extends Constraint {
+  public readonly name = 'moon-avoidance'
+
+  public required = true
+
+  // The separation (in degrees) at or within which the target is unobservable:
+  public minimum = 15
+
+  // The separation (in degrees) at or beyond which the Moon causes no interference:
+  public maximum = 30
+
+  constructor({ minimum = 15, maximum = 30, weight }: MoonAvoidanceConstraintParameters = {}) {
+    super(weight)
+
+    if (minimum < 0 || minimum > 180 || maximum < 0 || maximum > 180) {
+      throw new Error(
+        'Invalid separation bounds: minimum and maximum must be within [0, 180] degrees'
+      )
+    }
+
+    if (maximum <= minimum) {
+      throw new Error('Invalid separation bounds: maximum must be greater than minimum')
+    }
+
+    this.minimum = minimum
+    this.maximum = maximum
+  }
+
+  public score({ separation }: ConstraintContext): ConstraintScore {
+    // At or within the exclusion cone the target is unobservable:
+    if (separation <= this.minimum) {
+      return -1
+    }
+
+    // The score increases linearly from -1 at the exclusion cone to 1 at the separation beyond
+    // which the Moon causes no interference, clamped to [-1, 1]:
+    const score = -1 + (2 * (separation - this.minimum)) / (this.maximum - this.minimum)
+
+    return Math.max(-1, Math.min(1, score))
+  }
+}
+
+/*****************************************************************************************************************/
