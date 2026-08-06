@@ -167,6 +167,25 @@ export type EquatorialCoordinate = {
    *
    */
   epoch?: number
+  /**
+   *
+   *
+   * The parallax of a celestial object is the angle (in arcseconds) subtended at the object by the
+   * semi-major axis of the orbit of the Earth, e.g., the annual parallax, whose reciprocal is the
+   * distance to the object in parsecs.
+   *
+   * N.B. Where it is not given, the object is taken to be at an infinite distance, e.g., it is not
+   * displaced by the motion of the observer about the Sun at all.
+   *
+   * N.B. A measured parallax may be negative, and is not rejected as such: an astrometric catalogue
+   * resolves the parallax of a distant object to within an uncertainty that exceeds it, and so a
+   * negative value is the ordinary outcome of that measurement, e.g., Hipparcos and Gaia both
+   * publish them. Discarding them truncates the measurement, and biases the sample that is drawn
+   * from it, and so a negative parallax is carried as it is given.
+   *
+   *
+   */
+  parallax?: number
 }
 
 /*****************************************************************************************************************/
@@ -179,7 +198,10 @@ export const isEquatorialCoordinate = (target: unknown): target is EquatorialCoo
     Number.isFinite((target as EquatorialCoordinate).ra) &&
     // The epoch is optional, but it is a finite Julian date where it is given:
     ((target as EquatorialCoordinate).epoch === undefined ||
-      Number.isFinite((target as EquatorialCoordinate).epoch))
+      Number.isFinite((target as EquatorialCoordinate).epoch)) &&
+    // The parallax is optional, but it is a finite angle where it is given:
+    ((target as EquatorialCoordinate).parallax === undefined ||
+      Number.isFinite((target as EquatorialCoordinate).parallax))
   )
 }
 
