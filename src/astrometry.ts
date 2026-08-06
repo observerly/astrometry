@@ -13,13 +13,21 @@ import type {
   SphericalCoordinate
 } from './common'
 
-import { J2000 } from './constants'
+import { AU_IN_METERS, J2000 } from './constants'
+
+import { convertEclipticToEquatorial } from './coordinates'
+
+/***************************************************************************************************************/
 
 import { getObliquityOfTheEcliptic } from './ecliptic'
 
 import { getJulianDate } from './epoch'
 
 import { getNutation } from './nutation'
+
+/***************************************************************************************************************/
+
+import { getSolarEclipticCoordinate } from './sun'
 
 import { utc } from './utc'
 
@@ -431,6 +439,105 @@ export const getCorrectionToEquatorialForProperMotion = (
   return {
     ra: Δra,
     dec: Δdec
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getCorrectionToEquatorialForAnnualParallax()
+ *
+ * Calculates the correction to the equatorial coordinate of a target for its annual parallax, e.g.,
+ * the displacement of a nearby star as the Earth is carried about the Sun, which traces an ellipse
+ * over the year whose semi-major axis is the parallax of the star.
+ *
+ * The correction is resolved from the geocentric position of the Sun, taken as it is, and not
+ * negated: the observer is displaced from the Sun by the negative of that position, and a target is
+ * displaced by the negative of the displacement of the observer, and so the two cancel. It is
+ * otherwise the same geometry as the aberration for the velocity of an observer, with the position
+ * of the Sun in the place of that velocity, and the parallax of the target in the place of the
+ * speed of light.
+ *
+ * @param datetime - The date and time of the observation.
+ * @param target - The equatorial coordinate of the target, of a given parallax (in arcseconds).
+ * @returns The correction to the equatorial coordinate of the target (in degrees).
+ *
+ */
+export const getCorrectionToEquatorialForAnnualParallax = (
+  datetime: Date,
+  target: EquatorialCoordinate
+): EquatorialCoordinate => {
+  // A target of no parallax is at an infinite distance, and so it is not displaced at all by the
+  // motion of the observer about the Sun:
+  const π = ((target.parallax ?? 0) / 3600) * (Math.PI / 180)
+
+  if (π === 0) {
+    return {
+      ra: 0,
+      dec: 0
+    }
+  }
+
+  const ra = radians(target.ra)
+
+  const dec = radians(target.dec)
+
+  // The cosine of the declination, e.g., the radius of the parallel of the target as a fraction of
+  // the celestial sphere, which is resolved once and used for both of the displacements:
+  const cosDec = Math.cos(dec)
+
+  // The geocentric ecliptic coordinate of the Sun, from which both the direction to it and the
+  // distance to it are resolved, so that the two are of the one model and the one evaluation of it:
+  // the equatorial coordinate and the distance are otherwise resolved from a VSOP87 series and from
+  // a Keplerian orbit respectively, which disagree by ~5e-5 astronomical units:
+  const ecliptic = getSolarEclipticCoordinate(datetime)
+
+  const sun = convertEclipticToEquatorial(datetime, ecliptic)
+
+  // The distance to the Sun, in astronomical units, e.g., in the same measure as the parallax:
+  const R = ecliptic.R / AU_IN_METERS
+
+  // The rectangular geocentric equatorial coordinate of the Sun (in astronomical units):
+  const X = R * Math.cos(radians(sun.dec)) * Math.cos(radians(sun.ra))
+
+  const Y = R * Math.cos(radians(sun.dec)) * Math.sin(radians(sun.ra))
+
+  const Z = R * Math.sin(radians(sun.dec))
+
+  // The position of the Sun resolved along the east of the target, e.g., along the unit vector
+  // (-sin α, cos α, 0), which is the direction of increasing right ascension:
+  const east = -X * Math.sin(ra) + Y * Math.cos(ra)
+
+  // The position of the Sun resolved along the north of the target, e.g., along the unit vector
+  // (-sin δ cos α, -sin δ sin α, cos δ), which is the direction of increasing declination:
+  const north = -X * Math.sin(dec) * Math.cos(ra) - Y * Math.sin(dec) * Math.sin(ra) + Z * cosDec
+
+  // The displacement in declination is the northward component, scaled by the parallax:
+  const Δdec = π * north
+
+  // The parallel of the target shortens as cos δ towards the poles, and where it is shorter than
+  // the displacement along it the right ascension is degenerate, e.g., the displacement carries the
+  // target about the pole, and so it is displaced in declination alone.
+  //
+  // N.B. The parallel is compared against the displacement itself, and not against a fixed
+  // tolerance, as it is for the aberration of the velocity of an observer: a fixed tolerance bounds
+  // the declination at which the target is taken to be at a pole, but not the displacement in right
+  // ascension that would be resolved just outside of it, whereas this bounds that to a radian:
+  if (Math.abs(cosDec) <= Math.abs(π * east)) {
+    return {
+      ra: 0,
+      dec: degrees(Δdec)
+    }
+  }
+
+  // The displacement in right ascension is the eastward component, scaled by the parallax, taken
+  // along the parallel of the target:
+  const Δra = (π * east) / cosDec
+
+  return {
+    ra: degrees(Δra),
+    dec: degrees(Δdec)
   }
 }
 
