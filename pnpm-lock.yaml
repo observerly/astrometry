@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+dependencies:
+  '@types/geojson':
+    specifier: ^7946.0.14
+    version: 7946.0.14
+
 devDependencies:
   '@biomejs/biome':
     specifier: 1.8.3
@@ -14,9 +19,6 @@ devDependencies:
   '@rollup/plugin-typescript':
     specifier: ^11.1.6
     version: 11.1.6(rollup@4.14.1)(tslib@2.6.1)(typescript@5.3.3)
-  '@types/geojson':
-    specifier: ^7946.0.14
-    version: 7946.0.14
   '@types/node':
     specifier: ^20.11.19
     version: 20.11.19
@@ -859,7 +861,7 @@ packages:
 
   /@types/geojson@7946.0.14:
     resolution: {integrity: sha512-WCfD5Ht3ZesJUsONdhvm84dmzWOiOzOAqOncN0++w0lBw1o8OuDNJF2McvvCef/yBqb/HYRahp1BYtODFQ8bRg==}
-    dev: true
+    dev: false
 
   /@types/is-ci@3.0.0:
     resolution: {integrity: sha512-Q0Op0hdWbYd1iahB+IFNQcWXFq4O0Q5MwQP7uN0souuQ4rPg1vEYcnIOfr1gY+M+6rc8FGoRaBO1mOOvL29sEQ==}
