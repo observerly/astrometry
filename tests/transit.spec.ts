@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  convertEquatorialToHorizontal,
   doesBodyRiseOrSet,
   type EquatorialCoordinate,
   type GeographicCoordinate,
@@ -20,7 +21,8 @@ import {
   isBodyAboveHorizon,
   isBodyCircumpolar,
   isBodyVisible,
-  isBodyVisibleForNight
+  isBodyVisibleForNight,
+  type Transit
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -410,7 +412,7 @@ describe('doesBodyRiseOrSet', () => {
       )
     ).toEqual({
       Ar: 0.13703602843777568,
-      H1: 0.04685668397579211
+      H1: 0.0468566839757921
     })
   })
 
@@ -425,9 +427,31 @@ describe('doesBodyRiseOrSet', () => {
       )
     ).toBe(false)
   })
+
+  it('should return false for a body whose transit parameters are not finite', () => {
+    // The transit parameters are not resolvable for an object at a pole, for an observer at a pole,
+    // or for a horizon that is not a finite altitude, and so the body neither rises nor sets:
+    expect(doesBodyRiseOrSet({ latitude, longitude }, { ra: 0, dec: 90 })).toBe(false)
+
+    expect(doesBodyRiseOrSet({ latitude: 90, longitude }, { ra: 0, dec: 20 }, 15)).toBe(false)
+
+    expect(
+      doesBodyRiseOrSet({ latitude, longitude }, betelgeuse, Number.POSITIVE_INFINITY)
+    ).toBe(false)
+
+    expect(doesBodyRiseOrSet({ latitude, longitude }, betelgeuse, Number.NaN)).toBe(false)
+
+    expect(doesBodyRiseOrSet({ latitude, longitude }, { ra: 0, dec: Number.NaN })).toBe(false)
+
+    expect(doesBodyRiseOrSet({ latitude: Number.NaN, longitude }, betelgeuse)).toBe(false)
+  })
 })
 
 /*****************************************************************************************************************/
+
+// The number of sidereal hours for which a body is above the horizon of the observer, e.g., the
+// arc it traces between rise and set, which wraps at 24 hours of local sidereal time:
+const arc = ({ LSTr, LSTs }: Transit): number => (LSTs - LSTr + 24) % 24
 
 describe('getBodyTransit', () => {
   it('should be defined', () => {
@@ -454,6 +478,57 @@ describe('getBodyTransit', () => {
     expect(LSTs).toBe(12.098575460027751)
     expect(R).toBeCloseTo(82.12362992591511)
     expect(S).toBeCloseTo(277.8763700740849)
+  })
+
+  it('should resolve the transit at the horizon given by the caller', () => {
+    // The body spends less of the day above a horizon that is raised above the astronomical
+    // horizon, and it rises and sets further to the north for an observer in the northern
+    // hemisphere:
+    const astronomical = getBodyTransit({ latitude, longitude }, betelgeuse, 0)
+
+    const raised = getBodyTransit({ latitude, longitude }, betelgeuse, 15)
+
+    if (!astronomical || !raised) {
+      expect(astronomical).toBeDefined()
+      expect(raised).toBeDefined()
+      return
+    }
+
+    expect(arc(raised)).toBeLessThan(arc(astronomical))
+
+    expect(raised.R).toBeCloseTo(87.40427669101627)
+    expect(raised.S).toBeCloseTo(272.5957233089837)
+  })
+
+  it('should resolve the transit at the depressed horizon of an elevated observer', () => {
+    // The local horizon of an elevated observer is depressed below the astronomical horizon, and so
+    // the body rises earlier, and sets later, than it does at sea level, and therefore spends more
+    // of the day above the horizon:
+    const sea = getBodyTransit({ latitude, longitude }, betelgeuse, 0)
+
+    const summit = getBodyTransit({ latitude, longitude, elevation: 4000 }, betelgeuse, 0)
+
+    if (!sea || !summit) {
+      expect(sea).toBeDefined()
+      expect(summit).toBeDefined()
+      return
+    }
+
+    expect(arc(summit)).toBeGreaterThan(arc(sea))
+  })
+
+  it('should return undefined for a body that never reaches the horizon given by the caller', () => {
+    // Betelgeuse culminates at an altitude of ~77.6° for the observer, and so it never reaches a
+    // horizon of 80°:
+    expect(getBodyTransit({ latitude, longitude }, betelgeuse, 80)).toBeUndefined()
+  })
+
+  it('should return undefined, and never a transit that is not a finite time, for a body whose transit parameters are not resolvable', () => {
+    expect(getBodyTransit({ latitude, longitude }, { ra: 0, dec: Number.NaN })).toBeUndefined()
+
+    expect(getBodyTransit({ latitude: Number.NaN, longitude }, betelgeuse)).toBeUndefined()
+
+    expect(getBodyTransit({ latitude, longitude }, betelgeuse, Number.NaN)).toBeUndefined()
   })
 })
 
@@ -490,6 +565,60 @@ describe('getBodyNextRise', () => {
     expect(az).toBeCloseTo(82.12362992591511)
 
     expect(d).toStrictEqual(new Date('2021-05-15T18:31:28.713Z'))
+  })
+
+  it('should rise at the horizon given by the caller', () => {
+    const rise = getBodyNextRise(
+      datetime,
+      {
+        latitude,
+        longitude
+      },
+      betelgeuse,
+      15
+    )
+
+    // The body both rises and sets at the horizon given, and so a boolean, which reports that it
+    // either never rises or never sets, is a failure and not a case to be skipped over:
+    expect(typeof rise).not.toBe('boolean')
+
+    if (typeof rise === 'boolean') {
+      return
+    }
+
+    // The body is at the horizon given by the caller, and not at the astronomical horizon, at the
+    // time of rise returned:
+    const { alt, az } = convertEquatorialToHorizontal(
+      rise.datetime,
+      { latitude, longitude },
+      betelgeuse
+    )
+
+    expect(alt).toBeCloseTo(15, 2)
+    expect(az).toBeCloseTo(rise.az, 3)
+
+    expect(rise.datetime).toStrictEqual(new Date('2021-05-14T19:39:18.123Z'))
+  })
+
+  it('should rise earlier for an elevated observer than it does at sea level', () => {
+    // The local horizon of an elevated observer is depressed below the astronomical horizon, and so
+    // the body crosses it earlier at rise:
+    const sea = getBodyNextRise(datetime, { latitude, longitude }, betelgeuse, 0)
+
+    const summit = getBodyNextRise(
+      datetime,
+      { latitude, longitude, elevation: 4000 },
+      betelgeuse,
+      0
+    )
+
+    if (typeof sea === 'boolean' || typeof summit === 'boolean') {
+      expect(typeof sea).toBe('object')
+      expect(typeof summit).toBe('object')
+      return
+    }
+
+    expect(summit.datetime.getTime()).toBeLessThan(sea.datetime.getTime())
   })
 
   it('should return transit parameters for a souther hemisphere object for a postive latitude', () => {
@@ -548,6 +677,39 @@ describe('getBodyNextSet', () => {
     expect(az).toBeCloseTo(277.8763700740849)
 
     expect(d).toStrictEqual(new Date('2021-05-15T06:54:52.253Z'))
+  })
+
+  it('should set at the horizon given by the caller', () => {
+    const set = getBodyNextSet(
+      new Date('2021-05-14T07:00:00.000+00:00'),
+      {
+        latitude,
+        longitude
+      },
+      betelgeuse,
+      15
+    )
+
+    // The body both rises and sets at the horizon given, and so a boolean, which reports that it
+    // either never rises or never sets, is a failure and not a case to be skipped over:
+    expect(typeof set).not.toBe('boolean')
+
+    if (typeof set === 'boolean') {
+      return
+    }
+
+    // The body is at the horizon given by the caller, and not at the astronomical horizon, at the
+    // time of set returned:
+    const { alt, az } = convertEquatorialToHorizontal(
+      set.datetime,
+      { latitude, longitude },
+      betelgeuse
+    )
+
+    expect(alt).toBeCloseTo(15, 2)
+    expect(az).toBeCloseTo(set.az, 3)
+
+    expect(set.datetime).toStrictEqual(new Date('2021-05-15T05:50:58.753Z'))
   })
 })
 

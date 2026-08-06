@@ -256,16 +256,21 @@ export const isBodyAboveHorizon = (
  *
  * doesBodyRiseOrSet()
  *
- * An object rises or sets if it is above the observer's horizon at the time of observation.
+ * An object both rises and sets if it crosses the observer's horizon, e.g., it is neither
+ * circumpolar nor perpetually below the horizon. This is a purely geometric condition on the
+ * latitude of the observer, the declination of the object and the horizon, and so the result
+ * does not depend on the time of observation.
  *
  * @param observer - The geographic coordinate of the observer.
- * @param target - The equatorial or horizontal coordinate of the observed object.
+ * @param target - The equatorial coordinate of the observed object.
+ * @param horizon - The observer's horizon (in degrees).
  * @returns false if the object never rises or sets for the observer, otherwise returns the Ar and H1 transit parameters.
  *
  */
 export const doesBodyRiseOrSet = (
   observer: GeographicCoordinate,
-  target: EquatorialCoordinate
+  target: EquatorialCoordinate,
+  horizon = 0
 ): false | Parameters => {
   // We only need to consider the latitude of the observer:
   const { latitude } = observer
@@ -273,17 +278,28 @@ export const doesBodyRiseOrSet = (
   // We only need to consider the declination of the target object:
   const { dec } = target
 
-  // If |Ar| > 1, the object will never rise or set for the observer.
-  const Ar = Math.sin(radians(dec)) / Math.cos(radians(latitude))
+  // The elevation of the observer depresses their local horizon below the astronomical horizon,
+  // and so the object rises earlier, and sets later, than it does at sea level:
+  const h = horizon - getLocalHorizon(observer.elevation ?? 0)
 
-  if (Math.abs(Ar) > 1) {
-    return false
-  }
+  // The object rises and sets where it crosses the observer's horizon, and so both of the transit
+  // parameters are resolved at that altitude, and not at the astronomical horizon:
+  const sinh = Math.sin(radians(h))
 
-  // If |H1| > 1, the object will never rise or set for the observer.
-  const H1 = Math.tan(radians(latitude)) * Math.tan(radians(dec))
+  // The object never rises or sets for the observer unless |Ar| ≤ 1:
+  const Ar =
+    (Math.sin(radians(dec)) - sinh * Math.sin(radians(latitude))) /
+    (Math.cos(radians(h)) * Math.cos(radians(latitude)))
 
-  if (Math.abs(H1) > 1) {
+  // The object never rises or sets for the observer unless |H1| ≤ 1:
+  const H1 =
+    (Math.sin(radians(latitude)) * Math.sin(radians(dec)) - sinh) /
+    (Math.cos(radians(latitude)) * Math.cos(radians(dec)))
+
+  // The conditions are negated so that a parameter that is not a finite number does not satisfy
+  // them, e.g., where the denominator vanishes for an observer at a pole, or for an object at a
+  // pole, and so a body without a resolvable rise and set neither rises nor sets:
+  if (!(Math.abs(Ar) <= 1) || !(Math.abs(H1) <= 1)) {
     return false
   }
 
@@ -302,19 +318,21 @@ export const doesBodyRiseOrSet = (
  * Determines the local sidereal time and azimuthal angle of rise and set for an object.
  *
  * @param observer - The geographic coordinate of the observer.
- * @param target - The equatorial or horizontal coordinate of the observed object.
+ * @param target - The equatorial coordinate of the observed object.
+ * @param horizon - The observer's horizon (in degrees).
  * @returns the transit for the body, or undefined if the body never rises or sets for the observer.
  *
  */
 export const getBodyTransit = (
   observer: GeographicCoordinate,
-  target: EquatorialCoordinate
+  target: EquatorialCoordinate,
+  horizon = 0
 ): Transit | undefined => {
   // Convert the right ascension to hours:
   const ra = target.ra / 15
 
-  // Get the transit parameters:
-  const body = doesBodyRiseOrSet(observer, target)
+  // Get the transit parameters, resolved at the observer's horizon:
+  const body = doesBodyRiseOrSet(observer, target, horizon)
 
   if (!body) {
     return undefined
@@ -390,7 +408,7 @@ export const getBodyNextRise = (
     return false
   }
 
-  const transit = getBodyTransit(observer, target)
+  const transit = getBodyTransit(observer, target, horizon)
 
   if (!transit) {
     // Get the next rise time for the next day:
@@ -460,7 +478,7 @@ export const getBodyNextSet = (
     return false
   }
 
-  const transit = getBodyTransit(observer, target)
+  const transit = getBodyTransit(observer, target, horizon)
 
   if (!transit) {
     // Get the next set time for the next day:
