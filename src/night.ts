@@ -237,24 +237,16 @@ export const isNight = (
   temperature = 288.15,
   pressure = 101325
 ): boolean => {
-  const when = new Date(
-    datetime.getFullYear(),
-    datetime.getMonth(),
-    datetime.getDate(),
-    datetime.getHours(),
-    datetime.getMinutes(),
-    datetime.getSeconds(),
-    datetime.getMilliseconds()
-  )
-
   const { sunrise, sunset } = getSolarTransit(datetime, observer, horizon, temperature, pressure)
 
   if (sunrise === null || sunset === null) {
     return false
   }
 
-  // If the datetime is before sunrise or after sunset, it is night:
-  return when.getTime() <= sunrise.getTime() || when.getTime() >= sunset.getTime()
+  // If the datetime is before sunrise or after sunset, it is night. The datetime is compared as the
+  // instant given by the caller, and is not rebuilt from its local components, which would resolve
+  // to a different instant where the local time is ambiguous, e.g., at the end of daylight saving:
+  return datetime.getTime() <= sunrise.getTime() || datetime.getTime() >= sunset.getTime()
 }
 
 /*****************************************************************************************************************/
