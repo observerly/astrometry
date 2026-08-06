@@ -141,8 +141,8 @@ export const isTransitInstance = (value: unknown): value is TransitInstance => {
  * isBodyCircumpolar()
  *
  * An object is considered circumpolar if it is always above the observer's horizon
- * and never sets. This is true when the object's declination is greater than 90
- * degrees minus the observer's latitude.
+ * and never sets. This is true when the altitude of the object at its lower
+ * culmination is greater than the observer's horizon.
  *
  * @param observer - The geographic coordinate of the observer.
  * @param target - The equatorial coordinate of the observed object.
@@ -163,13 +163,12 @@ export const isBodyCircumpolar = (
   // The elevation of the observer depresses their local horizon below the astronomical horizon:
   const h = horizon - getLocalHorizon(observer.elevation ?? 0)
 
-  // Whether a given star is circumpolar at the observer's latitude (θ) may be
-  // calculated in terms of the star's declination (δ). The star is circumpolar
-  // if θ + δ is greater than +90° (observer in Northern Hemisphere), or θ + δ is
-  // less than −90° (observer in Southern Hemisphere). The hemisphere of the
-  // observer is determined by the sign of their latitude, and the altitude of
-  // the object at its lower culmination must exceed the observer's horizon:
-  return latitude >= 0 ? latitude + dec > 90 + h : latitude + dec < -90 - h
+  // A star is circumpolar for an observer when it never sets, e.g., when the altitude it reaches at
+  // its lower culmination, |θ + δ| - 90, still exceeds the observer's horizon. The star circles
+  // whichever celestial pole lies above that horizon, which is not necessarily the pole of the
+  // hemisphere the observer stands in, e.g., an observer on the equator sees the stars closest to
+  // either pole circle it without ever setting below a sufficiently depressed horizon:
+  return Math.abs(latitude + dec) - 90 > h
 }
 
 /*****************************************************************************************************************/
