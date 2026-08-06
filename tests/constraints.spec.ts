@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import {
   AirmassConstraint,
   Constraint,
+  EarthLimbConstraint,
   type ConstraintContext,
   IsAstronomicalTwilight,
   IsMoonDown,
@@ -936,3 +937,104 @@ describe('IsAstronomicalTwilight', () => {
 })
 
 /*****************************************************************************************************************/
+
+// A context whose only relevant field for these tests is the altitude of the target:
+const earthLimbContext = (alt: number): ConstraintContext => ({
+  target: { az: 0, alt },
+  sun: { az: 180, alt: -90 },
+  moon: { az: 180, alt: -90 },
+  illumination: 0,
+  separation: 180
+})
+
+/*****************************************************************************************************************/
+
+describe('EarthLimbConstraint', () => {
+  // For testing, the observer is at the altitude of the International Space Station, for whom the
+  // limb is ~70.03° in angular radius, and so reaches to an altitude of ~-19.97°:
+  const elevation = 4.08e5
+
+  it('should be defined', () => {
+    expect(EarthLimbConstraint).toBeDefined()
+  })
+
+  it('should be a required (hard) constraint by default', () => {
+    expect(new EarthLimbConstraint().required).toBe(true)
+  })
+
+  it('should return -1 for a target the Earth occults', () => {
+    const constraint = new EarthLimbConstraint({ elevation })
+
+    expect(constraint.score(earthLimbContext(-90))).toBe(-1)
+    expect(constraint.score(earthLimbContext(-20))).toBe(-1)
+  })
+
+  it('should return 1 for a target at and beyond the clearance above the limb', () => {
+    const constraint = new EarthLimbConstraint({ elevation, clearance: 10 })
+
+    expect(constraint.score(earthLimbContext(-9.9))).toBeCloseTo(1)
+    expect(constraint.score(earthLimbContext(45))).toBeCloseTo(1)
+    expect(constraint.score(earthLimbContext(90))).toBeCloseTo(1)
+  })
+
+  it('should return 0 midway between the limb and the clearance', () => {
+    const constraint = new EarthLimbConstraint({ elevation, clearance: 10 })
+
+    // The limb reaches to an altitude of ~-19.969°, and so the midpoint of a 10° clearance is at
+    // an altitude of ~-14.969°:
+    expect(constraint.score(earthLimbContext(-14.969))).toBeCloseTo(0, 3)
+  })
+
+  it('should occult a larger cone for an observer clearing a grazing height', () => {
+    const bare = new EarthLimbConstraint({ elevation })
+
+    const grazed = new EarthLimbConstraint({ elevation, grazing: 1e5 })
+
+    expect(bare.isSatisfiedBy(earthLimbContext(-18))).toBe(true)
+    expect(grazed.isSatisfiedBy(earthLimbContext(-18))).toBe(false)
+  })
+
+  it('should reduce to the horizon for an observer at the surface', () => {
+    // The limb spans a hemisphere for an observer at the surface, and so the Earth occults the
+    // target exactly where it is below the horizon:
+    const constraint = new EarthLimbConstraint()
+
+    expect(constraint.score(earthLimbContext(-0.1))).toBe(-1)
+    expect(constraint.score(earthLimbContext(0))).toBe(-1)
+    expect(constraint.isSatisfiedBy(earthLimbContext(0.1))).toBe(true)
+  })
+
+  it('should increase monotonically with the altitude of the target, and stay within [-1, 1]', () => {
+    const constraint = new EarthLimbConstraint({ elevation })
+
+    let previous = Number.NEGATIVE_INFINITY
+
+    for (let alt = -90; alt <= 90; alt += 0.5) {
+      const score = constraint.score(earthLimbContext(alt))
+
+      expect(score).toBeGreaterThanOrEqual(previous - 1e-12)
+      expect(score).toBeGreaterThanOrEqual(-1)
+      expect(score).toBeLessThanOrEqual(1)
+
+      previous = score
+    }
+  })
+
+  it('should accept a custom clearance and weight', () => {
+    const constraint = new EarthLimbConstraint({ elevation, clearance: 30, weight: 5 })
+
+    expect(constraint.weight).toBe(5)
+    expect(constraint.clearance).toBe(30)
+    expect(constraint.score(earthLimbContext(10))).toBeCloseTo(1)
+  })
+
+  it('should throw for an elevation, grazing height or clearance that is not resolvable', () => {
+    expect(() => new EarthLimbConstraint({ elevation: Number.NaN })).toThrow()
+    expect(() => new EarthLimbConstraint({ grazing: Number.POSITIVE_INFINITY })).toThrow()
+    expect(() => new EarthLimbConstraint({ clearance: 0 })).toThrow()
+    expect(() => new EarthLimbConstraint({ clearance: -10 })).toThrow()
+    expect(() => new EarthLimbConstraint({ weight: 0 })).toThrow()
+  })
+})
+
+/***************************************************************************************************************/

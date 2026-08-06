@@ -12,6 +12,10 @@ import type { HorizontalCoordinate } from './common'
 
 import { getAngularSeparation } from './astrometry'
 
+/***************************************************************************************************************/
+
+import { getEarthLimbAngularRadius } from './occultation'
+
 /*****************************************************************************************************************/
 
 import { getAirmass } from './refraction'
@@ -951,6 +955,118 @@ export class IsAstronomicalTwilight extends Constraint {
 
   public score(context: ConstraintContext): ConstraintScore {
     return this.constraint.score(context)
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * The parameters model for an { EarthLimbConstraint }.
+ *
+ */
+export type EarthLimbConstraintParameters = ConstraintParameters & {
+  /**
+   *
+   * The elevation of the observer above the surface of the Earth (in SI metres), from which the
+   * angular radius of the limb is resolved. Defaults to 0, e.g., an observer at the surface.
+   *
+   */
+  elevation?: number
+  /**
+   *
+   * The height of the atmospheric shell to clear above the surface (in SI metres), e.g., the
+   * grazing height an observer that must not look through the upper atmosphere avoids. Defaults
+   * to 0, e.g., the solid Earth alone.
+   *
+   */
+  grazing?: number
+  /**
+   *
+   * The angular separation (in degrees) above the limb at or beyond which the Earth causes no
+   * interference (the score is maximal). Defaults to 10°.
+   *
+   */
+  clearance?: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class EarthLimbConstraint
+ *
+ * @description A constraint on the angular separation between the target and the limb of the Earth,
+ * for an observer above the atmosphere. The target is unobservable where the Earth occults it, e.g.,
+ * where it lies within the cone the Earth subtends about the nadir of the observer, beyond which
+ * the score increases linearly with its separation from the limb, as the scattered light of the
+ * bright limb falls away.
+ *
+ * N.B. The Earth occults a third of the sky from a low Earth orbit, and so this is the dominant
+ * constraint on what such an observer may see. It is resolved from the altitude of the target
+ * alone, e.g., the nadir of the observer lies at an altitude of -90°, and so no position vector of
+ * the observer is required beyond the elevation the limb is resolved from.
+ *
+ * This is a hard constraint, e.g., a target the Earth occults makes the whole observation
+ * unobservable.
+ *
+ *
+ */
+export class EarthLimbConstraint extends Constraint {
+  public readonly name = 'earth-limb'
+
+  public required = true
+
+  // The elevation of the observer above the surface of the Earth (in SI metres):
+  public elevation = 0
+
+  // The height of the atmospheric shell to clear above the surface (in SI metres):
+  public grazing = 0
+
+  // The separation (in degrees) above the limb at or beyond which the Earth causes no interference:
+  public clearance = 10
+
+  constructor({
+    elevation = 0,
+    grazing = 0,
+    clearance = 10,
+    weight
+  }: EarthLimbConstraintParameters = {}) {
+    super(weight)
+
+    if (!Number.isFinite(elevation) || !Number.isFinite(grazing)) {
+      throw new Error('Invalid observer: the elevation and the grazing height must be finite')
+    }
+
+    if (!Number.isFinite(clearance) || clearance <= 0) {
+      throw new Error('Invalid clearance: the clearance must be finite and greater than zero')
+    }
+
+    this.elevation = elevation
+    this.grazing = grazing
+    this.clearance = clearance
+  }
+
+  public score({ target }: ConstraintContext): ConstraintScore {
+    // The angular radius of the cone the Earth occults, centered on the nadir of the observer:
+    const limb = getEarthLimbAngularRadius(this.elevation, this.grazing)
+
+    // The altitude the limb reaches to, e.g., its angular radius taken from the nadir of the
+    // observer, which lies at an altitude of -90°:
+    const horizon = limb - 90
+
+    // The separation of the target from the limb, along the vertical circle of the target:
+    const separation = target.alt - horizon
+
+    // At or within the limb the Earth occults the target, and so it is unobservable:
+    if (separation <= 0) {
+      return -1
+    }
+
+    // The score increases linearly from -1 at the limb to 1 at the clearance beyond which the Earth
+    // causes no interference, clamped to [-1, 1]:
+    return Math.max(-1, Math.min(1, -1 + (2 * separation) / this.clearance))
   }
 }
 
