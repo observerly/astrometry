@@ -275,6 +275,33 @@ describe('isNight', () => {
     ).toBe(false)
   })
 
+  it('should return the same answer for an ambiguous local time irrespective of the host timezone', () => {
+    const TZ = process.env.TZ
+
+    try {
+      // At the end of daylight saving in America/New_York, the local time 01:30 occurs twice, at
+      // 05:30Z as EDT and again at 06:30Z as EST, and so it does not identify an instant. The Sun
+      // has risen for the observer by 06:30Z, and so it is not night, whichever timezone the
+      // library is running in:
+      for (const timezone of ['UTC', 'America/New_York', 'Pacific/Auckland']) {
+        process.env.TZ = timezone
+
+        expect(
+          isNight(
+            new Date('2021-11-07T06:30:00.000+00:00'),
+            {
+              latitude,
+              longitude
+            },
+            -12
+          )
+        ).toBe(false)
+      }
+    } finally {
+      process.env.TZ = TZ
+    }
+  })
+
   it('should return true for the observer at a horizon of 0 degrees after sunset at 9pm on the current day', () => {
     expect(
       isNight(
