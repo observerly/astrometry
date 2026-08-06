@@ -192,6 +192,52 @@ describe('isBodyCircumpolar', () => {
     ).toBe(true)
   })
 
+  it('should return true for an object that circles the pole of the opposite hemisphere to the observer', () => {
+    // For an observer on the equator, the south celestial pole lies on the horizon, and so an
+    // object 5° from it stays within 5° of the horizon, and never sets below one depressed to -12°,
+    // e.g., it is circumpolar for the observer despite circling the pole of the other hemisphere:
+    expect(
+      isBodyCircumpolar(
+        {
+          latitude: 0,
+          longitude
+        },
+        { ra: 100, dec: -85 },
+        -12
+      )
+    ).toBe(true)
+  })
+
+  it('should return true for a southern object that never sets for a northern observer at a depressed horizon', () => {
+    // The object reaches an altitude of -10° at its lower culmination, and so it never sets below a
+    // horizon that is depressed to -12°:
+    expect(
+      isBodyCircumpolar(
+        {
+          latitude: 5,
+          longitude
+        },
+        { ra: 100, dec: -85 },
+        -12
+      )
+    ).toBe(true)
+  })
+
+  it('should return false for an object of the opposite hemisphere that does set below the observer horizon', () => {
+    // The object reaches an altitude of -50° at its lower culmination, and so it does set below a
+    // horizon that is depressed to -12°:
+    expect(
+      isBodyCircumpolar(
+        {
+          latitude: 45,
+          longitude
+        },
+        { ra: 100, dec: -85 },
+        -12
+      )
+    ).toBe(false)
+  })
+
   it('should return false for a southern hemisphere object that sets below the observer horizon', () => {
     // σ Octantis is at its lowest at an altitude of ~18.8° for the observer, and
     // so it does set below a horizon of 20°:
