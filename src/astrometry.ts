@@ -13,13 +13,21 @@ import type {
   SphericalCoordinate
 } from './common'
 
-import { J2000 } from './constants'
+import { AU_IN_METERS, J2000 } from './constants'
+
+import { convertEclipticToEquatorial } from './coordinates'
+
+/***************************************************************************************************************/
 
 import { getObliquityOfTheEcliptic } from './ecliptic'
 
 import { getJulianDate } from './epoch'
 
 import { getNutation } from './nutation'
+
+/***************************************************************************************************************/
+
+import { getSolarEclipticCoordinate } from './sun'
 
 import { utc } from './utc'
 
@@ -427,6 +435,109 @@ export const getCorrectionToEquatorialForProperMotion = (
   // The proper motion in right ascension is the great-circle rate, and so it is divided through by
   // the cosine of the declination to obtain the rate of change of the right ascension itself:
   const Δra = (properMotion.ra * years) / Math.cos(radians(target.dec)) / 3600
+
+  return {
+    ra: Δra,
+    dec: Δdec
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getCorrectionToEquatorialForAnnualParallax()
+ *
+ * Calculates the correction to the equatorial coordinate of a target for its annual parallax, e.g.,
+ * the displacement of a nearby star as the Earth is carried about the Sun, which traces an ellipse
+ * over the year whose semi-major axis is the parallax of the star.
+ *
+ * The correction is resolved from the geocentric position of the Sun, taken as it is, and not
+ * negated: the observer is displaced from the Sun by the negative of that position, and a target is
+ * displaced by the negative of the displacement of the observer, and so the two cancel. It is
+ * otherwise the same geometry as the aberration for the velocity of an observer, with the position
+ * of the Sun in the place of that velocity, and the parallax of the target in the place of the
+ * speed of light.
+ *
+ * @param datetime - The date and time of the observation.
+ * @param target - The equatorial coordinate of the target, of a given parallax (in arcseconds).
+ * @returns The correction to the equatorial coordinate of the target (in degrees).
+ *
+ */
+export const getCorrectionToEquatorialForAnnualParallax = (
+  datetime: Date,
+  target: EquatorialCoordinate
+): EquatorialCoordinate => {
+  // A target of no parallax is at an infinite distance, and so it is not displaced at all by the
+  // motion of the observer about the Sun:
+  const π = ((target.parallax ?? 0) / 3600) * (Math.PI / 180)
+
+  if (π === 0) {
+    return {
+      ra: 0,
+      dec: 0
+    }
+  }
+
+  const ra = radians(target.ra)
+
+  const dec = radians(target.dec)
+
+  // The cosine of the declination, e.g., the radius of the parallel of the target as a fraction of
+  // the celestial sphere, which is resolved once and used for both of the displacements:
+  const cosDec = Math.cos(dec)
+
+  // The geocentric ecliptic coordinate of the Sun, from which both the direction to it and the
+  // distance to it are resolved, so that the two are of the one model and the one evaluation of it:
+  // the equatorial coordinate and the distance are otherwise resolved from a VSOP87 series and from
+  // a Keplerian orbit respectively, which disagree by ~5e-5 astronomical units:
+  const ecliptic = getSolarEclipticCoordinate(datetime)
+
+  const sun = convertEclipticToEquatorial(datetime, ecliptic)
+
+  // The distance to the Sun, in astronomical units, e.g., in the same measure as the parallax:
+  const R = ecliptic.R / AU_IN_METERS
+
+  // The rectangular geocentric equatorial coordinate of the Sun (in astronomical units):
+  const X = R * Math.cos(radians(sun.dec)) * Math.cos(radians(sun.ra))
+
+  const Y = R * Math.cos(radians(sun.dec)) * Math.sin(radians(sun.ra))
+
+  const Z = R * Math.sin(radians(sun.dec))
+
+  // The unit vector of the target, in the equatorial frame:
+  const n = {
+    x: cosDec * Math.cos(ra),
+    y: cosDec * Math.sin(ra),
+    z: Math.sin(dec)
+  }
+
+  // The observer is displaced from the Sun by the negative of its position, and the target is
+  // displaced by the negative of that, as a fraction of the distance to it, e.g., by the parallax.
+  // The vector from the observer to the target is therefore the unit vector of the target with the
+  // position of the Sun added to it, scaled by the parallax, and is left unnormalised as only its
+  // direction is wanted:
+  const apparent = {
+    x: n.x + π * X,
+    y: n.y + π * Y,
+    z: n.z + π * Z
+  }
+
+  // N.B. The coordinate is recovered from the displaced vector itself, and is not expanded about
+  // the target as a pair of small angles: such an expansion divides the displacement in right
+  // ascension by cos δ, which vanishes at the poles, and so it is unbounded there, and has to be
+  // guarded against. The displaced vector is resolved wherever the target is, the poles included.
+  //
+  // N.B. The declination is taken against the distance of the vector from the axis of rotation, and
+  // not as the arc sine of its polar component: the arc sine is ill-conditioned towards the poles,
+  // where its argument approaches one, and so it loses the very displacement that is wanted there.
+  const Δdec = degrees(Math.atan2(apparent.z, Math.hypot(apparent.x, apparent.y))) - target.dec
+
+  // The displacement in right ascension, taken as the angle to the target that is the shorter of
+  // the two ways about the celestial sphere, e.g., on the range [-180, 180):
+  const Δra =
+    getNormalizedAzimuthalDegree(degrees(Math.atan2(apparent.y, apparent.x)) - target.ra + 180) -
+    180
 
   return {
     ra: Δra,
