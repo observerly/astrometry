@@ -17,6 +17,16 @@ export const EARTH_RADIUS = 6.3781378e6 as const
 
 /**
  *
+ * The flattening of the Earth, e.g., the oblateness of the reference ellipsoid, as defined by the
+ * World Geodetic System (WGS84), where the polar radius is (1 - f) times the equatorial radius.
+ *
+ */
+export const EARTH_FLATTENING = 1 / 298.257223563
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * The Astronomical Unit (AU) is a unit of length defined as the average distance
  * between the Earth and the Sun.
  *
