@@ -51,5 +51,8 @@ jobs:
       - name: Build the package ready for publishing
         run: pnpm run build
 
+      - name: Run vitest tests 🧪
+        run: pnpm run test
+
       - name: Publish to NPM 📦
         run: npm publish --access public
