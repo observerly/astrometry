@@ -84,7 +84,11 @@ export default defineConfig({
   plugins: [
     typescript({
       declaration: true,
-      tsconfig: resolve(__dirname, 'tsconfig.json')
+      // N.B. The build is typed from its own tsconfig, which includes only the source. The root
+      // tsconfig includes the specs also, so as to typecheck them, which widens the inferred root
+      // of the program to the workspace, and emits the declarations to dist/src rather than to
+      // dist, where every "types" entry of the package resolves them:
+      tsconfig: resolve(__dirname, 'tsconfig.build.json')
     })
   ],
   resolve: {
