@@ -20,6 +20,7 @@ import {
   MoonIlluminationConstraint,
   MoonSeparationConstraint,
   SunAltitudeConstraint,
+  SunAvoidanceConstraint,
   TargetAltitudeConstraint
 } from '../src'
 
@@ -639,6 +640,132 @@ describe('Constraint weight', () => {
     for (const weight of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(() => new TargetAltitudeConstraint({ weight })).toThrow()
     }
+  })
+})
+
+/*****************************************************************************************************************/
+
+// A context in which the target and the Sun share an azimuth, so that the angular separation
+// between them is the difference of their altitudes:
+const sunAvoidanceContext = (separation: number): ConstraintContext => ({
+  target: { az: 0, alt: separation },
+  sun: { az: 0, alt: 0 },
+  moon: { az: 180, alt: -90 },
+  illumination: 0,
+  separation: 180
+})
+
+/*****************************************************************************************************************/
+
+describe('SunAvoidanceConstraint', () => {
+  it('should be defined', () => {
+    expect(SunAvoidanceConstraint).toBeDefined()
+  })
+
+  it('should be a required (hard) constraint by default', () => {
+    expect(new SunAvoidanceConstraint().required).toBe(true)
+  })
+
+  it('should return -1 for a target coincident with the Sun', () => {
+    expect(new SunAvoidanceConstraint().score(sunAvoidanceContext(0))).toBe(-1)
+  })
+
+  it('should return -1 at exactly the exclusion cone', () => {
+    expect(new SunAvoidanceConstraint({ minimum: 45 }).score(sunAvoidanceContext(45))).toBe(-1)
+  })
+
+  it('should return 1 at and beyond the separation at which the Sun causes no interference', () => {
+    const constraint = new SunAvoidanceConstraint({ minimum: 45, maximum: 90 })
+
+    expect(constraint.score(sunAvoidanceContext(90))).toBeCloseTo(1)
+    expect(constraint.score(sunAvoidanceContext(120))).toBeCloseTo(1)
+    expect(constraint.score(sunAvoidanceContext(180))).toBeCloseTo(1)
+  })
+
+  it('should return 0 midway between the exclusion cone and the maximum separation', () => {
+    const constraint = new SunAvoidanceConstraint({ minimum: 45, maximum: 90 })
+
+    expect(constraint.score(sunAvoidanceContext(67.5))).toBeCloseTo(0)
+  })
+
+  it('should not be satisfied within the exclusion cone, and satisfied beyond it', () => {
+    const constraint = new SunAvoidanceConstraint({ minimum: 45 })
+
+    expect(constraint.isSatisfiedBy(sunAvoidanceContext(44.9))).toBe(false)
+    expect(constraint.isSatisfiedBy(sunAvoidanceContext(45.1))).toBe(true)
+  })
+
+  it('should increase monotonically with separation, and stay within [-1, 1]', () => {
+    const constraint = new SunAvoidanceConstraint()
+
+    let previous = Number.NEGATIVE_INFINITY
+
+    for (let separation = 0; separation <= 180; separation += 0.5) {
+      const score = constraint.score(sunAvoidanceContext(separation))
+
+      expect(score).toBeGreaterThanOrEqual(previous - 1e-12)
+      expect(score).toBeGreaterThanOrEqual(-1)
+      expect(score).toBeLessThanOrEqual(1)
+
+      previous = score
+    }
+  })
+
+  it('should resolve the separation in azimuth as well as in altitude', () => {
+    // The target and the Sun are both on the horizon, and so their separation is the difference of
+    // their azimuths, e.g., the constraint is not a comparison of altitudes:
+    const constraint = new SunAvoidanceConstraint({ minimum: 45, maximum: 90 })
+
+    expect(
+      constraint.score({
+        target: { az: 30, alt: 0 },
+        sun: { az: 0, alt: 0 },
+        moon: { az: 180, alt: -90 },
+        illumination: 0,
+        separation: 180
+      })
+    ).toBe(-1)
+
+    expect(
+      constraint.score({
+        target: { az: 90, alt: 0 },
+        sun: { az: 0, alt: 0 },
+        moon: { az: 180, alt: -90 },
+        illumination: 0,
+        separation: 180
+      })
+    ).toBeCloseTo(1)
+  })
+
+  it('should apply the exclusion cone irrespective of the altitude of the Sun', () => {
+    // An observer in space has no horizon behind which the Sun is hidden, and so a Sun below the
+    // horizon of a geographic observer still excludes the target:
+    const constraint = new SunAvoidanceConstraint({ minimum: 45, maximum: 90 })
+
+    expect(
+      constraint.score({
+        target: { az: 0, alt: -70 },
+        sun: { az: 0, alt: -90 },
+        moon: { az: 180, alt: -90 },
+        illumination: 0,
+        separation: 180
+      })
+    ).toBe(-1)
+  })
+
+  it('should accept a custom exclusion cone and weight', () => {
+    const constraint = new SunAvoidanceConstraint({ minimum: 85, maximum: 135, weight: 3 })
+
+    expect(constraint.weight).toBe(3)
+    expect(constraint.score(sunAvoidanceContext(84))).toBe(-1)
+    expect(constraint.score(sunAvoidanceContext(135))).toBeCloseTo(1)
+  })
+
+  it('should throw for separation bounds that are out of range or inverted', () => {
+    expect(() => new SunAvoidanceConstraint({ minimum: -1 })).toThrow()
+    expect(() => new SunAvoidanceConstraint({ maximum: 181 })).toThrow()
+    expect(() => new SunAvoidanceConstraint({ minimum: 90, maximum: 45 })).toThrow()
+    expect(() => new SunAvoidanceConstraint({ weight: 0 })).toThrow()
   })
 })
 
