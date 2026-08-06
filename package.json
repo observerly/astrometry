@@ -222,8 +222,10 @@
   },
   "scripts": {
     "build": "tsc --noEmit && vite build",
-    "format": "npx @biomejs/biome format --write",
-    "lint": "npx @biomejs/biome lint --write",
+    "format": "npx @biomejs/biome format --write .",
+    "format:check": "npx @biomejs/biome format .",
+    "lint": "npx @biomejs/biome lint --write .",
+    "lint:check": "npx @biomejs/biome lint .",
     "test": "vitest",
     "benchmark": "tsx ./benchmarks/index.ts",
     "coverage": "vitest run --coverage"
