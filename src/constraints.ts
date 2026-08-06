@@ -10,6 +10,10 @@ import type { HorizontalCoordinate } from './common'
 
 /*****************************************************************************************************************/
 
+import { getAngularSeparation } from './astrometry'
+
+/*****************************************************************************************************************/
+
 import { getAirmass } from './refraction'
 
 /*****************************************************************************************************************/
@@ -717,6 +721,100 @@ export class AirmassConstraint extends Constraint {
     // Otherwise the score decreases linearly from 1 at the minimum airmass to -1 at the maximum,
     // clamped to [-1, 1]:
     const score = 1 - (2 * (airmass - this.minimum)) / (this.maximum - this.minimum)
+
+    return Math.max(-1, Math.min(1, score))
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * The parameters model for a { SunAvoidanceConstraint }.
+ *
+ */
+export type SunAvoidanceConstraintParameters = ConstraintParameters & {
+  /**
+   *
+   * The angular separation (in degrees) from the Sun at or within which the target is unobservable,
+   * e.g., the half-angle of the solar exclusion cone. Defaults to 45°.
+   *
+   */
+  minimum?: number
+  /**
+   *
+   * The angular separation (in degrees) from the Sun at or beyond which the Sun causes no
+   * interference (the score is maximal). Defaults to 90°.
+   *
+   */
+  maximum?: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ *
+ * @class SunAvoidanceConstraint
+ *
+ * @description A constraint on the angular separation between the target and the Sun. The target is
+ * unobservable within the solar exclusion cone, beyond which the score increases linearly with
+ * separation as the scattered and stray light of the Sun falls away.
+ *
+ * N.B. The constraint is deliberately horizon-agnostic, e.g., it does not treat a Sun below the
+ * horizon as causing no interference, as an observer in space has no horizon behind which the Sun
+ * is hidden, and it is the pointing of the instrument relative to the Sun that is constrained. An
+ * observer on the ground is served by { SunAltitudeConstraint } or { IsNight }.
+ *
+ * This is a hard constraint, e.g., a target within the exclusion cone makes the whole observation
+ * unobservable.
+ *
+ *
+ */
+export class SunAvoidanceConstraint extends Constraint {
+  public readonly name = 'sun-avoidance'
+
+  public required = true
+
+  // The separation (in degrees) at or within which the target is unobservable:
+  public minimum = 45
+
+  // The separation (in degrees) at or beyond which the Sun causes no interference:
+  public maximum = 90
+
+  constructor({ minimum = 45, maximum = 90, weight }: SunAvoidanceConstraintParameters = {}) {
+    super(weight)
+
+    if (minimum < 0 || minimum > 180 || maximum < 0 || maximum > 180) {
+      throw new Error(
+        'Invalid separation bounds: minimum and maximum must be within [0, 180] degrees'
+      )
+    }
+
+    if (maximum <= minimum) {
+      throw new Error('Invalid separation bounds: maximum must be greater than minimum')
+    }
+
+    this.minimum = minimum
+    this.maximum = maximum
+  }
+
+  public score({ target, sun }: ConstraintContext): ConstraintScore {
+    // The angular separation between the target and the Sun. N.B. getAngularSeparation() expects
+    // θ to be the altitude and φ to be the azimuth, per ISO 80000-2:
+    const separation = getAngularSeparation(
+      { θ: target.alt, φ: target.az },
+      { θ: sun.alt, φ: sun.az }
+    )
+
+    // At or within the exclusion cone the target is unobservable:
+    if (separation <= this.minimum) {
+      return -1
+    }
+
+    // The score increases linearly from -1 at the exclusion cone to 1 at the separation beyond
+    // which the Sun causes no interference, clamped to [-1, 1]:
+    const score = -1 + (2 * (separation - this.minimum)) / (this.maximum - this.minimum)
 
     return Math.max(-1, Math.min(1, score))
   }
