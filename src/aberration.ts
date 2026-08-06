@@ -8,7 +8,7 @@
 
 import { getHourAngle } from './astrometry'
 
-import type { EquatorialCoordinate, GeographicCoordinate } from './common'
+import type { CartesianCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
 
 import { EARTH_RADIUS, c } from './constants'
 
@@ -188,6 +188,81 @@ export const getCorrectionToEquatorialForAberration = (
   return {
     ra: annual.ra + diurnal.ra,
     dec: annual.dec + diurnal.dec
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getCorrectionToEquatorialForVelocityAberration()
+ *
+ * Corrects the equatorial coordinate of a target for the aberration due to the velocity of the
+ * observer themselves, e.g., the velocity of a spacecraft in its orbit, which displaces the target
+ * towards the direction the observer is travelling in.
+ *
+ * The correction is the first order aberration of the direction to the target, e.g., v/c resolved
+ * along the east and the north of the target, and so it is the same physics as the diurnal
+ * aberration of an observer carried by the rotation of the Earth, for a velocity that is not
+ * constrained to that rotation. An observer in a low Earth orbit travels at ~7.7 km/s, and so the
+ * displacement reaches ~5.3 arcseconds, against the ~0.32 arcseconds of an observer at the equator.
+ *
+ * @param target - The equatorial coordinate of the target.
+ * @param velocity - The velocity of the observer, in the equatorial frame (in SI metres per second).
+ * @returns The correction to the equatorial coordinate of the target (in degrees).
+ *
+ */
+export const getCorrectionToEquatorialForVelocityAberration = (
+  target: EquatorialCoordinate,
+  velocity: Required<CartesianCoordinate>
+): EquatorialCoordinate => {
+  const ra = radians(target.ra)
+
+  const dec = radians(target.dec)
+
+  // The z component of a cartesian coordinate is optional, and so an observer that gives none is
+  // taken to be travelling in the plane of the equator, rather than resolving a displacement that
+  // is not a number:
+  const { x, y, z = 0 } = velocity
+
+  // The cosine of the declination, e.g., the radius of the parallel of the target as a fraction of
+  // the celestial sphere, which is resolved once and used for both of the displacements:
+  const cosDec = Math.cos(dec)
+
+  // The velocity of the observer resolved along the east of the target, e.g., along the unit vector
+  // (-sin α, cos α, 0), which is the direction of increasing right ascension (in SI metres/second):
+  const east = -x * Math.sin(ra) + y * Math.cos(ra)
+
+  // The velocity of the observer resolved along the north of the target, e.g., along the unit
+  // vector (-sin δ cos α, -sin δ sin α, cos δ), which is the direction of increasing declination
+  // (in SI metres per second):
+  const north = -x * Math.sin(dec) * Math.cos(ra) - y * Math.sin(dec) * Math.sin(ra) + z * cosDec
+
+  // The displacement in declination is the northward velocity as a fraction of the speed of light:
+  const Δdec = north / c
+
+  // The parallel of the target shortens as cos δ towards the poles, and where it is shorter than
+  // the displacement along it the right ascension is degenerate, e.g., the displacement carries the
+  // target about the pole, and so it is displaced in declination alone.
+  //
+  // N.B. The parallel is compared against the displacement itself, and not against a fixed
+  // tolerance: a fixed tolerance bounds the declination at which the target is taken to be at a
+  // pole, but not the displacement in right ascension that would be resolved just outside of it,
+  // whereas this bounds that displacement to a radian:
+  if (Math.abs(cosDec) <= Math.abs(east) / c) {
+    return {
+      ra: 0,
+      dec: degrees(Δdec)
+    }
+  }
+
+  // The displacement in right ascension is the eastward velocity as a fraction of the speed of
+  // light, taken along the parallel of the target:
+  const Δra = east / (c * cosDec)
+
+  return {
+    ra: degrees(Δra),
+    dec: degrees(Δdec)
   }
 }
 
