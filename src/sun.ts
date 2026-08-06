@@ -12,7 +12,7 @@ import { AU_IN_METERS, c } from './constants'
 
 import { convertEclipticToEquatorial } from './coordinates'
 
-import { B, getEccentricityOfOrbit, L, R } from './earth'
+import { B, L, R, getEccentricityOfOrbit } from './earth'
 
 import { getJulianDate } from './epoch'
 
@@ -370,6 +370,58 @@ export const getHeliocentricJulianDate = (datetime: Date): number => {
 
   // Return the Heliocentric Julian Date:
   return HJD
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getBarycentricJulianDate()
+ *
+ * Calculates the barycentric Julian date of an observation, e.g., the Julian date at which the
+ * light of the target would have arrived at the barycenter of the solar system, which is an
+ * inertial reference and so does not carry the observer about the Sun over the year.
+ *
+ * The observer is displaced from the barycenter, and so the light of a target arrives earlier or
+ * later than it does at the barycenter, by the displacement resolved along the direction to the
+ * target, which reaches ~499 seconds for a target along the line to the Sun.
+ *
+ * N.B. The displacement is resolved to the center of the Sun, and not to the barycenter of the
+ * solar system, which the planets displace the Sun from by up to ~2 light seconds, and so this is
+ * accurate to that, and not to the sub-second the timing of a transit calls for.
+ *
+ * @param datetime - The date and time of the observation.
+ * @param target - The equatorial coordinate of the target that was observed.
+ * @returns The barycentric Julian date of the observation.
+ *
+ */
+export const getBarycentricJulianDate = (datetime: Date, target: EquatorialCoordinate): number => {
+  const JD = getJulianDate(datetime)
+
+  // The geocentric equatorial coordinate of the Sun, and its distance from the observer:
+  const sun = getSolarEquatorialCoordinate(datetime)
+
+  const R = getSolarDistance(datetime)
+
+  // The cosine of the angle at the observer between the direction to the target and the direction
+  // to the Sun, e.g., the dot product of the two unit vectors. It is resolved here, and not through
+  // getAngularSeparation(), so that this module does not depend on the astrometry module, which
+  // depends on this one:
+  const cos =
+    Math.sin(radians(target.dec)) * Math.sin(radians(sun.dec)) +
+    Math.cos(radians(target.dec)) *
+      Math.cos(radians(sun.dec)) *
+      Math.cos(radians(target.ra - sun.ra))
+
+  // The displacement of the observer from the Sun, resolved along the direction to the target. The
+  // observer is nearer to the target than the Sun is where the target is away from the Sun, and so
+  // the light of it arrives at the observer first (in SI metres):
+  const projection = -R * cos
+
+  // The light travel time over that displacement, e.g., the interval between the arrival of the
+  // light at the observer and its arrival at the barycenter, which is signed: the barycenter is
+  // reached first where the target lies beyond the Sun, and last where it lies opposite it:
+  return JD + projection / c / 86400
 }
 
 /*****************************************************************************************************************/

@@ -12,7 +12,10 @@ import { describe, expect, it } from 'vitest'
 
 import {
   AU_IN_METERS,
+  SPEED_OF_LIGHT as c,
+  type EquatorialCoordinate,
   convertEclipticToEquatorial,
+  getBarycentricJulianDate,
   getHeliocentricJulianDate,
   getJulianDate,
   getSolarAngularDiameter,
@@ -213,3 +216,69 @@ describe('getHeliocentricJulianDate', () => {
 })
 
 /*****************************************************************************************************************/
+
+describe('getBarycentricJulianDate', () => {
+  // For testing we need to specify a date because most calculations are differential w.r.t a time
+  // component, at which the Earth is ~1.0106 AU from the Sun, e.g., ~504.3 light seconds:
+  const when = new Date('2021-05-14T00:00:00.000+00:00')
+
+  // The interval, in seconds, between the Julian date and the barycentric Julian date, which is
+  // signed, e.g., it is negative where the light reaches the barycenter first:
+  const offset = (target: EquatorialCoordinate): number =>
+    (getBarycentricJulianDate(when, target) - getJulianDate(when)) * 86400
+
+  it('should be defined', () => {
+    expect(getBarycentricJulianDate).toBeDefined()
+  })
+
+  it('should precede the Julian date for a target behind the Sun', () => {
+    // The barycenter lies between the observer and the target, and so the light of the target
+    // reaches the barycenter before it reaches the observer, by the light travel time of the
+    // distance between them:
+    const sun = getSolarEquatorialCoordinate(when)
+
+    expect(offset({ ra: sun.ra, dec: sun.dec })).toBeCloseTo(-getSolarDistance(when) / c, 4)
+  })
+
+  it('should follow the Julian date for a target opposite the Sun', () => {
+    // The observer lies between the target and the barycenter, and so the light of the target
+    // reaches the observer first:
+    const sun = getSolarEquatorialCoordinate(when)
+
+    expect(offset({ ra: (sun.ra + 180) % 360, dec: -sun.dec })).toBeCloseTo(
+      getSolarDistance(when) / c,
+      4
+    )
+  })
+
+  it('should equal the Julian date for a target perpendicular to the Sun', () => {
+    // The observer is displaced from the barycenter across the line of sight, and not along it,
+    // and so the light of the target reaches them both at once:
+    const sun = getSolarEquatorialCoordinate(when)
+
+    expect(offset({ ra: (sun.ra + 90) % 360, dec: 0 })).toBeCloseTo(0, 6)
+  })
+
+  it('should be bounded by the light travel time to the Sun', () => {
+    // No target is corrected by more than the distance of the observer from the barycenter, and so
+    // the correction is bounded by ~500 seconds:
+    const bound = getSolarDistance(when) / c
+
+    for (let ra = 0; ra < 360; ra += 15) {
+      for (let dec = -90; dec <= 90; dec += 15) {
+        expect(Math.abs(offset({ ra, dec }))).toBeLessThanOrEqual(bound + 1e-6)
+      }
+    }
+  })
+
+  it('should return a Julian date within a light travel time of the Julian date', () => {
+    const JD = getJulianDate(when)
+
+    const BJD = getBarycentricJulianDate(when, { ra: 88.7929583, dec: 7.4070639 })
+
+    expect(Number.isFinite(BJD)).toBe(true)
+    expect(Math.abs(BJD - JD)).toBeLessThan(0.006)
+  })
+})
+
+/***************************************************************************************************************/
