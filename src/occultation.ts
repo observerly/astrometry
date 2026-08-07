@@ -6,7 +6,17 @@
 
 /*****************************************************************************************************************/
 
+import {
+  type EquatorialCoordinate,
+  type GeographicCoordinate,
+  type HorizontalCoordinate,
+  isEquatorialCoordinate,
+  isHorizontalCoordinate
+} from './common'
+
 import { EARTH_RADIUS } from './constants'
+
+import { convertEquatorialToHorizontal } from './coordinates'
 
 import { convertRadiansToDegrees } from './utilities'
 
@@ -55,6 +65,62 @@ export const getEarthLimbAngularRadius = (
   // The sine of the angular radius is the ratio of the radius of the shell the observer clears to
   // their distance from the center of the Earth, which is now bounded by one:
   return convertRadiansToDegrees(Math.asin(shell / distance))
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * isBodyOccultedByEarth()
+ *
+ * Determines whether a target is behind the Earth for an observer at the time of observation, e.g.,
+ * whether it lies within the cone the Earth occults, centered on the nadir of the observer.
+ *
+ * The nadir of an observer is at an altitude of -90°, and so a target is within that cone when its
+ * altitude is below the angular radius of the limb, less the 90° from the nadir to the horizontal.
+ * An observer that must not look through the upper atmosphere occults a larger cone, e.g., the limb
+ * is raised by the grazing height of the shell they are to clear.
+ *
+ * @param datetime - The date and time of the observation.
+ * @param observer - The geographic coordinate of the observer.
+ * @param target - The equatorial or horizontal coordinate of the observed object.
+ * @param grazing - The height of the atmospheric shell to clear above the surface (in SI metres).
+ * @param radius - The radius of the Earth (in SI metres).
+ * @returns a boolean indicating whether the target is occulted by the Earth for the observer.
+ *
+ */
+export const isBodyOccultedByEarth = (
+  datetime: Date,
+  observer: GeographicCoordinate,
+  target: EquatorialCoordinate | HorizontalCoordinate,
+  grazing = 0,
+  radius: number = EARTH_RADIUS
+): boolean => {
+  let alt = Number.NaN
+
+  // Is the target an equatorial coordinate?
+  if (isEquatorialCoordinate(target)) {
+    // We only need to consider the altitude of the target object:
+    alt = convertEquatorialToHorizontal(datetime, observer, target).alt
+  }
+
+  // Is the target a horizontal coordinate?
+  if (isHorizontalCoordinate(target)) {
+    // We only need to consider the altitude of the target object:
+    alt = target.alt
+  }
+
+  // The angular radius of the cone the Earth occults, centered on the nadir of the observer:
+  const limb = getEarthLimbAngularRadius(observer.elevation ?? 0, grazing, radius)
+
+  // The angular separation of the target from the nadir of the observer, which lies at an altitude
+  // of -90°, e.g., a target at the zenith is 180° from the nadir (in degrees):
+  const nadir = 90 + alt
+
+  // The target is occulted where it is nearer to the nadir than the limb of the Earth. The
+  // comparison is not negated, and so a target whose altitude is not a number is not reported as
+  // occulted, e.g., an unresolvable target is not reported as one the Earth is known to hide:
+  return nadir < limb
 }
 
 /*****************************************************************************************************************/

@@ -8,7 +8,12 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { EARTH_RADIUS, getEarthLimbAngularRadius, getLocalHorizon } from '../src'
+import {
+  EARTH_RADIUS,
+  getEarthLimbAngularRadius,
+  getLocalHorizon,
+  isBodyOccultedByEarth
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -112,3 +117,80 @@ describe('getEarthLimbAngularRadius', () => {
 })
 
 /*****************************************************************************************************************/
+
+describe('isBodyOccultedByEarth', () => {
+  // For testing we need to specify a date because most calculations are differential w.r.t a time
+  // component. We set it to the author's birthday:
+  const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+
+  // For testing, the observer is at the altitude of the International Space Station:
+  const observer = { latitude: 0, longitude: 0, elevation: 4.08e5 }
+
+  it('should be defined', () => {
+    expect(isBodyOccultedByEarth).toBeDefined()
+  })
+
+  it('should occult a target below the limb of the Earth', () => {
+    // The limb is ~70.03° in angular radius from the altitude of the observer, and so it reaches to
+    // an altitude of ~-19.97°, beneath which a target is behind the Earth:
+    expect(isBodyOccultedByEarth(datetime, observer, { alt: -20.1, az: 0 })).toBe(true)
+    expect(isBodyOccultedByEarth(datetime, observer, { alt: -90, az: 0 })).toBe(true)
+  })
+
+  it('should not occult a target above the limb of the Earth', () => {
+    expect(isBodyOccultedByEarth(datetime, observer, { alt: -19.9, az: 0 })).toBe(false)
+    expect(isBodyOccultedByEarth(datetime, observer, { alt: 45, az: 0 })).toBe(false)
+    expect(isBodyOccultedByEarth(datetime, observer, { alt: 90, az: 0 })).toBe(false)
+  })
+
+  it('should occult at the altitude the angular radius of the limb reaches to', () => {
+    // The nadir of the observer is at an altitude of -90°, and so the limb reaches to an altitude
+    // of its angular radius less 90°:
+    const limb = getEarthLimbAngularRadius(observer.elevation)
+
+    expect(isBodyOccultedByEarth(datetime, observer, { alt: limb - 90 - 1e-6, az: 0 })).toBe(true)
+    expect(isBodyOccultedByEarth(datetime, observer, { alt: limb - 90 + 1e-6, az: 0 })).toBe(false)
+  })
+
+  it('should occult a larger cone for an observer clearing a grazing height', () => {
+    // The shell raises the limb by ~2.64°, and so a target that clears the solid Earth is occulted
+    // where the observer must not look through the upper atmosphere:
+    expect(isBodyOccultedByEarth(datetime, observer, { alt: -18, az: 0 })).toBe(false)
+    expect(isBodyOccultedByEarth(datetime, observer, { alt: -18, az: 0 }, 1e5)).toBe(true)
+  })
+
+  it('should reduce to the horizon for an observer at the surface', () => {
+    // The limb spans a hemisphere for an observer at the surface, and so a target is occulted by
+    // the Earth exactly where it is below the horizon:
+    const surface = { latitude: 0, longitude: 0 }
+
+    expect(isBodyOccultedByEarth(datetime, surface, { alt: -0.1, az: 0 })).toBe(true)
+    expect(isBodyOccultedByEarth(datetime, surface, { alt: 0, az: 0 })).toBe(false)
+    expect(isBodyOccultedByEarth(datetime, surface, { alt: 0.1, az: 0 })).toBe(false)
+  })
+
+  it('should accept an equatorial coordinate as well as a horizontal one', () => {
+    const target = { ra: 88.7929583, dec: 7.4070639 }
+
+    expect(typeof isBodyOccultedByEarth(datetime, observer, target)).toBe('boolean')
+  })
+
+  it('should not report a target that is not resolvable as occulted', () => {
+    // The Earth is not known to hide a target whose altitude is not a number, and so it is not
+    // reported as one that it does:
+    expect(isBodyOccultedByEarth(datetime, observer, { alt: Number.NaN, az: 0 })).toBe(false)
+  })
+
+  it('should resolve the limb against the radius given by the caller', () => {
+    const polar = EARTH_RADIUS * (1 - 1 / 298.257223563)
+
+    // The polar limb is smaller at the same distance from the center of the Earth, and so it
+    // reaches to a lower altitude, and occults less of the sky:
+    const alt = getEarthLimbAngularRadius(observer.elevation) - 90 - 1e-6
+
+    expect(isBodyOccultedByEarth(datetime, observer, { alt, az: 0 })).toBe(true)
+    expect(isBodyOccultedByEarth(datetime, observer, { alt, az: 0 }, 0, polar)).toBe(false)
+  })
+})
+
+/***************************************************************************************************************/
