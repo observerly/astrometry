@@ -11,12 +11,14 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  type CartesianCoordinate,
   EARTH_RADIUS,
   type EquatorialCoordinate,
   SPEED_OF_LIGHT,
   getCorrectionToEquatorialForAberration,
   getCorrectionToEquatorialForAnnualAberration,
   getCorrectionToEquatorialForDiurnalAberration,
+  getCorrectionToEquatorialForVelocityAberration,
   getHourAngle
 } from '../src'
 
@@ -187,3 +189,147 @@ describe('getCorrectionToEquatorialForAberration', () => {
 })
 
 /*****************************************************************************************************************/
+
+describe('getCorrectionToEquatorialForVelocityAberration', () => {
+  // The orbital speed of an observer in a low Earth orbit (in SI metres per second):
+  const V = 7669
+
+  // The displacement of a target perpendicular to the direction of travel, e.g., the constant of
+  // aberration for the velocity, in arcseconds:
+  const maximum = ((V / SPEED_OF_LIGHT) * (180 / Math.PI)) * 3600
+
+  it('should be defined', () => {
+    expect(getCorrectionToEquatorialForVelocityAberration).toBeDefined()
+  })
+
+  it('should not displace a target the observer travels directly towards', () => {
+    // The aberration is transverse, and so a target along the direction of travel is not displaced:
+    const { ra, dec } = getCorrectionToEquatorialForVelocityAberration(
+      { ra: 0, dec: 0 },
+      { x: V, y: 0, z: 0 }
+    )
+
+    expect(ra).toBeCloseTo(0, 12)
+    expect(dec).toBeCloseTo(0, 12)
+  })
+
+  it('should displace a target towards the east for an observer travelling east', () => {
+    const { ra, dec } = getCorrectionToEquatorialForVelocityAberration(
+      { ra: 0, dec: 0 },
+      { x: 0, y: V, z: 0 }
+    )
+
+    expect(ra * 3600).toBeCloseTo(maximum, 6)
+    expect(dec).toBeCloseTo(0, 12)
+  })
+
+  it('should displace a target towards the north for an observer travelling north', () => {
+    const { ra, dec } = getCorrectionToEquatorialForVelocityAberration(
+      { ra: 0, dec: 0 },
+      { x: 0, y: 0, z: V }
+    )
+
+    expect(ra).toBeCloseTo(0, 12)
+    expect(dec * 3600).toBeCloseTo(maximum, 6)
+  })
+
+  it('should reduce to the constant of diurnal aberration for the rotation of the Earth', () => {
+    // An observer at the equator is carried eastward at ~465 m/s, for which the constant of diurnal
+    // aberration is the ~0.32 arcseconds the diurnal correction is resolved from:
+    const { ra } = getCorrectionToEquatorialForVelocityAberration(
+      { ra: 0, dec: 0 },
+      { x: 0, y: 465.1, z: 0 }
+    )
+
+    expect(ra * 3600).toBeCloseTo(0.32, 2)
+  })
+
+  it('should not displace a target for an observer at rest', () => {
+    expect(
+      getCorrectionToEquatorialForVelocityAberration({ ra: 45, dec: 30 }, { x: 0, y: 0, z: 0 })
+    ).toEqual({ ra: 0, dec: 0 })
+  })
+
+  it('should take an observer that gives no z component to travel in the plane of the equator', () => {
+    // The z component of a cartesian coordinate is optional, and so a consumer that omits it, e.g.,
+    // from JavaScript, is not returned a displacement that is not a number:
+    const correction = getCorrectionToEquatorialForVelocityAberration({ ra: 10, dec: 20 }, {
+      x: V,
+      y: V
+    } as Required<CartesianCoordinate>)
+
+    expect(Number.isFinite(correction.ra)).toBe(true)
+    expect(Number.isFinite(correction.dec)).toBe(true)
+
+    expect(correction).toEqual(
+      getCorrectionToEquatorialForVelocityAberration({ ra: 10, dec: 20 }, { x: V, y: V, z: 0 })
+    )
+  })
+
+  it('should bound the displacement in right ascension for a target near a celestial pole', () => {
+    // The parallel of a target near a pole is shorter than the displacement along it, and so the
+    // displacement in right ascension would be unbounded were it resolved there. It is bounded to
+    // a radian, whatever the declination and whatever the speed of the observer:
+    for (const speed of [1, 465, V, 29800, 3e6]) {
+      for (const offset of [1, 1e-3, 1e-6, 1e-9, 1e-12, 0]) {
+        for (const sign of [1, -1]) {
+          const correction = getCorrectionToEquatorialForVelocityAberration(
+            { ra: 123, dec: sign * (90 - offset) },
+            { x: speed, y: speed, z: speed }
+          )
+
+          expect(Number.isFinite(correction.ra)).toBe(true)
+          expect(Number.isFinite(correction.dec)).toBe(true)
+
+          expect(Math.abs(correction.ra)).toBeLessThanOrEqual(180 / Math.PI)
+        }
+      }
+    }
+  })
+
+  it('should displace a target at a celestial pole in declination alone', () => {
+    // The meridians converge at a pole, e.g., the right ascension is degenerate there, and so the
+    // displacement is not resolved in right ascension:
+    for (const dec of [90, -90]) {
+      const correction = getCorrectionToEquatorialForVelocityAberration(
+        { ra: 123, dec },
+        { x: V, y: V, z: V }
+      )
+
+      expect(correction.ra).toBe(0)
+      expect(Number.isFinite(correction.dec)).toBe(true)
+    }
+  })
+
+  it('should bound the displacement by the speed of the observer', () => {
+    // No target is displaced by more than v/c, whatever its coordinate or the direction of travel:
+    for (let ra = 0; ra < 360; ra += 15) {
+      for (let dec = -85; dec <= 85; dec += 5) {
+        const correction = getCorrectionToEquatorialForVelocityAberration(
+          { ra, dec },
+          { x: V, y: -V, z: V / 2 }
+        )
+
+        // The displacement along the parallel shortens as cos δ, and so it is the great circle
+        // displacement that is bounded, and not the displacement in right ascension itself:
+        const separation =
+          Math.hypot(correction.ra * Math.cos(radians(dec)), correction.dec) * 3600
+
+        expect(separation).toBeLessThanOrEqual(Math.hypot(1, 1, 0.5) * maximum + 1e-9)
+      }
+    }
+  })
+
+  it('should reverse the displacement when the observer reverses their velocity', () => {
+    const target: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
+
+    const forward = getCorrectionToEquatorialForVelocityAberration(target, { x: V, y: -V, z: V })
+
+    const backward = getCorrectionToEquatorialForVelocityAberration(target, { x: -V, y: V, z: -V })
+
+    expect(backward.ra).toBeCloseTo(-forward.ra, 12)
+    expect(backward.dec).toBeCloseTo(-forward.dec, 12)
+  })
+})
+
+/***************************************************************************************************************/
