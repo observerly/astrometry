@@ -70,6 +70,41 @@ describe('isEquatorialCoordinate', () => {
     expect(isEquatorialCoordinate({ ra: 0, dec: 0, epoch: null })).toBe(false)
   })
 
+  it('should return true for valid equatorial coordinates of a given parallax', () => {
+    // Proxima Centauri subtends the largest annual parallax of any star, at ~0.77 arcseconds:
+    const eq: EquatorialCoordinate = { ra: 0, dec: 0, parallax: 0.7686 }
+    expect(isEquatorialCoordinate(eq)).toBe(true)
+    expectTypeOf(eq).toEqualTypeOf<EquatorialCoordinate>()
+  })
+
+  it('should return true for equatorial coordinates of no parallax', () => {
+    // The parallax is optional, e.g., a coordinate that does not carry one is taken to be at an
+    // infinite distance:
+    expect(isEquatorialCoordinate({ ra: 0, dec: 0 })).toBe(true)
+    expect(isEquatorialCoordinate({ ra: 0, dec: 0, parallax: 0 })).toBe(true)
+  })
+
+  it('should return true for equatorial coordinates of a negative parallax', () => {
+    // An astrometric catalogue resolves the parallax of a distant object to within an uncertainty
+    // that exceeds it, and so a negative parallax is the ordinary outcome of that measurement, and
+    // is carried as it is given rather than rejected, which would truncate the measurement:
+    expect(isEquatorialCoordinate({ ra: 0, dec: 0, parallax: -0.0003 })).toBe(true)
+    expect(isEquatorialCoordinate({ ra: 0, dec: 0, parallax: -1 })).toBe(true)
+  })
+
+  it('should return false for equatorial coordinates whose parallax is not an angle', () => {
+    expect(isEquatorialCoordinate({ ra: 0, dec: 0, parallax: '0.7686' })).toBe(false)
+    expect(isEquatorialCoordinate({ ra: 0, dec: 0, parallax: null })).toBe(false)
+  })
+
+  it('should return false for equatorial coordinates whose parallax is not finite', () => {
+    // A parallax that is not finite would propagate silently into whatever distance was resolved
+    // from it, e.g., as its reciprocal:
+    for (const parallax of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      expect(isEquatorialCoordinate({ ra: 0, dec: 0, parallax })).toBe(false)
+    }
+  })
+
   it('should return false for equatorial coordinates whose epoch is not finite', () => {
     // A Julian date is a finite number, and so an epoch that is not finite would propagate
     // silently into whatever interval was resolved from it:
