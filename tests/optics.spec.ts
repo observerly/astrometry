@@ -8,7 +8,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { getFieldOfView, getFocalRatio } from '../src'
+import { getAiryDiskDiameter, getFieldOfView, getFocalRatio } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -93,3 +93,61 @@ describe('getFieldOfView', () => {
 })
 
 /*****************************************************************************************************************/
+
+describe('getAiryDiskDiameter', () => {
+  it('should be defined', () => {
+    expect(getAiryDiskDiameter).toBeDefined()
+  })
+
+  it('should resolve the classical rule of thumb for the resolution of a telescope', () => {
+    // The resolution of a telescope, in arcseconds, is ~138/D for an aperture D in millimetres,
+    // which is the angular radius of the Airy disk, e.g., the Rayleigh criterion of 1.22 λ/D. The
+    // diameter is resolved in degrees, and so it is taken to arcseconds to compare against it:
+    for (const aperture of [0.1, 0.2, 0.5, 2.4, 6.5]) {
+      const radius = (getAiryDiskDiameter(aperture) * 3600) / 2
+
+      expect(radius).toBeCloseTo(138 / (aperture * 1000), 2)
+    }
+  })
+
+  it('should scale inversely with the aperture', () => {
+    expect(getAiryDiskDiameter(0.1)).toBeCloseTo(2 * getAiryDiskDiameter(0.2), 12)
+  })
+
+  it('should scale linearly with the wavelength', () => {
+    expect(getAiryDiskDiameter(1, 1100e-9)).toBeCloseTo(2 * getAiryDiskDiameter(1, 550e-9), 12)
+  })
+
+  it('should resolve the angular diameter in degrees', () => {
+    // Every angle the library returns is resolved in degrees, and so the diameter is also, e.g.,
+    // the Airy disk of a 100 mm aperture is ~2.77 arcseconds, which is ~7.69e-4 degrees:
+    expect(getAiryDiskDiameter(0.1)).toBeCloseTo(((2 * 1.22 * 550e-9) / 0.1) * (180 / Math.PI), 12)
+
+    expect(getAiryDiskDiameter(0.1)).toBeLessThan(1)
+  })
+
+  it('should default to the green light at which the eye is most sensitive', () => {
+    expect(getAiryDiskDiameter(0.2)).toBe(getAiryDiskDiameter(0.2, 550e-9))
+  })
+
+  it('should resolve the diffraction limit of a space telescope', () => {
+    // An observer above the atmosphere is not blurred by the seeing, and so the Airy disk is the
+    // appearance of a star, e.g., ~0.115 arcseconds in diameter for a 2.4 m aperture:
+    expect(getAiryDiskDiameter(2.4) * 3600).toBeCloseTo(0.1153, 4)
+  })
+
+  it('should throw for an aperture that is not greater than zero', () => {
+    expect(() => getAiryDiskDiameter(0)).toThrow()
+    expect(() => getAiryDiskDiameter(-1)).toThrow()
+    expect(() => getAiryDiskDiameter(Number.NaN)).toThrow()
+    expect(() => getAiryDiskDiameter(Number.POSITIVE_INFINITY)).toThrow()
+  })
+
+  it('should throw for a wavelength that is not greater than zero', () => {
+    expect(() => getAiryDiskDiameter(1, 0)).toThrow()
+    expect(() => getAiryDiskDiameter(1, -550e-9)).toThrow()
+    expect(() => getAiryDiskDiameter(1, Number.NaN)).toThrow()
+  })
+})
+
+/***************************************************************************************************************/
