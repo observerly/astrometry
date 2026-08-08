@@ -106,13 +106,24 @@ export const getNormalisedSphericalCoordinate = (A: SphericalCoordinate): Spheri
   // traversed from the south pole, over the north pole, and back down to the south pole:
   const meridian = getNormalizedAzimuthalDegree(θ + 90) - 90
 
+  // A polar angle that lies beyond either pole is carried past 90° along that meridian by the wrap,
+  // and so both are reflected: 120° lies beyond the north pole and is carried to 120°, and -120°
+  // lies beyond the south pole and is carried to 240°.
+  //
+  // N.B. The reflection is decided from the meridian itself, and not by comparing the reflected
+  // polar angle against it: the two are the same angle where none is reflected, but
+  // 90 - |90 - meridian| does not reproduce the meridian to the last bit, and so comparing them
+  // reflects a polar angle that is already resolved, and rotates its azimuthal angle to the
+  // antipodal meridian:
+  const reflected = meridian > 90
+
   // Reflect a polar angle that lies beyond a pole back over that pole, e.g., a polar angle of 120°
   // is a polar angle of 60°, and a polar angle of -120° is a polar angle of -60°:
-  const polar = 90 - Math.abs(90 - meridian)
+  const polar = reflected ? 180 - meridian : meridian
 
   // A reflected polar angle lies on the opposite side of the sphere, and so its azimuthal angle is
   // rotated to the antipodal meridian:
-  const azimuthal = φ + (polar === meridian ? 0 : 180)
+  const azimuthal = φ + (reflected ? 180 : 0)
 
   return {
     θ: polar,

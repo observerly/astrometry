@@ -29,6 +29,8 @@ import {
   J2000
 } from '../src'
 
+import { convertDegreesToRadians as radians } from '../src/utilities'
+
 /*****************************************************************************************************************/
 
 // For testing we need to specify a date because most calculations are
@@ -154,6 +156,69 @@ describe('getAntipodeCoordinate', () => {
 describe('getNormalisedSphericalCoordinate', () => {
   it('should be defined', () => {
     expect(getNormalisedSphericalCoordinate).toBeDefined()
+  })
+
+  it('should return a coordinate that is already resolved unchanged', () => {
+    // A coordinate within [-90, 90] x [0, 360) names a point on the sphere already, and so it is
+    // returned as it is. N.B. The reflection is decided from the meridian, and not by comparing the
+    // reflected polar angle against it: 90 - |90 - meridian| does not reproduce the meridian to the
+    // last bit, and so comparing them rotated the azimuthal angle of one coordinate in five to the
+    // antipodal meridian:
+    for (const [θ, φ] of [
+      [-47.12052901230394, 27.36041502645363],
+      [-78.26820559674799, 193.02955089798024],
+      [-34.780465192013345, 154.00423043521494],
+      [-49.99999998142572, 3.2185283771468676e-8]
+    ]) {
+      const normalised = getNormalisedSphericalCoordinate({ θ, φ })
+
+      expect(normalised.θ).toBeCloseTo(θ, 12)
+      expect(normalised.φ).toBeCloseTo(φ, 12)
+    }
+  })
+
+  it('should return every coordinate that is already resolved unchanged', () => {
+    // The reflection turned on the last bit of an arithmetic identity, and so it did not fail for a
+    // coordinate of a round number, but for a fifth of those in between:
+    for (let i = 0; i < 20000; i++) {
+      const θ = (i / 20000) * 180 - 90
+
+      const φ = (i / 20000) * 360
+
+      const normalised = getNormalisedSphericalCoordinate({ θ, φ })
+
+      expect(normalised.θ).toBeCloseTo(θ, 12)
+      expect(normalised.φ).toBeCloseTo(φ, 12)
+    }
+  })
+
+  it('should resolve a coordinate to the point on the sphere it names', () => {
+    // The unit vector of the coordinate as it is given, and of the coordinate as it is resolved,
+    // are the same vector, whatever the coordinate, e.g., however far it lies beyond a pole:
+    for (const θ of [-720, -270, -180, -120, -90, -45, 0, 45, 90, 120, 180, 270, 720]) {
+      for (const φ of [-720, -180, -0.5, 0, 10, 190, 359.5, 720]) {
+        const normalised = getNormalisedSphericalCoordinate({ θ, φ })
+
+        expect(normalised.θ).toBeGreaterThanOrEqual(-90)
+        expect(normalised.θ).toBeLessThanOrEqual(90)
+        expect(normalised.φ).toBeGreaterThanOrEqual(0)
+        expect(normalised.φ).toBeLessThan(360)
+
+        // The polar angle of the vector, e.g., sin θ, and its azimuthal angle resolved on the
+        // parallel, e.g., cos θ cos φ and cos θ sin φ, are unchanged by the normalisation:
+        expect(Math.sin(radians(normalised.θ))).toBeCloseTo(Math.sin(radians(θ)), 9)
+
+        expect(Math.cos(radians(normalised.θ)) * Math.cos(radians(normalised.φ))).toBeCloseTo(
+          Math.cos(radians(θ)) * Math.cos(radians(φ)),
+          9
+        )
+
+        expect(Math.cos(radians(normalised.θ)) * Math.sin(radians(normalised.φ))).toBeCloseTo(
+          Math.cos(radians(θ)) * Math.sin(radians(φ)),
+          9
+        )
+      }
+    }
   })
 
   it('should return the normalised spherical coordinate when normalisation is not needed', () => {
