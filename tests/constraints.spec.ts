@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import {
   AirmassConstraint,
   Constraint,
+  EarthLimbConstraint,
   type ConstraintContext,
   IsAstronomicalTwilight,
   IsMoonDown,
@@ -936,3 +937,130 @@ describe('IsAstronomicalTwilight', () => {
 })
 
 /*****************************************************************************************************************/
+
+describe('EarthLimbConstraint', () => {
+  // For testing, the observer is at the altitude of the International Space Station, for whom the
+  // limb is ~70.03° in angular radius, and so reaches to an altitude of ~-19.97°:
+  const elevation = 4.08e5
+
+  it('should be defined', () => {
+    expect(EarthLimbConstraint).toBeDefined()
+  })
+
+  it('should be a required (hard) constraint by default', () => {
+    expect(new EarthLimbConstraint().required).toBe(true)
+  })
+
+  it('should return -1 for a target the Earth occults', () => {
+    const constraint = new EarthLimbConstraint({ elevation })
+
+    expect(constraint.score(context(-90))).toBe(-1)
+    expect(constraint.score(context(-20))).toBe(-1)
+  })
+
+  it('should return 1 for a target at and beyond the clearance above the limb', () => {
+    const constraint = new EarthLimbConstraint({ elevation, clearance: 10 })
+
+    expect(constraint.score(context(-9.9))).toBeCloseTo(1)
+    expect(constraint.score(context(45))).toBeCloseTo(1)
+    expect(constraint.score(context(90))).toBeCloseTo(1)
+  })
+
+  it('should return 0 midway between the limb and the clearance', () => {
+    const constraint = new EarthLimbConstraint({ elevation, clearance: 10 })
+
+    // The limb reaches to an altitude of ~-19.969°, and so the midpoint of a 10° clearance is at
+    // an altitude of ~-14.969°:
+    expect(constraint.score(context(-14.969))).toBeCloseTo(0, 3)
+  })
+
+  it('should occult a larger cone for an observer clearing a grazing height', () => {
+    const bare = new EarthLimbConstraint({ elevation })
+
+    const grazed = new EarthLimbConstraint({ elevation, grazing: 1e5 })
+
+    expect(bare.isSatisfiedBy(context(-18))).toBe(true)
+    expect(grazed.isSatisfiedBy(context(-18))).toBe(false)
+  })
+
+  it('should reduce to the horizon for an observer at the surface', () => {
+    // The limb spans a hemisphere for an observer at the surface, and so the Earth occults the
+    // target exactly where it is below the horizon:
+    const constraint = new EarthLimbConstraint()
+
+    expect(constraint.score(context(-0.1))).toBe(-1)
+    expect(constraint.score(context(0))).toBe(-1)
+    expect(constraint.isSatisfiedBy(context(0.1))).toBe(true)
+  })
+
+  it('should increase monotonically with the altitude of the target, and stay within [-1, 1]', () => {
+    const constraint = new EarthLimbConstraint({ elevation })
+
+    let previous = Number.NEGATIVE_INFINITY
+
+    for (let alt = -90; alt <= 90; alt += 0.5) {
+      const score = constraint.score(context(alt))
+
+      expect(score).toBeGreaterThanOrEqual(previous - 1e-12)
+      expect(score).toBeGreaterThanOrEqual(-1)
+      expect(score).toBeLessThanOrEqual(1)
+
+      previous = score
+    }
+  })
+
+  it('should accept a custom clearance and weight', () => {
+    const constraint = new EarthLimbConstraint({ elevation, clearance: 30, weight: 5 })
+
+    expect(constraint.weight).toBe(5)
+    expect(constraint.clearance).toBe(30)
+    expect(constraint.score(context(10))).toBeCloseTo(1)
+  })
+
+  it('should throw for an elevation that is not resolvable', () => {
+    expect(() => new EarthLimbConstraint({ elevation: Number.NaN })).toThrow(/must be finite/)
+
+    expect(() => new EarthLimbConstraint({ elevation: Number.POSITIVE_INFINITY })).toThrow(
+      /must be finite/
+    )
+
+    // The elevation is a height above the surface of the Earth:
+    expect(() => new EarthLimbConstraint({ elevation: -430 })).toThrow(/must not be negative/)
+  })
+
+  it('should throw for a grazing height that is not resolvable', () => {
+    expect(() => new EarthLimbConstraint({ grazing: Number.NaN })).toThrow(/must be finite/)
+
+    expect(() => new EarthLimbConstraint({ grazing: Number.POSITIVE_INFINITY })).toThrow(
+      /must be finite/
+    )
+
+    // A negative grazing height shrinks the shell within the Earth, and so it would occult a
+    // smaller cone than the Earth itself does:
+    expect(() => new EarthLimbConstraint({ grazing: -1e5 })).toThrow(/must not be negative/)
+  })
+
+  it('should throw for a clearance that is not resolvable', () => {
+    expect(() => new EarthLimbConstraint({ clearance: Number.NaN })).toThrow(/must be finite/)
+
+    expect(() => new EarthLimbConstraint({ clearance: 0 })).toThrow(/must be greater than zero/)
+
+    expect(() => new EarthLimbConstraint({ clearance: -10 })).toThrow(/must be greater than zero/)
+  })
+
+  it('should throw for a weight that is not resolvable', () => {
+    expect(() => new EarthLimbConstraint({ weight: 0 })).toThrow()
+  })
+
+  it('should name the parameter that is at fault', () => {
+    // Each of the parameters is checked on its own, and so the message names which of them is at
+    // fault, and whether it is not finite or out of range:
+    expect(() => new EarthLimbConstraint({ elevation: -1 })).toThrow(/^Invalid elevation:/)
+
+    expect(() => new EarthLimbConstraint({ grazing: -1 })).toThrow(/^Invalid grazing height:/)
+
+    expect(() => new EarthLimbConstraint({ clearance: -1 })).toThrow(/^Invalid clearance:/)
+  })
+})
+
+/***************************************************************************************************************/
