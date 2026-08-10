@@ -134,15 +134,9 @@ export const convertEquatorialToHorizontal = (
 
   const R = EARTH_RADIUS
 
-  // Divide-by-zero errors can occur when we have cos(90), and sin(0)/sin(180) etc
-  // cosine: multiples of π/2
-  // sine: 0, and multiples of π.
-  if (Math.cos(radians(latitude)) === 0) {
-    return {
-      alt: -1,
-      az: -1
-    }
-  }
+  // N.B. The cosine of the latitude does not vanish for any finite latitude, e.g., it is ~6.1e-17
+  // at ±90°, where the altitude resolves to the declination of the target through the ordinary
+  // path, and a latitude that is not finite, e.g., NaN or ±Infinity, propagates through it as NaN:
 
   // Get the hour angle for the target:
   const ha = radians(getHourAngle(datetime, longitude, target.ra))
