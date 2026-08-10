@@ -274,16 +274,24 @@ export const isNight = (
   temperature = 288.15,
   pressure = 101325
 ): boolean => {
-  const { sunrise, sunset } = getSolarTransit(datetime, observer, horizon, temperature, pressure)
+  // The altitude the night is resolved at, e.g., the horizon given by the caller, depressed
+  // below the astronomical horizon by the elevation of the observer:
+  const h = horizon - getLocalHorizon(observer.elevation ?? 0)
 
-  if (sunrise === null || sunset === null) {
-    return false
-  }
+  // The apparent altitude of the Sun at the time of observation:
+  const target = convertEquatorialToHorizontal(
+    datetime,
+    observer,
+    getSolarEquatorialCoordinate(datetime)
+  )
 
-  // If the datetime is before sunrise or after sunset, it is night. The datetime is compared as the
-  // instant given by the caller, and is not rebuilt from its local components, which would resolve
-  // to a different instant where the local time is ambiguous, e.g., at the end of daylight saving:
-  return datetime.getTime() <= sunrise.getTime() || datetime.getTime() >= sunset.getTime()
+  const { alt } = getCorrectionToHorizontalForRefraction(target, temperature, pressure)
+
+  // It is night where the Sun is below the horizon at the time of observation. The altitude is
+  // compared directly, rather than the time against a sunrise and a sunset, which do not exist
+  // for an observer in perpetual daylight or in perpetual night, e.g., it is night all day for
+  // an observer in polar night, for whom there is no sunrise to compare against:
+  return alt < h
 }
 
 /*****************************************************************************************************************/

@@ -471,6 +471,44 @@ describe('getSolarTransit at the horizon given by the caller', () => {
 
 /*****************************************************************************************************************/
 
+describe('isNight at the poles', () => {
+  it('should return true for an observer in polar night, for whom the Sun never rises', () => {
+    // At Alert at midwinter the Sun never crosses the horizon at all, and so it is night all day,
+    // e.g., the answer does not depend on a sunrise or a sunset existing to compare against:
+    expect(isNight(new Date('2021-12-21T00:00:00.000+00:00'), alert, 0)).toBe(true)
+    expect(isNight(new Date('2021-12-21T12:00:00.000+00:00'), alert, 0)).toBe(true)
+  })
+
+  it('should return true during polar astronomical night at a twilight horizon', () => {
+    // At a latitude of 78° at midwinter the Sun never rises, but it is only below -18° for part
+    // of the day, e.g., it is astronomical night at local midnight and not at local noon:
+    const observer = { latitude: 78, longitude: 0 }
+
+    expect(isNight(new Date('2021-12-21T00:00:00.000+00:00'), observer, -18)).toBe(true)
+    expect(isNight(new Date('2021-12-21T12:00:00.000+00:00'), observer, -18)).toBe(false)
+  })
+
+  it('should return false for an observer in perpetual daylight', () => {
+    expect(isNight(new Date('2021-06-21T00:00:00.000+00:00'), alert, 0)).toBe(false)
+    expect(isNight(new Date('2021-06-21T12:00:00.000+00:00'), alert, 0)).toBe(false)
+  })
+
+  it('should resolve an observer at exactly a celestial pole', () => {
+    // The altitude of the Sun for an observer at a pole is its declination, which the conversion
+    // resolves through its ordinary path, e.g., the guard within it against a cosine of exactly
+    // zero does not fire at ±90°, where the cosine is ~6.1e-17. It is polar day at the summer
+    // pole and polar night at the winter one, whatever the hour:
+    for (const hour of ['00', '12']) {
+      expect(isNight(new Date(`2021-06-21T${hour}:00:00.000+00:00`), { latitude: 90, longitude: 0 }, 0)).toBe(false)
+      expect(isNight(new Date(`2021-06-21T${hour}:00:00.000+00:00`), { latitude: -90, longitude: 0 }, 0)).toBe(true)
+      expect(isNight(new Date(`2021-12-21T${hour}:00:00.000+00:00`), { latitude: 90, longitude: 0 }, 0)).toBe(true)
+      expect(isNight(new Date(`2021-12-21T${hour}:00:00.000+00:00`), { latitude: -90, longitude: 0 }, 0)).toBe(false)
+    }
+  })
+})
+
+/*****************************************************************************************************************/
+
 describe('getSolarTransit for an elevated observer', () => {
   it('should return an earlier sunrise and a later sunset than at sea level', () => {
     // The local horizon of an elevated observer is depressed below the astronomical horizon, and
