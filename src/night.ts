@@ -124,65 +124,102 @@ export const getSolarTransit = (
     Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), datetime.getUTCDate(), 0, 0, 0, 0)
   )
 
-  // Get the generalized (approximated) solar transit for the date:
-  const { sunrise, noon, sunset } = getGeneralizedSolarTransit(midnight, observer)
+  // The transit of the Sun, e.g., local noon, which does not depend on the horizon:
+  const { noon } = getGeneralizedSolarTransit(midnight, observer)
 
-  // The elevation of the observer depresses their local horizon below the astronomical horizon,
-  // and so the Sun rises earlier, and sets later, than it does at sea level:
-  const depression = getLocalHorizon(observer.elevation ?? 0)
+  if (!noon) {
+    return { sunrise: null, noon: null, sunset: null }
+  }
 
-  // If the observer is in perpetual daylight or perpetual night, return null:
+  // The altitude the events are resolved at, e.g., the horizon given by the caller, depressed
+  // below the astronomical horizon by the elevation of the observer:
+  const h = horizon - getLocalHorizon(observer.elevation ?? 0)
+
+  // The apparent altitude of the Sun, e.g., its true altitude corrected for refraction, which
+  // vanishes for an altitude below -1° and so does not perturb a twilight horizon:
+  const altitude = (when: Date): number => {
+    const target = convertEquatorialToHorizontal(when, observer, getSolarEquatorialCoordinate(when))
+
+    return getCorrectionToHorizontalForRefraction(target, temperature, pressure).alt
+  }
+
+  // The generalized transit is an explicitly lower accuracy estimate, and so the culminations are
+  // refined against the apparent altitude itself, by a ternary search about the estimate, within
+  // which the altitude is unimodal. The estimate is otherwise up to ~2 minutes from the true
+  // culmination, and so an event shorter than twice that, e.g., a grazing rise at the boundary of
+  // the polar day, could be rejected from an altitude sampled on the wrong side of the horizon:
+  const culmination = (estimate: number, highest: boolean): number => {
+    let lower = estimate - 40 * 60000
+
+    let upper = estimate + 40 * 60000
+
+    while (upper - lower > 1000) {
+      const first = lower + (upper - lower) / 3
+
+      const second = upper - (upper - lower) / 3
+
+      const closer = highest
+        ? altitude(new Date(first)) > altitude(new Date(second))
+        : altitude(new Date(first)) < altitude(new Date(second))
+
+      if (closer) {
+        upper = second
+      } else {
+        lower = first
+      }
+    }
+
+    return (lower + upper) / 2
+  }
+
+  // The upper culmination, at which the apparent altitude of the Sun is at its maximum:
+  const transit = culmination(noon.getTime(), true)
+
+  // The apparent altitude of the Sun is at its maximum at the upper culmination, at its minimum
+  // at the lower culmination half a solar day to either side, and is monotonic between the two,
+  // and so it crosses the horizon exactly once in that interval where the horizon lies between
+  // them.
+  //
+  // N.B. Whether the horizon is reachable is decided from the same apparent altitude the crossing
+  // is resolved against, and not from the geometric hour angle: the refraction lifts the Sun by
+  // up to ~0.5°, and so, near the boundary of the polar day, the Sun crosses the horizon
+  // apparently while remaining below it geometrically:
+  const crossing = (rise: boolean): Date | null => {
+    // The end of the interval at which the Sun is at its lowest, e.g., the lower culmination
+    // before the transit for the rise, and the one after it for the set:
+    let below = culmination(transit + (rise ? -12 : 12) * 3600000, false)
+
+    let above = transit
+
+    // The conditions are negated so that an altitude that is not a number does not resolve to a
+    // crossing:
+    if (!(altitude(new Date(below)) < h) || !(altitude(new Date(above)) > h)) {
+      return null
+    }
+
+    while (Math.abs(above - below) > 100) {
+      const middle = (above + below) / 2
+
+      if (altitude(new Date(middle)) < h) {
+        below = middle
+      } else {
+        above = middle
+      }
+    }
+
+    return new Date((above + below) / 2)
+  }
+
+  const sunrise = crossing(true)
+
+  const sunset = crossing(false)
+
+  // The Sun does not cross the horizon for an observer in perpetual daylight or perpetual night:
   if (sunrise === null || sunset === null) {
     return { sunrise: null, noon: null, sunset: null }
   }
 
-  let rise: null | Date = null
-
-  // Loop between +/- 2 hours of the generalized sunrise to find the accurate sunrise,
-  // correcting for atmospheric refraction:
-  for (let i = -120; i <= 120; i++) {
-    const when = new Date(sunrise.getTime() + 60000 * i)
-
-    const { ra, dec } = getSolarEquatorialCoordinate(when)
-
-    const target = convertEquatorialToHorizontal(when, observer, {
-      ra,
-      dec
-    })
-
-    const refraction = getCorrectionToHorizontalForRefraction(target, temperature, pressure)
-
-    // Find the altitude where the sun passes above the observer's depressed horizon:
-    if (refraction.alt > horizon - depression && rise === null) {
-      rise = when
-      break
-    }
-  }
-
-  let set: null | Date = null
-
-  // Loop between +/- 2 hours of the generalized sunset to find the accurate sunset,
-  // correcting for atmospheric refraction:
-  for (let i = -120; i <= 120; i++) {
-    const when = new Date(sunset.getTime() + 60000 * i)
-
-    const { ra, dec } = getSolarEquatorialCoordinate(when)
-
-    const target = convertEquatorialToHorizontal(when, observer, {
-      ra,
-      dec
-    })
-
-    const refraction = getCorrectionToHorizontalForRefraction(target, temperature, pressure)
-
-    // Find the altitude where the sun passes below the observer's depressed horizon:
-    if (refraction.alt < horizon - depression && set === null) {
-      set = when
-      break
-    }
-  }
-
-  return { sunrise: rise || sunrise, noon, sunset: set || sunset }
+  return { sunrise, noon, sunset }
 }
 
 /*****************************************************************************************************************/
