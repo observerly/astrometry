@@ -10,7 +10,15 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { getGeneralizedSolarTransit, getNight, getSolarTransit, isNight } from '../src'
+import {
+  convertEquatorialToHorizontal,
+  getCorrectionToHorizontalForRefraction,
+  getGeneralizedSolarTransit,
+  getNight,
+  getSolarEquatorialCoordinate,
+  getSolarTransit,
+  isNight
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -111,9 +119,9 @@ describe('getSolarTransit', () => {
     expect(noon).toBeInstanceOf(Date)
     expect(sunset).toBeInstanceOf(Date)
 
-    expect(sunrise?.toISOString()).toBe('2021-05-14T04:42:58.540Z')
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:42:51.771Z')
     expect(noon?.toISOString()).toBe('2021-05-14T12:21:40.985Z')
-    expect(sunset?.toISOString()).toBe('2021-05-14T20:01:23.430Z')
+    expect(sunset?.toISOString()).toBe('2021-05-14T20:01:17.846Z')
   })
 
   it('should return the correct solar transit for the observer at a horizon of -6 degrees', () => {
@@ -130,9 +138,9 @@ describe('getSolarTransit', () => {
     expect(noon).toBeInstanceOf(Date)
     expect(sunset).toBeInstanceOf(Date)
 
-    expect(sunrise?.toISOString()).toBe('2021-05-14T04:01:58.540Z')
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:01:50.046Z')
     expect(noon?.toISOString()).toBe('2021-05-14T12:21:40.985Z')
-    expect(sunset?.toISOString()).toBe('2021-05-14T20:43:23.430Z')
+    expect(sunset?.toISOString()).toBe('2021-05-14T20:42:33.414Z')
   })
 
   it('should not modify the datetime given by the caller', () => {
@@ -164,9 +172,9 @@ describe('getSolarTransit', () => {
           -6
         )
 
-        expect(sunrise?.toISOString()).toBe('2021-05-14T04:01:58.540Z')
+        expect(sunrise?.toISOString()).toBe('2021-05-14T04:01:50.046Z')
         expect(noon?.toISOString()).toBe('2021-05-14T12:21:40.985Z')
-        expect(sunset?.toISOString()).toBe('2021-05-14T20:43:23.430Z')
+        expect(sunset?.toISOString()).toBe('2021-05-14T20:42:33.414Z')
       }
     } finally {
       process.env.TZ = TZ
@@ -194,8 +202,8 @@ describe('getNight', () => {
     expect(start).toBeInstanceOf(Date)
     expect(end).toBeInstanceOf(Date)
 
-    expect(start?.toISOString()).toBe('2021-05-14T20:01:23.430Z')
-    expect(end?.toISOString()).toBe('2021-05-15T04:41:35.447Z')
+    expect(start?.toISOString()).toBe('2021-05-14T20:01:17.846Z')
+    expect(end?.toISOString()).toBe('2021-05-15T04:41:28.735Z')
   })
 
   it('should return the correct night for the observer at a horizon of -18 degrees', () => {
@@ -211,8 +219,8 @@ describe('getNight', () => {
     expect(start).toBeInstanceOf(Date)
     expect(end).toBeInstanceOf(Date)
 
-    expect(start?.toISOString()).toBe('2021-05-14T22:49:28.606Z')
-    expect(end?.toISOString()).toBe('2021-05-15T10:34:02.830Z')
+    expect(start?.toISOString()).toBe('2021-05-14T22:49:00.520Z')
+    expect(end?.toISOString()).toBe('2021-05-15T10:33:58.860Z')
   })
 })
 
@@ -313,6 +321,151 @@ describe('isNight', () => {
         0
       )
     ).toBe(true)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getSolarTransit at the horizon given by the caller', () => {
+  // The apparent altitude of the Sun at a given time, for cross-checking the returned events,
+  // sampled at the same default temperature and pressure the function under test resolves at:
+  const altitude = (when: Date, observer: { latitude: number; longitude: number }): number =>
+    getCorrectionToHorizontalForRefraction(
+      convertEquatorialToHorizontal(when, observer, getSolarEquatorialCoordinate(when)),
+      288.15,
+      101325
+    ).alt
+
+  it('should resolve the events at the horizon given, and not at the astronomical horizon', () => {
+    // The Sun is at the horizon given by the caller at every event returned, e.g., the -18 events
+    // are the astronomical dusk and dawn, and not the sunset and sunrise:
+    for (const horizon of [-6, -12, -18]) {
+      const { sunrise, sunset } = getSolarTransit(datetime, { latitude, longitude }, horizon)
+
+      expect(sunrise).toBeInstanceOf(Date)
+      expect(sunset).toBeInstanceOf(Date)
+
+      if (!sunrise || !sunset) return
+
+      expect(altitude(sunrise, { latitude, longitude })).toBeCloseTo(horizon, 3)
+      expect(altitude(sunset, { latitude, longitude })).toBeCloseTo(horizon, 3)
+    }
+  })
+
+  it('should return the start of the night at astronomical dusk, hours after sunset', () => {
+    // For London in December the Sun reaches -18° over two hours after it sets, and so the night
+    // starts at ~17:55, and not at the ~15:51 of sunset:
+    const london = { latitude: 51.4778, longitude: -0.0015 }
+
+    const { start, end } = getNight(new Date('2021-12-15T00:00:00.000+00:00'), london, -18)
+
+    expect(start?.toISOString()).toBe('2021-12-15T17:55:11.128Z')
+    expect(end?.toISOString()).toBe('2021-12-16T05:55:53.667Z')
+  })
+
+  it('should return no night where the Sun never reaches the horizon given', () => {
+    // At a latitude of 60° at midsummer the Sun only reaches ~-6.5° below the horizon, and so
+    // there is no astronomical night to return:
+    const { start, end } = getNight(
+      new Date('2021-06-21T00:00:00.000+00:00'),
+      { latitude: 60, longitude: 0 },
+      -18
+    )
+
+    expect(start).toBeNull()
+    expect(end).toBeNull()
+  })
+
+  it('should resolve a day the Sun rises by refraction alone', () => {
+    // At Alert at the end of February the Sun stays geometrically below the horizon all day, at a
+    // maximum of ~-0.2°, but the refraction lifts its apparent altitude to ~+0.3°, and so it does
+    // rise and set. Whether the horizon is reachable is therefore decided from the apparent
+    // altitude, and not from the geometric hour angle:
+    const { sunrise, noon, sunset } = getSolarTransit(
+      new Date('2021-02-28T00:00:00.000+00:00'),
+      alert,
+      0
+    )
+
+    expect(sunrise?.toISOString()).toBe('2021-02-28T15:12:10.391Z')
+    expect(noon).toBeInstanceOf(Date)
+    expect(sunset?.toISOString()).toBe('2021-02-28T17:35:18.389Z')
+  })
+
+  it('should resolve a grazing rise the estimated noon samples on the wrong side of', () => {
+    // The generalized transit is a lower accuracy estimate, and so the altitude sampled at it
+    // falls short of the true maximum. A horizon between the two is reachable, but only where the
+    // culmination is refined before deciding, e.g., a grazing rise shorter than twice the error
+    // of the estimate would otherwise be rejected. The horizon is resolved at the time of the
+    // test, between the sampled altitude and the true maximum, so that the case holds whatever
+    // the accuracy of the estimate:
+    const day = new Date('2021-02-28T00:00:00.000+00:00')
+
+    const { noon } = getGeneralizedSolarTransit(day, alert)
+
+    expect(noon).toBeInstanceOf(Date)
+
+    if (!noon) return
+
+    const sampled = altitude(noon, alert)
+
+    let maximum = sampled
+
+    for (let second = -2400; second <= 2400; second += 2) {
+      maximum = Math.max(maximum, altitude(new Date(noon.getTime() + second * 1000), alert))
+    }
+
+    const horizon = (sampled + maximum) / 2
+
+    const { sunrise, sunset } = getSolarTransit(day, alert, horizon)
+
+    expect(sunrise).toBeInstanceOf(Date)
+    expect(sunset).toBeInstanceOf(Date)
+  })
+
+  it('should resolve a grazing set the estimated lower culmination samples on the wrong side of', () => {
+    // The mirror of the case above, at the lower culmination: the altitude sampled half a solar
+    // day from the estimated noon sits above the true minimum, and a horizon between the two is
+    // crossed, but only where the lower culmination is refined before deciding:
+    const day = new Date('2021-04-08T00:00:00.000+00:00')
+
+    const { noon } = getGeneralizedSolarTransit(day, alert)
+
+    expect(noon).toBeInstanceOf(Date)
+
+    if (!noon) return
+
+    const sampled = altitude(new Date(noon.getTime() + 12 * 3600000), alert)
+
+    let minimum = sampled
+
+    for (let second = -2400; second <= 2400; second += 2) {
+      minimum = Math.min(
+        minimum,
+        altitude(new Date(noon.getTime() + 12 * 3600000 + second * 1000), alert)
+      )
+    }
+
+    const horizon = (sampled + minimum) / 2
+
+    const { sunrise, sunset } = getSolarTransit(day, alert, horizon)
+
+    expect(sunrise).toBeInstanceOf(Date)
+    expect(sunset).toBeInstanceOf(Date)
+  })
+
+  it('should return the night for an observer in polar civil night', () => {
+    // At a latitude of 78° at midwinter the Sun never rises, but it does cross -18° twice a day,
+    // and so the astronomical night has a start and an end, e.g., the observer is not gated on
+    // whether the Sun crosses the astronomical horizon:
+    const { start, end } = getNight(
+      new Date('2021-12-21T00:00:00.000+00:00'),
+      { latitude: 78, longitude: 0 },
+      -18
+    )
+
+    expect(start?.toISOString()).toBe('2021-12-21T16:19:03.437Z')
+    expect(end?.toISOString()).toBe('2021-12-22T07:37:45.428Z')
   })
 })
 
