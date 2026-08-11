@@ -214,3 +214,35 @@ describe('convertGalacticToEquatorial', () => {
 })
 
 /*****************************************************************************************************************/
+
+describe('convertEquatorialToHorizontal for an observer at a celestial pole', () => {
+  it('should resolve the altitude of a target to its declination at either pole', () => {
+    // Every target circles the horizon of an observer at a pole at a constant altitude, e.g., its
+    // declination, which the conversion resolves through its ordinary path, and does not intercept
+    // with a sentinel coordinate:
+    for (const target of [betelgeuse, { ra: 21.07875, dec: -88.9569444 }]) {
+      const north = convertEquatorialToHorizontal(datetime, { latitude: 90, longitude: 0 }, target)
+
+      expect(north.alt).toBeCloseTo(target.dec, 9)
+      expect(Number.isFinite(north.az)).toBe(true)
+
+      const south = convertEquatorialToHorizontal(datetime, { latitude: -90, longitude: 0 }, target)
+
+      expect(south.alt).toBeCloseTo(-target.dec, 9)
+      expect(Number.isFinite(south.az)).toBe(true)
+    }
+  })
+
+  it('should return NaN for a latitude that is not finite', () => {
+    // A latitude of NaN or of ±Infinity does not name an observer, and so the coordinate returned
+    // is NaN, rather than a sentinel a caller would take for a real coordinate:
+    for (const latitude of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      const coordinate = convertEquatorialToHorizontal(datetime, { latitude, longitude: 0 }, betelgeuse)
+
+      expect(Number.isNaN(coordinate.alt)).toBe(true)
+      expect(Number.isNaN(coordinate.az)).toBe(true)
+    }
+  })
+})
+
+/*****************************************************************************************************************/
