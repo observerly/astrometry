@@ -1,5 +1,5 @@
 {
   "name": "@observerly/astrometry",
-  "version": "0.65.0",
+  "version": "0.66.0",
   "exports": "./src/index.ts"
 }
