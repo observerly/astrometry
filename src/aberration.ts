@@ -25,7 +25,11 @@ import {
 
 import { getSolarMeanGeometricLongitude, getSolarTrueGeometricLongitude } from './sun'
 
-import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
+import {
+  convertRadiansToDegrees as degrees,
+  getNormalizedAzimuthalDegree,
+  convertDegreesToRadians as radians
+} from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -201,11 +205,11 @@ export const getCorrectionToEquatorialForAberration = (
  * observer themselves, e.g., the velocity of a spacecraft in its orbit, which displaces the target
  * towards the direction the observer is travelling in.
  *
- * The correction is the first order aberration of the direction to the target, e.g., v/c resolved
- * along the east and the north of the target, and so it is the same physics as the diurnal
- * aberration of an observer carried by the rotation of the Earth, for a velocity that is not
- * constrained to that rotation. An observer in a low Earth orbit travels at ~7.7 km/s, and so the
- * displacement reaches ~5.3 arcseconds, against the ~0.32 arcseconds of an observer at the equator.
+ * The correction is the first order aberration of the direction to the target, e.g., the unit
+ * vector of the target displaced by v/c, and so it is the same physics as the diurnal aberration
+ * of an observer carried by the rotation of the Earth, for a velocity that is not constrained to
+ * that rotation. An observer in a low Earth orbit travels at ~7.7 km/s, and so the displacement
+ * reaches ~5.3 arcseconds, against the ~0.32 arcseconds of an observer at the equator.
  *
  * @param target - The equatorial coordinate of the target.
  * @param velocity - The velocity of the observer, in the equatorial frame (in SI metres per second).
@@ -226,43 +230,40 @@ export const getCorrectionToEquatorialForVelocityAberration = (
   const { x, y, z = 0 } = velocity
 
   // The cosine of the declination, e.g., the radius of the parallel of the target as a fraction of
-  // the celestial sphere, which is resolved once and used for both of the displacements:
+  // the celestial sphere:
   const cosDec = Math.cos(dec)
 
-  // The velocity of the observer resolved along the east of the target, e.g., along the unit vector
-  // (-sin α, cos α, 0), which is the direction of increasing right ascension (in SI metres/second):
-  const east = -x * Math.sin(ra) + y * Math.cos(ra)
-
-  // The velocity of the observer resolved along the north of the target, e.g., along the unit
-  // vector (-sin δ cos α, -sin δ sin α, cos δ), which is the direction of increasing declination
-  // (in SI metres per second):
-  const north = -x * Math.sin(dec) * Math.cos(ra) - y * Math.sin(dec) * Math.sin(ra) + z * cosDec
-
-  // The displacement in declination is the northward velocity as a fraction of the speed of light:
-  const Δdec = north / c
-
-  // The parallel of the target shortens as cos δ towards the poles, and where it is shorter than
-  // the displacement along it the right ascension is degenerate, e.g., the displacement carries the
-  // target about the pole, and so it is displaced in declination alone.
-  //
-  // N.B. The parallel is compared against the displacement itself, and not against a fixed
-  // tolerance: a fixed tolerance bounds the declination at which the target is taken to be at a
-  // pole, but not the displacement in right ascension that would be resolved just outside of it,
-  // whereas this bounds that displacement to a radian:
-  if (Math.abs(cosDec) <= Math.abs(east) / c) {
-    return {
-      ra: 0,
-      dec: degrees(Δdec)
-    }
+  // The unit vector of the target, in the equatorial frame:
+  const n = {
+    x: cosDec * Math.cos(ra),
+    y: cosDec * Math.sin(ra),
+    z: Math.sin(dec)
   }
 
-  // The displacement in right ascension is the eastward velocity as a fraction of the speed of
-  // light, taken along the parallel of the target:
-  const Δra = east / (c * cosDec)
+  // The vector to the apparent direction of the target, e.g., the unit vector of the target
+  // displaced by the velocity of the observer as a fraction of the speed of light. Only its
+  // direction is wanted, and so it is left unnormalised:
+  const apparent = {
+    x: n.x + x / c,
+    y: n.y + y / c,
+    z: n.z + z / c
+  }
+
+  // The coordinate is recovered from the displaced vector, and is not expanded about the target,
+  // which would divide by cos δ and so be unbounded at the poles.
+  //
+  // N.B. The declination is taken against the distance from the axis of rotation, and not as the
+  // arc sine of the polar component, which is ill-conditioned towards the poles:
+  const Δdec = degrees(Math.atan2(apparent.z, Math.hypot(apparent.x, apparent.y))) - target.dec
+
+  // The displacement in right ascension, taken the shorter of the two ways about the sphere:
+  const Δra =
+    getNormalizedAzimuthalDegree(degrees(Math.atan2(apparent.y, apparent.x)) - target.ra + 180) -
+    180
 
   return {
-    ra: degrees(Δra),
-    dec: degrees(Δdec)
+    ra: Δra,
+    dec: Δdec
   }
 }
 

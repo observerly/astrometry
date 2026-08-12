@@ -245,9 +245,13 @@ describe('getCorrectionToEquatorialForVelocityAberration', () => {
   })
 
   it('should not displace a target for an observer at rest', () => {
-    expect(
-      getCorrectionToEquatorialForVelocityAberration({ ra: 45, dec: 30 }, { x: 0, y: 0, z: 0 })
-    ).toEqual({ ra: 0, dec: 0 })
+    const correction = getCorrectionToEquatorialForVelocityAberration(
+      { ra: 45, dec: 30 },
+      { x: 0, y: 0, z: 0 }
+    )
+
+    expect(correction.ra).toBeCloseTo(0, 12)
+    expect(correction.dec).toBeCloseTo(0, 12)
   })
 
   it('should take an observer that gives no z component to travel in the plane of the equator', () => {
@@ -266,10 +270,11 @@ describe('getCorrectionToEquatorialForVelocityAberration', () => {
     )
   })
 
-  it('should bound the displacement in right ascension for a target near a celestial pole', () => {
+  it('should resolve the displacement in right ascension for a target near a celestial pole', () => {
     // The parallel of a target near a pole is shorter than the displacement along it, and so the
-    // displacement in right ascension would be unbounded were it resolved there. It is bounded to
-    // a radian, whatever the declination and whatever the speed of the observer:
+    // displacement in right ascension would be unbounded were it expanded about the target. It is
+    // recovered from the displaced vector instead, and so it is an angle about the pole, whatever
+    // the declination and whatever the speed of the observer:
     for (const speed of [1, 465, V, 29800, 3e6]) {
       for (const offset of [1, 1e-3, 1e-6, 1e-9, 1e-12, 0]) {
         for (const sign of [1, -1]) {
@@ -281,22 +286,23 @@ describe('getCorrectionToEquatorialForVelocityAberration', () => {
           expect(Number.isFinite(correction.ra)).toBe(true)
           expect(Number.isFinite(correction.dec)).toBe(true)
 
-          expect(Math.abs(correction.ra)).toBeLessThanOrEqual(180 / Math.PI)
+          expect(correction.ra).toBeGreaterThanOrEqual(-180)
+          expect(correction.ra).toBeLessThan(180)
         }
       }
     }
   })
 
-  it('should displace a target at a celestial pole in declination alone', () => {
-    // The meridians converge at a pole, e.g., the right ascension is degenerate there, and so the
-    // displacement is not resolved in right ascension:
+  it('should resolve a target at a celestial pole', () => {
+    // Every meridian meets at a pole, and so the displaced target takes a right ascension of its
+    // own, which may be far from the one it was given. It is resolved, and not guarded against:
     for (const dec of [90, -90]) {
       const correction = getCorrectionToEquatorialForVelocityAberration(
         { ra: 123, dec },
         { x: V, y: V, z: V }
       )
 
-      expect(correction.ra).toBe(0)
+      expect(Number.isFinite(correction.ra)).toBe(true)
       expect(Number.isFinite(correction.dec)).toBe(true)
     }
   })
@@ -311,12 +317,32 @@ describe('getCorrectionToEquatorialForVelocityAberration', () => {
         )
 
         // The displacement along the parallel shortens as cos δ, and so it is the great circle
-        // displacement that is bounded, and not the displacement in right ascension itself:
+        // displacement that is bounded, and not the displacement in right ascension itself.
+        //
+        // N.B. The bound is the first order of v/c, which the displacement exceeds by its own
+        // second order for an observer with a component of travel away from the target:
         const separation =
           Math.hypot(correction.ra * Math.cos(radians(dec)), correction.dec) * 3600
 
-        expect(separation).toBeLessThanOrEqual(Math.hypot(1, 1, 0.5) * maximum + 1e-9)
+        expect(separation).toBeLessThanOrEqual(Math.hypot(1, 1, 0.5) * maximum * (1 + 1e-4))
       }
+    }
+  })
+
+  it('should resolve the displacement the shorter way about the sphere at any right ascension', () => {
+    // The displacement in right ascension is taken the shorter of the two ways about the sphere,
+    // and so a small displacement is resolved as a small angle whatever the right ascension of
+    // the target, e.g., it is not offset by a full turn for a target beyond 180°:
+    for (const ra of [0, 90, 179.5, 180.5, 270, 359.5]) {
+      const east = { x: -V * Math.sin(radians(ra)), y: V * Math.cos(radians(ra)), z: 0 }
+
+      const { ra: Δra, dec: Δdec } = getCorrectionToEquatorialForVelocityAberration(
+        { ra, dec: 0 },
+        east
+      )
+
+      expect(Δra * 3600).toBeCloseTo(maximum, 6)
+      expect(Δdec).toBeCloseTo(0, 9)
     }
   })
 
@@ -327,8 +353,10 @@ describe('getCorrectionToEquatorialForVelocityAberration', () => {
 
     const backward = getCorrectionToEquatorialForVelocityAberration(target, { x: -V, y: V, z: -V })
 
-    expect(backward.ra).toBeCloseTo(-forward.ra, 12)
-    expect(backward.dec).toBeCloseTo(-forward.dec, 12)
+    // The displacement carries the second order of v/c as well as the first, and so the reversal
+    // is antisymmetric to within that second order, e.g., to ~1e-7 degrees at these speeds:
+    expect(backward.ra).toBeCloseTo(-forward.ra, 6)
+    expect(backward.dec).toBeCloseTo(-forward.dec, 6)
   })
 })
 
