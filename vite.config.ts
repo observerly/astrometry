@@ -43,6 +43,7 @@ const modules = [
   'occultation',
   'optics',
   'orbit',
+  'parallax',
   'planets',
   'precession',
   'projection',

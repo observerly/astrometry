@@ -161,6 +161,11 @@
       "require": "./dist/orbit.cjs",
       "types": "./dist/orbit.d.ts"
     },
+    "./parallax": {
+      "import": "./dist/parallax.js",
+      "require": "./dist/parallax.cjs",
+      "types": "./dist/parallax.d.ts"
+    },
     "./planets": {
       "import": "./dist/planets.js",
       "require": "./dist/planets.cjs",
