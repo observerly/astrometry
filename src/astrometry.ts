@@ -49,21 +49,34 @@ import {
  *
  */
 export const getAngularSeparation = (A: SphericalCoordinate, B: SphericalCoordinate): number => {
-  // Calculate the angular separation between A and B (in degrees):
-  let θ =
-    degrees(
-      Math.acos(
-        Math.sin(radians(A.θ)) * Math.sin(radians(B.θ)) +
-          Math.cos(radians(A.θ)) * Math.cos(radians(B.θ)) * Math.cos(radians(A.φ - B.φ))
-      )
-    ) % 360
-
-  // Correct for negative angles:
-  if (θ < 0) {
-    θ += 360
+  // The unit vector of A, in the frame the two coordinates are both given in:
+  const a = {
+    x: Math.cos(radians(A.θ)) * Math.cos(radians(A.φ)),
+    y: Math.cos(radians(A.θ)) * Math.sin(radians(A.φ)),
+    z: Math.sin(radians(A.θ))
   }
 
-  return θ
+  // The unit vector of B, in the same frame:
+  const b = {
+    x: Math.cos(radians(B.θ)) * Math.cos(radians(B.φ)),
+    y: Math.cos(radians(B.θ)) * Math.sin(radians(B.φ)),
+    z: Math.sin(radians(B.θ))
+  }
+
+  // The separation is taken from the magnitude of the cross product of the two unit vectors, e.g.,
+  // its sine, against their dot product, e.g., its cosine, and not as the arc cosine of the dot
+  // product alone, which is out of domain for two coincident coordinates, e.g., the rounding of
+  // the dot product carries it just beyond one and the separation is not a number, and which is
+  // ill-conditioned for a separation near zero, e.g., a milliarcsecond resolves as none at all.
+  //
+  // N.B. The separation is the angle between two directions, and so it is bounded to [0°, 180°]
+  // by construction, and is not normalised against a whole turn:
+  return degrees(
+    Math.atan2(
+      Math.hypot(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x),
+      a.x * b.x + a.y * b.y + a.z * b.z
+    )
+  )
 }
 
 /*****************************************************************************************************************/
