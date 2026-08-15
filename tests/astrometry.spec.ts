@@ -68,7 +68,7 @@ describe('getAngularSeparation', () => {
         φ: spica.ra
       }
     )
-    expect(θ).toBe(32.79290589269233)
+    expect(θ).toBe(32.79290589269235)
   })
 
   it('should return the greatest possible angular separation for two objects at their antipodes', () => {
@@ -97,6 +97,36 @@ describe('getAngularSeparation', () => {
       }
     )
     expect(θ).toBe(180)
+  })
+
+  it('should return no separation for a coordinate compared with itself', () => {
+    // The dot product of a unit vector with itself rounds to just beyond one, and so the arc
+    // cosine of it alone is out of domain, e.g., the separation is not a number:
+    for (let θ = -90; θ <= 90; θ += 0.25) {
+      for (let φ = 0; φ < 360; φ += 7) {
+        expect(getAngularSeparation({ θ, φ }, { θ, φ })).toBe(0)
+      }
+    }
+  })
+
+  it('should return the greatest separation for two coordinates at their antipodes, wherever they lie', () => {
+    for (let θ = -90; θ <= 90; θ += 0.5) {
+      for (let φ = 0; φ < 360; φ += 7) {
+        expect(getAngularSeparation({ θ, φ }, { θ: -θ, φ: φ + 180 })).toBeCloseTo(180, 9)
+      }
+    }
+  })
+
+  it('should resolve a separation that is small against the coordinates themselves', () => {
+    // The separation is ill-conditioned towards zero where it is taken as the arc cosine of the
+    // dot product, e.g., a separation of a milliarcsecond is resolved as none at all:
+    const target = { θ: 7.4070639, φ: 88.7929583 }
+
+    for (const arcsec of [1e-3, 1e-2, 1e-1, 1, 10]) {
+      const separation = getAngularSeparation(target, { ...target, θ: target.θ + arcsec / 3600 })
+
+      expect(separation * 3600).toBeCloseTo(arcsec, 9)
+    }
   })
 })
 
