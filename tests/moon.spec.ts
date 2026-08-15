@@ -544,6 +544,29 @@ describe('isBlueMoon', () => {
     expect(isBlueMoon(datetime)).toBe(false)
   })
 
+  it('should not depend on the timezone of the host system', () => {
+    // The calendar month is the month of UTC, and so the same instant is a Blue Moon wherever the
+    // host is. The instants below fall on the last day of the month of UTC, but on the first day
+    // of the next month for a host to the east of it, and, for the one late in the day, on the
+    // penultimate day of the month for a host to the west of it:
+    const timezone = process.env.TZ
+
+    try {
+      // N.B. The instant on the 29th is compared against the fraction of a day by which the
+      // synodic month exceeds 29 days, e.g., ~12.7 hours, and so it exercises the time of day as
+      // well as the day of the month:
+      for (const iso of ['1999-03-31T23:49:00Z', '2023-08-31T01:35:00Z', '2004-08-29T18:00:00Z']) {
+        for (const TZ of ['UTC', 'Pacific/Auckland', 'Asia/Tokyo', 'America/Los_Angeles']) {
+          process.env.TZ = TZ
+
+          expect(isBlueMoon(new Date(iso))).toBe(true)
+        }
+      }
+    } finally {
+      process.env.TZ = timezone
+    }
+  })
+
   it('should return true for August 31st 2023', () => {
     // We know there is a second full moon in August 2023:
     const datetime = new Date('2023-08-31T01:35:00Z')
