@@ -1091,16 +1091,20 @@ export const isBlueMoon = (datetime: Date): boolean => {
   // then it is considered a Blue Moon. However, it is impossible to have a
   // Blue Moon on any other days except the 29th, 30th, or 31st of a given month,
   // as the synodic month is 29.530588853 days long.
-  const today = datetime.getDate()
+  //
+  // N.B. The calendar month is the month of UTC, and not the month of the host system: the day of
+  // the month of the host is not the day of the month of UTC, and so the same instant would be a
+  // Blue Moon on a host in one timezone and not on a host in another:
+  const today = datetime.getUTCDate()
 
   // Calculate the fraction of the current day, in milliseconds, of the synodic month:
   const f = (LUNAR_SYNODIC_MONTH - 29) * 24 * 60 * 60 * 1000
 
   const ms =
-    datetime.getHours() * 60 * 60 * 1000 +
-    datetime.getMinutes() * 60 * 1000 +
-    datetime.getSeconds() * 1000 +
-    datetime.getMilliseconds()
+    datetime.getUTCHours() * 60 * 60 * 1000 +
+    datetime.getUTCMinutes() * 60 * 1000 +
+    datetime.getUTCSeconds() * 1000 +
+    datetime.getUTCMilliseconds()
 
   // If the time on the current day is less than the fraction of the day of the synodic month,
   // then the Moon is not a Blue Moon or if the day is not the 29th, 30th, or 31st:
