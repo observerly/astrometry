@@ -488,6 +488,18 @@ describe('getNextFullMoon', () => {
     const nextFullMoon = getNextFullMoon(datetime)
     expect(nextFullMoon.toISOString()).toBe('2021-05-26T11:31:30.000Z')
   })
+
+  it('should return a full Moon that is still to come for a datetime just after one', () => {
+    // The Moon reads as full for ~20 hours about the syzygy, and so a datetime within that window
+    // but beyond the syzygy resolved the full Moon that had already passed:
+    const passed = new Date('2024-08-19T18:26:00.000Z')
+
+    for (const hours of [1, 6, 12, 18]) {
+      const datetime = new Date(passed.getTime() + hours * 60 * 60 * 1000)
+
+      expect(getNextFullMoon(datetime).getTime()).toBeGreaterThan(datetime.getTime())
+    }
+  })
 })
 
 /*****************************************************************************************************************/
