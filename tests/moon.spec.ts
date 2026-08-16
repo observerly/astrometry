@@ -475,6 +475,24 @@ describe('getNextNewMoon', () => {
     const nextNewMoon = getNextNewMoon(datetime)
     expect(nextNewMoon.toISOString()).toBe('2021-06-10T10:54:20.000Z')
   })
+
+  it('should return a new Moon that is still to come for a datetime just after one', () => {
+    // The Moon reads as new for ~22 hours about the syzygy, and so a datetime within that window
+    // but beyond the syzygy resolved the new Moon that had already passed:
+    const passed = new Date('2024-09-03T02:35:30.000Z')
+
+    for (const hours of [1, 6, 12, 18]) {
+      const datetime = new Date(passed.getTime() + hours * 60 * 60 * 1000)
+
+      expect(getNextNewMoon(datetime).getTime()).toBeGreaterThan(datetime.getTime())
+    }
+  })
+
+  it('should return the imminent new Moon for a datetime just before one', () => {
+    const datetime = new Date('2024-09-02T23:00:00.000Z')
+
+    expect(getNextNewMoon(datetime).toISOString()).toBe('2024-09-03T02:35:30.000Z')
+  })
 })
 
 /*****************************************************************************************************************/

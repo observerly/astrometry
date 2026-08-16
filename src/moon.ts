@@ -918,8 +918,11 @@ export const isNewMoon = (datetime: Date): boolean => getLunarPhase(datetime) ==
  * @returns The date of the next new Moon.
  */
 export const getNextNewMoon = (datetime: Date): Date => {
-  // Amend the date to midnight on the given date:
-  let date = new Date(new Date(datetime).setHours(0, 0, 0, 0))
+  // The search begins at the datetime given, and not at the midnight before it: the midnight of
+  // the host system is not the midnight of UTC, and so the search would begin at an instant that
+  // depends on where the host is, and it would resolve a new Moon that has already passed earlier
+  // on the same day as the one that follows it:
+  let date = new Date(datetime)
 
   // The maximum number of days in a synodic month is 29, so if we increment the
   // date by 1 hour until we reach a new Moon, we will eventually reach
@@ -965,6 +968,14 @@ export const getNextNewMoon = (datetime: Date): Date => {
       // The threshold can be adjusted based on specific needs
       break
     }
+  }
+
+  // The Moon reads as new over a window of ~22 hours centred on the syzygy, and so the datetime
+  // given may lie within it but beyond the syzygy itself, e.g., the new Moon resolved from it has
+  // already passed. The search resumes two days on, which clears the remainder of that window, for
+  // the new Moon that follows it:
+  if (newMoon <= datetime) {
+    return getNextNewMoon(new Date(newMoon.getTime() + 2 * 24 * 60 * 60 * 1000))
   }
 
   return newMoon
