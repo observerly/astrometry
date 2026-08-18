@@ -382,7 +382,12 @@ export const getBodyTransit = (
  * @param observer - The geographic coordinate of the observer.
  * @param target - The equatorial coordinate of the observed object.
  * @param horizon - The observer's horizon (in degrees).
- * @returns The next rise time or False if the object never rises, or True if the object is always above the horizon (circumpolar) for the observer.
+ * @returns The next rise of the object, or false where it never rises.
+ *
+ * N.B. A body that never rises is returned as false whether it is always above the horizon of the
+ * observer, e.g., it is circumpolar, or never above it, e.g., it is never visible: there is no
+ * rise to return in either case. Which of the two it is is resolved by isBodyCircumpolar() and by
+ * isBodyVisible().
  */
 export const getBodyNextRise = (
   datetime: Date,
@@ -450,14 +455,20 @@ export const getBodyNextRise = (
  * @param observer - The geographic coordinate of the observer.
  * @param target - The equatorial coordinate of the observed object.
  * @param horizon - The observer's horizon (in degrees).
- * @returns The next set time or False if the object never sets, or True if the object is always above the horizon (circumpolar) for the observer.
+ * @returns The next set of the object, or false where it never sets.
+ *
+ * N.B. A body that never sets is returned as false whether it is always above the horizon of the
+ * observer, e.g., it is circumpolar, or never above it, e.g., it is never visible: there is no set
+ * to return in either case, and so the two are not distinguished by a return that is otherwise
+ * truthy but carries no set, e.g., the caller may take any truthy return to be a set. Which of the
+ * two it is is resolved by isBodyCircumpolar() and by isBodyVisible().
  */
 export const getBodyNextSet = (
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
   horizon = 0
-): TransitInstance | boolean => {
+): TransitInstance | false => {
   const tomorrow = new Date(
     Date.UTC(
       datetime.getUTCFullYear(),
@@ -472,7 +483,7 @@ export const getBodyNextSet = (
 
   // If the object is circumpolar, it never sets:
   if (isBodyCircumpolar(observer, target, horizon)) {
-    return true
+    return false
   }
 
   // If the object is never visible, it never sets:
@@ -488,7 +499,7 @@ export const getBodyNextSet = (
   // horizon is returned above, and so the body here is visible at culmination, and as it never
   // crosses the horizon it is always above it, and therefore never sets:
   if (!transit) {
-    return true
+    return false
   }
 
   const LSTs = transit.LSTs
