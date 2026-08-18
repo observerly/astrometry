@@ -17,11 +17,15 @@ import type {
 
 import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
 
+import { getLunarEquatorialCoordinate } from './moon'
+
 import {
   type Planet,
   getPlanetaryGeocentricEclipticCoordinate,
   getPlanetaryPositions
 } from './planets'
+
+import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
 
 import {
   convertRadiansToDegrees as degrees,
@@ -432,6 +436,139 @@ export const findPlanetaryConjunctions = (
             dec
           }
 
+          conjunctions.set(key, conjunction)
+        }
+      }
+    }
+
+    // Increment the from date by the step size:
+    from = new Date(from.getTime() + stepMinutes * 60000)
+  }
+
+  return conjunctions
+}
+
+/*****************************************************************************************************************/
+
+// The equatorial coordinate, of the standard epoch, of Spica, α Virginis, which lies ~2° south of
+// the ecliptic, and which the Moon and the planets therefore pass close to:
+const SPICA: EquatorialCoordinate = { ra: 201.298, dec: -11.1613 }
+
+/*****************************************************************************************************************/
+
+// The equatorial coordinate, of the standard epoch, of Regulus, α Leonis, which lies ~0.5° north of
+// the ecliptic, and which the Moon and the planets therefore pass close to:
+const REGULUS: EquatorialCoordinate = { ra: 152.093, dec: 11.9672 }
+
+/*****************************************************************************************************************/
+
+/**
+ * findConjunctions
+ *
+ * Finds all conjunctions of the planets, the Moon, Spica and Regulus within a given time interval,
+ * returning only those that are in conjunction with each other (as determined by the angular
+ * separation threshold).
+ *
+ * @param interval - The interval to search for the initial conjunction.
+ * @param observer - The geographic coordinate of the observer.
+ * @param horizon - The minimum altitude of the targets above the horizon.
+ * @param angularSeparationThreshold - The minimum angular separation for conjunction.
+ * @param stepMinutes - The step size in minutes for checking conjunction.
+ * @throws An error if the step size is not finite, or is not greater than zero.
+ * @returns The closest conjunction found for each pair of targets, keyed by their names.
+ *
+ */
+export const findConjunctions = (
+  interval: Interval,
+  observer: GeographicCoordinate,
+  params: {
+    horizon?: number // six degrees above the horizon
+    angularSeparationThreshold?: number // three degrees of separation
+    stepMinutes?: number // check every 1/3 hour
+  } = {
+    horizon: 6,
+    angularSeparationThreshold: ANGULAR_SEPARATION_THRESHOLD,
+    stepMinutes: 20
+  }
+): Map<string, Conjunction> => {
+  // A conjunction is a close apparent approach of two celestial objects in the sky.
+  const conjunctions = new Map<string, Conjunction>()
+
+  // The start of the interval is carried forward by the step as it is traversed, while the end of
+  // it is not, and so the two are taken separately:
+  let from = interval.from
+
+  const to = interval.to
+
+  const {
+    horizon = 6,
+    angularSeparationThreshold = ANGULAR_SEPARATION_THRESHOLD,
+    stepMinutes = 20
+  } = params
+
+  // A step of zero (or less) would never advance through the interval, and would therefore
+  // search for a conjunction indefinitely:
+  if (!Number.isFinite(stepMinutes) || stepMinutes <= 0) {
+    throw new Error('Invalid step: stepMinutes must be finite and greater than zero')
+  }
+
+  while (from <= to) {
+    const moon = getLunarEquatorialCoordinate(from)
+
+    // The coordinates of the stars are of the standard epoch, and so they are precessed to the
+    // epoch of the observation: the equinox carries them by ~22 arcminutes over the quarter
+    // century from J2000, which is an appreciable fraction of the separation a conjunction is
+    // resolved at:
+    const stars = (
+      [
+        ['Spica', SPICA],
+        ['Regulus', REGULUS]
+      ] as const
+    ).map(([name, star]) => {
+      const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(from, star)
+
+      const target = { ra: star.ra + precession.ra, dec: star.dec + precession.dec }
+
+      return { name, ...target, ...convertEquatorialToHorizontal(from, observer, target) }
+    })
+
+    // Collate the positions of all planets other than Earth, of the Moon, and of the stars. They
+    // may be in conjunction, but they won't be visible to our local observer if they are below
+    // the horizon, which isConjunction() rejects below:
+    const positions: Target[] = [
+      ...getPlanetaryPositions(from, observer),
+      {
+        name: 'Moon',
+        ...moon,
+        ...convertEquatorialToHorizontal(from, observer, moon)
+      },
+      ...stars
+    ]
+
+    // Loop over all pairs of targets and check for conjunctions:
+    for (let i = 0; i < positions.length; i++) {
+      for (let j = i + 1; j < positions.length; j++) {
+        const alterior = positions[i]
+
+        const ulterior = positions[j]
+
+        // Create a unique key for the conjunction between the two targets, sorted by name:
+        const key = [alterior.name, ulterior.name].sort().join('-')
+
+        const conjunction = isConjunction(from, [alterior, ulterior], {
+          horizon,
+          angularSeparationThreshold
+        })
+
+        // The closest approach of the pair resolved so far, if the pair has been in conjunction
+        // at an earlier step of the interval:
+        const closest = conjunctions.get(key)
+
+        // Update the conjunction where it is the closest approach of the pair found so far:
+        if (
+          conjunction &&
+          (!closest || closest.angularSeparation > conjunction.angularSeparation)
+        ) {
           conjunctions.set(key, conjunction)
         }
       }

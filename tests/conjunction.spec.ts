@@ -15,9 +15,11 @@ import {
   convertEclipticToEquatorial,
   convertEquatorialToHorizontal,
   findConjunction,
+  findConjunctions,
   findPlanetaryConjunction,
   findPlanetaryConjunctions,
   getLunarEquatorialCoordinate,
+  getCorrectionToEquatorialForPrecessionOfEquinoxes,
   getMidpointEquatorialCoordinate,
   getPlanetaryGeocentricEclipticCoordinate,
   isConjunction,
@@ -429,6 +431,143 @@ describe('findPlanetaryConjunctions()', () => {
     expect(conjunction.targets).toHaveLength(2)
     expect(conjunction.targets[0].name).toBe('Venus')
     expect(conjunction.targets[1].name).toBe('Jupiter')
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('findConjunctions()', () => {
+  it('should be defined', () => {
+    expect(findConjunctions).toBeDefined()
+  })
+
+  it('should find the conjunctions of the planets, the Moon and the stars over an interval', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    const conjunctions = findConjunctions(
+      {
+        from: datetime,
+        to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24 * 7)
+      },
+      { latitude, longitude }
+    )
+
+    expect(conjunctions).toBeDefined()
+    expect(conjunctions.size).toBeGreaterThan(0)
+
+    for (const [key, conjunction] of conjunctions) {
+      // The key is the names of the two targets, sorted, and so it identifies the pair:
+      expect(key).toBe([conjunction.targets[0].name, conjunction.targets[1].name].sort().join('-'))
+
+      expect(conjunction.angularSeparation).toBeLessThanOrEqual(3)
+
+      expect(Number.isFinite(conjunction.ra)).toBe(true)
+      expect(Number.isFinite(conjunction.dec)).toBe(true)
+    }
+  })
+
+  it('should resolve the Moon and the stars as well as the planets', () => {
+    // The Moon travels the whole ecliptic in a month, and so over a month it passes close to one
+    // of the planets, or to Spica or to Regulus, e.g., the targets beyond the planets are
+    // resolved and are not omitted from the search:
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    const conjunctions = findConjunctions(
+      {
+        from: datetime,
+        to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24 * 30)
+      },
+      { latitude, longitude }
+    )
+
+    const names = new Set(
+      Array.from(conjunctions.values()).flatMap(({ targets }) => targets.map(({ name }) => name))
+    )
+
+    expect(names.has('Moon') || names.has('Spica') || names.has('Regulus')).toBe(true)
+  })
+
+  it('should resolve the midpoint of a pair that straddles the zero of right ascension', () => {
+    // The midpoint is taken on the celestial sphere, and not as the mean of the two right
+    // ascensions, which places a pair either side of 0h at the opposite side of the sky:
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    const conjunctions = findConjunctions(
+      {
+        from: datetime,
+        to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24 * 30)
+      },
+      { latitude, longitude }
+    )
+
+    for (const conjunction of conjunctions.values()) {
+      const [hither, tither] = conjunction.targets
+
+      const { ra, dec } = getMidpointEquatorialCoordinate(hither, tither)
+
+      expect(conjunction.ra).toBeCloseTo(ra, 9)
+      expect(conjunction.dec).toBeCloseTo(dec, 9)
+    }
+  })
+
+  it('should precess the stars to the epoch of the observation', () => {
+    // Mercury passes within a quarter of a degree of Regulus on the 28th of July 2023. The
+    // coordinates of Regulus are of the standard epoch, and the equinox carries it ~19 arcminutes
+    // over the interval to 2023, which is an appreciable fraction of the 3° the conjunction is
+    // resolved at, and so the star is precessed to the epoch of the observation:
+    const datetime = new Date('2023-07-28T12:00:00Z')
+
+    const conjunctions = findConjunctions(
+      {
+        from: datetime,
+        to: new Date(datetime.getTime() + 1000 * 60 * 60 * 12)
+      },
+      { latitude, longitude }
+    )
+
+    const conjunction = conjunctions.get('Mercury-Regulus')
+
+    expect(conjunction).toBeDefined()
+
+    if (!conjunction) {
+      throw new Error('Conjunction between Mercury & Regulus is not defined')
+    }
+
+    const regulus = conjunction.targets.find(({ name }) => name === 'Regulus')
+
+    expect(regulus).toBeDefined()
+
+    if (!regulus) {
+      throw new Error('Regulus is not among the targets of the conjunction')
+    }
+
+    // The coordinate of Regulus at the standard epoch, e.g., as it is given to the search:
+    const J2000 = { ra: 152.093, dec: 11.9672 }
+
+    const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(
+      conjunction.datetime,
+      J2000
+    )
+
+    expect(regulus.ra).toBeCloseTo(J2000.ra + precession.ra, 9)
+    expect(regulus.dec).toBeCloseTo(J2000.dec + precession.dec, 9)
+
+    // The precession is not negligible against the threshold the conjunction is resolved at:
+    expect(Math.abs(precession.ra)).toBeGreaterThan(0.1)
+  })
+
+  it('should throw for a step size that would never advance through the interval', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    for (const stepMinutes of [0, -20, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() =>
+        findConjunctions(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          { latitude, longitude },
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
   })
 })
 
