@@ -20,6 +20,54 @@ const REFRACTION_ALTITUDE_FLOOR = -1
 
 /*****************************************************************************************************************/
 
+// The reference temperature (in Kelvin) and pressure (in Pascals) that Sæmundsson's formula is
+// stated at, e.g., the conditions the refraction is scaled away from, and not the conditions an
+// observation is taken to be made at, which is DEFAULT_SURFACE_TEMPERATURE below.
+//
+// N.B. The two temperatures are the same, as the default conditions are the conditions the formula
+// is stated at, but they are not the same quantity: a caller that gives conditions of their own
+// displaces the default, and leaves the reference of the formula as it is:
+const SAEMUNDSSON_REFERENCE_TEMPERATURE = 283.15
+
+const SAEMUNDSSON_REFERENCE_PRESSURE = 101325
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * The temperature of the air at the surface of the Earth (in Kelvin) an observation is taken to be
+ * made at where the caller gives none, e.g., 10°C, which is the temperature Sæmundsson's formula
+ * is stated at, and at which the refraction at the horizon is the standard ~34 arcminutes that the
+ * -0.833° altitude of sunrise and sunset is drawn from.
+ *
+ */
+export const DEFAULT_SURFACE_TEMPERATURE = 283.15
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * The pressure of the air at the surface of the Earth (in Pascals) an observation is taken to be
+ * made at where the caller gives none, e.g., one standard atmosphere at sea level.
+ *
+ */
+export const DEFAULT_SURFACE_PRESSURE = 101325
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * The humidity of the air at the surface of the Earth an observation is taken to be made at where
+ * the caller gives none, e.g., dry air.
+ *
+ * N.B. The humidity is the partial pressure of water vapour in the air (in Pascals), and is not a
+ * relative humidity, e.g., it is a fraction of the pressure of the air and not of its saturation.
+ *
+ */
+export const DEFAULT_SURFACE_HUMIDITY = 0
+
+/*****************************************************************************************************************/
+
 /**
  *
  * getRefraction()
@@ -43,8 +91,8 @@ const REFRACTION_ALTITUDE_FLOOR = -1
  */
 export const getRefraction = (
   target: HorizontalCoordinate,
-  temperature = 283.15,
-  pressure = 101325
+  temperature = DEFAULT_SURFACE_TEMPERATURE,
+  pressure = DEFAULT_SURFACE_PRESSURE
 ): number => {
   const { alt } = target
 
@@ -61,7 +109,10 @@ export const getRefraction = (
   const T = temperature
 
   // Get the atmospheric refraction in degrees, corrected for temperature and pressure:
-  const R = (1.02 / Math.tan(radians(alt + 10.3 / (alt + 5.11))) / 60) * (P / 101325) * (283.15 / T)
+  const R =
+    (1.02 / Math.tan(radians(alt + 10.3 / (alt + 5.11))) / 60) *
+    (P / SAEMUNDSSON_REFERENCE_PRESSURE) *
+    (SAEMUNDSSON_REFERENCE_TEMPERATURE / T)
 
   return R
 }
@@ -83,8 +134,8 @@ export const getRefraction = (
  */
 export const getCorrectionToHorizontalForRefraction = (
   target: HorizontalCoordinate,
-  temperature = 283.15,
-  pressure = 101325
+  temperature = DEFAULT_SURFACE_TEMPERATURE,
+  pressure = DEFAULT_SURFACE_PRESSURE
 ): HorizontalCoordinate => {
   const { alt, az } = target
 
@@ -159,9 +210,9 @@ export const getAirmass = (target: HorizontalCoordinate): number => {
  */
 export const getAirRefractiveIndex = (
   wavelength = 550,
-  temperature = 283.15,
-  pressure = 101325,
-  humidity = 0
+  temperature = DEFAULT_SURFACE_TEMPERATURE,
+  pressure = DEFAULT_SURFACE_PRESSURE,
+  humidity = DEFAULT_SURFACE_HUMIDITY
 ): number => {
   // Outside of the bounds of the equation the dispersion terms are singular, and the
   // refractive index is no longer physical:

@@ -12,6 +12,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   convertEquatorialToHorizontal,
+  DEFAULT_SURFACE_PRESSURE,
+  DEFAULT_SURFACE_TEMPERATURE,
   getCorrectionToHorizontalForRefraction,
   getGeneralizedSolarTransit,
   getNight,
@@ -119,9 +121,9 @@ describe('getSolarTransit', () => {
     expect(noon).toBeInstanceOf(Date)
     expect(sunset).toBeInstanceOf(Date)
 
-    expect(sunrise?.toISOString()).toBe('2021-05-14T04:42:51.771Z')
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:42:46.660Z')
     expect(noon?.toISOString()).toBe('2021-05-14T12:21:40.985Z')
-    expect(sunset?.toISOString()).toBe('2021-05-14T20:01:17.846Z')
+    expect(sunset?.toISOString()).toBe('2021-05-14T20:01:23.035Z')
   })
 
   it('should return the correct solar transit for the observer at a horizon of -6 degrees', () => {
@@ -202,8 +204,8 @@ describe('getNight', () => {
     expect(start).toBeInstanceOf(Date)
     expect(end).toBeInstanceOf(Date)
 
-    expect(start?.toISOString()).toBe('2021-05-14T20:01:17.846Z')
-    expect(end?.toISOString()).toBe('2021-05-15T04:41:28.735Z')
+    expect(start?.toISOString()).toBe('2021-05-14T20:01:23.035Z')
+    expect(end?.toISOString()).toBe('2021-05-15T04:41:23.541Z')
   })
 
   it('should return the correct night for the observer at a horizon of -18 degrees', () => {
@@ -332,8 +334,8 @@ describe('getSolarTransit at the horizon given by the caller', () => {
   const altitude = (when: Date, observer: { latitude: number; longitude: number }): number =>
     getCorrectionToHorizontalForRefraction(
       convertEquatorialToHorizontal(when, observer, getSolarEquatorialCoordinate(when)),
-      288.15,
-      101325
+      DEFAULT_SURFACE_TEMPERATURE,
+      DEFAULT_SURFACE_PRESSURE
     ).alt
 
   it('should resolve the events at the horizon given, and not at the astronomical horizon', () => {
@@ -387,9 +389,9 @@ describe('getSolarTransit at the horizon given by the caller', () => {
       0
     )
 
-    expect(sunrise?.toISOString()).toBe('2021-02-28T15:12:10.391Z')
+    expect(sunrise?.toISOString()).toBe('2021-02-28T15:10:58.930Z')
     expect(noon).toBeInstanceOf(Date)
-    expect(sunset?.toISOString()).toBe('2021-02-28T17:35:18.389Z')
+    expect(sunset?.toISOString()).toBe('2021-02-28T17:36:30.027Z')
   })
 
   it('should resolve a grazing rise the estimated noon samples on the wrong side of', () => {
