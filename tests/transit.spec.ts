@@ -775,7 +775,7 @@ describe('getBodyNextSet', () => {
     expect(set.datetime).toStrictEqual(new Date('2021-05-15T05:50:58.753Z'))
   })
 
-  it('should return true, and not recurse indefinitely, for an object that has no transit', () => {
+  it('should return no set, and not recurse indefinitely, for an object that has no transit', () => {
     // The object circles the south celestial pole, which lies on the horizon of an observer at the
     // equator, and so it stays within 5° of the horizon and never crosses one that is depressed to
     // -12°. It is therefore always above that horizon, and so it never sets:
@@ -789,7 +789,43 @@ describe('getBodyNextSet', () => {
         { ra: 100, dec: -85 },
         -12
       )
-    ).toBe(true)
+    ).toBe(false)
+  })
+
+  it('should return no set for a visible object that has no transit at its horizon', () => {
+    // At a latitude of -89° the object is neither circumpolar nor never visible, but it does not
+    // resolve a transit at the horizon given, e.g., there is no set to return:
+    const set = getBodyNextSet(datetime, { latitude: -89, longitude: 0 }, { ra: 100, dec: -1 }, 0)
+
+    expect(set).toBe(false)
+  })
+
+  it('should return no set for a circumpolar object', () => {
+    // Polaris is circumpolar for an observer at a northern latitude, e.g., it is always above the
+    // horizon, and so it never sets:
+    const set = getBodyNextSet(datetime, { latitude: 60, longitude: 0 }, polaris)
+
+    expect(set).toBe(false)
+  })
+
+  it('should return no set for an object that is never visible', () => {
+    // Sigma Octantis circles the south celestial pole, and so it never rises for an observer at a
+    // northern latitude, e.g., it is never above the horizon, and so it never sets either:
+    const set = getBodyNextSet(datetime, { latitude: 60, longitude: 0 }, sigmaOctantis)
+
+    expect(set).toBe(false)
+  })
+
+  it('should not return a set that carries no datetime', () => {
+    // A body that never sets is returned as false, and not as a return that is otherwise truthy,
+    // and so a caller may take any truthy return to be a set and read the datetime from it:
+    for (const target of [polaris, sigmaOctantis, betelgeuse]) {
+      const set = getBodyNextSet(datetime, { latitude: 60, longitude: 0 }, target)
+
+      if (set) {
+        expect(set.datetime).toBeInstanceOf(Date)
+      }
+    }
   })
 })
 
