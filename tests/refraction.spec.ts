@@ -11,6 +11,9 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  DEFAULT_SURFACE_HUMIDITY,
+  DEFAULT_SURFACE_PRESSURE,
+  DEFAULT_SURFACE_TEMPERATURE,
   type EquatorialCoordinate,
   convertEquatorialToHorizontal,
   getAirRefractiveIndex,
@@ -305,6 +308,49 @@ describe('getAirRefractiveIndex', () => {
     expect(() => getAirRefractiveIndex(300, 293.15, 101325, 0)).not.toThrow()
     expect(() => getAirRefractiveIndex(1700, 293.15, 101325, 1333)).not.toThrow()
     expect(() => getAirRefractiveIndex(550, 293.15, 0, 0)).not.toThrow()
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('the default conditions at the surface', () => {
+  it('should be the conditions Sæmundsson\'s formula is stated at', () => {
+    // The default temperature is the temperature the formula is stated at, e.g., the refraction at
+    // the default conditions is the standard ~34 arcminutes at the horizon that the -0.833° of
+    // sunrise and sunset is drawn from, and so a caller that gives no conditions is not returned a
+    // refraction that disagrees with that convention:
+    expect(DEFAULT_SURFACE_TEMPERATURE).toBe(283.15)
+    expect(DEFAULT_SURFACE_PRESSURE).toBe(101325)
+
+    // The humidity is the partial pressure of water vapour in the air, e.g., the air is dry:
+    expect(DEFAULT_SURFACE_HUMIDITY).toBe(0)
+  })
+
+  it('should be what every function of the module falls back to', () => {
+    // The conditions are resolved once, and so a function that is given them explicitly agrees
+    // with the same function given none, e.g., the modules cannot drift apart again:
+    const target = { alt: 10, az: 0 }
+
+    expect(getRefraction(target)).toBe(
+      getRefraction(target, DEFAULT_SURFACE_TEMPERATURE, DEFAULT_SURFACE_PRESSURE)
+    )
+
+    expect(getCorrectionToHorizontalForRefraction(target)).toEqual(
+      getCorrectionToHorizontalForRefraction(
+        target,
+        DEFAULT_SURFACE_TEMPERATURE,
+        DEFAULT_SURFACE_PRESSURE
+      )
+    )
+
+    expect(getAirRefractiveIndex()).toBe(
+      getAirRefractiveIndex(
+        550,
+        DEFAULT_SURFACE_TEMPERATURE,
+        DEFAULT_SURFACE_PRESSURE,
+        DEFAULT_SURFACE_HUMIDITY
+      )
+    )
   })
 })
 
