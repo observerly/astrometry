@@ -14,7 +14,11 @@ import { getJulianDate } from './epoch'
 
 import { getLocalHorizon } from './observer'
 
-import { getCorrectionToHorizontalForRefraction } from './refraction'
+import {
+  DEFAULT_SURFACE_PRESSURE,
+  DEFAULT_SURFACE_TEMPERATURE,
+  getCorrectionToHorizontalForRefraction
+} from './refraction'
 
 import { getSolarEquatorialCoordinate } from './sun'
 
@@ -110,8 +114,8 @@ export const getSolarTransit = (
   datetime: Date,
   observer: GeographicCoordinate,
   horizon = -12,
-  temperature = 288.15,
-  pressure = 101325
+  temperature = DEFAULT_SURFACE_TEMPERATURE,
+  pressure = DEFAULT_SURFACE_PRESSURE
 ): {
   sunrise: Date | null
   noon: Date | null
@@ -242,8 +246,8 @@ export const getNight = (
   datetime: Date,
   observer: GeographicCoordinate,
   horizon = -12,
-  temperature = 288.15,
-  pressure = 101325
+  temperature = DEFAULT_SURFACE_TEMPERATURE,
+  pressure = DEFAULT_SURFACE_PRESSURE
 ): {
   start: Date | null
   end: Date | null
@@ -271,8 +275,8 @@ export const isNight = (
   datetime: Date,
   observer: GeographicCoordinate,
   horizon = -12,
-  temperature = 288.15,
-  pressure = 101325
+  temperature = DEFAULT_SURFACE_TEMPERATURE,
+  pressure = DEFAULT_SURFACE_PRESSURE
 ): boolean => {
   // The altitude the night is resolved at, e.g., the horizon given by the caller, depressed
   // below the astronomical horizon by the elevation of the observer:
