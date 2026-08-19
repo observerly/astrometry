@@ -55,6 +55,7 @@ const modules = [
   'time',
   'transit',
   'twilight',
+  'utilities',
   'wcs'
 ] as const
 

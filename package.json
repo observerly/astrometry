@@ -221,6 +221,11 @@
       "require": "./dist/twilight.cjs",
       "types": "./dist/twilight.d.ts"
     },
+    "./utilities": {
+      "import": "./dist/utilities.js",
+      "require": "./dist/utilities.cjs",
+      "types": "./dist/utilities.d.ts"
+    },
     "./wcs": {
       "import": "./dist/wcs.js",
       "require": "./dist/wcs.cjs",
