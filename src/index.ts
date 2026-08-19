@@ -42,6 +42,7 @@ export * from './temporal'
 export * from './time'
 export * from './transit'
 export * from './twilight'
+export * from './utilities'
 export * from './wcs'
 
 /*****************************************************************************************************************/
