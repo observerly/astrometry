@@ -46,6 +46,11 @@
       "require": "./dist/aberration.cjs",
       "types": "./dist/aberration.d.ts"
     },
+    "./apparent": {
+      "import": "./dist/apparent.js",
+      "require": "./dist/apparent.cjs",
+      "types": "./dist/apparent.d.ts"
+    },
     "./astrometry": {
       "import": "./dist/astrometry.js",
       "require": "./dist/astrometry.cjs",

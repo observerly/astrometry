@@ -20,6 +20,7 @@ import { resolve } from 'path'
 
 const modules = [
   'aberration',
+  'apparent',
   'astrometry',
   'common',
   'conjunction',
