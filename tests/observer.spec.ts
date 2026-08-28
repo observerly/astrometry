@@ -12,8 +12,10 @@ import {
   getCorrectionToEquatorialForDiurnalAberration,
   getCorrectionToEquatorialForVelocityAberration,
   getGeocentricRotationalVelocity,
+  getGeographicCoordinate,
   getLocalHorizon,
   getLocalSiderealTime,
+  type GeographicCoordinateAtEpoch,
   type Observer
 } from '../src'
 
@@ -178,6 +180,47 @@ describe('getGeocentricRotationalVelocity', () => {
 
     expect(resolved.ra).toBeCloseTo(diurnal.ra, 8)
     expect(resolved.dec).toBeCloseTo(diurnal.dec, 8)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getGeographicCoordinate', () => {
+  const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+
+  const observer = { latitude, longitude, elevation }
+
+  it('should be defined', () => {
+    expect(getGeographicCoordinate).toBeDefined()
+  })
+
+  it('should return an observer given as a coordinate as they are', () => {
+    expect(getGeographicCoordinate(datetime, observer)).toBe(observer)
+  })
+
+  it('should resolve an observer given as a coordinate at an epoch for the datetime', () => {
+    const ephemeris: GeographicCoordinateAtEpoch = when => ({
+      latitude: when.getUTCFullYear() === 2021 ? latitude : 0,
+      longitude
+    })
+
+    expect(getGeographicCoordinate(datetime, ephemeris)).toEqual({ latitude, longitude })
+  })
+
+  it('should not carry a mutation of the datetime by the function into the caller', () => {
+    // The function is the caller's code, and a Date is mutable, and so a function that mutates
+    // the one it is given must not change the datetime of the caller:
+    const hostile: GeographicCoordinateAtEpoch = when => {
+      when.setTime(0)
+
+      return observer
+    }
+
+    const when = new Date(datetime.getTime())
+
+    getGeographicCoordinate(when, hostile)
+
+    expect(when.getTime()).toBe(datetime.getTime())
   })
 })
 

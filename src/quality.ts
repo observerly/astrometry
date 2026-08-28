@@ -10,7 +10,12 @@ import { getCorrectionToEquatorialForAnnualAberration } from './aberration'
 
 import { getAngularSeparation, getNormalisedSphericalCoordinate } from './astrometry'
 
-import type { EquatorialCoordinate, GeographicCoordinate, Interval } from './common'
+import type {
+  EquatorialCoordinate,
+  GeographicCoordinate,
+  GeographicCoordinateAtEpoch,
+  Interval
+} from './common'
 
 import {
   type Constraint,
@@ -26,6 +31,8 @@ import { convertEquatorialToHorizontal } from './coordinates'
 import { getLunarEquatorialCoordinate, getLunarIllumination } from './moon'
 
 import { getCorrectionToEquatorialForNutation } from './nutation'
+
+import { getGeographicCoordinate } from './observer'
 
 import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
 
@@ -44,15 +51,19 @@ import { getSolarEquatorialCoordinate } from './sun'
  * separation, for the given datetime.
  *
  * @param datetime - The date and time of the observation.
- * @param observer - The geographic coordinates of the observer.
+ * @param observer - The geographic coordinates of the observer, or their coordinate as a function of the epoch, e.g., a spacecraft.
  * @param target - The equatorial coordinates of the target object (at J2000.0).
  * @returns The resolved constraint context for the observation.
  */
 const getConstraintContext = (
   datetime: Date,
-  observer: GeographicCoordinate,
+  observer: GeographicCoordinate | GeographicCoordinateAtEpoch,
   target: EquatorialCoordinate
 ): ConstraintContext => {
+  // The observer may be given as a coordinate at an epoch, e.g., a spacecraft, and so their
+  // geographic coordinate is resolved for the datetime of the observation:
+  observer = getGeographicCoordinate(datetime, observer)
+
   // Correct the target's equatorial coordinates to the epoch of date:
   const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, target)
 
@@ -192,7 +203,7 @@ export type ObservationalQuality = {
  * returned such that the failing constraint may be identified.
  *
  * @param datetime - The date and time of the observation.
- * @param observer - The geographic coordinates of the observer.
+ * @param observer - The geographic coordinates of the observer, or their coordinate as a function of the epoch, e.g., a spacecraft.
  * @param target - The equatorial coordinates of the target object (at J2000.0).
  * @param constraints - The constraints to evaluate (defaults to target altitude, Sun altitude and
  * Moon separation).
@@ -201,7 +212,7 @@ export type ObservationalQuality = {
  */
 export const getObservationalQuality = (
   datetime: Date,
-  observer: GeographicCoordinate,
+  observer: GeographicCoordinate | GeographicCoordinateAtEpoch,
   target: EquatorialCoordinate,
   constraints: Constraint[] = [
     new TargetAltitudeConstraint(),
@@ -300,7 +311,7 @@ export type ObservationalQualityWindow = {
  * by their quality.
  *
  * @param interval - The interval over which to resolve the windows, e.g., the coming night.
- * @param observer - The geographic coordinates of the observer.
+ * @param observer - The geographic coordinates of the observer, or their coordinate as a function of the epoch, e.g., a spacecraft.
  * @param target - The equatorial coordinates of the target object (at J2000.0).
  * @param constraints - The constraints to evaluate (defaults to target altitude, Sun altitude and
  * Moon separation).
@@ -310,7 +321,7 @@ export type ObservationalQualityWindow = {
  */
 export const getObservationalQualityWindows = (
   interval: Interval,
-  observer: GeographicCoordinate,
+  observer: GeographicCoordinate | GeographicCoordinateAtEpoch,
   target: EquatorialCoordinate,
   constraints: Constraint[] = [
     new TargetAltitudeConstraint(),
@@ -421,7 +432,7 @@ export type ObservationalQualityRank<T extends EquatorialCoordinate> = Observati
  * order they were given in.
  *
  * @param datetime - The date and time of the observation.
- * @param observer - The geographic coordinates of the observer.
+ * @param observer - The geographic coordinates of the observer, or their coordinate as a function of the epoch, e.g., a spacecraft.
  * @param targets - The equatorial coordinates of the target objects (at J2000.0).
  * @param constraints - The constraints to evaluate (defaults to target altitude, Sun altitude and
  * Moon separation).
@@ -430,7 +441,7 @@ export type ObservationalQualityRank<T extends EquatorialCoordinate> = Observati
  */
 export const getObservationalQualityRanking = <T extends EquatorialCoordinate>(
   datetime: Date,
-  observer: GeographicCoordinate,
+  observer: GeographicCoordinate | GeographicCoordinateAtEpoch,
   targets: T[],
   constraints: Constraint[] = [
     new TargetAltitudeConstraint(),
@@ -438,6 +449,12 @@ export const getObservationalQualityRanking = <T extends EquatorialCoordinate>(
     new MoonSeparationConstraint()
   ]
 ): ObservationalQualityRank<T>[] => {
+  // The ranking scores every target at the one datetime, and so an observer given as a coordinate
+  // at an epoch is resolved once for the whole of it, and not once per target, e.g., the
+  // resolution may be expensive, and every target must be scored from the one coordinate either
+  // way:
+  observer = getGeographicCoordinate(datetime, observer)
+
   // Score every target with the same set of constraints:
   const ranks = targets.map(target => ({
     target,

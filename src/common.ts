@@ -290,6 +290,20 @@ export type Hemisphere = 'Northern' | 'Southern'
 
 /*****************************************************************************************************************/
 
+/**
+ *
+ * The geographic coordinate of an observer as a function of the epoch of the observation, e.g.,
+ * a spacecraft, whose sub-satellite point and elevation are resolved from its ephemeris for each
+ * instant an observation is assessed at.
+ *
+ * The ephemeris itself is the caller's, e.g., an orbit propagator, an operational ephemeris file,
+ * or an analytic orbit, and so the assessment is agnostic to how the position is resolved.
+ *
+ */
+export type GeographicCoordinateAtEpoch = (datetime: Date) => GeographicCoordinate
+
+/*****************************************************************************************************************/
+
 export type HorizontalCoordinate = {
   /**
    *
