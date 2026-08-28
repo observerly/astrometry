@@ -10,7 +10,7 @@ import { getHourAngle } from './astrometry'
 
 import type { CartesianCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
 
-import { EARTH_RADIUS, c } from './constants'
+import { EARTH_ANGULAR_VELOCITY, EARTH_RADIUS, c } from './constants'
 
 import { getEccentricityOfOrbit } from './earth'
 
@@ -139,11 +139,8 @@ export const getCorrectionToEquatorialForDiurnalAberration = (
   // Get the hour angle for the target (in radians):
   const ha = radians(getHourAngle(datetime, observer.longitude, target.ra))
 
-  // Earth's angular velocity (in rad/s):
-  const Ω = 7.292115e-5
-
   // Calculate the observer's tangential velocity at the equator due to Earth's rotation (in m/s):
-  const v = Ω * EARTH_RADIUS
+  const v = radians(EARTH_ANGULAR_VELOCITY) * EARTH_RADIUS
 
   // The constant of diurnal aberration, e.g., the ratio of the observer's velocity to the speed of
   // light, which is ~0.32 arcseconds for an observer at the equator (in radians):
