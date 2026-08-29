@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   type CartesianCoordinate,
+  EARTH_ANGULAR_VELOCITY,
   EARTH_RADIUS,
   type EquatorialCoordinate,
   SPEED_OF_LIGHT,
@@ -95,7 +96,7 @@ describe('getCorrectionToEquatorialForDiurnalAberration', () => {
     // The constant of diurnal aberration is ~0.32 arcseconds at the equator, and it is scaled by
     // the cosine of the observer's latitude, and, in right ascension, by the secant of the
     // declination of the target:
-    const k = ((7.292115e-5 * EARTH_RADIUS) / SPEED_OF_LIGHT) * (180 / Math.PI) * 3600
+    const k = ((radians(EARTH_ANGULAR_VELOCITY) * EARTH_RADIUS) / SPEED_OF_LIGHT) * (180 / Math.PI) * 3600
 
     const bound =
       (k * Math.cos(radians(latitude))) / Math.cos(radians(betelgeuse.dec))
@@ -145,7 +146,7 @@ describe('getCorrectionToEquatorialForDiurnalAberration', () => {
       betelgeuse
     )
 
-    const k = ((7.292115e-5 * EARTH_RADIUS) / SPEED_OF_LIGHT) * (180 / Math.PI) * 3600
+    const k = ((radians(EARTH_ANGULAR_VELOCITY) * EARTH_RADIUS) / SPEED_OF_LIGHT) * (180 / Math.PI) * 3600
 
     // The correction in right ascension is at its bound, and the correction in declination, which
     // scales with the sine of the hour angle, vanishes:

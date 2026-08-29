@@ -17,6 +17,19 @@ export const EARTH_RADIUS = 6.3781378e6 as const
 
 /**
  *
+ * The angular velocity of the sidereal rotation of the Earth (in degrees per second), e.g., the
+ * rate at which it turns about its axis against the stars: one whole turn of 360° per sidereal
+ * day of ~86,164.0905 seconds, which is the ~360.9856° it turns through per mean solar day of
+ * 86,400 seconds, as the Earth must turn a little beyond a whole turn for the Sun to return to
+ * the meridian. Equivalent to the 7.292115e-5 radians per second of the IERS.
+ *
+ */
+export const EARTH_ANGULAR_VELOCITY = 0.004178074132240403 as const
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * The Astronomical Unit (AU) is a unit of length defined as the average distance
  * between the Earth and the Sun.
  *

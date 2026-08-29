@@ -8,7 +8,16 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { getLocalHorizon, type Observer } from '../src'
+import {
+  getCorrectionToEquatorialForDiurnalAberration,
+  getCorrectionToEquatorialForVelocityAberration,
+  getGeocentricRotationalVelocity,
+  getLocalHorizon,
+  getLocalSiderealTime,
+  type Observer
+} from '../src'
+
+import { convertDegreesToRadians as radians } from '../src/utilities'
 
 /*****************************************************************************************************************/
 
@@ -90,6 +99,85 @@ describe('getLocalHorizon edge cases', () => {
 
       previous = depression
     }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getGeocentricRotationalVelocity', () => {
+  const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+
+  it('should be defined', () => {
+    expect(getGeocentricRotationalVelocity).toBeDefined()
+  })
+
+  it('should carry an observer at the equator at ~465 metres per second', () => {
+    const velocity = getGeocentricRotationalVelocity(datetime, { latitude: 0, longitude: 0 })
+
+    expect(Math.hypot(velocity.x, velocity.y, velocity.z)).toBeCloseTo(465.1, 1)
+
+    // The rotation carries the observer about the axis, and not along it:
+    expect(velocity.z).toBe(0)
+  })
+
+  it('should vanish for an observer at the poles', () => {
+    for (const latitude of [90, -90]) {
+      const velocity = getGeocentricRotationalVelocity(datetime, { latitude, longitude: 0 })
+
+      expect(Math.hypot(velocity.x, velocity.y, velocity.z)).toBeCloseTo(0, 9)
+    }
+  })
+
+  it('should scale with the distance of the observer from the axis of rotation', () => {
+    const surface = getGeocentricRotationalVelocity(datetime, { latitude, longitude })
+
+    const elevated = getGeocentricRotationalVelocity(datetime, { latitude, longitude, elevation: 400000 })
+
+    const ratio = Math.hypot(elevated.x, elevated.y) / Math.hypot(surface.x, surface.y)
+
+    expect(ratio).toBeCloseTo((6.3781378e6 + 400000) / 6.3781378e6, 9)
+  })
+
+  it('should carry the observer towards the east of their meridian', () => {
+    // The velocity is perpendicular to the direction to the observer, along the direction of
+    // increasing right ascension at their meridian:
+    const velocity = getGeocentricRotationalVelocity(datetime, { latitude, longitude })
+
+    const α = radians(getLocalSiderealTime(datetime, longitude) * 15)
+
+    const φ = radians(latitude)
+
+    // The unit vector of the direction to the observer, in the geocentric equatorial frame:
+    const direction = [Math.cos(φ) * Math.cos(α), Math.cos(φ) * Math.sin(α), Math.sin(φ)]
+
+    const dot = velocity.x * direction[0] + velocity.y * direction[1] + velocity.z * direction[2]
+
+    expect(dot).toBeCloseTo(0, 6)
+
+    // The east at the meridian is the direction of increasing right ascension:
+    const east = [-Math.sin(α), Math.cos(α), 0]
+
+    const along = velocity.x * east[0] + velocity.y * east[1] + velocity.z * east[2]
+
+    expect(along).toBeCloseTo(Math.hypot(velocity.x, velocity.y, velocity.z), 6)
+  })
+
+  it('should resolve the diurnal aberration as the aberration of the velocity', () => {
+    // The diurnal aberration is the aberration of the velocity of the rotation of the Earth
+    // carrying the observer, and so the velocity aberration of this velocity agrees with the
+    // diurnal correction, to within the second order of the two formulations:
+    const observer = { latitude, longitude }
+
+    const betelgeuse = { ra: 88.7929583, dec: 7.4070639 }
+
+    const velocity = getGeocentricRotationalVelocity(datetime, observer)
+
+    const resolved = getCorrectionToEquatorialForVelocityAberration(betelgeuse, velocity)
+
+    const diurnal = getCorrectionToEquatorialForDiurnalAberration(datetime, observer, betelgeuse)
+
+    expect(resolved.ra).toBeCloseTo(diurnal.ra, 8)
+    expect(resolved.dec).toBeCloseTo(diurnal.dec, 8)
   })
 })
 

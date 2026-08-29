@@ -6,11 +6,13 @@
 
 /*****************************************************************************************************************/
 
-import { EARTH_RADIUS } from './constants'
+import { getLocalSiderealTime } from './astrometry'
 
-import type { Observer } from './common'
+import { EARTH_ANGULAR_VELOCITY, EARTH_RADIUS } from './constants'
 
-import { convertRadiansToDegrees } from './utilities'
+import type { CartesianCoordinate, GeographicCoordinate, Observer } from './common'
+
+import { convertRadiansToDegrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -47,6 +49,52 @@ export const getLocalHorizon = (h: number | Observer, k = 0.167): number => {
   // N.B. The depression is the exact angle subtended, and not its small angle approximation,
   // which diverges for elevations that are an appreciable fraction of the radius of the Earth:
   return convertRadiansToDegrees(Math.acos(EARTH_RADIUS / (EARTH_RADIUS + (1 - k) * elevation)))
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getGeocentricRotationalVelocity()
+ *
+ * Calculates the geocentric equatorial velocity of an observer carried by the rotation of the
+ * Earth, e.g., the velocity of an observer at rest at the surface, which carries them towards the
+ * east at up to ~465 metres per second at the equator, and which vanishes at the poles.
+ *
+ * The velocity is resolved in the geocentric equatorial frame, e.g., the frame the velocity of a
+ * spacecraft is resolved in, and so it is the velocity an observer at the surface gives to the
+ * corrections that take one, e.g., the diurnal aberration is the aberration of this velocity.
+ *
+ * @param datetime - The date and time of the observation, which orients the observer about the axis of rotation.
+ * @param observer - The geographic coordinate of the observer.
+ * @returns The geocentric equatorial velocity of the observer (in SI metres per second).
+ *
+ */
+export const getGeocentricRotationalVelocity = (
+  datetime: Date,
+  observer: GeographicCoordinate
+): Required<CartesianCoordinate> => {
+  const { latitude, longitude, elevation = 0 } = observer
+
+  // The distance of the observer from the axis of rotation, e.g., the radius of the parallel the
+  // rotation carries them about (in SI metres):
+  const axial = (EARTH_RADIUS + elevation) * Math.cos(radians(latitude))
+
+  // The speed of the observer along that parallel (in SI metres per second):
+  const speed = radians(EARTH_ANGULAR_VELOCITY) * axial
+
+  // The right ascension of the meridian of the observer, e.g., the Local Sidereal Time of the
+  // observer (in hours, of 15 degrees each):
+  const α = radians(getLocalSiderealTime(datetime, longitude) * 15)
+
+  // The observer is carried towards the east, e.g., along the direction of increasing right
+  // ascension at their meridian, which is perpendicular to both the axis of rotation and the
+  // direction to the observer:
+  return {
+    x: -speed * Math.sin(α),
+    y: speed * Math.cos(α),
+    z: 0
+  }
 }
 
 /*****************************************************************************************************************/
