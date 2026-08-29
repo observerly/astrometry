@@ -17,7 +17,7 @@ import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
 /*****************************************************************************************************************/
 
 import { andromeda } from './constellations/andromeda'
-import { antila } from './constellations/antila'
+import { antlia } from './constellations/antlia'
 import { apus } from './constellations/apus'
 import { aquarius } from './constellations/aquarius'
 import { aquila } from './constellations/aquila'
@@ -96,7 +96,7 @@ import { sextans } from './constellations/sextans'
 import { taurus } from './constellations/taurus'
 import { telescopium } from './constellations/telescopium'
 import { triangulum } from './constellations/triangulum'
-import { triangulumAustralae } from './constellations/triangulumAustralae'
+import { triangulumAustrale } from './constellations/triangulumAustrale'
 import { tucana } from './constellations/tucana'
 import { ursaMajor } from './constellations/ursaMajor'
 import { ursaMinor } from './constellations/ursaMinor'
@@ -109,7 +109,7 @@ import { vulpecula } from './constellations/vulpecula'
 
 export type ConstellationName =
   | 'Andromeda'
-  | 'Antila'
+  | 'Antlia'
   | 'Apus'
   | 'Aquarius'
   | 'Aquila'
@@ -256,12 +256,12 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
     }
   ],
   [
-    'Antila',
+    'Antlia',
     {
-      name: 'Antila',
+      name: 'Antlia',
       meaning: 'The Air Pump',
       abbreviation: 'Ant',
-      feature: antila
+      feature: antlia
     }
   ],
   [
@@ -981,7 +981,7 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
       name: 'Triangulum Australe',
       meaning: 'The Southern Triangle',
       abbreviation: 'TrA',
-      feature: triangulumAustralae
+      feature: triangulumAustrale
     }
   ],
   [

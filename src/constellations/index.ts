@@ -7,7 +7,7 @@
 /*****************************************************************************************************************/
 
 export { andromeda } from './andromeda'
-export { antila } from './antila'
+export { antlia } from './antlia'
 export { apus } from './apus'
 export { aquarius } from './aquarius'
 export { aquila } from './aquila'
@@ -86,7 +86,7 @@ export { sextans } from './sextans'
 export { taurus } from './taurus'
 export { telescopium } from './telescopium'
 export { triangulum } from './triangulum'
-export { triangulumAustralae } from './triangulumAustralae'
+export { triangulumAustrale } from './triangulumAustrale'
 export { tucana } from './tucana'
 export { ursaMajor } from './ursaMajor'
 export { ursaMinor } from './ursaMinor'
