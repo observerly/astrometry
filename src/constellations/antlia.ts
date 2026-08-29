@@ -1,7 +1,7 @@
 /*****************************************************************************************************************/
 
 // @author         Michael Roberts <michael@observerly.com>
-// @package        @observerly/astrometry/antila
+// @package        @observerly/astrometry/antlia
 // @license        Copyright © 2021-2026 observerly
 
 /*****************************************************************************************************************/
@@ -21,12 +21,12 @@ const centrum: EquatorialCoordinate = {
 
 // prettier-ignore
 const aster: number[][][] = [
-  // ι Antilae to α Antilae:
+  // ι Antliae to α Antliae:
   [
     [164.179167, -37.137472],
     [156.788167, -31.067806]
   ],
-  // α Antilae to ε Antilae:
+  // α Antliae to ε Antliae:
   [
     [156.788167, -31.067806],
     [142.311417, -35.951361]
@@ -58,6 +58,6 @@ const boundary: number[][][] = [
 /*****************************************************************************************************************/
 
 // https://www.iau.org/public/themes/constellations/#ant
-export const antila = createConstellationAsGeoJSON('Antila', 'the pump', centrum, aster, boundary)
+export const antlia = createConstellationAsGeoJSON('Antlia', 'the pump', centrum, aster, boundary)
 
 /*****************************************************************************************************************/

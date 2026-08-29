@@ -1,7 +1,7 @@
 /*****************************************************************************************************************/
 
 // @author         Michael Roberts <michael@observerly.com>
-// @package        @observerly/astrometry/triangulumAustralae
+// @package        @observerly/astrometry/triangulumAustrale
 // @license        Copyright © 2021-2026 observerly
 
 /*****************************************************************************************************************/
@@ -68,7 +68,7 @@ const boundaries: number[][][] = [
 /*****************************************************************************************************************/
 
 // https://www.iau.org/public/themes/constellations/#tra
-export const triangulumAustralae = createConstellationAsGeoJSON(
+export const triangulumAustrale = createConstellationAsGeoJSON(
   'Triangulum Australe',
   'the southern triangle',
   centrum,
