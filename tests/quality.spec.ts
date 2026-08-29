@@ -15,6 +15,7 @@ import {
   type ConstraintContext,
   type ConstraintScore,
   convertEquatorialToHorizontal,
+  type GeographicCoordinateAtEpoch,
   type EquatorialCoordinate,
   getCorrectionToEquatorialForAnnualAberration,
   getCorrectionToEquatorialForNutation,
@@ -512,6 +513,122 @@ describe('getObservationalQualityRanking', () => {
 
   it('should return no ranking for no targets', () => {
     expect(getObservationalQualityRanking(datetime, observer, [])).toEqual([])
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getObservationalQuality for an observer given as an ephemeris', () => {
+  it('should agree with the observer given as a coordinate, for an ephemeris that does not move', () => {
+    // An ephemeris that resolves the same coordinate at every datetime is the same observer, and
+    // so every assessment agrees with the coordinate given plainly:
+    const ephemeris: GeographicCoordinateAtEpoch = () => observer
+
+    expect(getObservationalQuality(datetime, ephemeris, betelgeuse)).toEqual(
+      getObservationalQuality(datetime, observer, betelgeuse)
+    )
+
+    const interval = { from: datetime, to: new Date(datetime.getTime() + 6 * 3600000) }
+
+    expect(getObservationalQualityWindows(interval, ephemeris, betelgeuse)).toEqual(
+      getObservationalQualityWindows(interval, observer, betelgeuse)
+    )
+
+    expect(getObservationalQualityRanking(datetime, ephemeris, [betelgeuse])).toEqual(
+      getObservationalQualityRanking(datetime, observer, [betelgeuse])
+    )
+  })
+
+  it('should resolve the observer for the datetime of every sample', () => {
+    // The observer moves, and so their coordinate is resolved for each sampled instant, and not
+    // once for the whole interval:
+    const sampled: Date[] = []
+
+    const ephemeris: GeographicCoordinateAtEpoch = when => {
+      sampled.push(when)
+
+      return observer
+    }
+
+    const interval = { from: datetime, to: new Date(datetime.getTime() + 3600000) }
+
+    getObservationalQualityWindows(interval, ephemeris, betelgeuse, undefined, { stepSeconds: 60 })
+
+    expect(sampled).toHaveLength(60)
+
+    expect(sampled[0].getTime()).toBe(interval.from.getTime())
+
+    expect(sampled[sampled.length - 1].getTime()).toBeLessThan(interval.to.getTime())
+  })
+
+  it('should not carry a mutation of the datetime by the ephemeris into the assessment', () => {
+    // The ephemeris is the caller's code, and a Date is mutable, and so an ephemeris that mutates
+    // the datetime it is given must not change the instant the rest of the context is resolved
+    // at:
+    const hostile: GeographicCoordinateAtEpoch = when => {
+      when.setTime(0)
+
+      return observer
+    }
+
+    expect(getObservationalQuality(datetime, hostile, betelgeuse)).toEqual(
+      getObservationalQuality(datetime, observer, betelgeuse)
+    )
+  })
+
+  it('should resolve the ephemeris once for the whole of a ranking', () => {
+    // The ranking scores every target at the one datetime, and so the ephemeris is resolved once,
+    // and not once per target:
+    let resolutions = 0
+
+    const ephemeris: GeographicCoordinateAtEpoch = () => {
+      resolutions += 1
+
+      return observer
+    }
+
+    const targets = [betelgeuse, { ra: 217.42895, dec: -62.67948 }, { ra: 0, dec: 0 }]
+
+    const ranking = getObservationalQualityRanking(datetime, ephemeris, targets)
+
+    expect(resolutions).toBe(1)
+
+    expect(ranking).toEqual(getObservationalQualityRanking(datetime, observer, targets))
+  })
+
+  it('should follow the observer as they are carried over the horizon of the target', () => {
+    // The observer is carried to the antipode half way through the interval, where a target above
+    // the horizon is below it, and so the window of observability closes at the crossing, to
+    // within a step of the sampling:
+    const interval = { from: datetime, to: new Date(datetime.getTime() + 2 * 3600000) }
+
+    const crossing = new Date(datetime.getTime() + 3600000)
+
+    const antipode = { latitude: -observer.latitude, longitude: observer.longitude + 180 }
+
+    const ephemeris: GeographicCoordinateAtEpoch = when => (when < crossing ? observer : antipode)
+
+    // The target is above the horizon at the observer for the whole of the interval:
+    const windows = getObservationalQualityWindows(interval, ephemeris, betelgeuse, [
+      new TargetAltitudeConstraint({ minimum: 6 })
+    ])
+
+    expect(windows).toHaveLength(1)
+
+    expect(windows[0].interval.from.getTime()).toBe(interval.from.getTime())
+
+    expect(Math.abs(windows[0].interval.to.getTime() - crossing.getTime())).toBeLessThanOrEqual(
+      60000
+    )
+
+    // Whereas the observer that stays put observes the target for the whole of the interval:
+    const stationary = getObservationalQualityWindows(interval, observer, betelgeuse, [
+      new TargetAltitudeConstraint({ minimum: 6 })
+    ])
+
+    expect(stationary).toHaveLength(1)
+
+    expect(stationary[0].interval.to.getTime()).toBe(interval.to.getTime())
   })
 })
 

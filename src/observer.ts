@@ -10,7 +10,12 @@ import { getLocalSiderealTime } from './astrometry'
 
 import { EARTH_ANGULAR_VELOCITY, EARTH_RADIUS } from './constants'
 
-import type { CartesianCoordinate, GeographicCoordinate, Observer } from './common'
+import type {
+  CartesianCoordinate,
+  GeographicCoordinate,
+  GeographicCoordinateAtEpoch,
+  Observer
+} from './common'
 
 import { convertRadiansToDegrees, convertDegreesToRadians as radians } from './utilities'
 
@@ -95,6 +100,32 @@ export const getGeocentricRotationalVelocity = (
     y: speed * Math.cos(α),
     z: 0
   }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getGeographicCoordinate()
+ *
+ * Resolves the geographic coordinate of an observer for the epoch of an observation, e.g., an
+ * observer given as a coordinate is returned as they are, and one given as a coordinate at an
+ * epoch, e.g., a spacecraft resolved from its ephemeris, is resolved for the datetime given.
+ *
+ * N.B. An observer given as a function is the caller's code, and it is given a copy of the
+ * datetime, e.g., a Date is mutable, and a function that mutates the one it is given must not
+ * carry that mutation into the datetime of the caller.
+ *
+ * @param datetime - The date and time of the observation to resolve the observer for.
+ * @param observer - The geographic coordinate of the observer, or their coordinate as a function of the epoch.
+ * @returns The geographic coordinate of the observer at the epoch of the observation.
+ *
+ */
+export const getGeographicCoordinate = (
+  datetime: Date,
+  observer: GeographicCoordinate | GeographicCoordinateAtEpoch
+): GeographicCoordinate => {
+  return typeof observer === 'function' ? observer(new Date(datetime.getTime())) : observer
 }
 
 /*****************************************************************************************************************/
