@@ -15,6 +15,7 @@ import {
   type EquatorialCoordinate,
   convertEclipticToEquatorial,
   convertEquatorialToHorizontal,
+  convertGeocentricToGeographic,
   convertGalacticToEquatorial,
   convertHorizontalToEquatorial,
   getGreenwichSiderealTime
@@ -241,6 +242,139 @@ describe('convertEquatorialToHorizontal for an observer at a celestial pole', ()
 
       expect(Number.isNaN(coordinate.alt)).toBe(true)
       expect(Number.isNaN(coordinate.az)).toBe(true)
+    }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertGeocentricToGeographic', () => {
+  // The position of an observer above the given geographic coordinate, at the given distance from
+  // the center of the Earth, e.g., the inverse of the conversion under test, resolved from the
+  // sidereal rotation of the Earth:
+  const getGeocentricPosition = (
+    datetime: Date,
+    { latitude, longitude }: { latitude: number; longitude: number },
+    distance: number
+  ) => {
+    const α = radians(longitude + getGreenwichSiderealTime(datetime) * 15)
+
+    const φ = radians(latitude)
+
+    return {
+      x: distance * Math.cos(φ) * Math.cos(α),
+      y: distance * Math.cos(φ) * Math.sin(α),
+      z: distance * Math.sin(φ)
+    }
+  }
+
+  it('should be defined', () => {
+    expect(convertGeocentricToGeographic).toBeDefined()
+  })
+
+  it('should resolve a position above the meridian of Greenwich at the equator', () => {
+    const distance = EARTH_RADIUS + 420000
+
+    const position = getGeocentricPosition(datetime, { latitude: 0, longitude: 0 }, distance)
+
+    const { latitude, longitude, elevation } = convertGeocentricToGeographic(datetime, position)
+
+    expect(latitude).toBeCloseTo(0, 9)
+    expect(longitude).toBeCloseTo(0, 9)
+    expect(elevation).toBeCloseTo(420000, 6)
+  })
+
+  it('should resolve a position above the observer at Mauna Kea', () => {
+    const distance = EARTH_RADIUS + 550000
+
+    const position = getGeocentricPosition(datetime, { latitude, longitude }, distance)
+
+    const geographic = convertGeocentricToGeographic(datetime, position)
+
+    expect(geographic.latitude).toBeCloseTo(latitude, 9)
+    expect(geographic.longitude).toBeCloseTo(longitude, 9)
+    expect(geographic.elevation).toBeCloseTo(550000, 6)
+  })
+
+  it('should resolve a position above either pole', () => {
+    for (const sign of [1, -1]) {
+      const { latitude, longitude, elevation } = convertGeocentricToGeographic(datetime, {
+        x: 0,
+        y: 0,
+        z: sign * (EARTH_RADIUS + 420000)
+      })
+
+      expect(latitude).toBeCloseTo(sign * 90, 9)
+      expect(Number.isFinite(longitude)).toBe(true)
+      expect(elevation).toBeCloseTo(420000, 6)
+    }
+  })
+
+  it('should resolve the longitude the shorter way about the sphere', () => {
+    const distance = EARTH_RADIUS + 420000
+
+    for (const meridian of [179.5, -179.5, 90, -90]) {
+      const position = getGeocentricPosition(datetime, { latitude: 0, longitude: meridian }, distance)
+
+      const { longitude } = convertGeocentricToGeographic(datetime, position)
+
+      expect(longitude).toBeCloseTo(meridian, 9)
+      expect(longitude).toBeGreaterThanOrEqual(-180)
+      expect(longitude).toBeLessThan(180)
+    }
+  })
+
+  it('should take the elevation above the radius given', () => {
+    // An observer of a different figure of the Earth gives the radius of it, e.g., the WGS84
+    // equatorial radius, and the elevation is taken above that radius:
+    const radius = 6378137
+
+    const position = getGeocentricPosition(datetime, { latitude: 0, longitude: 0 }, radius + 420000)
+
+    const { elevation } = convertGeocentricToGeographic(datetime, position, radius)
+
+    expect(elevation).toBeCloseTo(420000, 6)
+  })
+
+  it('should resolve the elevation of a geostationary observer', () => {
+    const distance = 42164000
+
+    const position = getGeocentricPosition(datetime, { latitude: 0, longitude: 100 }, distance)
+
+    const { elevation } = convertGeocentricToGeographic(datetime, position)
+
+    expect(elevation).toBeCloseTo(distance - EARTH_RADIUS, 6)
+  })
+
+  it('should throw for a position with a component that is not finite', () => {
+    for (const position of [
+      { x: Number.NaN, y: 0, z: 0 },
+      { x: 0, y: Number.POSITIVE_INFINITY, z: 0 },
+      { x: 0, y: 0, z: Number.NEGATIVE_INFINITY }
+    ]) {
+      expect(() => convertGeocentricToGeographic(datetime, position)).toThrow(
+        'Invalid position: each of the x, y and z components must be finite'
+      )
+    }
+  })
+
+  it('should throw for a position at the center of the Earth', () => {
+    expect(() => convertGeocentricToGeographic(datetime, { x: 0, y: 0, z: 0 })).toThrow(
+      'Invalid position: the position must not be at the center of the Earth'
+    )
+  })
+
+  it('should throw for a radius that is not finite', () => {
+    expect(() =>
+      convertGeocentricToGeographic(datetime, { x: EARTH_RADIUS, y: 0, z: 0 }, Number.NaN)
+    ).toThrow('Invalid radius: the radius must be finite')
+  })
+
+  it('should throw for a radius that is not greater than zero', () => {
+    for (const radius of [0, -6378137]) {
+      expect(() =>
+        convertGeocentricToGeographic(datetime, { x: EARTH_RADIUS, y: 0, z: 0 }, radius)
+      ).toThrow('Invalid radius: the radius must be greater than zero')
     }
   })
 })

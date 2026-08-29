@@ -6,9 +6,10 @@
 
 /*****************************************************************************************************************/
 
-import { getHourAngle, getLocalSiderealTime } from './astrometry'
+import { getGreenwichSiderealTime, getHourAngle, getLocalSiderealTime } from './astrometry'
 
 import type {
+  CartesianCoordinate,
   EclipticCoordinate,
   EquatorialCoordinate,
   GalacticCoordinate,
@@ -19,7 +20,11 @@ import { EARTH_RADIUS } from './constants'
 
 import { getObliquityOfTheEcliptic } from './ecliptic'
 
-import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
+import {
+  convertRadiansToDegrees as degrees,
+  getNormalizedAzimuthalDegree,
+  convertDegreesToRadians as radians
+} from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -245,6 +250,86 @@ export const convertHorizontalToEquatorial = (
   return {
     ra: ra % 360,
     dec: degrees(dec)
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * convertGeocentricToGeographic()
+ *
+ * Performs the conversion from a geocentric equatorial cartesian position to the geographic
+ * coordinate of the observer at that position, e.g., the coordinate of the point on the surface
+ * of the Earth directly beneath them, together with their elevation above it.
+ *
+ * The position is given in the geocentric equatorial frame, e.g., the frame an ephemeris resolves
+ * the position of a satellite in, with the x-axis towards the vernal equinox, the z-axis along the
+ * rotational axis of the Earth, and the origin at its center (in SI metres).
+ *
+ * N.B. The latitude is resolved against a spherical Earth, e.g., it is the geocentric latitude,
+ * which is the figure of the Earth everywhere else in the library, and the elevation is taken
+ * above the radius given, e.g., an observer of a different figure of the Earth gives the radius
+ * of it.
+ *
+ * @param datetime - The date and time of the observation, which orients the Earth beneath the position.
+ * @param position - The geocentric equatorial cartesian position of the observer (in SI metres).
+ * @param radius - The radius of the Earth (in SI metres). Defaults to the equatorial radius.
+ * @throws An error if any component of the position is not finite, or the position is at the center of the Earth.
+ * @throws An error if the radius is not finite, or is not greater than zero.
+ * @returns The geographic coordinate of the observer, e.g., { latitude, longitude, elevation }.
+ *
+ */
+export const convertGeocentricToGeographic = (
+  datetime: Date,
+  position: Required<CartesianCoordinate>,
+  radius: number = EARTH_RADIUS
+): GeographicCoordinate => {
+  const { x, y, z } = position
+
+  // A position with a component that is not finite has no direction to resolve a coordinate from:
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) {
+    throw new Error('Invalid position: each of the x, y and z components must be finite')
+  }
+
+  // The distance of the position from the center of the Earth (in SI metres):
+  const distance = Math.hypot(x, y, z)
+
+  // Every direction meets at the center of the Earth, and so a position there is above no one
+  // point of the surface:
+  if (distance === 0) {
+    throw new Error('Invalid position: the position must not be at the center of the Earth')
+  }
+
+  if (!Number.isFinite(radius)) {
+    throw new Error('Invalid radius: the radius must be finite')
+  }
+
+  if (radius <= 0) {
+    throw new Error('Invalid radius: the radius must be greater than zero')
+  }
+
+  // The latitude of the position, e.g., its angle from the plane of the equator, which is taken
+  // against the distance from the axis of rotation, and not as the arc sine of the polar
+  // component, which is ill-conditioned towards the poles:
+  const latitude = degrees(Math.atan2(z, Math.hypot(x, y)))
+
+  // The right ascension of the position, e.g., its angle from the vernal equinox, in the plane of
+  // the equator (in degrees):
+  const ra = degrees(Math.atan2(y, x))
+
+  // The Earth rotates beneath the equatorial frame, and so the meridian of the position is the
+  // angle between it and the meridian of Greenwich, which lies at the Greenwich Sidereal Time,
+  // e.g., the hour angle of the vernal equinox at Greenwich (in hours, of 15 degrees each). The
+  // longitude is taken the shorter of the two ways about the sphere, e.g., positive towards the
+  // east of Greenwich and negative towards the west of it:
+  const longitude =
+    getNormalizedAzimuthalDegree(ra - getGreenwichSiderealTime(datetime) * 15 + 180) - 180
+
+  return {
+    latitude,
+    longitude,
+    elevation: distance - radius
   }
 }
 
