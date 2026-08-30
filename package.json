@@ -14,6 +14,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "type": "module",
+  "sideEffects": false,
   "files": ["dist"],
   "keywords": [
     "astronomy",
