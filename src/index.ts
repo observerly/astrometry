@@ -254,7 +254,8 @@ export {
 
 export {
   getEclipticPlane,
-  getObliquityOfTheEcliptic
+  getObliquityOfTheEcliptic,
+  getTrueObliquityOfTheEcliptic
 } from './ecliptic'
 
 /*****************************************************************************************************************/
