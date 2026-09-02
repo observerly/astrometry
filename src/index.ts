@@ -261,9 +261,11 @@ export {
 /*****************************************************************************************************************/
 
 export {
+  getInternationalAtomicTime,
   getJulianDate,
   getModifiedJulianDate,
-  getNumberOfCenturiesSinceJ2000
+  getNumberOfCenturiesSinceJ2000,
+  getTerrestrialTime
 } from './epoch'
 
 /*****************************************************************************************************************/
