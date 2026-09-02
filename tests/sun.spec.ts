@@ -28,7 +28,9 @@ import {
   getSolarMeanGeometricLongitude,
   getSolarNoon,
   getSolarTrueAnomaly,
-  getSolarTrueGeometricLongitude
+  getSolarTrueGeometricLongitude,
+  getSunrise,
+  SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -307,6 +309,54 @@ describe('getSolarNoon', () => {
   it('should not modify the datetime given by the caller', () => {
     const when = new Date('2021-05-14T00:00:00.000+00:00')
     getSolarNoon(when, { latitude: 49.914425, longitude: -6.315165 })
+    expect(when).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET', () => {
+  it('should be the standard almanac altitude of the centre of the Sun at rise and set', () => {
+    expect(SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET).toBe(-0.8333)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getSunrise', () => {
+  it('should be defined', () => {
+    expect(getSunrise).toBeDefined()
+  })
+
+  it('should return the sunrise of the standard almanac convention for the given date', () => {
+    const sunrise = getSunrise(datetime, { latitude: 49.914425, longitude: -6.315165 })
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:40:52.375Z')
+  })
+
+  it('should return an earlier sunrise for an observer at an elevation', () => {
+    // The elevation of the observer depresses the horizon below the astronomical horizon, and
+    // so the Sun reaches it earlier as it rises:
+    const sunrise = getSunrise(datetime, {
+      latitude: 49.914425,
+      longitude: -6.315165,
+      elevation: 2000
+    })
+
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:31:18.147Z')
+  })
+
+  it('should return null for an observer in perpetual daylight', () => {
+    const sunrise = getSunrise(new Date('2026-06-21T00:00:00.000+00:00'), {
+      latitude: 69.6492,
+      longitude: 18.9553
+    })
+
+    expect(sunrise).toBeNull()
+  })
+
+  it('should not modify the datetime given by the caller', () => {
+    const when = new Date('2021-05-14T00:00:00.000+00:00')
+    getSunrise(when, { latitude: 49.914425, longitude: -6.315165 })
     expect(when).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
   })
 })
