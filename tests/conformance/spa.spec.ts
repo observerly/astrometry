@@ -46,6 +46,14 @@ const TRANSIT_TOLERANCE = 12
 
 /*****************************************************************************************************************/
 
+// The solar noon of getSolarTransit(), e.g., the refined meridian transit of the Sun (in
+// seconds). The residual carries the equation of the equinoxes, e.g., the hour angle of the
+// Sun is taken against the mean sidereal time, while its right ascension carries the
+// nutation in longitude:
+const MERIDIAN_TRANSIT_TOLERANCE = 2
+
+/*****************************************************************************************************************/
+
 // The rise and set of the Sun for a horizon given at the standard almanac altitude of
 // -0.8333° (in seconds). The horizon is compared against the apparent altitude of the Sun,
 // e.g., an altitude that is itself corrected for refraction, and so the refraction within
@@ -124,11 +132,17 @@ describe('conformance of the solar rise and set to the NREL SPA', () => {
       // The events are resolved at the standard almanac altitude the references are stated
       // at, e.g., the geometric altitude of the upper limb of the Sun at the horizon under
       // a fixed ~34 arcminute refraction:
-      const { sunrise, sunset } = getSolarTransit(midnight, observer, -0.8333)
+      const { sunrise, noon, sunset } = getSolarTransit(midnight, observer, -0.8333)
 
       expect(sunrise).not.toBeNull()
 
+      expect(noon).not.toBeNull()
+
       expect(sunset).not.toBeNull()
+
+      const Δnoon = ((noon as Date).getTime() - new Date(reference.transit).getTime()) / 1000
+
+      expect(Math.abs(Δnoon)).toBeLessThan(MERIDIAN_TRANSIT_TOLERANCE)
 
       const Δsunrise =
         ((sunrise as Date).getTime() - new Date(reference.sunrise as string).getTime()) / 1000

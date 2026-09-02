@@ -6,6 +6,8 @@
 
 /*****************************************************************************************************************/
 
+import { getHourAngle } from './astrometry'
+
 import type { GeographicCoordinate } from './common'
 
 import { convertEquatorialToHorizontal } from './coordinates'
@@ -157,7 +159,7 @@ export const getSolarTransit = (
 
     let upper = estimate + 40 * 60000
 
-    while (upper - lower > 1000) {
+    while (upper - lower > 100) {
       const first = lower + (upper - lower) / 3
 
       const second = upper - (upper - lower) / 3
@@ -178,6 +180,41 @@ export const getSolarTransit = (
 
   // The upper culmination, at which the apparent altitude of the Sun is at its maximum:
   const transit = culmination(noon.getTime(), true)
+
+  // The meridian transit of the Sun, e.g., the local solar noon, at which the hour angle of the
+  // Sun vanishes, resolved by a bisection about the estimate, within which the hour angle is
+  // monotonic and crosses zero exactly once.
+  //
+  // N.B. The meridian transit is not the culmination: the altitude of the Sun is at its maximum
+  // where the motion of the Sun in declination balances the fall of the diurnal arc, and so, at
+  // an equinox, where the declination changes at its fastest, the culmination at a mid latitude
+  // is displaced by ~20 seconds from the meridian:
+  const meridian = (estimate: number): number => {
+    // The signed hour angle of the Sun, taken the shorter of the two ways about the sphere,
+    // which is negative before the transit, positive after it, and increases through zero at
+    // ~15 degrees per hour:
+    const ha = (when: number): number => {
+      const { ra } = getSolarEquatorialCoordinate(new Date(when))
+
+      return ((getHourAngle(new Date(when), observer.longitude, ra) + 180) % 360) - 180
+    }
+
+    let below = estimate - 40 * 60000
+
+    let above = estimate + 40 * 60000
+
+    while (above - below > 100) {
+      const middle = (below + above) / 2
+
+      if (ha(middle) < 0) {
+        below = middle
+      } else {
+        above = middle
+      }
+    }
+
+    return (below + above) / 2
+  }
 
   // The apparent altitude of the Sun is at its maximum at the upper culmination, at its minimum
   // at the lower culmination half a solar day to either side, and is monotonic between the two,
@@ -223,7 +260,9 @@ export const getSolarTransit = (
     return { sunrise: null, noon: null, sunset: null }
   }
 
-  return { sunrise, noon, sunset }
+  // The noon returned is the refined meridian transit itself, and not the lower accuracy
+  // estimate it was resolved about, which is up to ~10 seconds from the true transit:
+  return { sunrise, noon: new Date(meridian(noon.getTime())), sunset }
 }
 
 /*****************************************************************************************************************/
