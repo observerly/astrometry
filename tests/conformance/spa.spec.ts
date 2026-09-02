@@ -26,16 +26,16 @@ import { geocentricSolarCoordinates, solarTransitInstances } from './spa'
 /*****************************************************************************************************************/
 
 // The angular separation of the geocentric apparent place of the Sun from the reference (in
-// degrees), e.g., ~4 arcseconds. The error is dominated by the absence of ΔT, e.g., the
-// solar longitude is resolved at the civil time rather than at the Terrestrial Time ~69
-// seconds ahead of it, over which the Sun moves ~0.0008°:
-const GEOCENTRIC_SEPARATION_TOLERANCE = 0.0012
+// degrees), e.g., ~0.36 arcseconds. The residual is that of the lower accuracy series for the
+// nutation against the full series of the SPA, the truncation of the VSOP87 terms, and the up
+// to ~0.9 seconds between UT1 and the civil time the leap seconds hold the two within:
+const GEOCENTRIC_SEPARATION_TOLERANCE = 0.0001
 
 /*****************************************************************************************************************/
 
 // The displacement of the geocentric apparent declination of the Sun from the reference (in
-// degrees), e.g., ~1.8 arcseconds:
-const GEOCENTRIC_DEC_TOLERANCE = 0.0005
+// degrees), e.g., ~0.18 arcseconds:
+const GEOCENTRIC_DEC_TOLERANCE = 0.00005
 
 /*****************************************************************************************************************/
 

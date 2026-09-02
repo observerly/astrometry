@@ -14,7 +14,7 @@ import { convertEclipticToEquatorial } from './coordinates'
 
 import { B, L, R, getEccentricityOfOrbit } from './earth'
 
-import { getJulianDate } from './epoch'
+import { getJulianDate, getTerrestrialTime } from './epoch'
 
 import { getFOrbitalParameter } from './orbit'
 
@@ -214,8 +214,13 @@ export const getSolarEclipticLongitude = (datetime: Date): number => {
 export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate & {
   R: number
 } {
+  // The ephemeris of the Sun is referred to Terrestrial Time, and so the coordinate is resolved
+  // at the Terrestrial Time of the given date, e.g., ~69 seconds ahead of the civil time, over
+  // which the Sun moves ~2.8 arcseconds in longitude:
+  const tt = getTerrestrialTime(datetime)
+
   // Get the Julian date:
-  const JD = getJulianDate(datetime)
+  const JD = getJulianDate(tt)
 
   // Get the number of centuries since J2000.0:
   const T = (JD - 2451545.0) / 36525
@@ -286,7 +291,7 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
   const Ω = (125.044522 - 0.0529539 * (JD - 2451545.0)) % 360
 
   // Get the mean geometric longitude of the Sun (in degrees):
-  const LS = getSolarMeanGeometricLongitude(datetime)
+  const LS = getSolarMeanGeometricLongitude(tt)
 
   // Get the mean geometric longitude of the Moon (in degrees), resolved here likewise:
   const LM =
