@@ -149,8 +149,8 @@ describe('getSolarEquatorialCoordinate', () => {
   it('should return the correct Solar equatorial coordinate for the given date', () => {
     const datetime = new Date('2015-02-05T12:00:00.000+00:00')
     const { ra: α, dec: δ } = getSolarEquatorialCoordinate(datetime)
-    expect(α).toBe(318.80788572333165)
-    expect(δ).toBe(-15.934465771940253)
+    expect(α).toBe(318.80734996403055)
+    expect(δ).toBe(-15.932823360755979)
   })
 })
 

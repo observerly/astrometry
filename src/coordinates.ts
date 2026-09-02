@@ -18,7 +18,7 @@ import type {
 } from './common'
 import { EARTH_RADIUS } from './constants'
 
-import { getObliquityOfTheEcliptic } from './ecliptic'
+import { getTrueObliquityOfTheEcliptic } from './ecliptic'
 
 import {
   convertRadiansToDegrees as degrees,
@@ -35,6 +35,10 @@ import {
  * Performs the conversion from Ecliptic to Equatorial coordinates for a given
  * datetime and target (observer agnostic).
  *
+ * N.B. The conversion is about the true obliquity of the ecliptic, e.g., the mean obliquity of
+ * the date corrected for the nutation in obliquity, and so an ecliptic coordinate of the date is
+ * referred to the true equator and equinox of the date.
+ *
  * @param date - The date and time of the observation for which to calculate the Horizontal coordinate
  * @param target - The ecliptical coordinate of the observed object.
  * @returns The equatorial coordinates of the target
@@ -44,8 +48,8 @@ export const convertEclipticToEquatorial = (
   datetime: Date,
   target: EclipticCoordinate
 ): EquatorialCoordinate => {
-  // Get the obliquity of the ecliptic for the given datetime:
-  const ε = radians(getObliquityOfTheEcliptic(datetime))
+  // Get the true obliquity of the ecliptic for the given datetime:
+  const ε = radians(getTrueObliquityOfTheEcliptic(datetime))
 
   const λ = radians(target.λ)
 
