@@ -1,0 +1,166 @@
+/*****************************************************************************************************************/
+
+// @author         Michael Roberts <michael@observerly.com>
+// @package        @observerly/astrometry/tests/conformance/spa
+// @license        Copyright © 2021-2026 observerly
+
+/*****************************************************************************************************************/
+
+import { describe, expect, it } from 'vitest'
+
+import { getAngularSeparation } from '../../src/astrometry'
+
+import { getGeneralizedSolarTransit, getSolarTransit } from '../../src/night'
+
+import { getSolarEquatorialCoordinate } from '../../src/sun'
+
+import { geocentricSolarCoordinates, solarTransitInstances } from './spa'
+
+/*****************************************************************************************************************/
+
+// The tolerances below are the error envelope of the library as it stands, measured against
+// the SPA references, and pinned with a modest headroom so that a regression beyond the
+// current envelope fails. They are a baseline, and not a target: each is to be tightened as
+// the corrections that dominate it are resolved.
+
+/*****************************************************************************************************************/
+
+// The angular separation of the geocentric apparent place of the Sun from the reference (in
+// degrees), e.g., ~40 arcseconds. The error is dominated by the treatment of the aberration
+// and the nutation in the apparent solar longitude, and grows away from the present epoch,
+// e.g., to ~0.0086° at J2000:
+const GEOCENTRIC_SEPARATION_TOLERANCE = 0.011
+
+/*****************************************************************************************************************/
+
+// The displacement of the geocentric apparent declination of the Sun from the reference (in
+// degrees), e.g., ~11 arcseconds:
+const GEOCENTRIC_DEC_TOLERANCE = 0.003
+
+/*****************************************************************************************************************/
+
+// The transit of the Sun across the local meridian (in seconds). The transit is resolved by
+// the lower accuracy generalized method, and its error carries the date-dependent bias of
+// the apparent solar right ascension against the sidereal time:
+const TRANSIT_TOLERANCE = 12
+
+/*****************************************************************************************************************/
+
+// The rise and set of the Sun for a horizon given at the standard almanac altitude of
+// -0.8333° (in seconds). The horizon is compared against the apparent altitude of the Sun,
+// e.g., an altitude that is itself corrected for refraction, and so the refraction within
+// the almanac altitude is counted twice, which advances the rise and delays the set by up
+// to ~85 seconds:
+const HORIZON_CROSSING_TOLERANCE = 100
+
+/*****************************************************************************************************************/
+
+describe('conformance of the geocentric apparent solar coordinate to the NREL SPA', () => {
+  it.each(geocentricSolarCoordinates)(
+    'should be within the pinned envelope of the reference at $datetime',
+    reference => {
+      const { ra, dec } = getSolarEquatorialCoordinate(new Date(reference.datetime))
+
+      // The angular separation of the computed place from the reference (in degrees).
+      //
+      // N.B. Per ISO 80000-2, the polar angle, θ, is the declination of the coordinate, and
+      // the azimuthal angle, φ, is its right ascension:
+      const separation = getAngularSeparation(
+        { θ: dec, φ: ra },
+        { θ: reference.dec, φ: reference.ra }
+      )
+
+      // The displacement in declination (in degrees):
+      const Δdec = dec - reference.dec
+
+      expect(separation).toBeLessThan(GEOCENTRIC_SEPARATION_TOLERANCE)
+
+      expect(Math.abs(Δdec)).toBeLessThan(GEOCENTRIC_DEC_TOLERANCE)
+    }
+  )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the solar transit to the NREL SPA', () => {
+  it.each(solarTransitInstances)(
+    'should be within the pinned envelope of the reference at $name on $date',
+    reference => {
+      const observer = {
+        latitude: reference.latitude,
+        longitude: reference.longitude,
+        elevation: reference.elevation
+      }
+
+      const midnight = new Date(`${reference.date}T00:00:00.000Z`)
+
+      // The generalized transit is resolved for every observer, including an observer in a
+      // polar day or night, for whom the Sun still crosses the local meridian:
+      const { noon } = getGeneralizedSolarTransit(midnight, observer)
+
+      expect(noon).not.toBeNull()
+
+      const Δnoon = ((noon as Date).getTime() - new Date(reference.transit).getTime()) / 1000
+
+      expect(Math.abs(Δnoon)).toBeLessThan(TRANSIT_TOLERANCE)
+    }
+  )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the solar rise and set to the NREL SPA', () => {
+  it.each(solarTransitInstances.filter(reference => reference.sunrise !== null))(
+    'should be within the pinned envelope of the reference at $name on $date',
+    reference => {
+      const observer = {
+        latitude: reference.latitude,
+        longitude: reference.longitude,
+        elevation: reference.elevation
+      }
+
+      const midnight = new Date(`${reference.date}T00:00:00.000Z`)
+
+      // The events are resolved at the standard almanac altitude the references are stated
+      // at, e.g., the geometric altitude of the upper limb of the Sun at the horizon under
+      // a fixed ~34 arcminute refraction:
+      const { sunrise, sunset } = getSolarTransit(midnight, observer, -0.8333)
+
+      expect(sunrise).not.toBeNull()
+
+      expect(sunset).not.toBeNull()
+
+      const Δsunrise =
+        ((sunrise as Date).getTime() - new Date(reference.sunrise as string).getTime()) / 1000
+
+      const Δsunset =
+        ((sunset as Date).getTime() - new Date(reference.sunset as string).getTime()) / 1000
+
+      expect(Math.abs(Δsunrise)).toBeLessThan(HORIZON_CROSSING_TOLERANCE)
+
+      expect(Math.abs(Δsunset)).toBeLessThan(HORIZON_CROSSING_TOLERANCE)
+    }
+  )
+
+  it.each(solarTransitInstances.filter(reference => reference.sunrise === null))(
+    'should not resolve a rise or a set at $name on $date',
+    reference => {
+      const observer = {
+        latitude: reference.latitude,
+        longitude: reference.longitude,
+        elevation: reference.elevation
+      }
+
+      const midnight = new Date(`${reference.date}T00:00:00.000Z`)
+
+      // The Sun does not cross the horizon for an observer in a polar day or a polar night:
+      const { sunrise, sunset } = getSolarTransit(midnight, observer, -0.8333)
+
+      expect(sunrise).toBeNull()
+
+      expect(sunset).toBeNull()
+    }
+  )
+})
+
+/*****************************************************************************************************************/
