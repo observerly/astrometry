@@ -609,3 +609,29 @@ export const getSunrise = (datetime: Date, observer: GeographicCoordinate): Date
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getSunset()
+ *
+ * The sunset is the instant at which the upper limb of the Sun appears to touch the horizon as
+ * it sets, e.g., the standard almanac convention at which the geometric altitude of the centre
+ * of the Sun reaches the standard altitude of -0.8333°, which carries the semidiameter of the
+ * Sun and the standard refraction at the horizon, and which is depressed below the astronomical
+ * horizon by the elevation of the observer.
+ *
+ * N.B. The refraction within the standard altitude is a fixed convention, and so the sunset is
+ * resolved against the geometric altitude of the Sun, and is not corrected for the refraction
+ * of the atmospheric conditions of the observation.
+ *
+ * @param datetime - The date to resolve the sunset for, with the day taken in UTC.
+ * @param observer - The geographic coordinate of the observer.
+ * @returns The sunset of the given date for the observer, or null where the Sun does not cross
+ * the horizon, e.g., for an observer in a polar day or a polar night.
+ *
+ */
+export const getSunset = (datetime: Date, observer: GeographicCoordinate): Date | null => {
+  return getSolarHorizonCrossing(getSolarMeridianTransit(datetime, observer), observer, false)
+}
+
+/*****************************************************************************************************************/

@@ -12,7 +12,7 @@ import { getAngularSeparation } from '../../src/astrometry'
 
 import { getGeneralizedSolarTransit, getSolarTransit } from '../../src/night'
 
-import { getSolarEquatorialCoordinate, getSolarNoon, getSunrise } from '../../src/sun'
+import { getSolarEquatorialCoordinate, getSolarNoon, getSunrise, getSunset } from '../../src/sun'
 
 import { geocentricSolarCoordinates, solarTransitInstances } from './spa'
 
@@ -247,6 +247,48 @@ describe('conformance of the almanac sunrise to the NREL SPA', () => {
 
       // The Sun does not cross the horizon for an observer in a polar day or a polar night:
       expect(getSunrise(midnight, observer)).toBeNull()
+    }
+  )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the almanac sunset to the NREL SPA', () => {
+  it.each(solarTransitInstances.filter(reference => reference.sunset !== null))(
+    'should be within the pinned envelope of the reference at $name on $date',
+    reference => {
+      const observer = {
+        latitude: reference.latitude,
+        longitude: reference.longitude,
+        elevation: reference.elevation
+      }
+
+      const midnight = new Date(`${reference.date}T00:00:00.000Z`)
+
+      const sunset = getSunset(midnight, observer)
+
+      expect(sunset).not.toBeNull()
+
+      const Δsunset =
+        ((sunset as Date).getTime() - new Date(reference.sunset as string).getTime()) / 1000
+
+      expect(Math.abs(Δsunset)).toBeLessThan(STANDARD_RISE_AND_SET_TOLERANCE)
+    }
+  )
+
+  it.each(solarTransitInstances.filter(reference => reference.sunset === null))(
+    'should not resolve a sunset at $name on $date',
+    reference => {
+      const observer = {
+        latitude: reference.latitude,
+        longitude: reference.longitude,
+        elevation: reference.elevation
+      }
+
+      const midnight = new Date(`${reference.date}T00:00:00.000Z`)
+
+      // The Sun does not cross the horizon for an observer in a polar day or a polar night:
+      expect(getSunset(midnight, observer)).toBeNull()
     }
   )
 })
