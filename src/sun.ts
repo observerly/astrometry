@@ -278,11 +278,35 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
     0.004 * τ ** 2 * Math.sin(radians(297.861 + 4452671.1152 * τ)) +
     0.01 * τ ** 3 * Math.sin(radians(154.7066 + 359993.7286 * τ))
 
-  // Correction for nutation:
-  λ -= 20.4898 / 3600 / RO
+  // Get the ecliptic longitude of the ascending node of the Moon (in degrees):
+  //
+  // N.B. The polynomial is that of getLunarMeanEclipticLongitudeOfTheAscendingNode(), which is
+  // resolved here so that this module does not depend on the moon module, which depends on this
+  // module:
+  const Ω = (125.044522 - 0.0529539 * (JD - 2451545.0)) % 360
 
-  // Correction for aberration:
-  λ -= (-0.005775518 * RO * Δλ) / 3600
+  // Get the mean geometric longitude of the Sun (in degrees):
+  const LS = getSolarMeanGeometricLongitude(datetime)
+
+  // Get the mean geometric longitude of the Moon (in degrees), resolved here likewise:
+  const LM =
+    (218.3164477 + 481267.88123421 * T - 0.0015786 * T ** 2 + T ** 3 / 538841 - T ** 4 / 65194000) %
+    360
+
+  // Correction for the nutation in longitude, e.g., the displacement of the true equinox the
+  // longitude is referred to from the mean equinox of the date (in degrees):
+  λ +=
+    (-17.2 * Math.sin(radians(Ω)) -
+      1.32 * Math.sin(radians(2 * LS)) -
+      0.23 * Math.sin(radians(2 * LM)) +
+      0.21 * Math.sin(radians(2 * Ω))) /
+    3600
+
+  // Correction for the aberration of light, e.g., the displacement of the apparent place of the
+  // Sun towards the Earth from its geometric place, of ~20.5 arcseconds, resolved from the daily
+  // variation of the longitude and the radial distance so as to carry the eccentricity of the
+  // orbit, rather than taken as the constant of aberration:
+  λ += (-0.005775518 * RO * Δλ) / 3600
 
   return {
     λ: λ % 360,
