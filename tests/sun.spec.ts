@@ -26,6 +26,7 @@ import {
   getSolarEquatorialCoordinate,
   getSolarMeanAnomaly,
   getSolarMeanGeometricLongitude,
+  getSolarNoon,
   getSolarTrueAnomaly,
   getSolarTrueGeometricLongitude
 } from '../src'
@@ -282,3 +283,32 @@ describe('getBarycentricJulianDate', () => {
 })
 
 /***************************************************************************************************************/
+
+describe('getSolarNoon', () => {
+  it('should be defined', () => {
+    expect(getSolarNoon).toBeDefined()
+  })
+
+  it('should return the meridian transit of the Sun for the given date', () => {
+    const noon = getSolarNoon(datetime, { latitude: 49.914425, longitude: -6.315165 })
+    expect(noon.toISOString()).toBe('2021-05-14T12:21:35.610Z')
+  })
+
+  it('should resolve the solar noon for an observer in perpetual daylight', () => {
+    // At Tromsø at midsummer the Sun does not set, but it still crosses the local meridian:
+    const noon = getSolarNoon(new Date('2026-06-21T00:00:00.000+00:00'), {
+      latitude: 69.6492,
+      longitude: 18.9553
+    })
+
+    expect(noon.toISOString()).toBe('2026-06-21T10:45:59.575Z')
+  })
+
+  it('should not modify the datetime given by the caller', () => {
+    const when = new Date('2021-05-14T00:00:00.000+00:00')
+    getSolarNoon(when, { latitude: 49.914425, longitude: -6.315165 })
+    expect(when).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
+  })
+})
+
+/*****************************************************************************************************************/

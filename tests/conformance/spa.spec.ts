@@ -12,7 +12,7 @@ import { getAngularSeparation } from '../../src/astrometry'
 
 import { getGeneralizedSolarTransit, getSolarTransit } from '../../src/night'
 
-import { getSolarEquatorialCoordinate } from '../../src/sun'
+import { getSolarEquatorialCoordinate, getSolarNoon } from '../../src/sun'
 
 import { geocentricSolarCoordinates, solarTransitInstances } from './spa'
 
@@ -173,6 +173,31 @@ describe('conformance of the solar rise and set to the NREL SPA', () => {
       expect(sunrise).toBeNull()
 
       expect(sunset).toBeNull()
+    }
+  )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the almanac solar noon to the NREL SPA', () => {
+  it.each(solarTransitInstances)(
+    'should be within the pinned envelope of the reference at $name on $date',
+    reference => {
+      const observer = {
+        latitude: reference.latitude,
+        longitude: reference.longitude,
+        elevation: reference.elevation
+      }
+
+      const midnight = new Date(`${reference.date}T00:00:00.000Z`)
+
+      // The solar noon is resolved for every observer, including an observer in a polar day
+      // or night, for whom the Sun still crosses the local meridian:
+      const noon = getSolarNoon(midnight, observer)
+
+      const Δnoon = (noon.getTime() - new Date(reference.transit).getTime()) / 1000
+
+      expect(Math.abs(Δnoon)).toBeLessThan(MERIDIAN_TRANSIT_TOLERANCE)
     }
   )
 })
