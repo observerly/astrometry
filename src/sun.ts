@@ -6,7 +6,9 @@
 
 /*****************************************************************************************************************/
 
-import type { EclipticCoordinate, EquatorialCoordinate } from './common'
+import { getHourAngle } from './astrometry'
+
+import type { EclipticCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
 
 import { AU_IN_METERS, c } from './constants'
 
@@ -451,6 +453,67 @@ export const getBarycentricJulianDate = (datetime: Date, target: EquatorialCoord
   // light at the observer and its arrival at the barycenter, which is signed: the barycenter is
   // reached first where the target lies beyond the Sun, and last where it lies opposite it:
   return JD + projection / c / 86400
+}
+
+/*****************************************************************************************************************/
+
+// The meridian transit of the Sun nearest the mean solar noon of the given date (in Unix
+// milliseconds), e.g., the local solar noon, at which the hour angle of the Sun vanishes,
+// resolved by a bisection about the mean solar noon, within which the hour angle is monotonic
+// and crosses zero exactly once:
+const getSolarMeridianTransit = (datetime: Date, observer: GeographicCoordinate): number => {
+  // The mean solar noon of the given date, e.g., 12h at the meridian of the observer, taking the
+  // day boundary in UTC so as to be independent of the timezone of the host system:
+  const estimate =
+    Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), datetime.getUTCDate(), 12) -
+    (observer.longitude / 15) * 3600000
+
+  // The signed hour angle of the Sun, taken the shorter of the two ways about the sphere, which
+  // is negative before the transit, positive after it, and increases through zero at ~15 degrees
+  // per hour:
+  const ha = (when: number): number => {
+    const { ra } = getSolarEquatorialCoordinate(new Date(when))
+
+    return ((getHourAngle(new Date(when), observer.longitude, ra) + 180) % 360) - 180
+  }
+
+  // The true transit is within the ~16 minutes of the equation of time of the mean solar noon,
+  // and so the hour angle is of opposite signs two hours to either side of it:
+  let below = estimate - 2 * 3600000
+
+  let above = estimate + 2 * 3600000
+
+  while (above - below > 100) {
+    const middle = (below + above) / 2
+
+    if (ha(middle) < 0) {
+      below = middle
+    } else {
+      above = middle
+    }
+  }
+
+  return (below + above) / 2
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getSolarNoon()
+ *
+ * The solar noon is the meridian transit of the Sun, e.g., the instant at which the hour angle
+ * of the Sun vanishes, nearest the mean solar noon of the given date. The transit is resolved
+ * for every observer, including an observer in a polar day or a polar night, for whom the Sun
+ * still crosses the local meridian.
+ *
+ * @param datetime - The date to resolve the solar noon for, with the day taken in UTC.
+ * @param observer - The geographic coordinate of the observer.
+ * @returns The solar noon of the given date for the observer.
+ *
+ */
+export const getSolarNoon = (datetime: Date, observer: GeographicCoordinate): Date => {
+  return new Date(getSolarMeridianTransit(datetime, observer))
 }
 
 /*****************************************************************************************************************/

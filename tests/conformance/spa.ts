@@ -11,10 +11,16 @@
 // solar radiation applications", Solar Energy, 76(5), 577-589, as implemented by pvlib
 // (pvlib.spa, version 0.15.2), which is a faithful port of the reference implementation.
 //
-// The SPA is stated to be accurate to ±0.0003° in the position of the Sun, and its rise,
-// transit and set are resolved by the interpolation and refinement procedure of its Appendix
-// A.2, at the standard almanac altitude of -0.8333°, e.g., the geometric altitude at which
-// the upper limb of the Sun touches the horizon under a fixed ~34 arcminute refraction.
+// The SPA is stated to be accurate to ±0.0003° in the position of the Sun. The transit of
+// each reference is resolved by a bisection of the hour angle of the full SPA position of the
+// Sun through zero, and the rise and set by a bisection of its geocentric altitude through
+// the standard almanac altitude of -0.8333°, e.g., the geometric altitude at which the upper
+// limb of the Sun touches the horizon under a fixed ~34 arcminute refraction.
+//
+// N.B. The events are deliberately not those of the interpolation and refinement procedure of
+// Appendix A.2 of the SPA, which extrapolates its three point fit for an event that falls
+// across the 0h UT day boundary, and so departs from the position it interpolates by tens of
+// seconds for such an event, e.g., a rise on the previous civil day.
 //
 // N.B. The SPA is evaluated in Terrestrial Time, and so each reference carries the ΔT it is
 // generated with, e.g., the difference TT - UT (in seconds) at its epoch (IERS).
@@ -137,9 +143,9 @@ export const solarTransitInstances: SPASolarTransitInstance[] = [
     elevation: 0,
     date: '2026-12-21',
     ΔT: 69.3,
-    transit: '2026-12-21T11:58:03.951Z',
-    sunrise: '2026-12-21T08:03:03.930Z',
-    sunset: '2026-12-21T15:53:03.590Z'
+    transit: '2026-12-21T11:58:03.955Z',
+    sunrise: '2026-12-21T08:03:03.935Z',
+    sunset: '2026-12-21T15:53:03.584Z'
   },
   {
     name: 'Greenwich',
@@ -148,9 +154,9 @@ export const solarTransitInstances: SPASolarTransitInstance[] = [
     elevation: 0,
     date: '2026-06-21',
     ΔT: 69.2,
-    transit: '2026-06-21T12:01:49.176Z',
-    sunrise: '2026-06-21T03:42:44.374Z',
-    sunset: '2026-06-21T20:20:53.644Z'
+    transit: '2026-06-21T12:01:49.180Z',
+    sunrise: '2026-06-21T03:42:44.375Z',
+    sunset: '2026-06-21T20:20:53.651Z'
   },
   {
     name: 'Greenwich',
@@ -159,9 +165,9 @@ export const solarTransitInstances: SPASolarTransitInstance[] = [
     elevation: 0,
     date: '2026-03-20',
     ΔT: 69.1,
-    transit: '2026-03-20T12:07:26.212Z',
-    sunrise: '2026-03-20T06:02:52.776Z',
-    sunset: '2026-03-20T18:12:59.941Z'
+    transit: '2026-03-20T12:07:26.217Z',
+    sunrise: '2026-03-20T06:02:52.833Z',
+    sunset: '2026-03-20T18:13:00.037Z'
   },
   {
     name: 'Stonehenge',
@@ -170,9 +176,9 @@ export const solarTransitInstances: SPASolarTransitInstance[] = [
     elevation: 0,
     date: '2000-01-21',
     ΔT: 63.9,
-    transit: '2000-01-21T12:18:27.444Z',
-    sunrise: '2000-01-21T07:59:50.511Z',
-    sunset: '2000-01-21T16:37:33.733Z'
+    transit: '2000-01-21T12:18:27.443Z',
+    sunrise: '2000-01-21T07:59:50.532Z',
+    sunset: '2000-01-21T16:37:33.723Z'
   },
   {
     name: 'Sydney',
@@ -181,9 +187,9 @@ export const solarTransitInstances: SPASolarTransitInstance[] = [
     elevation: 0,
     date: '2026-12-21',
     ΔT: 69.3,
-    transit: '2026-12-21T01:53:01.119Z',
-    sunrise: '2026-12-20T18:41:06.881Z',
-    sunset: '2026-12-21T09:05:24.899Z'
+    transit: '2026-12-21T01:53:01.120Z',
+    sunrise: '2026-12-20T18:40:38.096Z',
+    sunset: '2026-12-21T09:05:24.903Z'
   },
   {
     name: 'Singapore',
@@ -192,9 +198,9 @@ export const solarTransitInstances: SPASolarTransitInstance[] = [
     elevation: 0,
     date: '2013-09-22',
     ΔT: 66.9,
-    transit: '2013-09-22T04:57:27.789Z',
-    sunrise: '2013-09-21T22:53:52.107Z',
-    sunset: '2013-09-22T11:00:43.378Z'
+    transit: '2013-09-22T04:57:27.791Z',
+    sunrise: '2013-09-21T22:54:11.091Z',
+    sunset: '2013-09-22T11:00:43.383Z'
   },
   {
     name: 'Quito',
@@ -203,9 +209,9 @@ export const solarTransitInstances: SPASolarTransitInstance[] = [
     elevation: 0,
     date: '2026-03-20',
     ΔT: 69.1,
-    transit: '2026-03-20T17:21:14.510Z',
-    sunrise: '2026-03-20T11:17:58.934Z',
-    sunset: '2026-03-20T23:24:29.924Z'
+    transit: '2026-03-20T17:21:14.517Z',
+    sunrise: '2026-03-20T11:17:58.939Z',
+    sunset: '2026-03-20T23:24:29.937Z'
   },
   {
     name: 'Tromsø',
@@ -214,7 +220,7 @@ export const solarTransitInstances: SPASolarTransitInstance[] = [
     elevation: 0,
     date: '2026-12-21',
     ΔT: 69.3,
-    transit: '2026-12-21T10:42:12.994Z',
+    transit: '2026-12-21T10:42:12.997Z',
     sunrise: null,
     sunset: null
   },
@@ -225,7 +231,7 @@ export const solarTransitInstances: SPASolarTransitInstance[] = [
     elevation: 0,
     date: '2026-06-21',
     ΔT: 69.2,
-    transit: '2026-06-21T10:45:59.094Z',
+    transit: '2026-06-21T10:45:59.098Z',
     sunrise: null,
     sunset: null
   }

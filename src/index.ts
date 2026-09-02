@@ -463,6 +463,7 @@ export {
   getSolarEquatorialCoordinate,
   getSolarMeanAnomaly,
   getSolarMeanGeometricLongitude,
+  getSolarNoon,
   getSolarTrueAnomaly,
   getSolarTrueGeometricLongitude,
   SOLAR_TROPICAL_YEAR
