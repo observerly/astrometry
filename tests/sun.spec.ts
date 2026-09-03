@@ -30,6 +30,7 @@ import {
   getSolarTrueAnomaly,
   getSolarTrueGeometricLongitude,
   getSunrise,
+  getSunset,
   SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET
 } from '../src'
 
@@ -357,6 +358,45 @@ describe('getSunrise', () => {
   it('should not modify the datetime given by the caller', () => {
     const when = new Date('2021-05-14T00:00:00.000+00:00')
     getSunrise(when, { latitude: 49.914425, longitude: -6.315165 })
+    expect(when).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getSunset', () => {
+  it('should be defined', () => {
+    expect(getSunset).toBeDefined()
+  })
+
+  it('should return the sunset of the standard almanac convention for the given date', () => {
+    const sunset = getSunset(datetime, { latitude: 49.914425, longitude: -6.315165 })
+    expect(sunset?.toISOString()).toBe('2021-05-14T20:03:12.981Z')
+  })
+
+  it('should return null for an observer in perpetual daylight', () => {
+    const sunset = getSunset(new Date('2026-06-21T00:00:00.000+00:00'), {
+      latitude: 69.6492,
+      longitude: 18.9553
+    })
+
+    expect(sunset).toBeNull()
+  })
+
+  it('should return a sunrise, noon and sunset in the order of the day', () => {
+    const observer = { latitude: 49.914425, longitude: -6.315165 }
+
+    const sunrise = getSunrise(datetime, observer) as Date
+    const noon = getSolarNoon(datetime, observer)
+    const sunset = getSunset(datetime, observer) as Date
+
+    expect(sunrise.getTime()).toBeLessThan(noon.getTime())
+    expect(noon.getTime()).toBeLessThan(sunset.getTime())
+  })
+
+  it('should not modify the datetime given by the caller', () => {
+    const when = new Date('2021-05-14T00:00:00.000+00:00')
+    getSunset(when, { latitude: 49.914425, longitude: -6.315165 })
     expect(when).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
   })
 })

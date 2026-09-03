@@ -467,6 +467,7 @@ export {
   getSolarTrueAnomaly,
   getSolarTrueGeometricLongitude,
   getSunrise,
+  getSunset,
   SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET,
   SOLAR_TROPICAL_YEAR
 } from './sun'
