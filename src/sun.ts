@@ -12,11 +12,13 @@ import type { EclipticCoordinate, EquatorialCoordinate, GeographicCoordinate } f
 
 import { AU_IN_METERS, c } from './constants'
 
-import { convertEclipticToEquatorial } from './coordinates'
+import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
 
 import { B, L, R, getEccentricityOfOrbit } from './earth'
 
 import { getJulianDate, getTerrestrialTime } from './epoch'
+
+import { getLocalHorizon } from './observer'
 
 import { getFOrbitalParameter } from './orbit'
 
@@ -457,6 +459,27 @@ export const getBarycentricJulianDate = (datetime: Date, target: EquatorialCoord
 
 /*****************************************************************************************************************/
 
+/**
+ *
+ * The geometric altitude of the centre of the Sun at which it rises and sets (in degrees), e.g.,
+ * the standard almanac convention of the ~16 arcminute semidiameter of the Sun and the standard
+ * ~34 arcminutes of refraction at the horizon, at which the upper limb of the Sun appears to
+ * touch the horizon.
+ *
+ */
+export const SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET = -0.8333 as const
+
+/*****************************************************************************************************************/
+
+// The geometric altitude of the centre of the Sun (in degrees), e.g., the altitude the standard
+// almanac convention of rise and set is stated against, which is not corrected for refraction:
+const getSolarGeometricAltitude = (datetime: Date, observer: GeographicCoordinate): number => {
+  return convertEquatorialToHorizontal(datetime, observer, getSolarEquatorialCoordinate(datetime))
+    .alt
+}
+
+/*****************************************************************************************************************/
+
 // The meridian transit of the Sun nearest the mean solar noon of the given date (in Unix
 // milliseconds), e.g., the local solar noon, at which the hour angle of the Sun vanishes,
 // resolved by a bisection about the mean solar noon, within which the hour angle is monotonic
@@ -514,6 +537,75 @@ const getSolarMeridianTransit = (datetime: Date, observer: GeographicCoordinate)
  */
 export const getSolarNoon = (datetime: Date, observer: GeographicCoordinate): Date => {
   return new Date(getSolarMeridianTransit(datetime, observer))
+}
+
+/*****************************************************************************************************************/
+
+// The crossing of the geometric altitude of the Sun through the standard almanac altitude of
+// rise and set, resolved by a bisection between the meridian transit and the lower culmination
+// half a solar day to either side of it, between which the altitude is monotonic:
+const getSolarHorizonCrossing = (
+  transit: number,
+  observer: GeographicCoordinate,
+  rise: boolean
+): Date | null => {
+  // The altitude of the crossing, e.g., the standard almanac altitude, depressed below the
+  // astronomical horizon by the elevation of the observer:
+  const h = SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET - getLocalHorizon(observer.elevation ?? 0)
+
+  // The end of the interval at which the Sun is at its lowest, e.g., the lower culmination
+  // before the transit for the rise, and the one after it for the set:
+  let below = transit + (rise ? -12 : 12) * 3600000
+
+  let above = transit
+
+  // The Sun does not cross the horizon for an observer in perpetual daylight or in perpetual
+  // night. The conditions are negated so that an altitude that is not a number does not resolve
+  // to a crossing:
+  if (
+    !(getSolarGeometricAltitude(new Date(below), observer) < h) ||
+    !(getSolarGeometricAltitude(new Date(above), observer) > h)
+  ) {
+    return null
+  }
+
+  while (Math.abs(above - below) > 100) {
+    const middle = (above + below) / 2
+
+    if (getSolarGeometricAltitude(new Date(middle), observer) < h) {
+      below = middle
+    } else {
+      above = middle
+    }
+  }
+
+  return new Date((above + below) / 2)
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getSunrise()
+ *
+ * The sunrise is the instant at which the upper limb of the Sun appears to touch the horizon as
+ * it rises, e.g., the standard almanac convention at which the geometric altitude of the centre
+ * of the Sun reaches the standard altitude of -0.8333°, which carries the semidiameter of the
+ * Sun and the standard refraction at the horizon, and which is depressed below the astronomical
+ * horizon by the elevation of the observer.
+ *
+ * N.B. The refraction within the standard altitude is a fixed convention, and so the sunrise is
+ * resolved against the geometric altitude of the Sun, and is not corrected for the refraction
+ * of the atmospheric conditions of the observation.
+ *
+ * @param datetime - The date to resolve the sunrise for, with the day taken in UTC.
+ * @param observer - The geographic coordinate of the observer.
+ * @returns The sunrise of the given date for the observer, or null where the Sun does not cross
+ * the horizon, e.g., for an observer in a polar day or a polar night.
+ *
+ */
+export const getSunrise = (datetime: Date, observer: GeographicCoordinate): Date | null => {
+  return getSolarHorizonCrossing(getSolarMeridianTransit(datetime, observer), observer, true)
 }
 
 /*****************************************************************************************************************/

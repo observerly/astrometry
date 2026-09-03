@@ -12,7 +12,7 @@ import { getAngularSeparation } from '../../src/astrometry'
 
 import { getGeneralizedSolarTransit, getSolarTransit } from '../../src/night'
 
-import { getSolarEquatorialCoordinate, getSolarNoon } from '../../src/sun'
+import { getSolarEquatorialCoordinate, getSolarNoon, getSunrise } from '../../src/sun'
 
 import { geocentricSolarCoordinates, solarTransitInstances } from './spa'
 
@@ -51,6 +51,13 @@ const TRANSIT_TOLERANCE = 12
 // Sun is taken against the mean sidereal time, while its right ascension carries the
 // nutation in longitude:
 const MERIDIAN_TRANSIT_TOLERANCE = 2
+
+/*****************************************************************************************************************/
+
+// The sunrise and sunset of the standard almanac convention, e.g., the crossings of the
+// geometric altitude of the centre of the Sun through the standard altitude of -0.8333° (in
+// seconds). The residual carries the equation of the equinoxes, as the meridian transit does:
+const STANDARD_RISE_AND_SET_TOLERANCE = 2
 
 /*****************************************************************************************************************/
 
@@ -198,6 +205,48 @@ describe('conformance of the almanac solar noon to the NREL SPA', () => {
       const Δnoon = (noon.getTime() - new Date(reference.transit).getTime()) / 1000
 
       expect(Math.abs(Δnoon)).toBeLessThan(MERIDIAN_TRANSIT_TOLERANCE)
+    }
+  )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the almanac sunrise to the NREL SPA', () => {
+  it.each(solarTransitInstances.filter(reference => reference.sunrise !== null))(
+    'should be within the pinned envelope of the reference at $name on $date',
+    reference => {
+      const observer = {
+        latitude: reference.latitude,
+        longitude: reference.longitude,
+        elevation: reference.elevation
+      }
+
+      const midnight = new Date(`${reference.date}T00:00:00.000Z`)
+
+      const sunrise = getSunrise(midnight, observer)
+
+      expect(sunrise).not.toBeNull()
+
+      const Δsunrise =
+        ((sunrise as Date).getTime() - new Date(reference.sunrise as string).getTime()) / 1000
+
+      expect(Math.abs(Δsunrise)).toBeLessThan(STANDARD_RISE_AND_SET_TOLERANCE)
+    }
+  )
+
+  it.each(solarTransitInstances.filter(reference => reference.sunrise === null))(
+    'should not resolve a sunrise at $name on $date',
+    reference => {
+      const observer = {
+        latitude: reference.latitude,
+        longitude: reference.longitude,
+        elevation: reference.elevation
+      }
+
+      const midnight = new Date(`${reference.date}T00:00:00.000Z`)
+
+      // The Sun does not cross the horizon for an observer in a polar day or a polar night:
+      expect(getSunrise(midnight, observer)).toBeNull()
     }
   )
 })
