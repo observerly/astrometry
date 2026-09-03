@@ -12,7 +12,7 @@ import type { EclipticCoordinate, EquatorialCoordinate, GeographicCoordinate } f
 
 import { AU_IN_METERS, c } from './constants'
 
-import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
+import { convertEclipticToEquatorial } from './coordinates'
 
 import { B, L, R, getEccentricityOfOrbit } from './earth'
 
@@ -22,7 +22,7 @@ import { getLocalHorizon } from './observer'
 
 import { getFOrbitalParameter } from './orbit'
 
-import { convertDegreesToRadians as radians } from './utilities'
+import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 import { calculateB, calculateL, calculateR } from './vsop87'
 
@@ -472,10 +472,23 @@ export const SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET = -0.8333 as const
 /*****************************************************************************************************************/
 
 // The geometric altitude of the centre of the Sun (in degrees), e.g., the altitude the standard
-// almanac convention of rise and set is stated against, which is not corrected for refraction:
+// almanac convention of rise and set is stated against, which is not corrected for refraction.
+//
+// N.B. The altitude is resolved from the apparent hour angle of the Sun, e.g., taken against
+// the apparent sidereal time, as the right ascension of the Sun is an apparent place that
+// carries the nutation in longitude, which the mean sidereal time would leave unbalanced by
+// the equation of the equinoxes:
 const getSolarGeometricAltitude = (datetime: Date, observer: GeographicCoordinate): number => {
-  return convertEquatorialToHorizontal(datetime, observer, getSolarEquatorialCoordinate(datetime))
-    .alt
+  const { ra, dec } = getSolarEquatorialCoordinate(datetime)
+
+  // Get the apparent hour angle of the Sun (in radians):
+  const ha = radians(getApparentHourAngle(datetime, observer.longitude, ra))
+
+  const φ = radians(observer.latitude)
+
+  const δ = radians(dec)
+
+  return degrees(Math.asin(Math.sin(φ) * Math.sin(δ) + Math.cos(φ) * Math.cos(δ) * Math.cos(ha)))
 }
 
 /*****************************************************************************************************************/
