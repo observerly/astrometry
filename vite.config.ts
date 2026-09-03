@@ -22,6 +22,7 @@ const modules = [
   'aberration',
   'apparent',
   'astrometry',
+  'calendar',
   'common',
   'conjunction',
   'constants',
