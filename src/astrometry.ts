@@ -361,6 +361,43 @@ export const getHourAngle = (datetime: Date, longitude: number, ra: number): num
 
 /**
  *
+ * getApparentHourAngle()
+ *
+ * The apparent Hour Angle (HA) is the angular distance along the celestial equator from the
+ * observer's meridian to the hour circle of a celestial body, taken against the Local Apparent
+ * Sidereal Time (LAST), e.g., referred to the true equinox of the date, which the equation of
+ * the equinoxes displaces from the mean equinox by up to ~±1.1 seconds of time.
+ *
+ * N.B. The apparent hour angle is the hour angle of an apparent place, e.g., a right ascension
+ * that carries the nutation in longitude, such as the geocentric apparent coordinate of the
+ * Sun. The hour angle of such a coordinate taken against the mean sidereal time leaves the
+ * nutation of the right ascension unbalanced, and so is displaced by the equation of the
+ * equinoxes.
+ *
+ * @param date - The date for which to calculate the apparent hour angle.
+ * @param ra - Apparent Right Ascension of the target in degrees.
+ * @param longitude - The longitude of the observer in degrees.
+ * @returns The apparent Hour Angle (HA) of the given date.
+ *
+ */
+export const getApparentHourAngle = (datetime: Date, longitude: number, ra: number): number => {
+  // Get the Local Apparent Sidereal Time (LAST) of the given date:
+  const LAST = getLocalApparentSiderealTime(datetime, longitude)
+
+  let ha = LAST * 15 - ra
+
+  // If the hour angle is less than zero, ensure we rotate by 2π radians (360 degrees)
+  if (ha < 0) {
+    ha += 360
+  }
+
+  return ha
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * getParallacticAngle()
  *
  * The parallactic angle is the angle between the great circle that passes through

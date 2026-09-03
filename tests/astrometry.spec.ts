@@ -17,6 +17,7 @@ import {
   type EquatorialProperMotion,
   getAngularSeparation,
   getAntipodeCoordinate,
+  getApparentHourAngle,
   getCorrectionToEquatorialForProperMotion,
   getGreenwichApparentSiderealTime,
   getGreenwichSiderealTime,
@@ -25,6 +26,8 @@ import {
   getLocalApparentSiderealTime,
   getLocalSiderealTime,
   getNormalisedSphericalCoordinate,
+  getNutation,
+  getObliquityOfTheEcliptic,
   getParallacticAngle,
   J2000
 } from '../src'
@@ -441,6 +444,39 @@ describe('getHourAngle', () => {
   it('should return the Hour Angle (HA) of the given date', () => {
     const HA = getHourAngle(datetime, longitude, betelgeuse.ra)
     expect(HA).toBe(347.6988036852858)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getApparentHourAngle', () => {
+  it('should be defined', () => {
+    expect(getApparentHourAngle).toBeDefined()
+  })
+
+  it('should return the apparent Hour Angle (HA) of the given date at longitude 0 at Greenwich', () => {
+    const HA = getApparentHourAngle(datetime, 0, betelgeuse.ra)
+    expect(HA).toBe(143.1624187391037)
+  })
+
+  it('should return the apparent Hour Angle (HA) of the given date', () => {
+    const HA = getApparentHourAngle(datetime, longitude, betelgeuse.ra)
+    expect(HA).toBe(347.6943247391037)
+  })
+
+  it('should be displaced from the mean hour angle by the equation of the equinoxes', () => {
+    // The apparent hour angle is taken against the true equinox of the date, which the
+    // equation of the equinoxes, e.g., the nutation in longitude projected onto the celestial
+    // equator, displaces from the mean equinox:
+    const { Δψ, Δε } = getNutation(datetime)
+
+    const ε = getObliquityOfTheEcliptic(datetime) + Δε
+
+    const apparent = getApparentHourAngle(datetime, longitude, betelgeuse.ra)
+
+    const mean = getHourAngle(datetime, longitude, betelgeuse.ra)
+
+    expect(apparent - mean).toBeCloseTo(Δψ * Math.cos(radians(ε)), 9)
   })
 })
 

@@ -23,6 +23,7 @@ export {
   GAST,
   getAngularSeparation,
   getAntipodeCoordinate,
+  getApparentHourAngle,
   getCorrectionToEquatorialForProperMotion,
   getGreenwichApparentSiderealTime,
   getGreenwichSiderealTime,
