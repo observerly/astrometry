@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { getHourAngle } from './astrometry'
+import { getApparentHourAngle } from './astrometry'
 
 import type { EclipticCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
 
@@ -493,11 +493,16 @@ const getSolarMeridianTransit = (datetime: Date, observer: GeographicCoordinate)
 
   // The signed hour angle of the Sun, taken the shorter of the two ways about the sphere, which
   // is negative before the transit, positive after it, and increases through zero at ~15 degrees
-  // per hour:
+  // per hour.
+  //
+  // N.B. The hour angle is the apparent hour angle, e.g., taken against the apparent sidereal
+  // time, as the right ascension of the Sun is an apparent place that carries the nutation in
+  // longitude, which the mean sidereal time would leave unbalanced by the equation of the
+  // equinoxes, e.g., by up to ~±1.1 seconds of time:
   const ha = (when: number): number => {
     const { ra } = getSolarEquatorialCoordinate(new Date(when))
 
-    return ((getHourAngle(new Date(when), observer.longitude, ra) + 180) % 360) - 180
+    return ((getApparentHourAngle(new Date(when), observer.longitude, ra) + 180) % 360) - 180
   }
 
   // The true transit is within the ~16 minutes of the equation of time of the mean solar noon,

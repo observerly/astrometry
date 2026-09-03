@@ -54,6 +54,14 @@ const MERIDIAN_TRANSIT_TOLERANCE = 2
 
 /*****************************************************************************************************************/
 
+// The solar noon of getSolarNoon(), e.g., the meridian transit of the Sun resolved against
+// the apparent hour angle (in seconds). The equation of the equinoxes is balanced, and so the
+// residual is that of the bisection resolution and of the apparent place of the Sun against
+// the full series of the SPA:
+const APPARENT_MERIDIAN_TRANSIT_TOLERANCE = 0.1
+
+/*****************************************************************************************************************/
+
 // The sunrise and sunset of the standard almanac convention, e.g., the crossings of the
 // geometric altitude of the centre of the Sun through the standard altitude of -0.8333° (in
 // seconds). The residual carries the equation of the equinoxes, as the meridian transit does:
@@ -204,7 +212,7 @@ describe('conformance of the almanac solar noon to the NREL SPA', () => {
 
       const Δnoon = (noon.getTime() - new Date(reference.transit).getTime()) / 1000
 
-      expect(Math.abs(Δnoon)).toBeLessThan(MERIDIAN_TRANSIT_TOLERANCE)
+      expect(Math.abs(Δnoon)).toBeLessThan(APPARENT_MERIDIAN_TRANSIT_TOLERANCE)
     }
   )
 })

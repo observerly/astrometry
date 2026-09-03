@@ -294,7 +294,7 @@ describe('getSolarNoon', () => {
 
   it('should return the meridian transit of the Sun for the given date', () => {
     const noon = getSolarNoon(datetime, { latitude: 49.914425, longitude: -6.315165 })
-    expect(noon.toISOString()).toBe('2021-05-14T12:21:35.610Z')
+    expect(noon.toISOString()).toBe('2021-05-14T12:21:36.654Z')
   })
 
   it('should resolve the solar noon for an observer in perpetual daylight', () => {
@@ -304,7 +304,7 @@ describe('getSolarNoon', () => {
       longitude: 18.9553
     })
 
-    expect(noon.toISOString()).toBe('2026-06-21T10:45:59.575Z')
+    expect(noon.toISOString()).toBe('2026-06-21T10:45:59.080Z')
   })
 
   it('should not modify the datetime given by the caller', () => {
@@ -331,7 +331,7 @@ describe('getSunrise', () => {
 
   it('should return the sunrise of the standard almanac convention for the given date', () => {
     const sunrise = getSunrise(datetime, { latitude: 49.914425, longitude: -6.315165 })
-    expect(sunrise?.toISOString()).toBe('2021-05-14T04:40:52.375Z')
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:40:52.430Z')
   })
 
   it('should return an earlier sunrise for an observer at an elevation', () => {
@@ -343,7 +343,7 @@ describe('getSunrise', () => {
       elevation: 2000
     })
 
-    expect(sunrise?.toISOString()).toBe('2021-05-14T04:31:18.147Z')
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:31:18.119Z')
   })
 
   it('should return null for an observer in perpetual daylight', () => {
@@ -371,7 +371,7 @@ describe('getSunset', () => {
 
   it('should return the sunset of the standard almanac convention for the given date', () => {
     const sunset = getSunset(datetime, { latitude: 49.914425, longitude: -6.315165 })
-    expect(sunset?.toISOString()).toBe('2021-05-14T20:03:12.981Z')
+    expect(sunset?.toISOString()).toBe('2021-05-14T20:03:12.954Z')
   })
 
   it('should return null for an observer in perpetual daylight', () => {
