@@ -47,10 +47,10 @@ const TRANSIT_TOLERANCE = 12
 /*****************************************************************************************************************/
 
 // The solar noon of getSolarTransit(), e.g., the refined meridian transit of the Sun (in
-// seconds). The residual carries the equation of the equinoxes, e.g., the hour angle of the
-// Sun is taken against the mean sidereal time, while its right ascension carries the
-// nutation in longitude:
-const MERIDIAN_TRANSIT_TOLERANCE = 2
+// seconds). The transit is resolved against the apparent hour angle, and so the equation of
+// the equinoxes is balanced, and the residual is that of the bisection resolution and of the
+// apparent place of the Sun against the full series of the SPA:
+const MERIDIAN_TRANSIT_TOLERANCE = 0.1
 
 /*****************************************************************************************************************/
 

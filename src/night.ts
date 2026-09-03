@@ -6,11 +6,9 @@
 
 /*****************************************************************************************************************/
 
-import { getHourAngle } from './astrometry'
+import { getApparentHourAngle } from './astrometry'
 
 import type { GeographicCoordinate } from './common'
-
-import { convertEquatorialToHorizontal } from './coordinates'
 
 import { getJulianDate } from './epoch'
 
@@ -25,6 +23,39 @@ import {
 import { getSolarEquatorialCoordinate } from './sun'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
+
+/*****************************************************************************************************************/
+
+// The apparent altitude of the centre of the Sun (in degrees), e.g., its true altitude
+// corrected for the refraction of the given atmospheric conditions.
+//
+// N.B. The altitude is resolved from the apparent hour angle of the Sun, e.g., taken against
+// the apparent sidereal time, as the right ascension of the Sun is an apparent place that
+// carries the nutation in longitude, which the mean sidereal time would leave unbalanced by
+// the equation of the equinoxes:
+const getApparentSolarAltitude = (
+  datetime: Date,
+  observer: GeographicCoordinate,
+  temperature: number,
+  pressure: number
+): number => {
+  const { ra, dec } = getSolarEquatorialCoordinate(datetime)
+
+  // Get the apparent hour angle of the Sun (in radians):
+  const ha = radians(getApparentHourAngle(datetime, observer.longitude, ra))
+
+  const φ = radians(observer.latitude)
+
+  const δ = radians(dec)
+
+  // The geometric altitude of the centre of the Sun (in degrees):
+  const alt = degrees(
+    Math.asin(Math.sin(φ) * Math.sin(δ) + Math.cos(φ) * Math.cos(δ) * Math.cos(ha))
+  )
+
+  // The refraction does not correct the azimuthal angle, and so it is given as zero:
+  return getCorrectionToHorizontalForRefraction({ alt, az: 0 }, temperature, pressure).alt
+}
 
 /*****************************************************************************************************************/
 
@@ -144,9 +175,7 @@ export const getSolarTransit = (
   // The apparent altitude of the Sun, e.g., its true altitude corrected for refraction, which
   // vanishes for an altitude below -1° and so does not perturb a twilight horizon:
   const altitude = (when: Date): number => {
-    const target = convertEquatorialToHorizontal(when, observer, getSolarEquatorialCoordinate(when))
-
-    return getCorrectionToHorizontalForRefraction(target, temperature, pressure).alt
+    return getApparentSolarAltitude(when, observer, temperature, pressure)
   }
 
   // The generalized transit is an explicitly lower accuracy estimate, and so the culminations are
@@ -192,11 +221,16 @@ export const getSolarTransit = (
   const meridian = (estimate: number): number => {
     // The signed hour angle of the Sun, taken the shorter of the two ways about the sphere,
     // which is negative before the transit, positive after it, and increases through zero at
-    // ~15 degrees per hour:
+    // ~15 degrees per hour.
+    //
+    // N.B. The hour angle is the apparent hour angle, e.g., taken against the apparent sidereal
+    // time, as the right ascension of the Sun is an apparent place that carries the nutation in
+    // longitude, which the mean sidereal time would leave unbalanced by the equation of the
+    // equinoxes, e.g., by up to ~±1.1 seconds of time:
     const ha = (when: number): number => {
       const { ra } = getSolarEquatorialCoordinate(new Date(when))
 
-      return ((getHourAngle(new Date(when), observer.longitude, ra) + 180) % 360) - 180
+      return ((getApparentHourAngle(new Date(when), observer.longitude, ra) + 180) % 360) - 180
     }
 
     let below = estimate - 40 * 60000
@@ -322,13 +356,7 @@ export const isNight = (
   const h = horizon - getLocalHorizon(observer.elevation ?? 0)
 
   // The apparent altitude of the Sun at the time of observation:
-  const target = convertEquatorialToHorizontal(
-    datetime,
-    observer,
-    getSolarEquatorialCoordinate(datetime)
-  )
-
-  const { alt } = getCorrectionToHorizontalForRefraction(target, temperature, pressure)
+  const alt = getApparentSolarAltitude(datetime, observer, temperature, pressure)
 
   // It is night where the Sun is below the horizon at the time of observation. The altitude is
   // compared directly, rather than the time against a sunrise and a sunset, which do not exist
