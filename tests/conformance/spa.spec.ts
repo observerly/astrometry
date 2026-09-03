@@ -64,8 +64,10 @@ const APPARENT_MERIDIAN_TRANSIT_TOLERANCE = 0.1
 
 // The sunrise and sunset of the standard almanac convention, e.g., the crossings of the
 // geometric altitude of the centre of the Sun through the standard altitude of -0.8333° (in
-// seconds). The residual carries the equation of the equinoxes, as the meridian transit does:
-const STANDARD_RISE_AND_SET_TOLERANCE = 2
+// seconds). The altitude is resolved from the apparent hour angle, and so the equation of the
+// equinoxes is balanced, and the residual is that of the bisection resolution and of the
+// apparent place of the Sun against the full series of the SPA:
+const STANDARD_RISE_AND_SET_TOLERANCE = 0.1
 
 /*****************************************************************************************************************/
 

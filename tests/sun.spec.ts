@@ -331,7 +331,7 @@ describe('getSunrise', () => {
 
   it('should return the sunrise of the standard almanac convention for the given date', () => {
     const sunrise = getSunrise(datetime, { latitude: 49.914425, longitude: -6.315165 })
-    expect(sunrise?.toISOString()).toBe('2021-05-14T04:40:52.430Z')
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:40:53.501Z')
   })
 
   it('should return an earlier sunrise for an observer at an elevation', () => {
@@ -343,7 +343,7 @@ describe('getSunrise', () => {
       elevation: 2000
     })
 
-    expect(sunrise?.toISOString()).toBe('2021-05-14T04:31:18.119Z')
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:31:19.190Z')
   })
 
   it('should return null for an observer in perpetual daylight', () => {
@@ -371,7 +371,7 @@ describe('getSunset', () => {
 
   it('should return the sunset of the standard almanac convention for the given date', () => {
     const sunset = getSunset(datetime, { latitude: 49.914425, longitude: -6.315165 })
-    expect(sunset?.toISOString()).toBe('2021-05-14T20:03:12.954Z')
+    expect(sunset?.toISOString()).toBe('2021-05-14T20:03:14.025Z')
   })
 
   it('should return null for an observer in perpetual daylight', () => {
