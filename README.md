@@ -140,6 +140,41 @@ This will give you the horizontal coordinates of Betelgeuse at the given time an
 
 Corrections for atmospheric refraction, parallax, nutation and aberration can also be applied in a similar manner to get an accurate horizontal position of the star.
 
+#### Sunrise, Solar Noon & Sunset
+
+To find the sunrise, solar noon and sunset for a given date and location:
+
+```typescript
+import { getSolarNoon, getSunrise, getSunset } from '@observerly/astrometry'
+
+// The sunrise of the given date for the observer, or null for an observer in
+// a polar day or a polar night:
+const sunrise = getSunrise(datetime, { latitude, longitude })
+
+// sunrise: 2021-05-14T15:46:15.680Z
+
+// The solar noon of the given date for the observer, which is resolved for
+// every observer, including an observer in a polar day or a polar night:
+const noon = getSolarNoon(datetime, { latitude, longitude })
+
+// noon: 2021-05-14T22:18:12.533Z
+
+// The sunset of the given date for the observer, or null likewise:
+const sunset = getSunset(datetime, { latitude, longitude })
+
+// sunset: 2021-05-15T04:50:22.158Z
+```
+
+The times follow the standard almanac convention: sunrise and sunset are the instants at which the geometric altitude of the centre of the Sun crosses the standard altitude of -0.8333°, which carries the ~16 arcminute semidiameter of the Sun and the standard ~34 arcminutes of atmospheric refraction at the horizon, e.g., the instants at which the upper limb of the Sun appears to touch the horizon. The standard altitude is further depressed below the astronomical horizon for an observer at an elevation.
+
+The algorithm proceeds as follows:
+
+- The geocentric apparent place of the Sun is resolved from the full VSOP87 planetary theory, evaluated at the Terrestrial Time of the given date, corrected for nutation and the aberration of light, and referred to the true equator and equinox of the date.
+- The solar noon is the meridian transit of the Sun, resolved by a bisection of the hour angle of the Sun through zero about the mean solar noon of the given date, e.g., it is not the culmination, which the motion of the Sun in declination displaces from the meridian by tens of seconds at an equinox.
+- The sunrise and sunset are resolved by a bisection of the geometric altitude of the Sun through the standard altitude, between the meridian transit and the lower culmination half a solar day to either side of it, between which the altitude is monotonic and crosses the horizon at most once.
+
+Every time is verified against the NREL Solar Position Algorithm of Reda, I., & Andreas, A. (2004), "Solar position algorithm for solar radiation applications", Solar Energy, 76(5), 577-589, to within ±2 seconds across a spread of latitudes, seasons and epochs, by the conformance suite in `tests/conformance`.
+
 ### Contributing
 
 observerly welcomes contributions from everyone. Please read our [contributing guide](./CONTRIBUTING.md) for more information.
