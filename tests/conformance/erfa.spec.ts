@@ -76,17 +76,14 @@ const PRECESSION_TOLERANCE = 0.0001
 
 // The equinox-based apparent place of a star away from the celestial poles, resolved as the catalogue coordinate
 // displaced by the corrections for precession, nutation and annual aberration in turn, against IAU 2006/2000A (in
-// degrees), e.g., ~1.1 arcseconds. The residual carries the first order differential form of the corrections, and
-// the gravitational deflection of light, which the library does not model:
-const APPARENT_PLACE_TOLERANCE = 0.0003
+// degrees):
+const APPARENT_PLACE_TOLERANCE = 0.0001
 
 /*****************************************************************************************************************/
 
-// The equinox-based apparent place of a star near a celestial pole (in degrees), e.g., ~18 arcseconds. The first
-// order corrections to the right ascension divide by the cosine of the declination, and so the differential form
-// degrades towards the poles, e.g., to ~14 arcseconds for Polaris, which a correction resolved as a displaced
-// vector would not:
-const APPARENT_PLACE_POLAR_TOLERANCE = 0.005
+// The equinox-based apparent place of a star near a celestial pole, resolved likewise, against IAU 2006/2000A (in
+// degrees):
+const APPARENT_PLACE_POLAR_TOLERANCE = 0.0001
 
 /*****************************************************************************************************************/
 
