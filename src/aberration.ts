@@ -90,26 +90,28 @@ export const getCorrectionToEquatorialForAnnualAberration = (
   // Get the true geometric longitude of the sun (in degrees):
   const S = radians(getSolarTrueGeometricLongitude(datetime))
 
-  // Calculate the aberration correction in right ascension (in radians):
-  const Δra =
-    -κ * (Math.cos(ra) * Math.cos(S) * Math.cos(ε) + (Math.sin(ra) * Math.sin(S)) / Math.cos(dec)) +
-    e *
-      κ *
-      (Math.cos(ra) * Math.cos(ϖ) * Math.cos(ε) + (Math.sin(ra) * Math.sin(ϖ)) / Math.cos(dec))
+  // The velocity of the Earth as a fraction of the speed of light, in the plane of the ecliptic, rotated about the
+  // obliquity of the ecliptic into the equatorial frame:
+  const v = {
+    x: κ * (Math.sin(S) - e * Math.sin(ϖ)),
+    y: -κ * (Math.cos(S) - e * Math.cos(ϖ)) * Math.cos(ε),
+    z: -κ * (Math.cos(S) - e * Math.cos(ϖ)) * Math.sin(ε)
+  }
 
-  // Calculate the aberration correction in declination (in radians):
-  const Δdec =
-    -κ *
-      (Math.cos(S) * Math.cos(ε) * (Math.tan(ε) * Math.cos(dec) - Math.sin(ra) * Math.sin(dec)) +
-        Math.cos(ra) * Math.sin(dec) * Math.sin(S)) +
-    e *
-      κ *
-      (Math.cos(ϖ) * Math.cos(ε) * (Math.tan(ε) * Math.cos(dec) - Math.sin(ra) * Math.sin(dec)) +
-        Math.cos(ra) * Math.sin(dec) * Math.sin(ϖ))
+  // The unit vector of the target, displaced by the velocity of the Earth, e.g., the apparent direction of the
+  // target, which is resolved as a displaced vector, and not expanded about the target, which would divide by
+  // cos δ and so degrade towards the celestial poles:
+  const apparent = {
+    x: Math.cos(dec) * Math.cos(ra) + v.x,
+    y: Math.cos(dec) * Math.sin(ra) + v.y,
+    z: Math.sin(dec) + v.z
+  }
 
   return {
-    ra: degrees(Δra),
-    dec: degrees(Δdec)
+    ra:
+      getNormalizedAzimuthalDegree(degrees(Math.atan2(apparent.y, apparent.x)) - target.ra + 180) -
+      180,
+    dec: degrees(Math.atan2(apparent.z, Math.hypot(apparent.x, apparent.y))) - target.dec
   }
 }
 
