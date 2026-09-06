@@ -471,14 +471,24 @@ export const SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET = -0.8333 as const
 
 /*****************************************************************************************************************/
 
-// The geometric altitude of the centre of the Sun (in degrees), e.g., the altitude the standard
-// almanac convention of rise and set is stated against, which is not corrected for refraction.
-//
-// N.B. The altitude is resolved from the apparent hour angle of the Sun, e.g., taken against
-// the apparent sidereal time, as the right ascension of the Sun is an apparent place that
-// carries the nutation in longitude, which the mean sidereal time would leave unbalanced by
-// the equation of the equinoxes:
-const getSolarGeometricAltitude = (datetime: Date, observer: GeographicCoordinate): number => {
+/**
+ *
+ * getSolarGeometricAltitude()
+ *
+ * The geometric altitude of the centre of the Sun (in degrees), e.g., the altitude the standard
+ * almanac convention of rise and set is stated against, which is not corrected for refraction.
+ *
+ * N.B. The altitude is resolved from the apparent hour angle of the Sun, e.g., taken against
+ * the apparent sidereal time, as the right ascension of the Sun is an apparent place that
+ * carries the nutation in longitude, which the mean sidereal time would leave unbalanced by
+ * the equation of the equinoxes.
+ *
+ * @param datetime - The date to resolve the geometric altitude of the Sun for.
+ * @param observer - The geographic coordinate of the observer.
+ * @returns The geometric altitude of the centre of the Sun (in degrees).
+ *
+ */
+export const getSolarGeometricAltitude = (datetime: Date, observer: GeographicCoordinate): number => {
   const { ra, dec } = getSolarEquatorialCoordinate(datetime)
 
   // Get the apparent hour angle of the Sun (in radians):

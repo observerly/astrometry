@@ -466,6 +466,7 @@ export {
   getSolarEclipticLongitude,
   getSolarEquationOfCenter,
   getSolarEquatorialCoordinate,
+  getSolarGeometricAltitude,
   getSolarMeanAnomaly,
   getSolarMeanGeometricLongitude,
   getSolarNoon,

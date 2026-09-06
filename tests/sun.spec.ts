@@ -24,6 +24,7 @@ import {
   getSolarEclipticLongitude,
   getSolarEquationOfCenter,
   getSolarEquatorialCoordinate,
+  getSolarGeometricAltitude,
   getSolarMeanAnomaly,
   getSolarMeanGeometricLongitude,
   getSolarNoon,
@@ -398,6 +399,34 @@ describe('getSunset', () => {
     const when = new Date('2021-05-14T00:00:00.000+00:00')
     getSunset(when, { latitude: 49.914425, longitude: -6.315165 })
     expect(when).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getSolarGeometricAltitude', () => {
+  it('should be defined', () => {
+    expect(getSolarGeometricAltitude).toBeDefined()
+  })
+
+  it('should return the geometric altitude of the centre of the Sun for the given date', () => {
+    const altitude = getSolarGeometricAltitude(new Date('2021-05-14T12:00:00.000+00:00'), {
+      latitude: 49.914425,
+      longitude: -6.315165
+    })
+
+    expect(altitude).toBe(58.536230088064514)
+  })
+
+  it('should be at the standard almanac altitude at the sunrise of the given date', () => {
+    const observer = { latitude: 49.914425, longitude: -6.315165 }
+
+    const sunrise = getSunrise(datetime, observer) as Date
+
+    expect(getSolarGeometricAltitude(sunrise, observer)).toBeCloseTo(
+      SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET,
+      3
+    )
   })
 })
 

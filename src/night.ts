@@ -20,38 +20,22 @@ import {
   getCorrectionToHorizontalForRefraction
 } from './refraction'
 
-import { getSolarEquatorialCoordinate } from './sun'
+import { getSolarEquatorialCoordinate, getSolarGeometricAltitude } from './sun'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
 // The apparent altitude of the centre of the Sun (in degrees), e.g., its true altitude
-// corrected for the refraction of the given atmospheric conditions.
-//
-// N.B. The altitude is resolved from the apparent hour angle of the Sun, e.g., taken against
-// the apparent sidereal time, as the right ascension of the Sun is an apparent place that
-// carries the nutation in longitude, which the mean sidereal time would leave unbalanced by
-// the equation of the equinoxes:
+// corrected for the refraction of the given atmospheric conditions:
 const getApparentSolarAltitude = (
   datetime: Date,
   observer: GeographicCoordinate,
   temperature: number,
   pressure: number
 ): number => {
-  const { ra, dec } = getSolarEquatorialCoordinate(datetime)
-
-  // Get the apparent hour angle of the Sun (in radians):
-  const ha = radians(getApparentHourAngle(datetime, observer.longitude, ra))
-
-  const φ = radians(observer.latitude)
-
-  const δ = radians(dec)
-
   // The geometric altitude of the centre of the Sun (in degrees):
-  const alt = degrees(
-    Math.asin(Math.sin(φ) * Math.sin(δ) + Math.cos(φ) * Math.cos(δ) * Math.cos(ha))
-  )
+  const alt = getSolarGeometricAltitude(datetime, observer)
 
   // The refraction does not correct the azimuthal angle, and so it is given as zero:
   return getCorrectionToHorizontalForRefraction({ alt, az: 0 }, temperature, pressure).alt
