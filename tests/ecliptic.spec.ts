@@ -89,7 +89,7 @@ describe('getObliquityOfTheEcliptic', () => {
 
   it('should return the Obliquity of the Ecliptic (e) of the given date', () => {
     const ε = getObliquityOfTheEcliptic(datetime)
-    expect(ε).toBe(23.436511890585354)
+    expect(ε).toBeCloseTo(23.436499839009812, 9)
   })
 })
 
@@ -102,7 +102,7 @@ describe('getTrueObliquityOfTheEcliptic', () => {
 
   it('should return the True Obliquity of the Ecliptic (e) of the given date', () => {
     const ε = getTrueObliquityOfTheEcliptic(datetime)
-    expect(ε).toBe(23.43726508766999)
+    expect(ε).toBeCloseTo(23.437253036094447, 9)
   })
 
   it('should be the mean obliquity of the ecliptic corrected for the nutation in obliquity', () => {

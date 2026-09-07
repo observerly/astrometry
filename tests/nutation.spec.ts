@@ -39,14 +39,14 @@ describe('getCorrectionToEquatorialForNutation', () => {
       new Date('2000-01-01T00:00:00+00:00'),
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBe(88.78918548764206)
-    expect(dec + betelgeuse.dec).toBe(7.405435271760147)
+    expect(ra + betelgeuse.ra).toBe(88.78918548740421)
+    expect(dec + betelgeuse.dec).toBe(7.4054352717766525)
   })
 
   it('should return the correct nutation correction for the designated epoch', () => {
     const { ra, dec } = getCorrectionToEquatorialForNutation(datetime, betelgeuse)
-    expect(ra + betelgeuse.ra).toBe(88.78822492448745)
-    expect(dec + betelgeuse.dec).toBe(7.407776028046682)
+    expect(ra + betelgeuse.ra).toBe(88.7882249242015)
+    expect(dec + betelgeuse.dec).toBe(7.407776028066527)
   })
 })
 

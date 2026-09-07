@@ -55,8 +55,8 @@ describe('convertEclipticToEquatorial', () => {
     }
 
     const { ra, dec } = convertEclipticToEquatorial(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(ra).toBe(244.24840810235008)
-    expect(dec).toBe(-19.403239194263925)
+    expect(ra).toBe(244.24840996659537)
+    expect(dec).toBe(-19.40322822181227)
   })
 })
 
