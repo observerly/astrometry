@@ -359,7 +359,7 @@ describe('getGreenwichApparentSiderealTime', () => {
 
   it('should return the Greenwich Apparent Sidereal Time (GAST) of the given date', () => {
     const GAST = getGreenwichApparentSiderealTime(datetime)
-    expect(GAST).toBe(15.463691802606913)
+    expect(GAST).toBe(15.463691802579685)
   })
 
   it('should differ from the Greenwich Mean Sidereal Time (GMST) by the equation of the equinoxes', () => {
@@ -418,7 +418,7 @@ describe('getLocalApparentSiderealTime', () => {
 
   it('should return the Local Apparent Sidereal Time (LAST) of the given date', () => {
     const LAST = getLocalApparentSiderealTime(datetime, longitude)
-    expect(LAST).toBe(5.099152202606913)
+    expect(LAST).toBe(5.099152202579685)
   })
 
   it('should differ from the Local Sidereal Time (LST) by the equation of the equinoxes', () => {
@@ -456,12 +456,12 @@ describe('getApparentHourAngle', () => {
 
   it('should return the apparent Hour Angle (HA) of the given date at longitude 0 at Greenwich', () => {
     const HA = getApparentHourAngle(datetime, 0, betelgeuse.ra)
-    expect(HA).toBe(143.1624187391037)
+    expect(HA).toBe(143.1624187386953)
   })
 
   it('should return the apparent Hour Angle (HA) of the given date', () => {
     const HA = getApparentHourAngle(datetime, longitude, betelgeuse.ra)
-    expect(HA).toBe(347.6943247391037)
+    expect(HA).toBe(347.6943247386953)
   })
 
   it('should be displaced from the mean hour angle by the equation of the equinoxes', () => {

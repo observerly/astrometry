@@ -260,8 +260,8 @@ describe('getLunarEquatorialCoordinate', () => {
   it('should return the correct Lunar equatorial coordinate for the given date', () => {
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const { ra, dec } = getLunarEquatorialCoordinate(datetime)
-    expect(ra).toBe(63.854145131019)
-    expect(dec).toBe(17.245818740686968)
+    expect(ra).toBe(63.85414680076627)
+    expect(dec).toBe(17.24580778328731)
   })
 })
 

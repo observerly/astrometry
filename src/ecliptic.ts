@@ -63,8 +63,17 @@ export const getObliquityOfTheEcliptic = (datetime: Date): number => {
   // Calculate the number of centuries since J2000.0:
   const T = (JD - 2451545.0) / 36525
 
-  // Calculate the obliquity of the ecliptic:
-  return 23.439292 - (46.845 * T + 0.00059 * T ** 2 + 0.001813 * T ** 3) / 3600
+  // Calculate the obliquity of the ecliptic, e.g., the mean obliquity of IAU 2006, converted from arcseconds to
+  // degrees:
+  return (
+    (84381.406 -
+      46.836769 * T -
+      0.0001831 * T ** 2 +
+      0.0020034 * T ** 3 -
+      0.000000576 * T ** 4 -
+      0.0000000434 * T ** 5) /
+    3600
+  )
 }
 
 /*****************************************************************************************************************/

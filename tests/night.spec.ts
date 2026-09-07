@@ -407,7 +407,7 @@ describe('getSolarTransit at the horizon given by the caller', () => {
 
     expect(sunrise?.toISOString()).toBe('2021-02-28T15:11:20.261Z')
     expect(noon).toBeInstanceOf(Date)
-    expect(sunset?.toISOString()).toBe('2021-02-28T17:36:06.379Z')
+    expect(sunset?.toISOString()).toBe('2021-02-28T17:36:06.461Z')
   })
 
   it('should resolve a grazing rise the estimated noon samples on the wrong side of', () => {

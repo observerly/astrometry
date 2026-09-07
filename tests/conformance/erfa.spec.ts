@@ -43,16 +43,13 @@ const NUTATION_IN_OBLIQUITY_TOLERANCE = 0.00003
 
 /*****************************************************************************************************************/
 
-// The mean obliquity of the ecliptic against the model of IAU 2006 (in degrees), e.g., ~0.07 arcseconds. The
-// residual is dominated by the constant of the older obliquity model, which sits ~0.045 arcseconds above that of
-// IAU 2006:
-const MEAN_OBLIQUITY_TOLERANCE = 0.00002
+// The mean obliquity of the ecliptic against the model of IAU 2006 (in degrees):
+const MEAN_OBLIQUITY_TOLERANCE = 0.000001
 
 /*****************************************************************************************************************/
 
-// The true obliquity of the ecliptic against IAU 2006/2000A (in degrees), e.g., ~0.14 arcseconds, which carries
-// the residuals of both the mean obliquity and the nutation in obliquity:
-const TRUE_OBLIQUITY_TOLERANCE = 0.00004
+// The true obliquity of the ecliptic against IAU 2006/2000A (in degrees):
+const TRUE_OBLIQUITY_TOLERANCE = 0.00002
 
 /*****************************************************************************************************************/
 
