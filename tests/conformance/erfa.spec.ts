@@ -32,14 +32,13 @@ import { erfaInstants } from './erfa'
 
 /*****************************************************************************************************************/
 
-// The nutation in longitude against the full series of IAU 2000A (in degrees), e.g., ~0.36 arcseconds. The
-// residual is the truncation of the four term series against the ~1400 terms of the full model:
-const NUTATION_IN_LONGITUDE_TOLERANCE = 0.0001
+// The nutation in longitude against the full series of IAU 2000A (in degrees):
+const NUTATION_IN_LONGITUDE_TOLERANCE = 0.000001
 
 /*****************************************************************************************************************/
 
-// The nutation in obliquity against the full series of IAU 2000A (in degrees), e.g., ~0.11 arcseconds:
-const NUTATION_IN_OBLIQUITY_TOLERANCE = 0.00003
+// The nutation in obliquity against the full series of IAU 2000A (in degrees):
+const NUTATION_IN_OBLIQUITY_TOLERANCE = 0.0000003
 
 /*****************************************************************************************************************/
 
@@ -49,7 +48,7 @@ const MEAN_OBLIQUITY_TOLERANCE = 0.000001
 /*****************************************************************************************************************/
 
 // The true obliquity of the ecliptic against IAU 2006/2000A (in degrees):
-const TRUE_OBLIQUITY_TOLERANCE = 0.00002
+const TRUE_OBLIQUITY_TOLERANCE = 0.0000003
 
 /*****************************************************************************************************************/
 
@@ -58,9 +57,8 @@ const MEAN_SIDEREAL_TIME_TOLERANCE = 0.015
 
 /*****************************************************************************************************************/
 
-// The Greenwich Apparent Sidereal Time against IAU 2006/2000A (in seconds of time), which carries the residual of
-// the nutation in longitude through the equation of the equinoxes:
-const APPARENT_SIDEREAL_TIME_TOLERANCE = 0.025
+// The Greenwich Apparent Sidereal Time against IAU 2006/2000A (in seconds of time):
+const APPARENT_SIDEREAL_TIME_TOLERANCE = 0.015
 
 /*****************************************************************************************************************/
 

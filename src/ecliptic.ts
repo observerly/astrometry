@@ -8,11 +8,11 @@
 
 import type { EquatorialCoordinate } from './common'
 
-import { getJulianDate } from './epoch'
+import { getJulianDate, getTerrestrialTime } from './epoch'
 
-import { getSolarEquatorialCoordinate, getSolarMeanGeometricLongitude } from './sun'
+import { getNutation } from './nutation'
 
-import { convertDegreesToRadians as radians } from './utilities'
+import { getSolarEquatorialCoordinate } from './sun'
 
 /*****************************************************************************************************************/
 
@@ -57,8 +57,9 @@ export const getEclipticPlane = (date: Date): EquatorialCoordinate[] => {
  *
  */
 export const getObliquityOfTheEcliptic = (datetime: Date): number => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
+  // The polynomial is referred to Terrestrial Time, and so it is resolved at the Terrestrial Time of the given
+  // date, as the nutation it is corrected by is:
+  const JD = getJulianDate(getTerrestrialTime(datetime))
 
   // Calculate the number of centuries since J2000.0:
   const T = (JD - 2451545.0) / 36525
@@ -92,40 +93,15 @@ export const getObliquityOfTheEcliptic = (datetime: Date): number => {
  *
  */
 export const getTrueObliquityOfTheEcliptic = (datetime: Date): number => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
-
-  // Calculate the number of centuries since J2000.0:
-  const T = (JD - 2451545.0) / 36525
-
   // Get the mean obliquity of the ecliptic (in degrees):
   const ε = getObliquityOfTheEcliptic(datetime)
 
-  // Get the ecliptic longitude of the ascending node of the Moon (in degrees):
-  //
-  // N.B. The polynomial is that of getLunarMeanEclipticLongitudeOfTheAscendingNode(), which is
-  // resolved here so that this module does not depend on the moon module, which depends on this
-  // module:
-  const Ω = (125.044522 - 0.0529539 * (JD - 2451545.0)) % 360
-
-  // Get the mean geometric longitude of the Sun (in degrees):
-  const LS = getSolarMeanGeometricLongitude(datetime)
-
-  // Get the mean geometric longitude of the Moon (in degrees), resolved here likewise:
-  const LM =
-    (218.3164477 + 481267.88123421 * T - 0.0015786 * T ** 2 + T ** 3 / 538841 - T ** 4 / 65194000) %
-    360
+  // Get the nutation in obliquity (in degrees):
+  const { Δε } = getNutation(datetime)
 
   // Correct for the nutation in obliquity, e.g., the displacement of the true equator of the
   // date from the mean equator of the date (in degrees):
-  return (
-    ε +
-    (9.2 * Math.cos(radians(Ω)) +
-      0.57 * Math.cos(radians(2 * LS)) +
-      0.1 * Math.cos(radians(2 * LM)) -
-      0.09 * Math.cos(radians(2 * Ω))) /
-      3600
-  )
+  return ε + Δε
 }
 
 /*****************************************************************************************************************/

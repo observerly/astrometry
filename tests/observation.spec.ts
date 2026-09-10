@@ -54,8 +54,8 @@ describe('Observation', () => {
       datetime: new Date('2000-01-01T00:00:00.000+00:00')
     })
 
-    expect(Polaris.ra).toBe(38.19271458619289)
-    expect(Polaris.dec).toBe(89.26695157482902)
+    expect(Polaris.ra).toBe(38.19348177354913)
+    expect(Polaris.dec).toBe(89.2669580040037)
   })
 
   it('should be a reactive observable when the datetime changes', () => {
@@ -70,8 +70,8 @@ describe('Observation', () => {
     })
 
     expect(Polaris.datetime.getTime()).toEqual(datetime.getTime())
-    expect(Polaris.ra).toBe(44.196024221863084)
-    expect(Polaris.dec).toBe(89.3508374858078)
+    expect(Polaris.ra).toBe(44.196733195159666)
+    expect(Polaris.dec).toBe(89.35083950292699)
     expect(Polaris.ha).toBe(getHourAngle(datetime, longitude, Polaris.ra))
   })
 
