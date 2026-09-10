@@ -14,16 +14,11 @@ import { EARTH_ANGULAR_VELOCITY, EARTH_RADIUS, c } from './constants'
 
 import { getEccentricityOfOrbit } from './earth'
 
-import { getObliquityOfTheEcliptic } from './ecliptic'
+import { getTrueObliquityOfTheEcliptic } from './ecliptic'
 
 import { getJulianDate } from './epoch'
 
-import {
-  getLunarMeanEclipticLongitudeOfTheAscendingNode,
-  getLunarMeanGeometricLongitude
-} from './moon'
-
-import { getSolarMeanGeometricLongitude, getSolarTrueGeometricLongitude } from './sun'
+import { getSolarTrueGeometricLongitude } from './sun'
 
 import {
   convertRadiansToDegrees as degrees,
@@ -59,24 +54,8 @@ export const getCorrectionToEquatorialForAnnualAberration = (
   // Get the difference in fractional Julian centuries between the target date and J2000.0
   const T = (JD - 2451545.0) / 36525
 
-  // Get the ecliptic longitude of the ascending node of the mode (in degrees):
-  const Ω = getLunarMeanEclipticLongitudeOfTheAscendingNode(datetime)
-
-  // Get the mean geometric longitude of the sun (in degrees):
-  const L = getSolarMeanGeometricLongitude(datetime)
-
-  // Get the mean geometric longitude of the moon (in degrees):
-  const l = getLunarMeanGeometricLongitude(datetime)
-
-  // Get the nutation in obliquity (in degrees):
-  const Δε =
-    9.2 * Math.cos(radians(Ω)) +
-    0.57 * Math.cos(radians(2 * L)) +
-    0.1 * Math.cos(radians(2 * l)) -
-    0.09 * Math.cos(radians(2 * Ω))
-
-  // Get the true obliquity of the ecliptic (in degrees):
-  const ε = radians(getObliquityOfTheEcliptic(datetime) + Δε / 3600)
+  // Get the true obliquity of the ecliptic (in radians):
+  const ε = radians(getTrueObliquityOfTheEcliptic(datetime))
 
   // Get the constant of aberration (in degrees):
   const κ = radians(20.49552 / 3600)
