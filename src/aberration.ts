@@ -10,7 +10,7 @@ import { getHourAngle } from './astrometry'
 
 import type { CartesianCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
 
-import { EARTH_ANGULAR_VELOCITY, EARTH_RADIUS, c } from './constants'
+import { AU_IN_METERS, EARTH_ANGULAR_VELOCITY, EARTH_RADIUS, c } from './constants'
 
 import { getEccentricityOfOrbit } from './earth'
 
@@ -18,7 +18,9 @@ import { getTrueObliquityOfTheEcliptic } from './ecliptic'
 
 import { getJulianDate } from './epoch'
 
-import { getSolarTrueGeometricLongitude } from './sun'
+import { getNutation } from './nutation'
+
+import { getSolarGeometricEclipticCoordinate, getSolarTrueGeometricLongitude } from './sun'
 
 import {
   convertRadiansToDegrees as degrees,
@@ -242,6 +244,103 @@ export const getCorrectionToEquatorialForVelocityAberration = (
   return {
     ra: Δra,
     dec: Δdec
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getCorrectionToEquatorialForLightDeflection()
+ *
+ * Corrects the equatorial coordinate of a target for the gravitational deflection of light by the
+ * Sun, e.g., the bending of the light of the target towards the Sun as it passes through the
+ * gravitational field of the Sun, which displaces the apparent place of the target away from the
+ * Sun. The correction terms should be added to the target's coordinate by the caller.
+ *
+ * The deflection is that of the first post-Newtonian order of the Schwarzschild metric, e.g., up to
+ * ~1.75 arcseconds at the limb of the Sun, and ~4 milliarcseconds at right angles to the Sun.
+ *
+ * N.B. The deflection is unbounded for a target behind the Sun, and so the distance of the target
+ * from the direction of the Sun is held to a small floor, as the reference implementation of the
+ * IAU Standards of Fundamental Astronomy (SOFA) holds it.
+ *
+ * @param datetime - The date to correct the equatorial coordinate for.
+ * @param target - The equatorial coordinate of the target, referred to the true equator and equinox of the date.
+ * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
+ *
+ */
+export const getCorrectionToEquatorialForLightDeflection = (
+  datetime: Date,
+  target: EquatorialCoordinate
+): EquatorialCoordinate => {
+  const ra = radians(target.ra)
+
+  const dec = radians(target.dec)
+
+  // The Schwarzschild radius of the Sun, e.g., 2GM☉/c² for the heliocentric gravitational constant of the IAU 2009
+  // system of astronomical constants (in astronomical units):
+  const SRS = 1.97412574336e-8
+
+  // Get the geometric ecliptic coordinate of the Sun, e.g., the direction of the Sun from the Earth before the
+  // corrections for the nutation and for the aberration of light, as the deflection is a function of the geometry
+  // of the Sun, the Earth and the target, and not of the apparent place of the Sun:
+  const sun = getSolarGeometricEclipticCoordinate(datetime)
+
+  // Get the nutation in longitude (in degrees):
+  const { Δψ } = getNutation(datetime)
+
+  // The geometric longitude of the Sun, referred to the true equinox of the date by the nutation in longitude, so
+  // that the direction of the Sun is referred to the true equator and equinox of the date, as the target is (in
+  // radians):
+  const λ = radians(sun.λ + Δψ)
+
+  const β = radians(sun.β)
+
+  // Get the true obliquity of the ecliptic (in radians):
+  const ε = radians(getTrueObliquityOfTheEcliptic(datetime))
+
+  // Get the distance of the Sun from the Earth (in astronomical units):
+  const d = sun.R / AU_IN_METERS
+
+  // The unit vector of the target:
+  const p = {
+    x: Math.cos(dec) * Math.cos(ra),
+    y: Math.cos(dec) * Math.sin(ra),
+    z: Math.sin(dec)
+  }
+
+  // The unit vector from the Sun to the Earth, e.g., the direction of the Sun from the Earth reversed, rotated
+  // about the obliquity of the ecliptic from the ecliptic frame into the equatorial frame:
+  const e = {
+    x: -Math.cos(β) * Math.cos(λ),
+    y: -(Math.cos(β) * Math.sin(λ) * Math.cos(ε) - Math.sin(β) * Math.sin(ε)),
+    z: -(Math.cos(β) * Math.sin(λ) * Math.sin(ε) + Math.sin(β) * Math.cos(ε))
+  }
+
+  // The cosine of the angle between the target and the direction from the Sun to the Earth, e.g., the cosine of
+  // the supplement of the elongation of the target from the Sun:
+  const cosine = p.x * e.x + p.y * e.y + p.z * e.z
+
+  // The magnitude of the deflection, e.g., the Schwarzschild radius of the Sun over the distance of the Sun,
+  // divided by 1 + cos θ, held to a small floor for a target behind the Sun (in radians):
+  const w = SRS / d / Math.max(1 + cosine, 1e-6)
+
+  // The unit vector of the target, displaced away from the Sun by the deflection, e.g., along the component of
+  // the direction from the Sun to the Earth at right angles to the target:
+  const apparent = {
+    x: p.x + w * (e.x - cosine * p.x),
+    y: p.y + w * (e.y - cosine * p.y),
+    z: p.z + w * (e.z - cosine * p.z)
+  }
+
+  // The coordinate is recovered from the displaced vector, and is not expanded about the target, which would
+  // divide by cos δ and so be unbounded at the poles:
+  return {
+    ra:
+      getNormalizedAzimuthalDegree(degrees(Math.atan2(apparent.y, apparent.x)) - target.ra + 180) -
+      180,
+    dec: degrees(Math.atan2(apparent.z, Math.hypot(apparent.x, apparent.y))) - target.dec
   }
 }
 

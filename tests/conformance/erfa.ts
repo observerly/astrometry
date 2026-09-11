@@ -21,6 +21,9 @@
 //
 // N.B. The 2050 epoch is beyond the published leap second table, and so its ΔT carries the 37 leap seconds of the
 // present, as the leap seconds of the library likewise do.
+//
+// N.B. Zavijava is included for its passage within ~2° of the Sun at the 2013 epoch, at which the gravitational
+// deflection of light is a few tenths of an arcsecond.
 
 /*****************************************************************************************************************/
 
@@ -90,6 +93,13 @@ export const erfaInstants: ERFAInstantReference[] = [
         dec: -52.69566111,
         precessed: { ra: 95.8786882489553, dec: -52.68432564185551 },
         apparent: { ra: 95.8737087329289, dec: -52.69117670603191 }
+      },
+      {
+        name: 'Zavijava',
+        ra: 177.67382,
+        dec: 1.76472,
+        precessed: { ra: 177.42137456561275, dec: 1.8742648497985854 },
+        apparent: { ra: 177.42289208315427, dec: 1.873534010691882 }
       }
     ]
   },
@@ -121,6 +131,13 @@ export const erfaInstants: ERFAInstantReference[] = [
         dec: -52.69566111,
         precessed: { ra: 95.98787779127697, dec: -52.695661111181344 },
         apparent: { ra: 95.99607377341168, dec: -52.6976350258586 }
+      },
+      {
+        name: 'Zavijava',
+        ra: 177.67382,
+        dec: 1.76472,
+        precessed: { ra: 177.67382002607116, dec: 1.7647199886863745 },
+        apparent: { ra: 177.6714133435612, dec: 1.7656073791640294 }
       }
     ]
   },
@@ -152,6 +169,13 @@ export const erfaInstants: ERFAInstantReference[] = [
         dec: -52.69566111,
         precessed: { ra: 96.06397406501026, dec: -52.70368261211285 },
         apparent: { ra: 96.06457030767507, dec: -52.70012792767383 }
+      },
+      {
+        name: 'Zavijava',
+        ra: 177.67382,
+        dec: 1.76472,
+        precessed: { ra: 177.84974219626645, dec: 1.6883766364976287 },
+        apparent: { ra: 177.84723121632075, dec: 1.6893980137503908 }
       }
     ]
   },
@@ -183,6 +207,13 @@ export const erfaInstants: ERFAInstantReference[] = [
         dec: -52.69566111,
         precessed: { ra: 96.13581197979498, dec: -52.71134685815221 },
         apparent: { ra: 96.1331324681725, dec: -52.70406869765366 }
+      },
+      {
+        name: 'Zavijava',
+        ra: 177.67382,
+        dec: 1.76472,
+        precessed: { ra: 178.0158118713948, dec: 1.6163064362495931 },
+        apparent: { ra: 178.01322321828965, dec: 1.617558244759716 }
       }
     ]
   },
@@ -214,6 +245,13 @@ export const erfaInstants: ERFAInstantReference[] = [
         dec: -52.69566111,
         precessed: { ra: 96.2663343221582, dec: -52.72549970641269 },
         apparent: { ra: 96.26921855598269, dec: -52.7325128287388 }
+      },
+      {
+        name: 'Zavijava',
+        ra: 177.67382,
+        dec: 1.76472,
+        precessed: { ra: 178.3175273426459, dec: 1.4853659404024722 },
+        apparent: { ra: 178.32642688615098, dec: 1.481465962419012 }
       }
     ]
   }

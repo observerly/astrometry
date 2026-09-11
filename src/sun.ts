@@ -208,16 +208,16 @@ export const getSolarEclipticLongitude = (datetime: Date): number => {
 
 /**
  *
- * getSolarEclipticCoordinate()
+ * getSolarGeometricEclipticCoordinate()
  *
- * The ecliptic coordinates of the Sun are the Sun's position in the sky as seen
- * from the centre of the Earth, corrected for the equation of center and the Sun's
- * ecliptic longitude at perigee at the epoch.
+ * The geometric ecliptic coordinates of the Sun are the Sun's position as seen from the centre of
+ * the Earth, referred to the mean ecliptic and equinox of the date, e.g., the place of the Sun
+ * before the corrections for the nutation and for the aberration of light are applied.
  *
- * @param datetime - The date to calculate the Sun's ecliptic coordinates for.
- * @returns The Sun's ecliptic coordinates at the given date.
+ * @param datetime - The date to calculate the Sun's geometric ecliptic coordinates for.
+ * @returns The Sun's geometric ecliptic coordinates at the given date.
  */
-export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate & {
+export function getSolarGeometricEclipticCoordinate(datetime: Date): EclipticCoordinate & {
   R: number
 } {
   // The ephemeris of the Sun is referred to Terrestrial Time, and so the coordinate is resolved
@@ -241,9 +241,6 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
   // The Sun's ecliptic longitude is just the anti-podal angle of the mean longitude:
   let λ = l + 180
 
-  // Radial distance of the Sun from the Earth (in AU):
-  const RO = r / AU_IN_METERS
-
   // N.B. The Sun's longitude ⨀ and latitude β obtained thus far are referred to
   // the mean dynamical ecliptic and equinox of the date defined by the VSOP planetary
   // theory of P. Bretagnon. This reference frame differs slightly from the standard
@@ -261,6 +258,42 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
   if (λ < 0) {
     λ += 360
   }
+
+  return {
+    λ: λ % 360,
+    β: Δβ - b,
+    R: r
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getSolarEclipticCoordinate()
+ *
+ * The ecliptic coordinates of the Sun are the Sun's position in the sky as seen
+ * from the centre of the Earth, corrected for the equation of center and the Sun's
+ * ecliptic longitude at perigee at the epoch.
+ *
+ * @param datetime - The date to calculate the Sun's ecliptic coordinates for.
+ * @returns The Sun's ecliptic coordinates at the given date.
+ */
+export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate & {
+  R: number
+} {
+  // Get the geometric ecliptic coordinates of the Sun, referred to the mean ecliptic and equinox
+  // of the date (λ and β in degrees, and R in metres):
+  const { λ: λ0, β, R: r } = getSolarGeometricEclipticCoordinate(datetime)
+
+  let λ = λ0
+
+  // Get the Julian millenia since J2000.0, at the Terrestrial Time of the given date, as the
+  // ephemeris of the Sun is:
+  const τ = (getJulianDate(getTerrestrialTime(datetime)) - 2451545.0) / 365250
+
+  // Radial distance of the Sun from the Earth (in AU):
+  const RO = r / AU_IN_METERS
 
   // Daily variation in the longitude (in arcseconds), for the geocentric
   // longitude of the Sun in a fixed reference frame:
@@ -306,7 +339,7 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
 
   return {
     λ: λ % 360,
-    β: Δβ - b,
+    β,
     R: r
   }
 }

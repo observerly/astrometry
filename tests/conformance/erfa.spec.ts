@@ -8,7 +8,10 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { getCorrectionToEquatorialForAnnualAberration } from '../../src/aberration'
+import {
+  getCorrectionToEquatorialForAnnualAberration,
+  getCorrectionToEquatorialForLightDeflection
+} from '../../src/aberration'
 
 import {
   getAngularSeparation,
@@ -70,8 +73,8 @@ const PRECESSION_TOLERANCE = 0.0000001
 /*****************************************************************************************************************/
 
 // The equinox-based apparent place of a star away from the celestial poles, resolved as the catalogue coordinate
-// displaced by the corrections for precession, nutation and annual aberration in turn, against IAU 2006/2000A (in
-// degrees):
+// displaced by the corrections for precession, nutation, light deflection and annual aberration in turn, against
+// IAU 2006/2000A (in degrees):
 const APPARENT_PLACE_TOLERANCE = 0.00002
 
 /*****************************************************************************************************************/
@@ -178,19 +181,28 @@ describe('conformance of the apparent place to ERFA', () => {
         const target = { ra: star.ra, dec: star.dec }
 
         // The apparent place of the date, e.g., the catalogue coordinate displaced by the corrections for the
-        // precession of the equinoxes, the nutation and the annual aberration in turn, each about the place the
-        // one before it resolves:
+        // precession of the equinoxes, the nutation, the gravitational deflection of light and the annual
+        // aberration in turn, each about the place the one before it resolves:
         const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, target)
 
         const mean = { ra: target.ra + precession.ra, dec: target.dec + precession.dec }
 
         const nutation = getCorrectionToEquatorialForNutation(when, mean)
 
-        const aberration = getCorrectionToEquatorialForAnnualAberration(when, mean)
+        const trueOfDate = { ra: mean.ra + nutation.ra, dec: mean.dec + nutation.dec }
+
+        const deflection = getCorrectionToEquatorialForLightDeflection(when, trueOfDate)
+
+        const deflected = {
+          ra: trueOfDate.ra + deflection.ra,
+          dec: trueOfDate.dec + deflection.dec
+        }
+
+        const aberration = getCorrectionToEquatorialForAnnualAberration(when, deflected)
 
         const apparent = {
-          ra: mean.ra + nutation.ra + aberration.ra,
-          dec: mean.dec + nutation.dec + aberration.dec
+          ra: deflected.ra + aberration.ra,
+          dec: deflected.dec + aberration.dec
         }
 
         const separation = getAngularSeparation(
