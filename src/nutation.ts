@@ -10,7 +10,13 @@ import type { EquatorialCoordinate } from './common'
 
 import { getJulianDate, getTerrestrialTime } from './epoch'
 
-import { convertDegreesToRadians as radians } from './utilities'
+import { getMatrixProduct, getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
+
+import {
+  convertRadiansToDegrees as degrees,
+  convertDegreesToRadians as radians,
+  getNormalizedAzimuthalDegree
+} from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -190,8 +196,14 @@ export const getNutation = (date: Date): { Δψ: number; Δε: number } => {
  * on the Earth, causing the Earth's axial precession to vary over time. The correction terms
  * should be added to the target's coordinate by the caller.
  *
+ * N.B. The nutation is the rotation from the mean equator and equinox of the date to the true equator and equinox
+ * of the date, and the correction is resolved as that rotation of the coordinate given, e.g., the coordinate given
+ * and the correction sum to the coordinate rotated, which is the true place of the date for the mean place of the
+ * date given.
+ *
  * @param datetime - The date to calculate the equatorial correction for.
- * @param target - The equatorial J2000 coordinate of the target.
+ * @param target - The equatorial coordinate of the target, referred to the mean equator and equinox of the date,
+ * e.g., the J2000 coordinate carried by the precession of the equinoxes.
  * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
  *
  */
@@ -222,20 +234,36 @@ export const getCorrectionToEquatorialForNutation = (
       0.0000000434 * T ** 5) /
     3600
 
-  // Get the true obliquity of the ecliptic (in degrees):
-  const ε = radians(ε0 + Δε)
+  // The nutation matrix, e.g., the rotation from the mean equator and equinox of the date to the true equator and
+  // equinox of the date, as the product R1(−ε) · R3(−Δψ) · R1(ε0) of the passive rotations of the frame about the
+  // x axis by the mean obliquity, e.g., from the mean equator onto the ecliptic, about the z axis by the negative
+  // of the nutation in longitude, e.g., from the mean equinox to the true equinox of the date along the ecliptic,
+  // and about the x axis by the negative of the true obliquity, e.g., from the ecliptic onto the true equator of
+  // the date, as is defined by the iauNumat routine of the IAU SOFA library:
+  const N = getMatrixProduct(
+    getRotationMatrix('x', -(ε0 + Δε)),
+    getMatrixProduct(getRotationMatrix('z', -Δψ), getRotationMatrix('x', ε0))
+  )
 
-  // Calculate the nutation correction in right ascension (in degrees)
-  const Δra =
-    (Math.cos(ε) + Math.sin(ε) * Math.sin(ra) * Math.tan(dec)) * Δψ -
-    Math.cos(ra) * Math.tan(dec) * Δε
+  // The unit vector of the target, taken as referred to the mean equator and equinox of the date:
+  const v = {
+    x: Math.cos(dec) * Math.cos(ra),
+    y: Math.cos(dec) * Math.sin(ra),
+    z: Math.sin(dec)
+  }
 
-  // Calculate the nutation correction in declination (in degrees)
-  const Δdec = Math.sin(ε) * Math.cos(ra) * Δψ + Math.sin(ra) * Δε
+  // The unit vector of the target rotated by the nutation, e.g., referred to the true equator and equinox of the
+  // date:
+  const apparent = getRotatedCartesianCoordinate(N, v)
 
+  // Recover the correction as the displacement of the rotated target from the target, from the rotated unit
+  // vector, and not expanded to the first order about the target, which would divide by cos δ and so degrade
+  // towards the celestial poles:
   return {
-    ra: Δra,
-    dec: Δdec
+    ra:
+      getNormalizedAzimuthalDegree(degrees(Math.atan2(apparent.y, apparent.x)) - target.ra + 180) -
+      180,
+    dec: degrees(Math.atan2(apparent.z, Math.hypot(apparent.x, apparent.y))) - target.dec
   }
 }
 

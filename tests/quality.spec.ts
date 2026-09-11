@@ -195,25 +195,31 @@ describe('getObservationalQuality', () => {
 
 /*****************************************************************************************************************/
 
-describe('getObservationalQuality for a target whose corrected declination crosses the pole', () => {
+describe('getObservationalQuality for a target near the celestial pole', () => {
   it('should resolve the context from the same point on the celestial sphere', () => {
-    // The summed corrections carry this target across the north celestial pole for the datetime:
+    // The composed corrections carry this target to within a few arcseconds of the north celestial
+    // pole for the datetime, where the corrected coordinate is the most sensitive to the composition:
     const target: EquatorialCoordinate = { ra: 0, dec: 89.91108342 }
 
     const when = new Date('2015-12-22T00:00:00.000+00:00')
 
     const { context } = getObservationalQuality(when, observer, target)
 
-    // The corrected coordinate, normalised as a pair, resolved from the same corrections:
-    const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, target)
-
+    // The corrected coordinate, normalised as a pair, composed in sequence from the same
+    // corrections, each resolved about the place the one before it resolves:
     const aberration = getCorrectionToEquatorialForAnnualAberration(when, target)
 
-    const nutation = getCorrectionToEquatorialForNutation(when, target)
+    const aberrated = { ra: target.ra + aberration.ra, dec: target.dec + aberration.dec }
+
+    const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, aberrated)
+
+    const mean = { ra: aberrated.ra + precession.ra, dec: aberrated.dec + precession.dec }
+
+    const nutation = getCorrectionToEquatorialForNutation(when, mean)
 
     const { θ: dec, φ: ra } = getNormalisedSphericalCoordinate({
-      θ: target.dec + precession.dec + aberration.dec + nutation.dec,
-      φ: target.ra + precession.ra + aberration.ra + nutation.ra
+      θ: mean.dec + nutation.dec,
+      φ: mean.ra + nutation.ra
     })
 
     const expected = getCorrectionToHorizontalForRefraction(

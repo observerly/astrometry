@@ -10,7 +10,13 @@ import type { EquatorialCoordinate } from './common'
 
 import { AU_IN_METERS } from './constants'
 
-import { convertEclipticToEquatorial } from './coordinates'
+import { convertEquatorialToCartesian } from './coordinates'
+
+import { getJulianDate, getTerrestrialTime } from './epoch'
+
+import { getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
+
+import { getNutation } from './nutation'
 
 import { getSolarEclipticCoordinate } from './sun'
 
@@ -63,17 +69,57 @@ export const getCorrectionToEquatorialForAnnualParallax = (
   // distance to it from the one model, and from the one evaluation of it:
   const ecliptic = getSolarEclipticCoordinate(datetime)
 
-  const sun = convertEclipticToEquatorial(datetime, ecliptic)
+  // Get the difference in fractional Julian centuries between the target date and J2000.0, at the
+  // Terrestrial Time of the given date, which the general precession in longitude is referred to:
+  const T = (getJulianDate(getTerrestrialTime(datetime)) - 2451545.0) / 36525
+
+  // The general precession in longitude of IAU 2006 accumulated since J2000.0, e.g., the
+  // displacement of the mean equinox of the date from the mean equinox of J2000.0 along the
+  // ecliptic (in degrees):
+  const pA =
+    (5028.796195 * T +
+      1.1054348 * T ** 2 +
+      0.00007964 * T ** 3 -
+      0.000023857 * T ** 4 -
+      0.0000000383 * T ** 5) /
+    3600
+
+  // The nutation in longitude, which the longitude of the Sun carries (in degrees):
+  const { Δψ } = getNutation(datetime)
+
+  // The longitude of the Sun referred to the equinox of J2000.0, e.g., the apparent longitude
+  // referred to the true equinox of the date, carried back to the mean equinox of the date by the
+  // nutation in longitude, and to the mean equinox of J2000.0 by the general precession, so that
+  // the direction to the Sun is referred to the equatorial frame of J2000.0, as the target is.
+  //
+  // N.B. The aberration of the Sun of ~20 arcseconds is left in the longitude, which displaces the
+  // direction to the Sun by ~1e-4 of itself, e.g., by a tenth of a milliarcsecond of the parallax
+  // of the nearest star, and the ecliptic of the date is taken as the ecliptic of J2000.0, the
+  // precession of the ecliptic itself being ~47 arcseconds per century:
+  const λ = ecliptic.λ - Δψ - pA
+
+  // The unit vector of the Sun in the ecliptic frame, e.g., the spherical to cartesian conversion
+  // of the ecliptic coordinate, which is that of the equatorial coordinate with the longitude and
+  // latitude in place of the right ascension and declination:
+  const unit = convertEquatorialToCartesian({ ra: λ, dec: ecliptic.β })
+
+  // The mean obliquity of the ecliptic at J2000.0 of IAU 2006 (in degrees):
+  const ε = 84381.406 / 3600
+
+  // The unit vector of the Sun, rotated from the ecliptic frame into the equatorial frame of
+  // J2000.0, e.g., by the passive rotation of the frame about the x axis by the negative of the
+  // obliquity of the ecliptic:
+  const sun = getRotatedCartesianCoordinate(getRotationMatrix('x', -ε), unit)
 
   // The distance to the Sun, in astronomical units, e.g., in the same measure as the parallax:
   const R = ecliptic.R / AU_IN_METERS
 
   // The rectangular geocentric equatorial coordinate of the Sun (in astronomical units):
-  const X = R * Math.cos(radians(sun.dec)) * Math.cos(radians(sun.ra))
+  const X = R * sun.x
 
-  const Y = R * Math.cos(radians(sun.dec)) * Math.sin(radians(sun.ra))
+  const Y = R * sun.y
 
-  const Z = R * Math.sin(radians(sun.dec))
+  const Z = R * sun.z
 
   // The unit vector of the target, in the equatorial frame:
   const n = {

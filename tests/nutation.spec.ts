@@ -10,7 +10,13 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, getCorrectionToEquatorialForNutation, getNutation } from '../src'
+import {
+  type EquatorialCoordinate,
+  getAngularSeparation,
+  getCorrectionToEquatorialForNutation,
+  getCorrectionToEquatorialForPrecessionOfEquinoxes,
+  getNutation
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -27,6 +33,19 @@ export const longitude = -155.468094
 // For testing
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
 
+// The true place of the date of a J2000 coordinate, e.g., the coordinate carried to its mean place of the date
+// by the correction for the precession of the equinoxes, and from that mean place to the true equator and equinox
+// of the date by the correction for the nutation, given the mean place:
+const getTruePlaceOfDate = (datetime: Date, target: EquatorialCoordinate): EquatorialCoordinate => {
+  const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, target)
+
+  const mean = { ra: target.ra + precession.ra, dec: target.dec + precession.dec }
+
+  const nutation = getCorrectionToEquatorialForNutation(datetime, mean)
+
+  return { ra: mean.ra + nutation.ra, dec: mean.dec + nutation.dec }
+}
+
 /*****************************************************************************************************************/
 
 describe('getCorrectionToEquatorialForNutation', () => {
@@ -34,20 +53,38 @@ describe('getCorrectionToEquatorialForNutation', () => {
     expect(getCorrectionToEquatorialForNutation).toBeDefined()
   })
 
-  it('should return the correct nutation correction for the J2000 default epoch', () => {
-    const { ra, dec } = getCorrectionToEquatorialForNutation(
-      new Date('2000-01-01T00:00:00+00:00'),
-      betelgeuse
-    )
-    expect(ra + betelgeuse.ra).toBe(88.78921213133138)
-    expect(dec + betelgeuse.dec).toBe(7.4054319424766355)
+  it('should carry the mean place to the true place of the date for the J2000 default epoch', () => {
+    const { ra, dec } = getTruePlaceOfDate(new Date('2000-01-01T00:00:00+00:00'), betelgeuse)
+    expect(ra).toBeCloseTo(88.7891936741075, 9)
+    expect(dec).toBeCloseTo(7.405431731535656, 9)
   })
 
-  it('should return the correct nutation correction for the designated epoch', () => {
-    const { ra, dec } = getCorrectionToEquatorialForNutation(datetime, betelgeuse)
-    expect(ra + betelgeuse.ra).toBe(88.78824214815069)
-    expect(dec + betelgeuse.dec).toBe(7.407770403402335)
+  it('should carry the mean place to the true place of the date for the designated epoch', () => {
+    const { ra, dec } = getTruePlaceOfDate(datetime, betelgeuse)
+    expect(ra).toBeCloseTo(89.07743863297038, 9)
+    expect(dec).toBeCloseTo(7.409983972426182, 9)
   })
+
+  it.each([{ ra: 10, dec: 89.9999 }, { ra: 200, dec: -89.9999 }])(
+    'should rotate a target at the celestial pole by the nutation without diverging for $ra, $dec',
+    target => {
+      const { ra, dec } = getCorrectionToEquatorialForNutation(datetime, target)
+
+      const { Δψ, Δε } = getNutation(datetime)
+
+      expect(Number.isFinite(ra)).toBe(true)
+      expect(Number.isFinite(dec)).toBe(true)
+
+      // The rotation displaces a target by no more than the nutation itself, whatever the declination,
+      // e.g., the first order correction, which divides by cos δ, would diverge here:
+      const separation = getAngularSeparation(
+        { θ: target.dec + dec, φ: target.ra + ra },
+        { θ: target.dec, φ: target.ra }
+      )
+
+      expect(separation).toBeLessThan(Math.abs(Δψ) + Math.abs(Δε))
+    }
+  )
 })
 
 /*****************************************************************************************************************/
