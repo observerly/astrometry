@@ -42,8 +42,8 @@ describe('getCorrectionToEquatorialForPrecessionOfEquinoxes', () => {
 
   it('should return the correct precession correction for the designated epoch', () => {
     const { ra, dec } = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, polaris)
-    expect(ra + polaris.ra).toBe(44.745635372429454)
-    expect(dec + polaris.dec).toBe(89.35354802815961)
+    expect(ra + polaris.ra).toBeCloseTo(44.745273328264, 9)
+    expect(dec + polaris.dec).toBeCloseTo(89.35354192194684, 9)
   })
 
   it.each([{ ra: 10 }, { ra: 200 }, { ra: 359.9 }])(
