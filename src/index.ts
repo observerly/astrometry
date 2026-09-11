@@ -7,11 +7,14 @@
 /*****************************************************************************************************************/
 
 export {
+  getBarycentricEarthVelocity,
+  getBarycentricSolarVector,
   getCorrectionToEquatorialForAberration,
   getCorrectionToEquatorialForAnnualAberration,
   getCorrectionToEquatorialForDiurnalAberration,
   getCorrectionToEquatorialForLightDeflection,
-  getCorrectionToEquatorialForVelocityAberration
+  getCorrectionToEquatorialForVelocityAberration,
+  getGeometricSolarVector
 } from './aberration'
 
 /*****************************************************************************************************************/
