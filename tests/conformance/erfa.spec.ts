@@ -73,7 +73,7 @@ const PRECESSION_TOLERANCE = 0.0000001
 /*****************************************************************************************************************/
 
 // The equinox-based apparent place of a star away from the celestial poles, resolved as the catalogue coordinate
-// displaced by the corrections for frame bias, precession, nutation and annual aberration in turn, against IAU
+// displaced by the corrections for annual aberration, frame bias, precession and nutation in turn, against IAU
 // 2006/2000A (in degrees):
 const APPARENT_PLACE_TOLERANCE = 0.00001
 
@@ -81,12 +81,12 @@ const APPARENT_PLACE_TOLERANCE = 0.00001
 
 // The equinox-based apparent place of a star near a celestial pole, resolved likewise, against IAU 2006/2000A (in
 // degrees):
-const APPARENT_PLACE_POLAR_TOLERANCE = 0.00005
+const APPARENT_PLACE_POLAR_TOLERANCE = 0.00001
 
 /*****************************************************************************************************************/
 
 // The declination (in degrees) at or above which the apparent place of a star is held to the polar envelope, e.g.,
-// the envelope of the first order corrections near the pole:
+// the envelope of the corrections near the pole:
 const POLAR_DECLINATION = 85
 
 /*****************************************************************************************************************/
@@ -181,11 +181,15 @@ describe('conformance of the apparent place to ERFA', () => {
         const target = { ra: star.ra, dec: star.dec }
 
         // The apparent place of the date, e.g., the catalogue coordinate displaced by the corrections for the
-        // frame bias, the precession of the equinoxes, the nutation and the annual aberration in turn, each about
+        // annual aberration, the frame bias, the precession of the equinoxes and the nutation in turn, each about
         // the place the one before it resolves:
-        const bias = getCorrectionToEquatorialForFrameBias(target)
+        const aberration = getCorrectionToEquatorialForAnnualAberration(when, target)
 
-        const J2000 = { ra: target.ra + bias.ra, dec: target.dec + bias.dec }
+        const aberrated = { ra: target.ra + aberration.ra, dec: target.dec + aberration.dec }
+
+        const bias = getCorrectionToEquatorialForFrameBias(aberrated)
+
+        const J2000 = { ra: aberrated.ra + bias.ra, dec: aberrated.dec + bias.dec }
 
         const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, J2000)
 
@@ -193,20 +197,15 @@ describe('conformance of the apparent place to ERFA', () => {
 
         const nutation = getCorrectionToEquatorialForNutation(when, mean)
 
-        const aberration = getCorrectionToEquatorialForAnnualAberration(when, mean)
-
-        const apparent = {
-          ra: mean.ra + nutation.ra + aberration.ra,
-          dec: mean.dec + nutation.dec + aberration.dec
-        }
+        const apparent = { ra: mean.ra + nutation.ra, dec: mean.dec + nutation.dec }
 
         const separation = getAngularSeparation(
           { θ: apparent.dec, φ: apparent.ra },
           { θ: star.apparent.dec, φ: star.apparent.ra }
         )
 
-        // The first order corrections to the right ascension divide by the cosine of the declination, and so a
-        // star near a celestial pole is held to the polar envelope:
+        // The corrections near a celestial pole are the most sensitive to the place they are resolved about, and
+        // so a star near a celestial pole is held to the polar envelope:
         const tolerance =
           Math.abs(star.dec) < POLAR_DECLINATION
             ? APPARENT_PLACE_TOLERANCE

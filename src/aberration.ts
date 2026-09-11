@@ -14,8 +14,6 @@ import { EARTH_ANGULAR_VELOCITY, EARTH_RADIUS, c } from './constants'
 
 import { getEccentricityOfOrbit } from './earth'
 
-import { getTrueObliquityOfTheEcliptic } from './ecliptic'
-
 import { getJulianDate } from './epoch'
 
 import { getSolarTrueGeometricLongitude } from './sun'
@@ -54,8 +52,13 @@ export const getCorrectionToEquatorialForAnnualAberration = (
   // Get the difference in fractional Julian centuries between the target date and J2000.0
   const T = (JD - 2451545.0) / 36525
 
-  // Get the true obliquity of the ecliptic (in radians):
-  const ε = radians(getTrueObliquityOfTheEcliptic(datetime))
+  // The general precession in longitude of IAU 2006 accumulated since J2000.0, e.g., the displacement of the mean
+  // equinox of the date from the mean equinox of J2000.0 along the ecliptic, by which a longitude referred to the
+  // equinox of the date is referred back to the equinox of J2000.0 (in degrees):
+  const pA = (5028.796195 * T + 1.1054348 * T ** 2 + 0.00007964 * T ** 3) / 3600
+
+  // Get the mean obliquity of the ecliptic at J2000.0 of IAU 2006 (in radians):
+  const ε = radians(84381.406 / 3600)
 
   // Get the constant of aberration (in degrees):
   const κ = radians(20.49552 / 3600)
@@ -63,14 +66,17 @@ export const getCorrectionToEquatorialForAnnualAberration = (
   // Get the eccentricity of the Earth's orbit (dimensionless):
   const e = getEccentricityOfOrbit(datetime)
 
-  // Get the longitude of perihelion (in degrees):
-  const ϖ = radians(102.93735 + 1.71953 * T + 0.00046 * T ** 2)
+  // Get the longitude of perihelion, referred to the equinox of J2000.0 (in degrees):
+  const ϖ = radians(102.93735 + 1.71953 * T + 0.00046 * T ** 2 - pA)
 
-  // Get the true geometric longitude of the sun (in degrees):
-  const S = radians(getSolarTrueGeometricLongitude(datetime))
+  // Get the true geometric longitude of the sun, referred to the equinox of J2000.0 (in degrees):
+  const S = radians(getSolarTrueGeometricLongitude(datetime) - pA)
 
   // The velocity of the Earth as a fraction of the speed of light, in the plane of the ecliptic, rotated about the
-  // obliquity of the ecliptic into the equatorial frame:
+  // obliquity of the ecliptic into the equatorial frame of J2000.0, e.g., the frame of the target.
+  //
+  // N.B. The ecliptic of the date is taken as the ecliptic of J2000.0, the precession of the ecliptic itself being
+  // ~47 arcseconds per century, which displaces the velocity by ~0.005 arcseconds per century:
   const v = {
     x: κ * (Math.sin(S) - e * Math.sin(ϖ)),
     y: -κ * (Math.cos(S) - e * Math.cos(ϖ)) * Math.cos(ε),

@@ -16,7 +16,7 @@ The second key tenant, is that all coordinates are required to be in degrees for
 
 It can be used to calculate the horizontal position of the sun, moon, planets, and stars in the sky at a given time and location. You can convert any equatorial coordinate to horizontal coordinate, for any given time and location.
 
-It can apply corrections for atmospheric refraction, parallax, nutation and aberration for epoch J2000 coordinates.
+It can apply corrections for precession, nutation, aberration, parallax and atmospheric refraction to epoch J2000 coordinates, composed in sequence to the apparent place of the date.
 
 It can calculate the rise, transit, and set times of the sun, moon, and planets, as well as for any astronomical bodies.
 
@@ -138,7 +138,31 @@ const { alt, az } = convertEquatorialToHorizontal(
 
 This will give you the horizontal coordinates of Betelgeuse at the given time and location, with the correction for the precession of equinoxes applied.
 
-Corrections for atmospheric refraction, parallax, nutation and aberration can also be applied in a similar manner to get an accurate horizontal position of the star.
+#### Nutation & Aberration
+
+Each correction is resolved about the place the one before it resolves, and so the corrections are composed in sequence, and not summed about the catalogue coordinate. The annual aberration displaces the J2000 coordinate within the frame of J2000, the precession of the equinoxes carries the displaced coordinate to the mean equator and equinox of the date, and the nutation carries the mean place to the true equator and equinox of the date, e.g., the apparent place:
+
+```typescript
+// The J2000 coordinate displaced by the annual aberration, within the frame of J2000:
+const aberration = getCorrectionToEquatorialForAnnualAberration(datetime, betelgeuse)
+
+const aberrated = { ra: betelgeuse.ra + aberration.ra, dec: betelgeuse.dec + aberration.dec }
+
+// The mean place of the date, e.g., the displaced coordinate carried by the precession of equinoxes:
+const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, aberrated)
+
+const mean = { ra: aberrated.ra + precession.ra, dec: aberrated.dec + precession.dec }
+
+// The apparent place of the date, e.g., the mean place carried by the nutation to the true equator and equinox:
+const nutation = getCorrectionToEquatorialForNutation(datetime, mean)
+
+const apparent = { ra: mean.ra + nutation.ra, dec: mean.dec + nutation.dec }
+
+// Perform the conversion:
+const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude }, apparent)
+```
+
+Corrections for parallax and atmospheric refraction can then be applied to the apparent place in a similar manner to get an accurate horizontal position of the star.
 
 #### Sunrise, Solar Noon & Sunset
 

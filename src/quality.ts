@@ -64,19 +64,27 @@ const getConstraintContext = (
   // geographic coordinate is resolved for the datetime of the observation:
   observer = getGeographicCoordinate(datetime, observer)
 
-  // Correct the target's equatorial coordinates to the epoch of date:
-  const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, target)
-
+  // Correct the target's equatorial coordinates to the epoch of date. The corrections are composed
+  // in sequence, each resolved about the place the one before it resolves: the annual aberration
+  // displaces the catalogue coordinate within the frame of J2000.0, the precession of the
+  // equinoxes carries the displaced coordinate to the mean equator and equinox of the date, and
+  // the nutation carries the mean place to the true equator and equinox of the date:
   const aberration = getCorrectionToEquatorialForAnnualAberration(datetime, target)
 
-  const nutation = getCorrectionToEquatorialForNutation(datetime, target)
+  const aberrated = { ra: target.ra + aberration.ra, dec: target.dec + aberration.dec }
+
+  const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, aberrated)
+
+  const mean = { ra: aberrated.ra + precession.ra, dec: aberrated.dec + precession.dec }
+
+  const nutation = getCorrectionToEquatorialForNutation(datetime, mean)
 
   // Normalise the corrected coordinate as a pair: a declination that crosses a pole is reflected
   // back over it, and its right ascension is rotated to the antipodal meridian, such that the
   // coordinate describes the same point on the celestial sphere:
   const { θ: dec, φ: ra } = getNormalisedSphericalCoordinate({
-    θ: target.dec + precession.dec + aberration.dec + nutation.dec,
-    φ: target.ra + precession.ra + aberration.ra + nutation.ra
+    θ: mean.dec + nutation.dec,
+    φ: mean.ra + nutation.ra
   })
 
   // Resolve the refracted horizontal coordinates of the target, the Sun and the Moon:
