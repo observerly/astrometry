@@ -8,7 +8,7 @@
 
 import type { EquatorialCoordinate } from './common'
 
-import { getJulianDate } from './epoch'
+import { getJulianDate, getTerrestrialTime } from './epoch'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
@@ -29,20 +29,41 @@ export const getCorrectionToEquatorialForPrecessionOfEquinoxes = (
   datetime: Date,
   target: EquatorialCoordinate
 ): EquatorialCoordinate => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
+  // The precession angles are referred to Terrestrial Time, and so they are resolved at the Terrestrial Time of
+  // the given date:
+  const JD = getJulianDate(getTerrestrialTime(datetime))
 
   // Get the difference in fractional Julian centuries between the target date and J2000.0
   const T = (JD - 2451545.0) / 36525
 
-  // Calculate the precession angle ζ (in degrees):
-  const ζ = (2306.2181 * T + 0.30188 * T ** 2 + 0.017998 * T ** 3) / 3600
+  // Calculate the precession angle ζ of the equatorial precession of IAU 2006 (in degrees):
+  const ζ =
+    (2.650545 +
+      2306.083227 * T +
+      0.2988499 * T ** 2 +
+      0.01801828 * T ** 3 -
+      0.000005971 * T ** 4 -
+      0.0000003173 * T ** 5) /
+    3600
 
-  // Calculate the precession angle z (in degrees):
-  const z = (2306.2181 * T + 1.09468 * T ** 2 + 0.018203 * T ** 3) / 3600
+  // Calculate the precession angle z of the equatorial precession of IAU 2006 (in degrees):
+  const z =
+    (-2.650545 +
+      2306.077181 * T +
+      1.0927348 * T ** 2 +
+      0.01826837 * T ** 3 -
+      0.000028596 * T ** 4 -
+      0.0000002904 * T ** 5) /
+    3600
 
-  // Calculate the precession angle θ (in degrees):
-  const θ = (2004.3109 * T - 0.42665 * T ** 2 - 0.041833 * T ** 3) / 3600
+  // Calculate the precession angle θ of the equatorial precession of IAU 2006 (in degrees):
+  const θ =
+    (2004.191903 * T -
+      0.4294934 * T ** 2 -
+      0.04182264 * T ** 3 -
+      0.000007089 * T ** 4 -
+      0.0000001274 * T ** 5) /
+    3600
 
   // Calculate the reduction coordinates of the target:
   const A = Math.cos(radians(target.dec)) * Math.sin(radians(target.ra + ζ))

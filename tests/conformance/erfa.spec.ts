@@ -63,22 +63,22 @@ const APPARENT_SIDEREAL_TIME_TOLERANCE = 0.015
 /*****************************************************************************************************************/
 
 // The mean place of the date, e.g., the catalogue coordinate carried by the precession alone, against the model of
-// IAU 2006 (in degrees), e.g., ~0.36 arcseconds over ±50 years of J2000.0. The reference is the precession without
-// the frame bias, which the library likewise leaves out:
-const PRECESSION_TOLERANCE = 0.0001
+// IAU 2006 (in degrees). The reference is the precession without the frame bias, which the library likewise leaves
+// out:
+const PRECESSION_TOLERANCE = 0.0000001
 
 /*****************************************************************************************************************/
 
 // The equinox-based apparent place of a star away from the celestial poles, resolved as the catalogue coordinate
 // displaced by the corrections for precession, nutation and annual aberration in turn, against IAU 2006/2000A (in
 // degrees):
-const APPARENT_PLACE_TOLERANCE = 0.0001
+const APPARENT_PLACE_TOLERANCE = 0.00002
 
 /*****************************************************************************************************************/
 
 // The equinox-based apparent place of a star near a celestial pole, resolved likewise, against IAU 2006/2000A (in
 // degrees):
-const APPARENT_PLACE_POLAR_TOLERANCE = 0.0001
+const APPARENT_PLACE_POLAR_TOLERANCE = 0.00005
 
 /*****************************************************************************************************************/
 

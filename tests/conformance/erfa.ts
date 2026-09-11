@@ -11,10 +11,10 @@
 // bound by pyerfa (version 2.0.1.5).
 //
 // The models of each reference are: the nutation of IAU 2000A (nut06a), the mean obliquity of IAU 2006 (obl06),
-// the mean and apparent sidereal times of IAU 2006/2000A (gmst06 and gst06a), the precession of IAU 2006 (pmat06),
-// e.g., without the frame bias, and the equinox-based apparent place of IAU 2006/2000A (atci13, carried from the
-// CIRS to the true equinox of the date by the equation of the origins), for a star without proper motion, parallax
-// or radial velocity.
+// the mean and apparent sidereal times of IAU 2006/2000A (gmst06 and gst06a), the precession of IAU 2006 (the
+// precession matrix of bp06), e.g., without the frame bias, and the equinox-based apparent place of IAU 2006/2000A
+// (atci13, carried from the CIRS to the true equinox of the date by the equation of the origins), for a star
+// without proper motion, parallax or radial velocity.
 //
 // N.B. UT1 is taken as the civil time, e.g., DUT1 is zero, as the library likewise takes it, and so the sidereal
 // times compare the two like for like.
@@ -74,21 +74,21 @@ export const erfaInstants: ERFAInstantReference[] = [
         name: 'Betelgeuse',
         ra: 88.7929583,
         dec: 7.4070639,
-        precessed: { ra: 88.52641753663326, dec: 7.404498630534777 },
+        precessed: { ra: 88.52641407193498, dec: 7.404500614890266 },
         apparent: { ra: 88.52047076479681, dec: 7.401054949072764 }
       },
       {
         name: 'Polaris',
         ra: 37.95456067,
         dec: 89.26410897,
-        precessed: { ra: 33.028415005720575, dec: 89.17475728163461 },
+        precessed: { ra: 33.028477310314685, dec: 89.17476217562655 },
         apparent: { ra: 32.73275680348897, dec: 89.17254878051578 }
       },
       {
         name: 'Canopus',
         ra: 95.98787778,
         dec: -52.69566111,
-        precessed: { ra: 95.87869859362291, dec: -52.68432702448202 },
+        precessed: { ra: 95.8786882489553, dec: -52.68432564185551 },
         apparent: { ra: 95.8737087329289, dec: -52.69117670603191 }
       }
     ]
@@ -105,21 +105,21 @@ export const erfaInstants: ERFAInstantReference[] = [
         name: 'Betelgeuse',
         ra: 88.7929583,
         dec: 7.4070639,
-        precessed: { ra: 88.79296178838017, dec: 7.407061909258079 },
+        precessed: { ra: 88.79295832752871, dec: 7.407063900238367 },
         apparent: { ra: 88.79493424918059, dec: 7.405153500675564 }
       },
       {
         name: 'Polaris',
         ra: 37.95456067,
         dec: 89.26410897,
-        precessed: { ra: 37.95446055022232, dec: 89.26410417433758 },
+        precessed: { ra: 37.954561238249, dec: 89.26410897892804 },
         apparent: { ra: 38.19014820084731, dec: 89.26697201097741 }
       },
       {
         name: 'Canopus',
         ra: 95.98787778,
         dec: -52.69566111,
-        precessed: { ra: 95.98788813141529, dec: -52.69566251349377 },
+        precessed: { ra: 95.98787779127697, dec: -52.695661111181344 },
         apparent: { ra: 95.99607377341168, dec: -52.6976350258586 }
       }
     ]
@@ -136,21 +136,21 @@ export const erfaInstants: ERFAInstantReference[] = [
         name: 'Betelgeuse',
         ra: 88.7929583,
         dec: 7.4070639,
-        precessed: { ra: 88.97872559049458, dec: 7.408546519214833 },
+        precessed: { ra: 88.97872213233384, dec: 7.408548514807365 },
         apparent: { ra: 88.98178296888356, dec: 7.408324302629252 }
       },
       {
         name: 'Polaris',
         ra: 37.95456067,
         dec: 89.26410897,
-        precessed: { ra: 42.11586032690731, dec: 89.3226358214265 },
+        precessed: { ra: 42.11599770058753, dec: 89.32264052450584 },
         apparent: { ra: 42.62532626498184, dec: 89.31884399536472 }
       },
       {
         name: 'Canopus',
         ra: 95.98787778,
         dec: -52.69566111,
-        precessed: { ra: 96.06398440195993, dec: -52.70368402813513 },
+        precessed: { ra: 96.06397406501026, dec: -52.70368261211285 },
         apparent: { ra: 96.06457030767507, dec: -52.70012792767383 }
       }
     ]
@@ -167,21 +167,21 @@ export const erfaInstants: ERFAInstantReference[] = [
         name: 'Betelgeuse',
         ra: 88.7929583,
         dec: 7.4070639,
-        precessed: { ra: 89.15409707474988, dec: 7.409720632898854 },
+        precessed: { ra: 89.15409361913667, dec: 7.409722632841929 },
         apparent: { ra: 89.15512510885327, dec: 7.413511637660631 }
       },
       {
         name: 'Polaris',
         ra: 37.95456067,
         dec: 89.26410897,
-        precessed: { ra: 46.721151393031384, dec: 89.37418325248461 },
+        precessed: { ra: 46.721332966827916, dec: 89.37418781573976 },
         apparent: { ra: 46.859258180127426, dec: 89.37188546561825 }
       },
       {
         name: 'Canopus',
         ra: 95.98787778,
         dec: -52.69566111,
-        precessed: { ra: 96.13582231371025, dec: -52.71134828710983 },
+        precessed: { ra: 96.13581197979498, dec: -52.71134685815221 },
         apparent: { ra: 96.1331324681725, dec: -52.70406869765366 }
       }
     ]
@@ -198,21 +198,21 @@ export const erfaInstants: ERFAInstantReference[] = [
         name: 'Betelgeuse',
         ra: 88.7929583,
         dec: 7.4070639,
-        precessed: { ra: 89.47273723440462, dec: 7.411288805367971 },
+        precessed: { ra: 89.47273378343822, dec: 7.411290813206474 },
         apparent: { ra: 89.47666557460991, dec: 7.408398749099676 }
       },
       {
         name: 'Polaris',
         ra: 37.95456067,
         dec: 89.26410897,
-        precessed: { ra: 57.13191980926527, dec: 89.45528592344151 },
+        precessed: { ra: 57.13220943325691, dec: 89.4552900677245 },
         apparent: { ra: 57.05986710861914, dec: 89.45946743244222 }
       },
       {
         name: 'Canopus',
         ra: 95.98787778,
         dec: -52.69566111,
-        precessed: { ra: 96.26634465050002, dec: -52.72550115885435 },
+        precessed: { ra: 96.2663343221582, dec: -52.72549970641269 },
         apparent: { ra: 96.26921855598269, dec: -52.7325128287388 }
       }
     ]
