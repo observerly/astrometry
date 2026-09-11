@@ -20,7 +20,10 @@ import { getObliquityOfTheEcliptic, getTrueObliquityOfTheEcliptic } from '../../
 
 import { getCorrectionToEquatorialForNutation, getNutation } from '../../src/nutation'
 
-import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from '../../src/precession'
+import {
+  getCorrectionToEquatorialForFrameBias,
+  getCorrectionToEquatorialForPrecessionOfEquinoxes
+} from '../../src/precession'
 
 import { erfaInstants } from './erfa'
 
@@ -70,9 +73,9 @@ const PRECESSION_TOLERANCE = 0.0000001
 /*****************************************************************************************************************/
 
 // The equinox-based apparent place of a star away from the celestial poles, resolved as the catalogue coordinate
-// displaced by the corrections for precession, nutation and annual aberration in turn, against IAU 2006/2000A (in
-// degrees):
-const APPARENT_PLACE_TOLERANCE = 0.00002
+// displaced by the corrections for frame bias, precession, nutation and annual aberration in turn, against IAU
+// 2006/2000A (in degrees):
+const APPARENT_PLACE_TOLERANCE = 0.00001
 
 /*****************************************************************************************************************/
 
@@ -178,11 +181,15 @@ describe('conformance of the apparent place to ERFA', () => {
         const target = { ra: star.ra, dec: star.dec }
 
         // The apparent place of the date, e.g., the catalogue coordinate displaced by the corrections for the
-        // precession of the equinoxes, the nutation and the annual aberration in turn, each about the place the
-        // one before it resolves:
-        const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, target)
+        // frame bias, the precession of the equinoxes, the nutation and the annual aberration in turn, each about
+        // the place the one before it resolves:
+        const bias = getCorrectionToEquatorialForFrameBias(target)
 
-        const mean = { ra: target.ra + precession.ra, dec: target.dec + precession.dec }
+        const J2000 = { ra: target.ra + bias.ra, dec: target.dec + bias.dec }
+
+        const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, J2000)
+
+        const mean = { ra: J2000.ra + precession.ra, dec: J2000.dec + precession.dec }
 
         const nutation = getCorrectionToEquatorialForNutation(when, mean)
 
