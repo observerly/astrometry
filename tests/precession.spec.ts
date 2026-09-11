@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   type EquatorialCoordinate,
+  getCorrectionToEquatorialForFrameBias,
   getCorrectionToEquatorialForPrecessionOfEquinoxes
 } from '../src'
 
@@ -69,6 +70,36 @@ describe('getCorrectionToEquatorialForPrecessionOfEquinoxes', () => {
       delta -= 360 * Math.round(delta / 360)
 
       expect(Math.abs(delta)).toBeLessThan(1)
+    }
+  )
+})
+
+/*****************************************************************************************************************/
+
+describe('getCorrectionToEquatorialForFrameBias', () => {
+  it('should be defined', () => {
+    expect(getCorrectionToEquatorialForFrameBias).toBeDefined()
+  })
+
+  it.each([
+    { name: 'Betelgeuse', ra: 88.7929583, dec: 7.4070639, Δra: 0.0000034608, Δdec: -0.000001991 },
+    { name: 'Polaris', ra: 37.95456067, dec: 89.26410897, Δra: -0.00010068472, Δdec: -0.0000048046 },
+    { name: 'Canopus', ra: 95.98787778, dec: -52.69566111, Δra: 0.000010340097, Δdec: -0.0000014024 }
+  ])('should agree with the frame bias of ERFA for $name', ({ ra, dec, Δra, Δdec }) => {
+    // The displacements are those of the frame bias matrix of ERFA (bp06) applied to the catalogue coordinate:
+    const correction = getCorrectionToEquatorialForFrameBias({ ra, dec })
+
+    expect(correction.ra).toBeCloseTo(Δra, 9)
+    expect(correction.dec).toBeCloseTo(Δdec, 9)
+  })
+
+  it.each([{ ra: 0 }, { ra: 359.99 }])(
+    'should return a small correction free of any ±360° branch-cut jump for a target at ra $ra',
+    ({ ra }) => {
+      const correction = getCorrectionToEquatorialForFrameBias({ ra, dec: -10 })
+
+      expect(Math.abs(correction.ra)).toBeLessThan(0.0001)
+      expect(Math.abs(correction.dec)).toBeLessThan(0.0001)
     }
   )
 })
