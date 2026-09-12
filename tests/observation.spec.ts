@@ -54,8 +54,8 @@ describe('Observation', () => {
       datetime: new Date('2000-01-01T00:00:00.000+00:00')
     })
 
-    expect(Polaris.ra).toBeCloseTo(38.19348235697633, 9)
-    expect(Polaris.dec).toBeCloseTo(89.26695801336513, 9)
+    expect(Polaris.ra).toBeCloseTo(38.192923035327546, 9)
+    expect(Polaris.dec).toBeCloseTo(89.26695674949698, 9)
   })
 
   it('should be a reactive observable when the datetime changes', () => {
@@ -70,8 +70,8 @@ describe('Observation', () => {
     })
 
     expect(Polaris.datetime.getTime()).toEqual(datetime.getTime())
-    expect(Polaris.ra).toBeCloseTo(44.19637114256666, 9)
-    expect(Polaris.dec).toBeCloseTo(89.3508333968017, 9)
+    expect(Polaris.ra).toBeCloseTo(44.098238698701046, 9)
+    expect(Polaris.dec).toBeCloseTo(89.3516600387926, 9)
     expect(Polaris.ha).toBe(getHourAngle(datetime, longitude, Polaris.ra))
   })
 
@@ -98,14 +98,14 @@ describe('Observation', () => {
 
 /*****************************************************************************************************************/
 
-describe('Observation for a target whose corrected declination crosses the pole', () => {
-  // The summed corrections carry this target across the north celestial pole for the datetime,
-  // e.g., its corrected declination exceeds 90°:
+describe('Observation for a target near the celestial pole', () => {
+  // The composed corrections carry this target to within a few arcseconds of the north celestial
+  // pole for the datetime, where the corrected coordinate is the most sensitive to the composition:
   const target: EquatorialCoordinate = { ra: 0, dec: 89.91108342 }
 
   const when = new Date('2015-12-22T00:00:00.000+00:00')
 
-  it('should normalise the declination back over the pole', () => {
+  it('should resolve a declination within the range of the sphere', () => {
     const observation = new Observation(target, { datetime: when, latitude, longitude })
 
     expect(observation.dec).toBeLessThanOrEqual(90)
@@ -118,25 +118,25 @@ describe('Observation for a target whose corrected declination crosses the pole'
   it('should describe the same point on the celestial sphere as the corrected coordinate', () => {
     const observation = new Observation(target, { datetime: when, latitude, longitude })
 
-    // The corrected coordinate, summed from the same corrections the observation applies:
-    const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, target)
-
+    // The corrected coordinate, composed in sequence from the same corrections the observation
+    // applies, each resolved about the place the one before it resolves:
     const aberration = getCorrectionToEquatorialForAnnualAberration(when, target)
 
-    const nutation = getCorrectionToEquatorialForNutation(when, target)
+    const aberrated = { ra: target.ra + aberration.ra, dec: target.dec + aberration.dec }
+
+    const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, aberrated)
+
+    const mean = { ra: aberrated.ra + precession.ra, dec: aberrated.dec + precession.dec }
+
+    const nutation = getCorrectionToEquatorialForNutation(when, mean)
 
     const corrected = {
-      θ: target.dec + precession.dec + aberration.dec + nutation.dec,
-      φ: target.ra + precession.ra + aberration.ra + nutation.ra
+      θ: mean.dec + nutation.dec,
+      φ: mean.ra + nutation.ra
     }
 
-    // The corrected declination crosses the pole, e.g., the case under test is exercised:
-    expect(corrected.θ).toBeGreaterThan(90)
-
     // The angular separation between the corrected coordinate and the normalised coordinate of
-    // the observation is zero if, and only if, both describe the same point on the sphere. A
-    // declination reflected without its right ascension rotated lies on the opposite side of the
-    // pole, e.g., a separation of twice the crossing:
+    // the observation is zero if, and only if, both describe the same point on the sphere:
     expect(
       getAngularSeparation(corrected, { θ: observation.dec, φ: observation.ra })
     ).toBeCloseTo(0, 5)

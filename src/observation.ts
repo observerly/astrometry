@@ -141,15 +141,24 @@ export class Observation extends Object {
   }
 
   private setEquatorialCoordinates(target: EquatorialCoordinate) {
+    // The corrections are composed in sequence, each resolved about the place the one before it
+    // resolves: the annual aberration displaces the catalogue coordinate within the frame of
+    // J2000.0, the precession of the equinoxes carries the displaced coordinate to the mean
+    // equator and equinox of the date, and the nutation carries the mean place to the true
+    // equator and equinox of the date:
     const aberration = getCorrectionToEquatorialForAnnualAberration(this.datetime, target)
 
-    const nutation = getCorrectionToEquatorialForNutation(this.datetime, target)
+    const aberrated = { ra: target.ra + aberration.ra, dec: target.dec + aberration.dec }
 
-    const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(this.datetime, target)
+    const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(this.datetime, aberrated)
 
-    const α = target.ra + aberration.ra + nutation.ra + precession.ra
+    const mean = { ra: aberrated.ra + precession.ra, dec: aberrated.dec + precession.dec }
 
-    const δ = target.dec + aberration.dec + nutation.dec + precession.dec
+    const nutation = getCorrectionToEquatorialForNutation(this.datetime, mean)
+
+    const α = mean.ra + nutation.ra
+
+    const δ = mean.dec + nutation.dec
 
     // Normalise the corrected coordinate to the range [0, 360) in Right Ascension and [-90, 90]
     // in declination. N.B. The two are normalised as a pair: a declination that crosses a pole is

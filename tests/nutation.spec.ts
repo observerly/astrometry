@@ -10,7 +10,12 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, getCorrectionToEquatorialForNutation, getNutation } from '../src'
+import {
+  type EquatorialCoordinate,
+  getCorrectionToEquatorialForNutation,
+  getCorrectionToEquatorialForPrecessionOfEquinoxes,
+  getNutation
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -27,6 +32,14 @@ export const longitude = -155.468094
 // For testing
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
 
+// The mean place of the date of a J2000 coordinate, e.g., the coordinate carried by the precession of the
+// equinoxes to the mean equator and equinox of the date, which the correction for nutation is referred to:
+const getMeanPlaceOfDate = (datetime: Date, target: EquatorialCoordinate): EquatorialCoordinate => {
+  const { ra, dec } = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, target)
+
+  return { ra: target.ra + ra, dec: target.dec + dec }
+}
+
 /*****************************************************************************************************************/
 
 describe('getCorrectionToEquatorialForNutation', () => {
@@ -35,18 +48,21 @@ describe('getCorrectionToEquatorialForNutation', () => {
   })
 
   it('should return the correct nutation correction for the J2000 default epoch', () => {
-    const { ra, dec } = getCorrectionToEquatorialForNutation(
-      new Date('2000-01-01T00:00:00+00:00'),
-      betelgeuse
-    )
-    expect(ra + betelgeuse.ra).toBe(88.78921213133138)
-    expect(dec + betelgeuse.dec).toBe(7.4054319424766355)
+    const J2000 = new Date('2000-01-01T00:00:00+00:00')
+
+    const mean = getMeanPlaceOfDate(J2000, betelgeuse)
+
+    const { ra, dec } = getCorrectionToEquatorialForNutation(J2000, mean)
+    expect(ra + mean.ra).toBeCloseTo(88.7891936741075, 9)
+    expect(dec + mean.dec).toBeCloseTo(7.405431731535656, 9)
   })
 
   it('should return the correct nutation correction for the designated epoch', () => {
-    const { ra, dec } = getCorrectionToEquatorialForNutation(datetime, betelgeuse)
-    expect(ra + betelgeuse.ra).toBe(88.78824214815069)
-    expect(dec + betelgeuse.dec).toBe(7.407770403402335)
+    const mean = getMeanPlaceOfDate(datetime, betelgeuse)
+
+    const { ra, dec } = getCorrectionToEquatorialForNutation(datetime, mean)
+    expect(ra + mean.ra).toBeCloseTo(89.07743863297038, 9)
+    expect(dec + mean.dec).toBeCloseTo(7.409983972426182, 9)
   })
 })
 
