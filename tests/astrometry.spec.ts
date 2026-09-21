@@ -336,12 +336,13 @@ describe('getGreenwichSiderealTime', () => {
   })
 
   it('should return a target that is directly overhead at for ', () => {
-    const GST = getGreenwichSiderealTime(datetime)
+    const GAST = getGreenwichApparentSiderealTime(datetime)
 
     // The observer is at the same latitude as Betelgeuse's declination, and the same longitude as as
-    // Betelgeuse's right ascension minus the GST times 15 degrees per hour:
+    // Betelgeuse's right ascension minus the GAST times 15 degrees per hour, e.g., the apparent
+    // sidereal time the hour angle of the conversion is taken against:
     // This simulates a target directly overhead for the "observer":
-    const observer = { latitude: betelgeuse.dec, longitude: betelgeuse.ra - GST * 15 }
+    const observer = { latitude: betelgeuse.dec, longitude: betelgeuse.ra - GAST * 15 }
 
     // Convert the target to horizontal coordinates:
     const target = convertEquatorialToHorizontal(datetime, observer, betelgeuse)

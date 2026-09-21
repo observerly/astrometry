@@ -18,6 +18,7 @@ import {
   convertGeocentricToGeographic,
   convertGalacticToEquatorial,
   convertHorizontalToEquatorial,
+  getGreenwichApparentSiderealTime,
   getGreenwichSiderealTime
 } from '../src'
 
@@ -69,17 +70,18 @@ describe('convertEquatorialToHorizontal', () => {
 
   it('should return the correct horizontal coodinate for the star Betelgeuse for the datetime provided', () => {
     const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
-    expect(alt).toBe(72.78539444063765)
-    expect(az).toBe(134.44877920325155)
+    expect(alt).toBeCloseTo(72.78239710139869, 9)
+    expect(az).toBeCloseTo(134.43777898765828, 9)
   })
 
   it('should return the correct horizontal coodinate for a target directly overhead for the datetime provided', () => {
-    const GST = getGreenwichSiderealTime(datetime)
+    const GAST = getGreenwichApparentSiderealTime(datetime)
 
     // The observer is at the same latitude as Betelgeuse's declination, and the same longitude as as
-    // Betelgeuse's right ascension minus the GST times 15 degrees per hour:
+    // Betelgeuse's right ascension minus the GAST times 15 degrees per hour, e.g., the apparent
+    // sidereal time the hour angle of the conversion is taken against:
     // This simulates a target directly overhead for the "observer":
-    const observer = { latitude: betelgeuse.dec, longitude: betelgeuse.ra - GST * 15 }
+    const observer = { latitude: betelgeuse.dec, longitude: betelgeuse.ra - GAST * 15 }
 
     // Convert the target to horizontal coordinates:
     const target = convertEquatorialToHorizontal(datetime, observer, betelgeuse)
@@ -93,17 +95,17 @@ describe('convertEquatorialToHorizontal', () => {
     // The elevation of the observer does not change where a distant target is on the celestial
     // sphere: it depresses the observer's horizon, which the horizon-relative predicates apply:
     const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude, elevation: 100 }, betelgeuse)
-    expect(alt).toBe(72.78539444063765)
-    expect(az).toBe(134.44877920325155)
+    expect(alt).toBeCloseTo(72.78239710139869, 9)
+    expect(az).toBeCloseTo(134.43777898765828, 9)
   })
 
   it('should return a target at the zenith at an altitude of 90 degrees for an elevated observer', () => {
-    const GST = getGreenwichSiderealTime(datetime)
+    const GAST = getGreenwichApparentSiderealTime(datetime)
 
     // The observer is directly beneath the target, at the elevation of Mauna Kea:
     const observer = {
       latitude: betelgeuse.dec,
-      longitude: betelgeuse.ra - GST * 15,
+      longitude: betelgeuse.ra - GAST * 15,
       elevation: 4207
     }
 
@@ -122,8 +124,8 @@ describe('convertEquatorialToHorizontal', () => {
       betelgeuse
     )
 
-    expect(alt).toBe(72.78539444063765)
-    expect(az).toBe(134.44877920325155)
+    expect(alt).toBeCloseTo(72.78239710139869, 9)
+    expect(az).toBeCloseTo(134.43777898765828, 9)
   })
 
   it('should not displace a distant target for an observer at a very large elevation', () => {
@@ -190,7 +192,7 @@ describe('convertHorizontalToEquatorial', () => {
     const { ra, dec } = convertHorizontalToEquatorial(
       datetime,
       { latitude, longitude },
-      { alt: 72.78539444063765, az: 134.44877920325155 }
+      { alt: 72.78239710139869, az: 134.43777898765828 }
     )
     expect(ra).toBeCloseTo(88.7929583)
     expect(dec).toBeCloseTo(7.4070639)

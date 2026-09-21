@@ -6,7 +6,11 @@
 
 /*****************************************************************************************************************/
 
-import { getGreenwichSiderealTime, getHourAngle, getLocalSiderealTime } from './astrometry'
+import {
+  getApparentHourAngle,
+  getGreenwichSiderealTime,
+  getLocalApparentSiderealTime
+} from './astrometry'
 
 import type {
   CartesianCoordinate,
@@ -147,8 +151,10 @@ export const convertEquatorialToHorizontal = (
   // at ±90°, where the altitude resolves to the declination of the target through the ordinary
   // path, and a latitude that is not finite, e.g., NaN or ±Infinity, propagates through it as NaN:
 
-  // Get the hour angle for the target:
-  const ha = radians(getHourAngle(datetime, longitude, target.ra))
+  // Get the hour angle for the target, taken against the Local Apparent Sidereal Time, e.g., referred
+  // to the true equinox of the date, as the apparent place of a target is, which balances the
+  // nutation in longitude its right ascension carries:
+  const ha = radians(getApparentHourAngle(datetime, longitude, target.ra))
 
   // Calculate the altitude of the target, ensuring it is within the range -π/2 to π/2 for arcsin,
   // i.e., between [-1, 1]. This accounts for the observer's target being directly overhead, e.g., at the zenith,
@@ -240,8 +246,9 @@ export const convertHorizontalToEquatorial = (
     ha += 2 * Math.PI
   }
 
-  // Calculate the Local Sidereal Time (LST) for the observer:
-  const LST = getLocalSiderealTime(datetime, longitude)
+  // Calculate the Local Apparent Sidereal Time (LAST) for the observer, e.g., referred to the true
+  // equinox of the date, against which the hour angle of an apparent place is taken:
+  const LST = getLocalApparentSiderealTime(datetime, longitude)
 
   // Calculate the Right Ascension (in degrees) for the target:
   let ra = LST * 15 - degrees(ha)

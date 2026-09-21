@@ -641,7 +641,11 @@ describe('getBodyNextRise', () => {
     )
 
     expect(alt).toBeCloseTo(15, 2)
-    expect(az).toBeCloseTo(rise.az, 3)
+
+    // The azimuth of the transit is resolved against the mean sidereal time, whereas the conversion
+    // takes the hour angle against the apparent sidereal time, and so the two differ by the equation
+    // of the equinoxes, e.g., by up to ~1 second of time in hour angle:
+    expect(az).toBeCloseTo(rise.az, 2)
 
     expect(rise.datetime).toStrictEqual(new Date('2021-05-14T19:39:18.123Z'))
   })
@@ -770,7 +774,11 @@ describe('getBodyNextSet', () => {
     )
 
     expect(alt).toBeCloseTo(15, 2)
-    expect(az).toBeCloseTo(set.az, 3)
+
+    // The azimuth of the transit is resolved against the mean sidereal time, whereas the conversion
+    // takes the hour angle against the apparent sidereal time, and so the two differ by the equation
+    // of the equinoxes, e.g., by up to ~1 second of time in hour angle:
+    expect(az).toBeCloseTo(set.az, 2)
 
     expect(set.datetime).toStrictEqual(new Date('2021-05-15T05:50:58.753Z'))
   })

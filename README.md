@@ -107,8 +107,8 @@ const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
 // Perform the conversion:
 const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
 
-// alt: 72.78539444063765
-// az: 134.44877920325155
+// alt: 72.78239710139869
+// az: 134.43777898765828
 ```
 
 #### Precession of Equinoxes
@@ -132,8 +132,8 @@ const { alt, az } = convertEquatorialToHorizontal(
   }
 )
 
-// alt: 72.59159652271458
-// az: 133.7382466535349
+// alt: 72.58857354596424
+// az: 133.72752351584117
 ```
 
 This will give you the horizontal coordinates of Betelgeuse at the given time and location, with the correction for the precession of equinoxes applied.

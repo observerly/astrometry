@@ -54,11 +54,11 @@ describe('getRefraction', () => {
       betelgeuse
     )
 
-    expect(target.az).toBe(134.44877920325155)
-    expect(target.alt).toBe(72.78539444063765)
+    expect(target.az).toBeCloseTo(134.43777898765828, 9)
+    expect(target.alt).toBeCloseTo(72.78239710139869, 9)
 
     const R = getRefraction(target, 283.15, 101325)
-    expect(R).toBe(0.005224159687428409)
+    expect(R).toBeCloseTo(0.005225131363332857, 9)
   })
 
   it('should return no correction for an object below the floor of the approximation', () => {
@@ -133,12 +133,12 @@ describe('getCorrectionToHorizontalForRefractione', () => {
       betelgeuse
     )
 
-    expect(target.az).toBe(134.44877920325155)
-    expect(target.alt).toBe(72.78539444063765)
+    expect(target.az).toBeCloseTo(134.43777898765828, 9)
+    expect(target.alt).toBeCloseTo(72.78239710139869, 9)
 
     const { alt, az } = getCorrectionToHorizontalForRefraction(target)
     expect(az).toBe(target.az)
-    expect(alt).toBeGreaterThanOrEqual(72.79061860032508)
+    expect(alt).toBeGreaterThanOrEqual(72.78762223276202)
     expect(alt).toBeLessThanOrEqual(73.0)
   })
 })
@@ -160,11 +160,11 @@ describe('getAirmass', () => {
       betelgeuse
     )
 
-    expect(target.az).toBe(134.44877920325155)
-    expect(target.alt).toBe(72.78539444063765)
+    expect(target.az).toBeCloseTo(134.43777898765828, 9)
+    expect(target.alt).toBeCloseTo(72.78239710139869, 9)
 
     const X = getAirmass(target)
-    expect(X).toBe(1.0464619518429332)
+    expect(X).toBeCloseTo(1.0464788807785839, 9)
   })
 
   it('should return the airmass value for the observed object', () => {
@@ -177,8 +177,8 @@ describe('getAirmass', () => {
       betelgeuse
     )
 
-    expect(target.az).toBe(134.44877920325155)
-    expect(target.alt).toBe(72.78539444063765)
+    expect(target.az).toBeCloseTo(134.43777898765828, 9)
+    expect(target.alt).toBeCloseTo(72.78239710139869, 9)
 
     const X = getAirmass({ alt: 90, az: target.az })
     expect(X).toBeCloseTo(1)
@@ -194,12 +194,12 @@ describe('getAirmass', () => {
       betelgeuse
     )
 
-    expect(target.az).toBe(134.44877920325155)
-    expect(target.alt).toBe(72.78539444063765)
+    expect(target.az).toBeCloseTo(134.43777898765828, 9)
+    expect(target.alt).toBeCloseTo(72.78239710139869, 9)
 
     const { alt, az } = getCorrectionToHorizontalForRefraction(target)
     expect(az).toBe(target.az)
-    expect(alt).toBeGreaterThanOrEqual(72.79061860032508)
+    expect(alt).toBeGreaterThanOrEqual(72.78762223276202)
     expect(alt).toBeLessThanOrEqual(73.0)
 
     // At the horizon the airmass is at a maximum of ~38:
