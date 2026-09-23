@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import type { Matrix3 } from './common'
+import type { CartesianCoordinate, Matrix3 } from './common'
 
 import { convertDegreesToRadians as radians } from './utilities'
 
@@ -224,6 +224,38 @@ export const getMatrixProduct = (a: Matrix3, b: Matrix3): Matrix3 => {
     [element(1, 0), element(1, 1), element(1, 2)],
     [element(2, 0), element(2, 1), element(2, 2)]
   ]
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getRotatedCartesianCoordinate()
+ *
+ * Resolves the product of a 3×3 matrix and a column vector, e.g., the matrix applied to the
+ * vector, such that each component of the result is the dot product of a row of the matrix and
+ * the vector.
+ *
+ * N.B. The inverse of a rotation matrix is its transpose, e.g., R⁻¹ = Rᵀ, and so a rotation is
+ * undone by applying the transpose of the matrix to the rotated vector, where the transpose of an
+ * elementary rotation is the rotation by the negated angle, e.g., R3(ψ)ᵀ = R3(−ψ).
+ *
+ * @param matrix - The 3×3 matrix to apply, e.g., a rotation matrix, in row-major order.
+ * @param vector - The cartesian coordinate to apply the matrix to, e.g., { x, y, z }.
+ * @returns The cartesian coordinate of the matrix applied to the vector, e.g., { x, y, z }.
+ *
+ */
+export const getRotatedCartesianCoordinate = (
+  matrix: Matrix3,
+  vector: Required<CartesianCoordinate>
+): Required<CartesianCoordinate> => {
+  const { x, y, z } = vector
+
+  return {
+    x: matrix[0][0] * x + matrix[0][1] * y + matrix[0][2] * z,
+    y: matrix[1][0] * x + matrix[1][1] * y + matrix[1][2] * z,
+    z: matrix[2][0] * x + matrix[2][1] * y + matrix[2][2] * z
+  }
 }
 
 /*****************************************************************************************************************/
