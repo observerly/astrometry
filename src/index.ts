@@ -295,6 +295,7 @@ export {
 /*****************************************************************************************************************/
 
 export {
+  getMatrixProduct,
   getRotationMatrix,
   interpolate,
   interpolateGeodesic,
