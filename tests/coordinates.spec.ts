@@ -12,6 +12,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import {
   type CartesianCoordinate,
+  convertCartesianToEquatorial,
   EARTH_RADIUS,
   type EquatorialCoordinate,
   convertEclipticToEquatorial,
@@ -530,6 +531,161 @@ describe('convertEquatorialToCartesian', () => {
 
       const { z } = convertEquatorialToCartesian({ ra: 0, dec: value })
       expect(Number.isNaN(z)).toBe(true)
+    }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertCartesianToEquatorial', () => {
+  // One microarcsecond (in degrees):
+  const µas = 1 / 3_600_000_000
+
+  it('should be defined', () => {
+    expect(convertCartesianToEquatorial).toBeDefined()
+  })
+
+  it('should return an EquatorialCoordinate', () => {
+    expectTypeOf(convertCartesianToEquatorial({ x: 1, y: 0, z: 0 })).toEqualTypeOf<EquatorialCoordinate>()
+  })
+
+  it('should return (0°, 0°) for the vector (1, 0, 0)', () => {
+    expect(convertCartesianToEquatorial({ x: 1, y: 0, z: 0 })).toEqual({ ra: 0, dec: 0 })
+  })
+
+  it('should return (90°, 0°) for the vector (0, 1, 0)', () => {
+    expect(convertCartesianToEquatorial({ x: 0, y: 1, z: 0 })).toEqual({ ra: 90, dec: 0 })
+  })
+
+  it('should return (180°, 0°) for the vector (−1, 0, 0)', () => {
+    expect(convertCartesianToEquatorial({ x: -1, y: 0, z: 0 })).toEqual({ ra: 180, dec: 0 })
+  })
+
+  it('should return (270°, 0°) for the vector (0, −1, 0)', () => {
+    expect(convertCartesianToEquatorial({ x: 0, y: -1, z: 0 })).toEqual({ ra: 270, dec: 0 })
+  })
+
+  it('should return (45°, 45°) for the vector (1, 1, √2)', () => {
+    const { ra, dec } = convertCartesianToEquatorial({ x: 1, y: 1, z: Math.SQRT2 })
+    expect(ra).toBeCloseTo(45, 12)
+    expect(dec).toBeCloseTo(45, 12)
+  })
+
+  it('should return a declination of 90° for the vector (0, 0, 1)', () => {
+    const { ra, dec } = convertCartesianToEquatorial({ x: 0, y: 0, z: 1 })
+    expect(dec).toBe(90)
+    // Every hour circle meets at the pole, and so any right ascension is valid, but it is finite:
+    expect(Number.isFinite(ra)).toBe(true)
+  })
+
+  it('should return a declination of −90° for the vector (0, 0, −1)', () => {
+    const { ra, dec } = convertCartesianToEquatorial({ x: 0, y: 0, z: -1 })
+    expect(dec).toBe(-90)
+    expect(Number.isFinite(ra)).toBe(true)
+  })
+
+  it('should return (0°, 0°) for the vector (2, 0, 0), as only the direction counts', () => {
+    expect(convertCartesianToEquatorial({ x: 2, y: 0, z: 0 })).toEqual({ ra: 0, dec: 0 })
+  })
+
+  it('should return the same coordinate for a vector of any non-zero length', () => {
+    const { ra, dec } = convertCartesianToEquatorial({ x: 0.3, y: -1.2, z: 2.5 })
+
+    for (const scale of [1e-12, 0.5, 3, 6378137, 1e12]) {
+      const coordinate = convertCartesianToEquatorial({ x: 0.3 * scale, y: -1.2 * scale, z: 2.5 * scale })
+      expect(coordinate.ra).toBeCloseTo(ra, 12)
+      expect(coordinate.dec).toBeCloseTo(dec, 12)
+    }
+  })
+
+  it('should return NaN for both angles for the zero vector, as it has no direction', () => {
+    const { ra, dec } = convertCartesianToEquatorial({ x: 0, y: 0, z: 0 })
+    expect(ra).toBeNaN()
+    expect(dec).toBeNaN()
+  })
+
+  it('should return NaN for both angles for the negative zero vector', () => {
+    const { ra, dec } = convertCartesianToEquatorial({ x: -0, y: -0, z: -0 })
+    expect(ra).toBeNaN()
+    expect(dec).toBeNaN()
+  })
+
+  it('should return a right ascension of +0°, and not −0°, for a vector of a y-component of −0', () => {
+    expect(convertCartesianToEquatorial({ x: 1, y: -0, z: 0 }).ra).toBe(0)
+  })
+
+  it('should return a right ascension less than 360° for a direction just below the x-axis', () => {
+    // A right ascension of a vanishingly small negative angle would otherwise round up to 360°:
+    const { ra } = convertCartesianToEquatorial({ x: 1, y: -1e-17, z: 0 })
+    expect(ra).toBeGreaterThanOrEqual(0)
+    expect(ra).toBeLessThan(360)
+    expect(ra).toBeCloseTo(0, 12)
+  })
+
+  it('should return a right ascension in [0, 360) and a declination in [−90, 90] for any direction', () => {
+    for (const x of [-1, -0.5, 0, 0.5, 1]) {
+      for (const y of [-1, -1e-17, 0, 1e-17, 1]) {
+        for (const z of [-1, -0.5, 0, 0.5, 1]) {
+          if (x === 0 && y === 0 && z === 0) continue
+          const { ra, dec } = convertCartesianToEquatorial({ x, y, z })
+          expect(ra).toBeGreaterThanOrEqual(0)
+          expect(ra).toBeLessThan(360)
+          expect(dec).toBeGreaterThanOrEqual(-90)
+          expect(dec).toBeLessThanOrEqual(90)
+        }
+      }
+    }
+  })
+
+  it('should round trip through convertEquatorialToCartesian within a microarcsecond at a declination of 89.9999°', () => {
+    // An arcsine of the z-component would lose ~10 µas here, as sin δ is flat towards the pole:
+    for (const ra of [0, 45, 90, 137.25, 180, 212.5, 270, 333.3]) {
+      for (const dec of [89.9999, -89.9999]) {
+        const coordinate = convertCartesianToEquatorial(convertEquatorialToCartesian({ ra, dec }))
+        expect(Math.abs(coordinate.ra - ra)).toBeLessThanOrEqual(µas)
+        expect(Math.abs(coordinate.dec - dec)).toBeLessThanOrEqual(µas)
+      }
+    }
+  })
+
+  it('should round trip through convertEquatorialToCartesian within a microarcsecond for an arbitrary coordinate', () => {
+    for (const ra of [0.000001, 23.4392911, 101.28715533, 213.9153, 279.23473479, 359.999]) {
+      for (const dec of [-89.5, -16.71611586, 0, 19.18241027, 38.78368896, 89.26410897]) {
+        const coordinate = convertCartesianToEquatorial(convertEquatorialToCartesian({ ra, dec }))
+        expect(Math.abs(coordinate.ra - ra)).toBeLessThanOrEqual(µas)
+        expect(Math.abs(coordinate.dec - dec)).toBeLessThanOrEqual(µas)
+      }
+    }
+  })
+
+  it('should return the literal coordinate of Vega at J2000.0', () => {
+    // The unit direction vector of Vega (α Lyrae) at J2000.0:
+    const { ra, dec } = convertCartesianToEquatorial({
+      x: 0.12509646363329072,
+      y: -0.7694131278689816,
+      z: 0.6263819229905306
+    })
+
+    expect(Math.abs(ra - 279.23473479)).toBeLessThanOrEqual(µas)
+    expect(Math.abs(dec - 38.78368896)).toBeLessThanOrEqual(µas)
+  })
+
+  it('should not mutate the vector', () => {
+    const vector = { x: 0.3, y: -1.2, z: 2.5 }
+
+    convertCartesianToEquatorial(vector)
+
+    expect(vector).toEqual({ x: 0.3, y: -1.2, z: 2.5 })
+  })
+
+  it('should propagate a component that is NaN as NaN', () => {
+    for (const vector of [
+      { x: Number.NaN, y: 0, z: 1 },
+      { x: 1, y: Number.NaN, z: 0 },
+      { x: 1, y: 0, z: Number.NaN }
+    ]) {
+      const { ra, dec } = convertCartesianToEquatorial(vector)
+      expect(Number.isNaN(ra) || Number.isNaN(dec)).toBe(true)
     }
   })
 })

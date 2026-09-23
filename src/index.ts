@@ -226,6 +226,7 @@ export {
 /*****************************************************************************************************************/
 
 export {
+  convertCartesianToEquatorial,
   convertEclipticToEquatorial,
   convertEquatorialToCartesian,
   convertEquatorialToHorizontal,
