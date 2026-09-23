@@ -6,6 +6,12 @@
 
 /*****************************************************************************************************************/
 
+import type { Matrix3 } from './common'
+
+import { convertDegreesToRadians as radians } from './utilities'
+
+/*****************************************************************************************************************/
+
 /**
  *
  * Interpolates points between a start and end coordinate with a given precision.
@@ -138,6 +144,56 @@ export function interpolateRank2DGeodesicCoordinateArray(
   }
 
   return interpolatedCoordinates
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getRotationMatrix()
+ *
+ * Resolves the elementary rotation matrix about the x, y or z axis by a given angle (in degrees),
+ * e.g., R1, R2 or R3 respectively, as is defined by the iauRx, iauRy and iauRz routines of the IAU
+ * SOFA library.
+ *
+ * N.B. The rotation is passive, e.g., it rotates the reference frame and not the vector, such that
+ * a positive angle rotates the frame anticlockwise as seen from the positive axis looking towards
+ * the origin, and so a vector that is fixed in space appears to rotate clockwise within it:
+ *
+ * R1(φ) = [[1, 0, 0], [0, cos φ, sin φ], [0, −sin φ, cos φ]]
+ * R2(θ) = [[cos θ, 0, −sin θ], [0, 1, 0], [sin θ, 0, cos θ]]
+ * R3(ψ) = [[cos ψ, sin ψ, 0], [−sin ψ, cos ψ, 0], [0, 0, 1]]
+ *
+ * @param axis - The axis of the rotation, e.g., "x", "y" or "z".
+ * @param angle - The angle of the rotation (in degrees).
+ * @returns The 3×3 rotation matrix, in row-major order.
+ *
+ */
+export const getRotationMatrix = (axis: 'x' | 'y' | 'z', angle: number): Matrix3 => {
+  const cos = Math.cos(radians(angle))
+
+  const sin = Math.sin(radians(angle))
+
+  switch (axis) {
+    case 'x':
+      return [
+        [1, 0, 0],
+        [0, cos, sin],
+        [0, -sin, cos]
+      ]
+    case 'y':
+      return [
+        [cos, 0, -sin],
+        [0, 1, 0],
+        [sin, 0, cos]
+      ]
+    case 'z':
+      return [
+        [cos, sin, 0],
+        [-sin, cos, 0],
+        [0, 0, 1]
+      ]
+  }
 }
 
 /*****************************************************************************************************************/
