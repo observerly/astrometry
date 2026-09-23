@@ -380,3 +380,43 @@ export const convertEquatorialToCartesian = (
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * convertCartesianToEquatorial()
+ *
+ * Performs the conversion from a direction vector in the equatorial frame, of any non-zero length,
+ * to the equatorial coordinate of it, with the x-axis towards the vernal equinox, the y-axis towards
+ * a right ascension of 90°, and the z-axis towards the north celestial pole.
+ *
+ * N.B. The declination is taken as the angle between the vector and the plane of the equator, e.g.,
+ * atan2(z, hypot(x, y)), and not as the arcsine of the z-component, which is ill-conditioned
+ * towards the poles, where the sine of the declination flattens out.
+ *
+ * N.B. The zero vector has no direction, and so both of its angles are NaN.
+ *
+ * @param vector - The direction vector in the equatorial frame, e.g., { x, y, z }.
+ * @returns The equatorial coordinate of the direction, e.g., { ra, dec } (in degrees), with the right ascension in [0, 360).
+ *
+ */
+export const convertCartesianToEquatorial = (
+  vector: Required<CartesianCoordinate>
+): EquatorialCoordinate => {
+  const { x, y, z } = vector
+
+  // The zero vector has no direction, e.g., atan2(0, 0) would otherwise resolve it to (0°, 0°):
+  if (x === 0 && y === 0 && z === 0) {
+    return { ra: Number.NaN, dec: Number.NaN }
+  }
+
+  // The right ascension of the direction, where a vanishingly small negative angle rounds up to
+  // 360° as it is normalised, and so is wrapped back to 0° to keep it within [0, 360):
+  const ra = getNormalizedAzimuthalDegree(degrees(Math.atan2(y, x)))
+
+  return {
+    ra: ra === 360 ? 0 : ra,
+    dec: degrees(Math.atan2(z, Math.hypot(x, y)))
+  }
+}
+
+/*****************************************************************************************************************/
