@@ -10,9 +10,11 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import type { Matrix3 } from '../src/common'
+import type { CartesianCoordinate, Matrix3 } from '../src/common'
 
-import { getMatrixProduct, getRotationMatrix } from '../src/maths'
+import { convertCartesianToEquatorial, convertEquatorialToCartesian } from '../src/coordinates'
+
+import { getMatrixProduct, getRotatedCartesianCoordinate, getRotationMatrix } from '../src/maths'
 
 /*****************************************************************************************************************/
 
@@ -504,6 +506,227 @@ describe('getMatrixProduct', () => {
     // The other rows do not depend on the first row of a, and so they are unaffected:
     expect(P[1]).toEqual([0, 1, 0])
     expect(P[2]).toEqual([0, 0, 1])
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getRotatedCartesianCoordinate', () => {
+  it('should be defined', () => {
+    expect(getRotatedCartesianCoordinate).toBeDefined()
+  })
+
+  it('should return a Required<CartesianCoordinate>', () => {
+    expectTypeOf(getRotatedCartesianCoordinate(identity, { x: 1, y: 0, z: 0 })).toEqualTypeOf<
+      Required<CartesianCoordinate>
+    >()
+  })
+
+  it('should return the vector unchanged for the identity', () => {
+    expect(getRotatedCartesianCoordinate(identity, { x: 0.3, y: -1.2, z: 2.5 })).toEqual({
+      x: 0.3,
+      y: -1.2,
+      z: 2.5
+    })
+  })
+
+  it('should return the zero vector for the zero matrix', () => {
+    const zero: Matrix3 = [
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0]
+    ]
+
+    expect(getRotatedCartesianCoordinate(zero, { x: 0.3, y: -1.2, z: 2.5 })).toEqual({ x: 0, y: 0, z: 0 })
+  })
+
+  it('should return the literal product of an arbitrary matrix and a column vector', () => {
+    const m: Matrix3 = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ]
+
+    // Each component is the dot product of a row of the matrix and the column vector:
+    expect(getRotatedCartesianCoordinate(m, { x: 1, y: -1, z: 2 })).toEqual({ x: 5, y: 11, z: 17 })
+  })
+
+  it('should return (0, −1, 0) for R3(90°) applied to (1, 0, 0)', () => {
+    const { x, y, z } = getRotatedCartesianCoordinate(getRotationMatrix('z', 90), { x: 1, y: 0, z: 0 })
+    expect(x).toBeCloseTo(0, 15)
+    expect(y).toBeCloseTo(-1, 15)
+    expect(z).toBeCloseTo(0, 15)
+  })
+
+  it('should return the column of the matrix for each unit vector', () => {
+    const R = getRotationMatrix('y', 40)
+
+    expect(getRotatedCartesianCoordinate(R, { x: 1, y: 0, z: 0 })).toEqual({ x: R[0][0], y: R[1][0], z: R[2][0] })
+    expect(getRotatedCartesianCoordinate(R, { x: 0, y: 1, z: 0 })).toEqual({ x: R[0][1], y: R[1][1], z: R[2][1] })
+    expect(getRotatedCartesianCoordinate(R, { x: 0, y: 0, z: 1 })).toEqual({ x: R[0][2], y: R[1][2], z: R[2][2] })
+  })
+
+  it('should keep the length of an arbitrary vector for a rotation about each axis', () => {
+    const vector = { x: 0.3, y: -1.2, z: 2.5 }
+
+    for (const axis of axes) {
+      for (const angle of angles) {
+        const { x, y, z } = getRotatedCartesianCoordinate(getRotationMatrix(axis, angle), vector)
+        expect(Math.hypot(x, y, z)).toBeCloseTo(Math.hypot(vector.x, vector.y, vector.z), 14)
+      }
+    }
+  })
+
+  it('should keep the length of a vector for a rotation composed about all three axes', () => {
+    const vector = { x: 6378137, y: -2.5e-3, z: 42 }
+
+    const R = getMatrixProduct(
+      getRotationMatrix('z', 137.25),
+      getMatrixProduct(getRotationMatrix('y', -23.4392911), getRotationMatrix('x', 333.3))
+    )
+
+    const { x, y, z } = getRotatedCartesianCoordinate(R, vector)
+
+    expect(Math.hypot(x, y, z) / Math.hypot(vector.x, vector.y, vector.z)).toBeCloseTo(1, 15)
+  })
+
+  it('should return the vector within rounding when rotated by R2(40°), and then by the transpose of R2(40°)', () => {
+    const R = getRotationMatrix('y', 40)
+
+    // The transpose of R2(40°), e.g., its rows written as columns:
+    const T: Matrix3 = [
+      [R[0][0], R[1][0], R[2][0]],
+      [R[0][1], R[1][1], R[2][1]],
+      [R[0][2], R[1][2], R[2][2]]
+    ]
+
+    const vector = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const { x, y, z } = getRotatedCartesianCoordinate(T, getRotatedCartesianCoordinate(R, vector))
+
+    expect(x).toBeCloseTo(vector.x, 15)
+    expect(y).toBeCloseTo(vector.y, 15)
+    expect(z).toBeCloseTo(vector.z, 15)
+  })
+
+  it('should return the vector within rounding when rotated by R(θ), and then by R(−θ), about each axis', () => {
+    // The transpose of an elementary rotation is the rotation by the negated angle:
+    const vector = { x: 0.3, y: -1.2, z: 2.5 }
+
+    for (const axis of axes) {
+      for (const angle of angles) {
+        const { x, y, z } = getRotatedCartesianCoordinate(
+          getRotationMatrix(axis, -angle),
+          getRotatedCartesianCoordinate(getRotationMatrix(axis, angle), vector)
+        )
+        expect(x).toBeCloseTo(vector.x, 14)
+        expect(y).toBeCloseTo(vector.y, 14)
+        expect(z).toBeCloseTo(vector.z, 14)
+      }
+    }
+  })
+
+  it('should agree with getMatrixProduct, e.g., (a · b) v = a (b v)', () => {
+    const a = getRotationMatrix('x', 90)
+
+    const b = getRotationMatrix('z', 90)
+
+    const vector = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const composed = getRotatedCartesianCoordinate(getMatrixProduct(a, b), vector)
+
+    const successive = getRotatedCartesianCoordinate(a, getRotatedCartesianCoordinate(b, vector))
+
+    expect(composed.x).toBeCloseTo(successive.x, 15)
+    expect(composed.y).toBeCloseTo(successive.y, 15)
+    expect(composed.z).toBeCloseTo(successive.z, 15)
+  })
+
+  it('should be linear, e.g., rotating a scaled vector scales the rotated vector', () => {
+    const R = getRotationMatrix('x', 23.4392911)
+
+    const { x, y, z } = getRotatedCartesianCoordinate(R, { x: 0.3, y: -1.2, z: 2.5 })
+
+    const scaled = getRotatedCartesianCoordinate(R, { x: 0.3 * 4, y: -1.2 * 4, z: 2.5 * 4 })
+
+    expect(scaled.x).toBeCloseTo(x * 4, 14)
+    expect(scaled.y).toBeCloseTo(y * 4, 14)
+    expect(scaled.z).toBeCloseTo(z * 4, 14)
+  })
+
+  it('should return { ra: 0, dec: 20 } for R3(10°) applied to the direction of { ra: 10, dec: 20 }', () => {
+    const vector = getRotatedCartesianCoordinate(
+      getRotationMatrix('z', 10),
+      convertEquatorialToCartesian({ ra: 10, dec: 20 })
+    )
+
+    const { ra, dec } = convertCartesianToEquatorial(vector)
+
+    expect(ra).toBeCloseTo(0, 12)
+    expect(dec).toBeCloseTo(20, 12)
+  })
+
+  it('should resolve the direction of an equatorial coordinate as R3(−α) · R2(δ) applied to (1, 0, 0)', () => {
+    for (const ra of [0, 45, 137.25, 279.23473479]) {
+      for (const dec of [-60, 0, 38.78368896, 89.9999]) {
+        const R = getMatrixProduct(getRotationMatrix('z', -ra), getRotationMatrix('y', dec))
+
+        const { x, y, z } = getRotatedCartesianCoordinate(R, { x: 1, y: 0, z: 0 })
+
+        const expected = convertEquatorialToCartesian({ ra, dec })
+
+        expect(x).toBeCloseTo(expected.x, 15)
+        expect(y).toBeCloseTo(expected.y, 15)
+        expect(z).toBeCloseTo(expected.z, 15)
+      }
+    }
+  })
+
+  it('should transform the ecliptic pole into equatorial coordinates by R1(−ε)', () => {
+    // The mean obliquity of the ecliptic at J2000.0:
+    const ε = 23.4392911
+
+    // The north ecliptic pole lies at a right ascension of 18h (270°) and a declination of 90° − ε:
+    const { ra, dec } = convertCartesianToEquatorial(
+      getRotatedCartesianCoordinate(getRotationMatrix('x', -ε), { x: 0, y: 0, z: 1 })
+    )
+
+    expect(ra).toBeCloseTo(270, 12)
+    expect(dec).toBeCloseTo(90 - ε, 12)
+  })
+
+  it('should not mutate either the matrix or the vector', () => {
+    const m: Matrix3 = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ]
+
+    const vector = { x: 1, y: -1, z: 2 }
+
+    getRotatedCartesianCoordinate(m, vector)
+
+    expect(m).toEqual([
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ])
+
+    expect(vector).toEqual({ x: 1, y: -1, z: 2 })
+  })
+
+  it('should return a new vector, and not the vector given', () => {
+    const vector = { x: 1, y: -1, z: 2 }
+    expect(getRotatedCartesianCoordinate(identity, vector)).not.toBe(vector)
+  })
+
+  it('should propagate a component that is NaN as NaN', () => {
+    const { x, y, z } = getRotatedCartesianCoordinate(identity, { x: Number.NaN, y: 0, z: 1 })
+
+    // Every component is a dot product with the whole vector, e.g., as NaN · 0 is NaN:
+    expect(x).toBeNaN()
+    expect(y).toBeNaN()
+    expect(z).toBeNaN()
   })
 })
 
