@@ -6,14 +6,16 @@
 
 /*****************************************************************************************************************/
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
 import {
+  type CartesianCoordinate,
   EARTH_RADIUS,
   type EquatorialCoordinate,
   convertEclipticToEquatorial,
+  convertEquatorialToCartesian,
   convertEquatorialToHorizontal,
   convertGeocentricToGeographic,
   convertGalacticToEquatorial,
@@ -377,6 +379,157 @@ describe('convertGeocentricToGeographic', () => {
       expect(() =>
         convertGeocentricToGeographic(datetime, { x: EARTH_RADIUS, y: 0, z: 0 }, radius)
       ).toThrow('Invalid radius: the radius must be greater than zero')
+    }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertEquatorialToCartesian', () => {
+  it('should be defined', () => {
+    expect(convertEquatorialToCartesian).toBeDefined()
+  })
+
+  it('should return a Required<CartesianCoordinate>', () => {
+    const { x, y, z } = convertEquatorialToCartesian({ ra: 0, dec: 0 })
+    expectTypeOf(convertEquatorialToCartesian({ ra: 0, dec: 0 })).toEqualTypeOf<
+      Required<CartesianCoordinate>
+    >()
+    expect(typeof x).toBe('number')
+    expect(typeof y).toBe('number')
+    expect(typeof z).toBe('number')
+  })
+
+  it('should return (1, 0, 0) for a right ascension of 0° and a declination of 0°', () => {
+    // The vernal equinox lies along the x-axis of the equatorial frame:
+    expect(convertEquatorialToCartesian({ ra: 0, dec: 0 })).toEqual({ x: 1, y: 0, z: 0 })
+  })
+
+  it('should return (0, 1, 0) for a right ascension of 90° and a declination of 0°', () => {
+    const { x, y, z } = convertEquatorialToCartesian({ ra: 90, dec: 0 })
+    expect(x).toBeCloseTo(0, 15)
+    expect(y).toBeCloseTo(1, 15)
+    expect(z).toBeCloseTo(0, 15)
+  })
+
+  it('should return (−1, 0, 0) for a right ascension of 180° and a declination of 0°', () => {
+    const { x, y, z } = convertEquatorialToCartesian({ ra: 180, dec: 0 })
+    expect(x).toBeCloseTo(-1, 15)
+    expect(y).toBeCloseTo(0, 15)
+    expect(z).toBeCloseTo(0, 15)
+  })
+
+  it('should return (0, −1, 0) for a right ascension of 270° and a declination of 0°', () => {
+    const { x, y, z } = convertEquatorialToCartesian({ ra: 270, dec: 0 })
+    expect(x).toBeCloseTo(0, 15)
+    expect(y).toBeCloseTo(-1, 15)
+    expect(z).toBeCloseTo(0, 15)
+  })
+
+  it('should return (√½, √½, 0) for a right ascension of 45° and a declination of 0°', () => {
+    const { x, y, z } = convertEquatorialToCartesian({ ra: 45, dec: 0 })
+    expect(x).toBeCloseTo(Math.SQRT1_2, 15)
+    expect(y).toBeCloseTo(Math.SQRT1_2, 15)
+    expect(z).toBeCloseTo(0, 15)
+  })
+
+  it('should return (0, 0, 1) for any right ascension at a declination of 90°', () => {
+    // Every hour circle meets at the north celestial pole, and so the right ascension is moot:
+    for (const ra of [0, 45, 90, 137.25, 180, 270, 359.999]) {
+      const { x, y, z } = convertEquatorialToCartesian({ ra, dec: 90 })
+      expect(x).toBeCloseTo(0, 15)
+      expect(y).toBeCloseTo(0, 15)
+      expect(z).toBe(1)
+    }
+  })
+
+  it('should return (0, 0, −1) for any right ascension at a declination of −90°', () => {
+    // Likewise, every hour circle meets at the south celestial pole:
+    for (const ra of [0, 45, 90, 137.25, 180, 270, 359.999]) {
+      const { x, y, z } = convertEquatorialToCartesian({ ra, dec: -90 })
+      expect(x).toBeCloseTo(0, 15)
+      expect(y).toBeCloseTo(0, 15)
+      expect(z).toBe(-1)
+    }
+  })
+
+  it('should return a z-component of sin δ, e.g., positive to the north and negative to the south', () => {
+    expect(convertEquatorialToCartesian({ ra: 120, dec: 30 }).z).toBeCloseTo(0.5, 15)
+    expect(convertEquatorialToCartesian({ ra: 120, dec: -30 }).z).toBeCloseTo(-0.5, 15)
+  })
+
+  it('should return a vector of unit length for an arbitrary coordinate', () => {
+    for (const ra of [0, 23.4392911, 101.28715533, 213.9153, 279.23473479, 359.999]) {
+      for (const dec of [-89.5, -16.71611586, 0, 19.18241027, 38.78368896, 89.26410897]) {
+        const { x, y, z } = convertEquatorialToCartesian({ ra, dec })
+        expect(Math.hypot(x, y, z)).toBeCloseTo(1, 15)
+      }
+    }
+  })
+
+  it('should return the literal direction of Vega at J2000.0', () => {
+    // Vega (α Lyrae), at a right ascension of 18h 36m 56.3364s and a declination of
+    // +38° 47′ 01.280″ at J2000.0:
+    const { x, y, z } = convertEquatorialToCartesian({ ra: 279.23473479, dec: 38.78368896 })
+    expect(x).toBeCloseTo(0.12509646363329072, 15)
+    expect(y).toBeCloseTo(-0.7694131278689816, 15)
+    expect(z).toBeCloseTo(0.6263819229905306, 15)
+  })
+
+  it('should be periodic in 360° of right ascension', () => {
+    const a = convertEquatorialToCartesian({ ra: 279.23473479, dec: 38.78368896 })
+    const b = convertEquatorialToCartesian({ ra: 279.23473479 + 360, dec: 38.78368896 })
+    const c = convertEquatorialToCartesian({ ra: 279.23473479 - 360, dec: 38.78368896 })
+
+    expect(b.x).toBeCloseTo(a.x, 14)
+    expect(b.y).toBeCloseTo(a.y, 14)
+    expect(b.z).toBeCloseTo(a.z, 14)
+
+    expect(c.x).toBeCloseTo(a.x, 14)
+    expect(c.y).toBeCloseTo(a.y, 14)
+    expect(c.z).toBeCloseTo(a.z, 14)
+  })
+
+  it('should resolve the direction alone, and so ignore the epoch and parallax of the target', () => {
+    const target: EquatorialCoordinate = { ra: 279.23473479, dec: 38.78368896 }
+
+    expect(convertEquatorialToCartesian({ ...target, epoch: 2457388.5, parallax: 0.13023 })).toEqual(
+      convertEquatorialToCartesian(target)
+    )
+  })
+
+  it('should share the frame of convertGeocentricToGeographic, e.g., x towards the vernal equinox', () => {
+    // A position scaled out along the direction lies above the geographic latitude equal to the
+    // declination, as both resolve the equatorial frame with the z-axis along the rotational axis:
+    const target = { ra: 279.23473479, dec: 38.78368896 }
+
+    const { x, y, z } = convertEquatorialToCartesian(target)
+
+    const { latitude } = convertGeocentricToGeographic(datetime, {
+      x: x * 2 * EARTH_RADIUS,
+      y: y * 2 * EARTH_RADIUS,
+      z: z * 2 * EARTH_RADIUS
+    })
+
+    expect(latitude).toBeCloseTo(target.dec, 10)
+  })
+
+  it('should not mutate the target', () => {
+    const target: EquatorialCoordinate = { ra: 279.23473479, dec: 38.78368896 }
+
+    convertEquatorialToCartesian(target)
+
+    expect(target).toEqual({ ra: 279.23473479, dec: 38.78368896 })
+  })
+
+  it('should propagate a coordinate that is not finite as NaN', () => {
+    for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      const { x, y } = convertEquatorialToCartesian({ ra: value, dec: 0 })
+      expect(Number.isNaN(x)).toBe(true)
+      expect(Number.isNaN(y)).toBe(true)
+
+      const { z } = convertEquatorialToCartesian({ ra: 0, dec: value })
+      expect(Number.isNaN(z)).toBe(true)
     }
   })
 })

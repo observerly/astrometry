@@ -227,6 +227,7 @@ export {
 
 export {
   convertEclipticToEquatorial,
+  convertEquatorialToCartesian,
   convertEquatorialToHorizontal,
   convertGalacticToEquatorial,
   convertGeocentricToGeographic,
