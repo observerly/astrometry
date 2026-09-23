@@ -342,6 +342,20 @@ export const isHorizontalCoordinate = (target: unknown): target is HorizontalCoo
 
 /**
  *
+ * A 3×3 matrix is stored in row-major order, e.g., as a tuple of three rows, each of which is a
+ * tuple of three columns, such that m[i][j] is the element of the i-th row and the j-th column.
+ *
+ */
+export type Matrix3 = readonly [
+  readonly [number, number, number],
+  readonly [number, number, number],
+  readonly [number, number, number]
+]
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * A spherical coordinate follows the ISO 80000-2 convention, in which the polar angle is denoted θ
  * and the azimuthal angle is denoted φ, and not the mathematical convention, in which the two are
  * transposed.

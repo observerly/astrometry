@@ -16,7 +16,8 @@ import {
   isEquatorialProperMotion,
   type HorizontalCoordinate,
   isEquatorialCoordinate,
-  isHorizontalCoordinate
+  isHorizontalCoordinate,
+  type Matrix3
 } from '../src/common'
 
 import { J2000 } from '../src/constants'
@@ -203,3 +204,37 @@ describe('isHorizontalCoordinate', () => {
     expectTypeOf(eq).not.toEqualTypeOf<HorizontalCoordinate>()
   })
 })
+
+/*****************************************************************************************************************/
+
+describe('Matrix3', () => {
+  it('should type a literal identity matrix, read back by row and column', () => {
+    const m: Matrix3 = [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ]
+    expectTypeOf(m).toEqualTypeOf<Matrix3>()
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        expect(m[i][j]).toBe(i === j ? 1 : 0)
+      }
+    }
+  })
+
+  it('should type a literal rotation matrix, read back by row and column', () => {
+    // A rotation of 90° about the z-axis, such that the first row is not its first column:
+    const m: Matrix3 = [
+      [0, -1, 0],
+      [1, 0, 0],
+      [0, 0, 1]
+    ]
+    expectTypeOf(m).toEqualTypeOf<Matrix3>()
+    expect(m[0][1]).toBe(-1)
+    expect(m[1][0]).toBe(1)
+    expect(m[2][2]).toBe(1)
+    expect(m[0]).toEqual([0, -1, 0])
+  })
+})
+
+/*****************************************************************************************************************/
