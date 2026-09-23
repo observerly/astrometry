@@ -57,6 +57,7 @@ export {
   isEquatorialCoordinate,
   isEquatorialProperMotion,
   isHorizontalCoordinate,
+  type Matrix3,
   type Maybe,
   type Observer,
   type SphericalCoordinate
