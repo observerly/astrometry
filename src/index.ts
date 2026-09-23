@@ -295,6 +295,7 @@ export {
 /*****************************************************************************************************************/
 
 export {
+  getRotationMatrix,
   interpolate,
   interpolateGeodesic,
   interpolateRank2DArray,
