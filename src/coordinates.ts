@@ -345,3 +345,38 @@ export const convertGeocentricToGeographic = (
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * convertEquatorialToCartesian()
+ *
+ * Performs the conversion from an equatorial coordinate to the unit direction vector of it in the
+ * equatorial frame, with the x-axis towards the vernal equinox, the y-axis towards a right
+ * ascension of 90°, and the z-axis towards the north celestial pole:
+ *
+ * x = cos δ cos α
+ * y = cos δ sin α
+ * z = sin δ
+ *
+ * N.B. The vector is the direction of the target alone, e.g., it is of unit length, and so the
+ * epoch and the parallax of the target, where they are given, are not taken into account.
+ *
+ * @param target - The equatorial coordinate of the target, e.g., { ra, dec } (in degrees).
+ * @returns The unit direction vector of the target, e.g., { x, y, z }.
+ *
+ */
+export const convertEquatorialToCartesian = (
+  target: EquatorialCoordinate
+): Required<CartesianCoordinate> => {
+  const α = radians(target.ra)
+
+  const δ = radians(target.dec)
+
+  return {
+    x: Math.cos(δ) * Math.cos(α),
+    y: Math.cos(δ) * Math.sin(α),
+    z: Math.sin(δ)
+  }
+}
+
+/*****************************************************************************************************************/
