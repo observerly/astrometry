@@ -197,3 +197,33 @@ export const getRotationMatrix = (axis: 'x' | 'y' | 'z', angle: number): Matrix3
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getMatrixProduct()
+ *
+ * Resolves the product a · b of two 3×3 matrices, such that each element of the product is the dot
+ * product of the i-th row of a and the j-th column of b.
+ *
+ * N.B. The order of the product matters, e.g., applying the product to a vector v applies b first,
+ * and then a, such that (a · b) v = a (b v), and so a rotation by b followed by a rotation by a is
+ * the product a · b, and not b · a.
+ *
+ * @param a - The left-hand 3×3 matrix, e.g., the matrix that is applied second.
+ * @param b - The right-hand 3×3 matrix, e.g., the matrix that is applied first.
+ * @returns The 3×3 matrix product a · b, in row-major order.
+ *
+ */
+export const getMatrixProduct = (a: Matrix3, b: Matrix3): Matrix3 => {
+  // The element of the i-th row and the j-th column of the product:
+  const element = (i: number, j: number): number =>
+    a[i][0] * b[0][j] + a[i][1] * b[1][j] + a[i][2] * b[2][j]
+
+  return [
+    [element(0, 0), element(0, 1), element(0, 2)],
+    [element(1, 0), element(1, 1), element(1, 2)],
+    [element(2, 0), element(2, 1), element(2, 2)]
+  ]
+}
+
+/*****************************************************************************************************************/

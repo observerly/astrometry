@@ -12,7 +12,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import type { Matrix3 } from '../src/common'
 
-import { getRotationMatrix } from '../src/maths'
+import { getMatrixProduct, getRotationMatrix } from '../src/maths'
 
 /*****************************************************************************************************************/
 
@@ -249,6 +249,261 @@ describe('getRotationMatrix', () => {
         expect(R.flat().some(element => Number.isNaN(element))).toBe(true)
       }
     }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getMatrixProduct', () => {
+  it('should be defined', () => {
+    expect(getMatrixProduct).toBeDefined()
+  })
+
+  it('should return a Matrix3', () => {
+    const P = getMatrixProduct(identity, identity)
+    expectTypeOf(P).toEqualTypeOf<Matrix3>()
+    expect(P).toHaveLength(3)
+    for (const row of P) {
+      expect(row).toHaveLength(3)
+    }
+  })
+
+  it('should return the other matrix for a product with the identity', () => {
+    const m: Matrix3 = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ]
+
+    expect(getMatrixProduct(identity, m)).toEqual(m)
+    expect(getMatrixProduct(m, identity)).toEqual(m)
+    expect(getMatrixProduct(identity, identity)).toEqual(identity)
+
+    for (const axis of axes) {
+      for (const angle of angles) {
+        const R = getRotationMatrix(axis, angle)
+        expectMatrixToBeCloseTo(getMatrixProduct(identity, R), R, 0)
+        expectMatrixToBeCloseTo(getMatrixProduct(R, identity), R, 0)
+      }
+    }
+  })
+
+  it('should return the zero matrix for a product with the zero matrix', () => {
+    const zero: Matrix3 = [
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0]
+    ]
+
+    const m: Matrix3 = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ]
+
+    expect(getMatrixProduct(zero, m)).toEqual(zero)
+    expect(getMatrixProduct(m, zero)).toEqual(zero)
+  })
+
+  it('should return the literal product of two arbitrary matrices', () => {
+    const a: Matrix3 = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ]
+
+    const b: Matrix3 = [
+      [9, 8, 7],
+      [6, 5, 4],
+      [3, 2, 1]
+    ]
+
+    expect(getMatrixProduct(a, b)).toEqual([
+      [30, 24, 18],
+      [84, 69, 54],
+      [138, 114, 90]
+    ])
+
+    expect(getMatrixProduct(b, a)).toEqual([
+      [90, 114, 138],
+      [54, 69, 84],
+      [18, 24, 30]
+    ])
+  })
+
+  it('should return R3(90°) for the product R3(30°) · R3(60°) within rounding', () => {
+    expectMatrixToBeCloseTo(
+      getMatrixProduct(getRotationMatrix('z', 30), getRotationMatrix('z', 60)),
+      getRotationMatrix('z', 90)
+    )
+  })
+
+  it('should compose rotations additively about the same axis, e.g., R(a) · R(b) = R(a + b)', () => {
+    for (const axis of axes) {
+      for (const a of angles) {
+        for (const b of [-67.5, 12.25, 90]) {
+          expectMatrixToBeCloseTo(
+            getMatrixProduct(getRotationMatrix(axis, a), getRotationMatrix(axis, b)),
+            getRotationMatrix(axis, a + b),
+            1e-14
+          )
+        }
+      }
+    }
+  })
+
+  it('should return the identity for the product of a rotation and its inverse, e.g., R(θ) · R(−θ)', () => {
+    for (const axis of axes) {
+      for (const angle of angles) {
+        expectMatrixToBeCloseTo(
+          getMatrixProduct(getRotationMatrix(axis, angle), getRotationMatrix(axis, -angle)),
+          identity
+        )
+        expectMatrixToBeCloseTo(
+          getMatrixProduct(getRotationMatrix(axis, -angle), getRotationMatrix(axis, angle)),
+          identity
+        )
+      }
+    }
+  })
+
+  it('should return the literal product R1(90°) · R3(90°)', () => {
+    expectMatrixToBeCloseTo(getMatrixProduct(getRotationMatrix('x', 90), getRotationMatrix('z', 90)), [
+      [0, 1, 0],
+      [0, 0, 1],
+      [1, 0, 0]
+    ])
+  })
+
+  it('should return the literal product R3(90°) · R1(90°)', () => {
+    expectMatrixToBeCloseTo(getMatrixProduct(getRotationMatrix('z', 90), getRotationMatrix('x', 90)), [
+      [0, 0, 1],
+      [-1, 0, 0],
+      [0, -1, 0]
+    ])
+  })
+
+  it('should not be commutative, e.g., the order of the product matters', () => {
+    const R1 = getRotationMatrix('x', 90)
+
+    const R3 = getRotationMatrix('z', 90)
+
+    const ab = getMatrixProduct(R1, R3)
+
+    const ba = getMatrixProduct(R3, R1)
+
+    // The two products differ in, e.g., the first element of the first column:
+    expect(ab[0][0]).toBeCloseTo(0, 15)
+    expect(ab[2][0]).toBeCloseTo(1, 15)
+    expect(ba[2][0]).toBeCloseTo(0, 15)
+    expect(ba[1][0]).toBeCloseTo(-1, 15)
+  })
+
+  it('should apply b first, and then a, to a vector', () => {
+    // The unit vector along the x-axis, held as the first column of an otherwise zero matrix:
+    const x: Matrix3 = [
+      [1, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0]
+    ]
+
+    const R1 = getRotationMatrix('x', 90)
+
+    const R3 = getRotationMatrix('z', 90)
+
+    // R3(90°) carries the fixed x-axis onto the new −y-axis:
+    const first = getMatrixProduct(R3, x)
+
+    expectMatrixToBeCloseTo(first, [
+      [0, 0, 0],
+      [-1, 0, 0],
+      [0, 0, 0]
+    ])
+
+    // R1(90°) then carries the −y-axis onto the new +z-axis:
+    const second = getMatrixProduct(R1, first)
+
+    expectMatrixToBeCloseTo(second, [
+      [0, 0, 0],
+      [0, 0, 0],
+      [1, 0, 0]
+    ])
+
+    // The product R1 · R3 applies R3 first, and then R1, and so it resolves the same vector:
+    expectMatrixToBeCloseTo(getMatrixProduct(getMatrixProduct(R1, R3), x), second)
+  })
+
+  it('should be associative, e.g., (a · b) · c = a · (b · c)', () => {
+    for (const angle of angles) {
+      const a = getRotationMatrix('x', angle)
+
+      const b = getRotationMatrix('y', angle / 2)
+
+      const c = getRotationMatrix('z', -angle)
+
+      expectMatrixToBeCloseTo(
+        getMatrixProduct(getMatrixProduct(a, b), c),
+        getMatrixProduct(a, getMatrixProduct(b, c))
+      )
+    }
+  })
+
+  it('should return the identity for four successive rotations of 90° about each axis', () => {
+    for (const axis of axes) {
+      const R = getRotationMatrix(axis, 90)
+      expectMatrixToBeCloseTo(getMatrixProduct(getMatrixProduct(R, R), getMatrixProduct(R, R)), identity)
+    }
+  })
+
+  it('should not mutate either matrix', () => {
+    const a: Matrix3 = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ]
+
+    const b: Matrix3 = [
+      [9, 8, 7],
+      [6, 5, 4],
+      [3, 2, 1]
+    ]
+
+    getMatrixProduct(a, b)
+
+    expect(a).toEqual([
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ])
+
+    expect(b).toEqual([
+      [9, 8, 7],
+      [6, 5, 4],
+      [3, 2, 1]
+    ])
+  })
+
+  it('should return a new matrix, and not either of its inputs', () => {
+    const P = getMatrixProduct(identity, identity)
+    expect(P).not.toBe(identity)
+    expect(P[0]).not.toBe(identity[0])
+  })
+
+  it('should propagate an element that is not finite as NaN along its row of the product', () => {
+    const a: Matrix3 = [
+      [Number.NaN, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ]
+
+    const P = getMatrixProduct(a, identity)
+
+    // The NaN is carried into every element of the first row, e.g., as NaN · 0 is NaN:
+    expect(P[0].every(element => Number.isNaN(element))).toBe(true)
+
+    // The other rows do not depend on the first row of a, and so they are unaffected:
+    expect(P[1]).toEqual([0, 1, 0])
+    expect(P[2]).toEqual([0, 0, 1])
   })
 })
 
