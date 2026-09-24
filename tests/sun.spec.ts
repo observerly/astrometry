@@ -20,7 +20,9 @@ import {
   getJulianDate,
   getSolarAngularDiameter,
   getSolarDistance,
+  getNutation,
   getSolarEclipticCoordinate,
+  getSolarGeometricEclipticCoordinate,
   getSolarEclipticLongitude,
   getSolarEquationOfCenter,
   getSolarEquatorialCoordinate,
@@ -140,6 +142,35 @@ describe('getSolarEclipticCoordinate', () => {
       ra,
       dec
     })
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getSolarGeometricEclipticCoordinate', () => {
+  it('should be defined', () => {
+    expect(getSolarGeometricEclipticCoordinate).toBeDefined()
+  })
+
+  it('should differ from the apparent ecliptic longitude by the nutation and the aberration of light', () => {
+    const datetime = new Date('2015-02-05T12:00:00.000+00:00')
+
+    const { λ, β, R } = getSolarGeometricEclipticCoordinate(datetime)
+
+    const apparent = getSolarEclipticCoordinate(datetime)
+
+    const { Δψ } = getNutation(datetime)
+
+    // The apparent longitude is the geometric longitude carried to the true equinox of the date by
+    // the nutation in longitude, and displaced towards the Earth by the aberration of light, e.g.,
+    // ~20.5 arcseconds at 1 AU (in degrees):
+    const aberration = apparent.λ - (λ + Δψ)
+
+    expect(aberration).toBeLessThan(-0.0055)
+    expect(aberration).toBeGreaterThan(-0.0059)
+
+    expect(apparent.β).toBe(β)
+    expect(apparent.R).toBe(R)
   })
 })
 

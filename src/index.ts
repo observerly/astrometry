@@ -10,6 +10,7 @@ export {
   getCorrectionToEquatorialForAberration,
   getCorrectionToEquatorialForAnnualAberration,
   getCorrectionToEquatorialForDiurnalAberration,
+  getCorrectionToEquatorialForLightDeflection,
   getCorrectionToEquatorialForVelocityAberration
 } from './aberration'
 
@@ -472,6 +473,7 @@ export {
   getSolarAngularDiameter,
   getSolarDistance,
   getSolarEclipticCoordinate,
+  getSolarGeometricEclipticCoordinate,
   getSolarEclipticLongitude,
   getSolarEquationOfCenter,
   getSolarEquatorialCoordinate,
