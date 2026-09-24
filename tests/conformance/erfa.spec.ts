@@ -73,20 +73,20 @@ const PRECESSION_TOLERANCE = 0.0000001
 /*****************************************************************************************************************/
 
 // The equinox-based apparent place of a star away from the celestial poles, resolved as the catalogue coordinate
-// displaced by the corrections for frame bias, precession, nutation and annual aberration in turn, against IAU
-// 2006/2000A (in degrees):
+// carried to J2000.0 by the frame bias and displaced by the corrections for annual aberration, precession and
+// nutation in turn, against IAU 2006/2000A (in degrees):
 const APPARENT_PLACE_TOLERANCE = 0.00001
 
 /*****************************************************************************************************************/
 
 // The equinox-based apparent place of a star near a celestial pole, resolved likewise, against IAU 2006/2000A (in
 // degrees):
-const APPARENT_PLACE_POLAR_TOLERANCE = 0.00005
+const APPARENT_PLACE_POLAR_TOLERANCE = 0.00001
 
 /*****************************************************************************************************************/
 
 // The declination (in degrees) at or above which the apparent place of a star is held to the polar envelope, e.g.,
-// the envelope of the first order corrections near the pole:
+// the envelope of the corrections near the pole:
 const POLAR_DECLINATION = 85
 
 /*****************************************************************************************************************/
@@ -180,33 +180,35 @@ describe('conformance of the apparent place to ERFA', () => {
       for (const star of reference.stars) {
         const target = { ra: star.ra, dec: star.dec }
 
-        // The apparent place of the date, e.g., the catalogue coordinate displaced by the corrections for the
-        // frame bias, the precession of the equinoxes, the nutation and the annual aberration in turn, each about
-        // the place the one before it resolves:
+        // The catalogue coordinate is referred to the ICRS, and so it is carried to the mean equator and equinox
+        // of J2000.0 by the frame bias, e.g., the frame the corrections of the library are referred from:
         const bias = getCorrectionToEquatorialForFrameBias(target)
 
         const J2000 = { ra: target.ra + bias.ra, dec: target.dec + bias.dec }
 
-        const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, J2000)
+        // The apparent place of the date, e.g., the J2000.0 coordinate displaced by the annual aberration within
+        // the frame of J2000.0, carried to its mean place of the date by the correction for the precession of the
+        // equinoxes, and from that mean place to the true equator and equinox of the date by the correction for
+        // the nutation, given the mean place:
+        const aberration = getCorrectionToEquatorialForAnnualAberration(when, J2000)
 
-        const mean = { ra: J2000.ra + precession.ra, dec: J2000.dec + precession.dec }
+        const aberrated = { ra: J2000.ra + aberration.ra, dec: J2000.dec + aberration.dec }
+
+        const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, aberrated)
+
+        const mean = { ra: aberrated.ra + precession.ra, dec: aberrated.dec + precession.dec }
 
         const nutation = getCorrectionToEquatorialForNutation(when, mean)
 
-        const aberration = getCorrectionToEquatorialForAnnualAberration(when, mean)
-
-        const apparent = {
-          ra: mean.ra + nutation.ra + aberration.ra,
-          dec: mean.dec + nutation.dec + aberration.dec
-        }
+        const apparent = { ra: mean.ra + nutation.ra, dec: mean.dec + nutation.dec }
 
         const separation = getAngularSeparation(
           { θ: apparent.dec, φ: apparent.ra },
           { θ: star.apparent.dec, φ: star.apparent.ra }
         )
 
-        // The first order corrections to the right ascension divide by the cosine of the declination, and so a
-        // star near a celestial pole is held to the polar envelope:
+        // The corrections near a celestial pole are the most sensitive to the place they are resolved about, and
+        // so a star near a celestial pole is held to the polar envelope:
         const tolerance =
           Math.abs(star.dec) < POLAR_DECLINATION
             ? APPARENT_PLACE_TOLERANCE
