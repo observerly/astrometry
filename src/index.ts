@@ -503,6 +503,7 @@ export { DateTime } from './time'
 export {
   convertAlpha5ToSatelliteNumber,
   getTwoLineElementChecksum,
+  parseTwoLineElement,
   type TwoLineElement
 } from './tle'
 
