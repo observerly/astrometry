@@ -107,7 +107,7 @@ export type TwoLineElement = {
    *
    * The right ascension of the ascending node of the orbit (in degrees), e.g., the angle from the
    * vernal equinox to the point at which the object crosses the equator northward, in the range
-   * [0, 360).
+   * [0, 360], where 360 is the rounding of the format of an angle of 359.99995° or more.
    *
    */
   Ω: number
@@ -120,13 +120,15 @@ export type TwoLineElement = {
   /**
    *
    * The argument of perigee of the orbit (in degrees), e.g., the angle from the ascending node to
-   * the perigee, in the plane of the orbit, in the range [0, 360).
+   * the perigee, in the plane of the orbit, in the range [0, 360], where 360 is the rounding of the
+   * format of an angle of 359.99995° or more.
    *
    */
   ω: number
   /**
    *
-   * The mean anomaly of the object at the epoch (in degrees), in the range [0, 360).
+   * The mean anomaly of the object at the epoch (in degrees), in the range [0, 360], where 360 is
+   * the rounding of the format of an angle of 359.99995° or more.
    *
    */
   M: number
@@ -232,6 +234,393 @@ export const getTwoLineElementChecksum = (line: string): number => {
   }
 
   return sum % 10
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * The columns of each line of a two-line element set that are fixed as a space or a period, e.g.,
+ * the separators between its fields and the decimal points of its fields, which mark a line that
+ * is not of the fixed-column format (zero-indexed).
+ *
+ */
+const TWO_LINE_ELEMENT_SEPARATORS: Record<1 | 2, [number, ' ' | '.'][]> = {
+  1: [
+    [1, ' '],
+    [8, ' '],
+    [17, ' '],
+    [23, '.'],
+    [32, ' '],
+    [34, '.'],
+    [43, ' '],
+    [52, ' '],
+    [61, ' '],
+    [63, ' ']
+  ],
+  2: [
+    [1, ' '],
+    [7, ' '],
+    [11, '.'],
+    [16, ' '],
+    [20, '.'],
+    [25, ' '],
+    [33, ' '],
+    [37, '.'],
+    [42, ' '],
+    [46, '.'],
+    [51, ' '],
+    [54, '.']
+  ]
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * Asserts that a line of a two-line element set is of the fixed-column format, e.g., that it is of
+ * the line number given, that it spans the 68 columns of its fields, that its separators fall in
+ * their columns, and that its checksum, where it carries one, is that of the line.
+ *
+ * @param line - The line of the two-line element set.
+ * @param number - The number of the line, e.g., 1 or 2.
+ * @throws An error if the line is not of the fixed-column format, or its checksum is not that of the line.
+ *
+ */
+const assertTwoLineElementLine = (line: string, number: 1 | 2): void => {
+  // The format is of printable ASCII alone, e.g., a tab, a non-breaking space or any other character
+  // beyond it is not of the format, and would otherwise be trimmed from a field, or carried into it,
+  // without notice:
+  if (!/^[\x20-\x7E]*$/.test(line)) {
+    throw new Error(
+      `Invalid two-line element: line ${number} must be of printable ASCII characters alone`
+    )
+  }
+
+  if (line.length < 68) {
+    throw new Error(
+      `Invalid two-line element: line ${number} must span 68 columns, but spans ${line.length}`
+    )
+  }
+
+  if (line[0] !== String(number)) {
+    throw new Error(`Invalid two-line element: line ${number} must begin with its line number`)
+  }
+
+  for (const [column, separator] of TWO_LINE_ELEMENT_SEPARATORS[number]) {
+    if (line[column] !== separator) {
+      throw new Error(
+        `Invalid two-line element: line ${number} must carry "${separator}" in column ${column + 1}`
+      )
+    }
+  }
+
+  // The checksum is carried in the 69th column, and is verified where the line carries one, e.g.,
+  // a line of 68 columns, or one whose 69th column is blank, carries none, and is taken as it is:
+  const checksum = line[68]
+
+  if (checksum === undefined || checksum === ' ') {
+    return
+  }
+
+  // Any character other than a digit in the column of the checksum is a corruption of the line,
+  // and not the absence of a checksum:
+  if (checksum < '0' || checksum > '9') {
+    throw new Error(
+      `Invalid two-line element: line ${number} carries "${checksum}" in column 69, which is not a checksum`
+    )
+  }
+
+  const sum = getTwoLineElementChecksum(line)
+
+  if (Number(checksum) !== sum) {
+    throw new Error(
+      `Invalid two-line element: line ${number} carries a checksum of ${checksum}, but sums to ${sum}`
+    )
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * Parses a field of a two-line element set as a number, e.g., the columns [start, end) of the line,
+ * which must hold a number alone, and not a blank, nor a number followed by other characters.
+ *
+ * The field is matched as it falls in its columns, and not as it is once trimmed, as the format is
+ * fixed-column, and so a number is right-justified within its field, and its decimal places fill
+ * the field to its last column:
+ *
+ * - A decimal is digits either side of its decimal point, e.g., " 51.6416" or "15.72125391", and
+ *   not " 51.    " nor " 51.64  ", which are short of the decimal places of the field.
+ * - A signed fraction is a sign column of a space, a plus or a minus sign, followed by its decimal
+ *   point and its decimal places, e.g., "-.00002182", and not "0.00002182", whose sign column
+ *   holds a digit.
+ * - An integer is digits alone, e.g., "  292".
+ *
+ * N.B. A number of any other notation that Number() would resolve, e.g., "0x1F" or "1e4", is not of
+ * the format, and is rejected.
+ *
+ * @param line - The line of the two-line element set.
+ * @param start - The first column of the field (zero-indexed).
+ * @param end - The column after the last column of the field (zero-indexed).
+ * @param field - The name of the field, for the message of the error.
+ * @param options - Whether the field holds an integer, whether it holds a signed fraction, and the value of the field where it is blank, or undefined where it must not be blank.
+ * @throws An error if the field is blank, where it must not be, or does not hold a number of the format.
+ * @returns The number the field holds.
+ *
+ */
+const parseTwoLineElementField = (
+  line: string,
+  start: number,
+  end: number,
+  field: string,
+  {
+    integer = false,
+    signed = false,
+    blank
+  }: { integer?: boolean; signed?: boolean; blank?: number } = {}
+): number => {
+  // The field as it falls in its columns, e.g., with the blanks that right-justify it:
+  const value = line.slice(start, end)
+
+  if (value.trim() === '' && blank !== undefined) {
+    return blank
+  }
+
+  // An integer is right-justified digits, a signed fraction is a sign column followed by its
+  // decimal point and decimal places, and a decimal is right-justified digits either side of its
+  // decimal point, whose decimal places fill the field to its last column:
+  const pattern = integer ? /^ *\d+$/ : signed ? /^[ +-]\.\d+$/ : /^ *\d+\.\d+$/
+
+  if (!pattern.test(value)) {
+    throw new Error(`Invalid two-line element: the ${field} "${value}" is not a number`)
+  }
+
+  return Number(value.trim())
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * Parses a field of a two-line element set as an angle (in degrees), e.g., the right ascension of
+ * the ascending node, the argument of perigee or the mean anomaly, within [0, 360].
+ *
+ * N.B. The upper bound is inclusive, as the four decimal places of the format round an angle of
+ * 359.99995° or more to "360.0000", which is the same direction as 0°.
+ *
+ * @param line - The line of the two-line element set.
+ * @param start - The first column of the field (zero-indexed).
+ * @param end - The column after the last column of the field (zero-indexed).
+ * @param field - The name of the field, for the message of the error.
+ * @throws An error if the field does not hold a number, or the angle is not within [0, 360].
+ * @returns The angle the field holds (in degrees).
+ *
+ */
+const parseTwoLineElementAngleField = (
+  line: string,
+  start: number,
+  end: number,
+  field: string
+): number => {
+  const angle = parseTwoLineElementField(line, start, end, field)
+
+  if (angle < 0 || angle > 360) {
+    throw new Error(
+      `Invalid two-line element: the ${field} ${angle} is not within [0, 360] degrees`
+    )
+  }
+
+  return angle
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * Parses a field of a two-line element set in the implied decimal point and exponent notation of
+ * the format, e.g., " 12345-3", which is a sign, the five digits of a mantissa whose decimal point
+ * is implied before them, and a signed exponent of ten, e.g., +0.12345 × 10⁻³.
+ *
+ * @param line - The line of the two-line element set.
+ * @param start - The first column of the field (zero-indexed), e.g., the column of its sign.
+ * @param field - The name of the field, for the message of the error.
+ * @throws An error if the field is not of the implied decimal point and exponent notation.
+ * @returns The number the field holds.
+ *
+ */
+const parseTwoLineElementExponentialField = (
+  line: string,
+  start: number,
+  field: string
+): number => {
+  const value = line.slice(start, start + 8)
+
+  // The sign of the mantissa is a space or a plus sign where it is positive, the mantissa is five
+  // digits, and the exponent is a single digit, signed by a space, a plus sign or a minus sign:
+  const match = /^([ +-])(\d{5})([ +-]\d)$/.exec(value)
+
+  if (!match) {
+    throw new Error(
+      `Invalid two-line element: the ${field} "${value}" is not of the implied decimal point notation`
+    )
+  }
+
+  const [, sign, mantissa, exponent] = match
+
+  return Number(`${sign === '-' ? '-' : ''}0.${mantissa}e${exponent.replace(' ', '+')}`)
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * parseTwoLineElement()
+ *
+ * Parses a two-line element set (TLE) from its two lines of the fixed-column format, e.g., as are
+ * published by Space-Track and CelesTrak, to the mean orbital elements it carries, in the units of
+ * the format itself, e.g., degrees for the angles and revolutions per day for the mean motion.
+ *
+ * Each line is asserted to be of the fixed-column format, e.g., that its separators fall in their
+ * columns, and its checksum, where it carries one in its 69th column, is verified. Any data beyond
+ * the 69th column, e.g., the start, stop and step of a verification element set, is ignored.
+ *
+ * N.B. The epoch of the format carries the last two digits of its year alone, which are resolved
+ * as the years 1957 to 2056, e.g., "57" is 1957 and "56" is 2056, as the first object was launched
+ * in 1957.
+ *
+ * N.B. The catalogue number of the object is decoded from the Alpha-5 scheme where it exceeds
+ * 99,999, e.g., "A0001" is 100001.
+ *
+ * @see https://celestrak.org/columns/v04n03/
+ *
+ * @param line1 - The first line of the two-line element set.
+ * @param line2 - The second line of the two-line element set.
+ * @throws An error if either line is not of the fixed-column format, or its checksum is not that of the line.
+ * @throws An error if the catalogue numbers of the two lines are not the same.
+ * @throws An error if either line is not of printable ASCII characters alone.
+ * @throws An error if the inclination is not within [0, 180], or the right ascension of the ascending node, the argument of perigee or the mean anomaly is not within [0, 360].
+ * @throws An error if the mean motion is not greater than zero.
+ * @returns The two-line element set, e.g., the mean orbital elements of the object at its epoch.
+ *
+ */
+export const parseTwoLineElement = (line1: string, line2: string): TwoLineElement => {
+  // A line may be given with the line terminator of the file it was read from, e.g., a carriage
+  // return or a line feed, which is not of the format, and is stripped.
+  //
+  // N.B. Trailing spaces are not stripped, as they are of the format, e.g., the blank revolution
+  // number of a line of 68 columns, which would otherwise be stripped short of its columns, and
+  // any other trailing whitespace is not of the format, and is rejected as it is:
+  const first = line1.replace(/[\r\n]+$/, '')
+
+  const second = line2.replace(/[\r\n]+$/, '')
+
+  assertTwoLineElementLine(first, 1)
+
+  assertTwoLineElementLine(second, 2)
+
+  const satellite = convertAlpha5ToSatelliteNumber(first.slice(2, 7))
+
+  // The catalogue number is carried by both lines, and two lines of different objects are not an
+  // element set at all:
+  if (convertAlpha5ToSatelliteNumber(second.slice(2, 7)) !== satellite) {
+    throw new Error(
+      `Invalid two-line element: the satellite numbers of line 1 "${first.slice(2, 7)}" and line 2 "${second.slice(2, 7)}" are not the same`
+    )
+  }
+
+  // The classification is unclassified where it is blank:
+  const classification = first[7] === ' ' ? 'U' : first[7]
+
+  if (classification !== 'U' && classification !== 'C' && classification !== 'S') {
+    throw new Error(
+      `Invalid two-line element: the classification "${classification}" is not one of "U", "C" or "S"`
+    )
+  }
+
+  // The epoch is carried as the last two digits of its year, and the day of that year, where the
+  // 1st of January at 00:00 UTC is day 1.0:
+  //
+  // N.B. The year is two digits exactly, e.g., a sign or a single digit is not a year of the format,
+  // and would otherwise be resolved to a year of the wrong century, e.g., "-1" to 1999:
+  if (!/^\d{2}$/.test(first.slice(18, 20))) {
+    throw new Error(
+      `Invalid two-line element: the epoch year "${first.slice(18, 20)}" is not of two digits`
+    )
+  }
+
+  const yy = Number(first.slice(18, 20))
+
+  const day = parseTwoLineElementField(first, 20, 32, 'epoch day')
+
+  // N.B. A day of 366 is accepted for a year that is not a leap year, e.g., as the reference
+  // implementation accepts it, and is resolved to the 1st of January of the year that follows it:
+  if (day < 1 || day >= 367) {
+    throw new Error(
+      `Invalid two-line element: the epoch "${first.slice(18, 32)}" is not a day of a year`
+    )
+  }
+
+  // The first object was launched in 1957, and so the years 57 to 99 are of the 20th century, and
+  // the years 00 to 56 are of the 21st century:
+  const year = yy < 57 ? 2000 + yy : 1900 + yy
+
+  // The Julian date of the 0th of January of the year, e.g., the 31st of December of the year
+  // before it, at 00:00 UTC, from which the day of the year is counted:
+  const zeroth = Date.UTC(year, 0, 1, 0, 0, 0, 0) / 86400000 + 2440587.5 - 1
+
+  const i = parseTwoLineElementField(second, 8, 16, 'inclination')
+
+  if (i < 0 || i > 180) {
+    throw new Error(`Invalid two-line element: the inclination ${i} is not within [0, 180] degrees`)
+  }
+
+  const n = parseTwoLineElementField(second, 52, 63, 'mean motion')
+
+  if (n <= 0) {
+    throw new Error(`Invalid two-line element: the mean motion ${n} is not greater than zero`)
+  }
+
+  // The eccentricity is carried as the seven digits that follow its implied decimal point, where a
+  // blank is a zero, e.g., "0006703" is 0.0006703:
+  const eccentricity = second.slice(26, 33).replaceAll(' ', '0')
+
+  if (!/^\d{7}$/.test(eccentricity)) {
+    throw new Error(
+      `Invalid two-line element: the eccentricity "${second.slice(26, 33)}" is not of seven digits`
+    )
+  }
+
+  return {
+    satellite,
+    classification,
+    designator: first.slice(9, 17).trim(),
+    epoch: zeroth + day,
+    ndot: parseTwoLineElementField(first, 33, 43, 'first derivative of the mean motion', {
+      signed: true
+    }),
+    nddot: parseTwoLineElementExponentialField(first, 44, 'second derivative of the mean motion'),
+    bstar: parseTwoLineElementExponentialField(first, 53, 'drag term'),
+    ephemeris: parseTwoLineElementField(first, 62, 63, 'ephemeris type', {
+      integer: true,
+      blank: 0
+    }),
+    element: parseTwoLineElementField(first, 64, 68, 'element set number', {
+      integer: true,
+      blank: 0
+    }),
+    i,
+    Ω: parseTwoLineElementAngleField(second, 17, 25, 'right ascension of the ascending node'),
+    e: Number(`0.${eccentricity}`),
+    ω: parseTwoLineElementAngleField(second, 34, 42, 'argument of perigee'),
+    M: parseTwoLineElementAngleField(second, 43, 51, 'mean anomaly'),
+    n,
+    revolution: parseTwoLineElementField(second, 63, 68, 'revolution number', {
+      integer: true,
+      blank: 0
+    })
+  }
 }
 
 /*****************************************************************************************************************/
