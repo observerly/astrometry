@@ -55,6 +55,7 @@ const modules = [
   'sun',
   'temporal',
   'time',
+  'tle',
   'transit',
   'twilight',
   'utilities',
