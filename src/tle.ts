@@ -147,3 +147,52 @@ export type TwoLineElement = {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * convertAlpha5ToSatelliteNumber()
+ *
+ * Converts a satellite catalogue number of the Alpha-5 scheme to the number it encodes, e.g., the
+ * scheme by which the five columns of the format carry a catalogue number that exceeds 99,999.
+ *
+ * A catalogue number of up to 99,999 is given as its five digits. One that exceeds it is given as a
+ * letter for its ten-thousands, followed by four digits for the remainder, where the letters "A"
+ * to "Z" stand for 10 to 33, e.g., "A0001" is 100001 and "Z9999" is 339999, the greatest catalogue
+ * number the scheme carries.
+ *
+ * N.B. The letters "I" and "O" are omitted from the scheme, so that they are not mistaken for the
+ * digits "1" and "0", and so the letters that follow them are displaced, e.g., "J" stands for 18
+ * and "P" stands for 23.
+ *
+ * @param alpha5 - The satellite catalogue number of the Alpha-5 scheme, e.g., "25544" or "A0001".
+ * @throws An error if the catalogue number is not of the Alpha-5 scheme.
+ * @returns The satellite catalogue number it encodes, e.g., 25544 or 100001.
+ *
+ */
+export const convertAlpha5ToSatelliteNumber = (alpha5: string): number => {
+  // The columns of the format are fixed, and so a catalogue number of fewer than five digits may
+  // be padded with spaces, rather than with zeros, e.g., " 4632":
+  const value = alpha5.trim()
+
+  // A catalogue number of up to 99,999 is given as its digits alone:
+  if (/^\d{1,5}$/.test(value)) {
+    return Number(value)
+  }
+
+  // A catalogue number that exceeds 99,999 is given as a letter, other than "I" or "O", for its
+  // ten-thousands, followed by four digits for the remainder:
+  if (!/^[A-HJ-NP-Z]\d{4}$/.test(value)) {
+    throw new Error(`Invalid satellite number: "${alpha5}" is not of the Alpha-5 scheme`)
+  }
+
+  const letter = value[0]
+
+  // The letters stand for the ten-thousands from 10 onwards, in order, less the "I" and the "O"
+  // that are omitted before them:
+  const prefix =
+    letter.charCodeAt(0) - 'A'.charCodeAt(0) + 10 - (letter > 'I' ? 1 : 0) - (letter > 'O' ? 1 : 0)
+
+  return prefix * 10000 + Number(value.slice(1))
+}
+
+/*****************************************************************************************************************/
