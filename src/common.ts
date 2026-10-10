@@ -397,3 +397,31 @@ export type SphericalCoordinate = {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * The state vector of a body is its position and its velocity at an instant, in a cartesian frame
+ * that is given by the context it is resolved in, e.g., the True Equator, Mean Equinox (TEME) frame
+ * of an SGP4 propagation, or the geocentric equatorial frame of a spacecraft.
+ *
+ * N.B. Each component of the position and the velocity is required, e.g., a state vector is of
+ * three dimensions, and does not take the z component to be zero where it is not given.
+ *
+ */
+export type StateVector = {
+  /**
+   *
+   * The position of the body, e.g., its displacement from the origin of the frame (in SI metres).
+   *
+   */
+  position: Required<CartesianCoordinate>
+  /**
+   *
+   * The velocity of the body, e.g., the rate of change of its position within the frame (in SI
+   * metres per second).
+   *
+   */
+  velocity: Required<CartesianCoordinate>
+}
+
+/*****************************************************************************************************************/

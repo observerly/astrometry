@@ -17,7 +17,8 @@ import {
   type HorizontalCoordinate,
   isEquatorialCoordinate,
   isHorizontalCoordinate,
-  type Matrix3
+  type Matrix3,
+  type StateVector
 } from '../src/common'
 
 import { J2000 } from '../src/constants'
@@ -234,6 +235,33 @@ describe('Matrix3', () => {
     expect(m[1][0]).toBe(1)
     expect(m[2][2]).toBe(1)
     expect(m[0]).toEqual([0, -1, 0])
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('StateVector', () => {
+  it('should type a literal state vector, read back by position and velocity', () => {
+    // The state of a body in a circular low Earth orbit, ~400 km above the equator, travelling
+    // eastward at ~7.67 km/s:
+    const state: StateVector = {
+      position: { x: 6778137, y: 0, z: 0 },
+      velocity: { x: 0, y: 7668.6, z: 0 }
+    }
+
+    expectTypeOf(state).toEqualTypeOf<StateVector>()
+    expect(state.position).toEqual({ x: 6778137, y: 0, z: 0 })
+    expect(state.velocity).toEqual({ x: 0, y: 7668.6, z: 0 })
+  })
+
+  it('should require every component of the position and the velocity', () => {
+    expectTypeOf<StateVector['position']['z']>().toEqualTypeOf<number>()
+    expectTypeOf<StateVector['velocity']['z']>().toEqualTypeOf<number>()
+
+    // @ts-expect-error: a position without a z component is not of three dimensions:
+    const state: StateVector = { position: { x: 0, y: 0 }, velocity: { x: 0, y: 0, z: 0 } }
+
+    expect(state.position.z).toBeUndefined()
   })
 })
 
