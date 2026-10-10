@@ -10,7 +10,11 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { convertAlpha5ToSatelliteNumber, type TwoLineElement } from '../src/tle'
+import {
+  convertAlpha5ToSatelliteNumber,
+  getTwoLineElementChecksum,
+  type TwoLineElement
+} from '../src/tle'
 
 /*****************************************************************************************************************/
 
@@ -123,6 +127,76 @@ describe('convertAlpha5ToSatelliteNumber', () => {
   it('should throw for a catalogue number with a letter other than the leading one', () => {
     expect(() => convertAlpha5ToSatelliteNumber('12A45')).toThrowError(/Invalid satellite number/)
     expect(() => convertAlpha5ToSatelliteNumber('AA001')).toThrowError(/Invalid satellite number/)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getTwoLineElementChecksum', () => {
+  it('should be defined', () => {
+    expect(getTwoLineElementChecksum).toBeDefined()
+  })
+
+  it('should calculate the checksum of the first line of an element set', () => {
+    expect(
+      getTwoLineElementChecksum(
+        '1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927'
+      )
+    ).toBe(7)
+  })
+
+  it('should calculate the checksum of the second line of an element set', () => {
+    expect(
+      getTwoLineElementChecksum(
+        '2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537'
+      )
+    ).toBe(7)
+  })
+
+  it('should calculate the checksum of a line with negative exponents and drag terms', () => {
+    expect(
+      getTwoLineElementChecksum(
+        '1 16925U 86065D   06151.67415771  .02550794 -30915-6  18784-3 0  4486'
+      )
+    ).toBe(6)
+
+    expect(
+      getTwoLineElementChecksum(
+        '1 04632U 70093B   04031.91070959 -.00000084  00000-0  10000-3 0  9955'
+      )
+    ).toBe(5)
+  })
+
+  it('should count each minus sign for one', () => {
+    // A line of zeros, other than its line number of 1, and two minus signs:
+    expect(
+      getTwoLineElementChecksum(
+        '1 00000U 00000A   00000.00000000  .00000000  00000-0  00000-0 0    0'
+      )
+    ).toBe(3)
+  })
+
+  it('should count a letter for nothing, e.g., the leading letter of an Alpha-5 catalogue number', () => {
+    expect(
+      getTwoLineElementChecksum(
+        '1 A0001U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  292'
+      )
+    ).toBe(8)
+  })
+
+  it('should calculate the checksum over the first 68 columns alone', () => {
+    const line = '2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537'
+
+    // The checksum is that of the line without its checksum:
+    expect(getTwoLineElementChecksum(line.slice(0, 68))).toBe(7)
+
+    // The checksum is that of the line without any data beyond it, e.g., the start, stop and step
+    // of a line of a verification element set:
+    expect(getTwoLineElementChecksum(`${line}     0.00      4320.0        360.00`)).toBe(7)
+  })
+
+  it('should calculate a checksum of zero for an empty line', () => {
+    expect(getTwoLineElementChecksum('')).toBe(0)
   })
 })
 

@@ -196,3 +196,42 @@ export const convertAlpha5ToSatelliteNumber = (alpha5: string): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * getTwoLineElementChecksum()
+ *
+ * Calculates the checksum of a line of a two-line element set, e.g., the modulo 10 sum of the
+ * first 68 columns of the line, in which each digit counts for its value, each minus sign counts
+ * for one, and every other character, e.g., a letter, a space, a period or a plus sign, counts
+ * for nothing.
+ *
+ * The checksum is carried in the 69th column of the line, and so a line is intact where the
+ * checksum calculated for it is equal to the digit in that column.
+ *
+ * N.B. The checksum is calculated over the first 68 columns alone, and so the checksum of a line
+ * that carries its checksum, or data beyond it, is that of the line without them.
+ *
+ * @param line - The line of the two-line element set, e.g., its first or second line.
+ * @returns The checksum of the line, in the range [0, 9].
+ *
+ */
+export const getTwoLineElementChecksum = (line: string): number => {
+  let sum = 0
+
+  for (const character of line.slice(0, 68)) {
+    // Each minus sign counts for one, e.g., the sign of a negative exponent or a negative drag term:
+    if (character === '-') {
+      sum += 1
+    }
+
+    // Each digit counts for its value:
+    if (character >= '0' && character <= '9') {
+      sum += Number(character)
+    }
+  }
+
+  return sum % 10
+}
+
+/*****************************************************************************************************************/
