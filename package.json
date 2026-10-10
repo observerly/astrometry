@@ -222,6 +222,11 @@
       "require": "./dist/time.cjs",
       "types": "./dist/time.d.ts"
     },
+    "./tle": {
+      "import": "./dist/tle.js",
+      "require": "./dist/tle.cjs",
+      "types": "./dist/tle.d.ts"
+    },
     "./transit": {
       "import": "./dist/transit.js",
       "require": "./dist/transit.cjs",
