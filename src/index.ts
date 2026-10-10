@@ -500,7 +500,11 @@ export { DateTime } from './time'
 
 /*****************************************************************************************************************/
 
-export { convertAlpha5ToSatelliteNumber, type TwoLineElement } from './tle'
+export {
+  convertAlpha5ToSatelliteNumber,
+  getTwoLineElementChecksum,
+  type TwoLineElement
+} from './tle'
 
 /*****************************************************************************************************************/
 
