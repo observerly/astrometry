@@ -6,7 +6,9 @@
 
 /*****************************************************************************************************************/
 
-import type { GravityModel } from './gravity'
+import { type GravityModel, WGS72 } from './gravity'
+
+import type { TwoLineElement } from './tle'
 
 /*****************************************************************************************************************/
 
@@ -257,6 +259,69 @@ export type SatelliteRecordOptions = {
    *
    */
   mode?: 'improved' | 'afspc'
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * SatelliteRecord
+ *
+ * The record of an Earth-orbiting object for its propagation by the SGP4 theory, e.g., the
+ * simplified general perturbations theory of the United States Space Force that two-line element
+ * sets are fitted to, as revised by Vallado et al. (2006).
+ *
+ * The record carries the two-line element set of the object, together with the gravity model and
+ * the mode of operation of the theory that the element set is to be propagated with.
+ *
+ * N.B. An element set of ephemeris type 4 is fitted to the extended theory of the United States
+ * Space Force, SGP4-XP, and not to SGP4, and so it is rejected, rather than recorded for a
+ * propagation to a position that is not that of the object.
+ *
+ * @see Hoots, F. R., & Roehrich, R. L. (1980), "Spacetrack Report No. 3: Models for Propagation of NORAD Element Sets".
+ * @see Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006), "Revisiting Spacetrack Report #3", AIAA 2006-6753.
+ *
+ */
+export class SatelliteRecord {
+  // The two-line element set of the record:
+  public readonly tle: Readonly<TwoLineElement>
+
+  // The gravity model the record is propagated with:
+  public readonly gravity: GravityModel
+
+  // The mode of operation of the theory the record is propagated with:
+  public readonly mode: 'improved' | 'afspc'
+
+  /**
+   *
+   * Initialises the record of an element set for its propagation by the SGP4 theory.
+   *
+   * @param tle - The two-line element set of the record.
+   * @param options - The gravity model and the mode of operation of the theory.
+   * @throws An SGP4EphemerisTypeError if the element set is of ephemeris type 4, e.g., of SGP4-XP.
+   * @throws An error if the mode of operation is not one of "improved" or "afspc".
+   *
+   */
+  constructor(
+    tle: TwoLineElement,
+    { gravity = WGS72, mode = 'improved' }: SatelliteRecordOptions = {}
+  ) {
+    if (tle.ephemeris === 4) {
+      throw new SGP4EphemerisTypeError(tle.ephemeris)
+    }
+
+    if (mode !== 'improved' && mode !== 'afspc') {
+      throw new Error(`Invalid mode: "${mode}" is not one of "improved" or "afspc"`)
+    }
+
+    // The element set is copied, and frozen, so that a caller who mutates the element set they gave
+    // does not displace the record from the element set it was initialised with:
+    this.tle = Object.freeze({ ...tle })
+
+    this.gravity = gravity
+
+    this.mode = mode
+  }
 }
 
 /*****************************************************************************************************************/
