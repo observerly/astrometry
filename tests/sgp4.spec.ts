@@ -18,10 +18,13 @@ import {
   SGP4MeanMotionError,
   SGP4PerturbedEccentricityError,
   SGP4SemiLatusRectumError,
+  SatelliteRecord,
   type SatelliteRecordOptions
 } from '../src/sgp4'
 
-import { type GravityModel, WGS84 } from '../src/gravity'
+import { type GravityModel, WGS72, WGS84 } from '../src/gravity'
+
+import { parseTwoLineElement } from '../src/tle'
 
 /*****************************************************************************************************************/
 
@@ -362,6 +365,81 @@ describe('SatelliteRecordOptions', () => {
     const options: SatelliteRecordOptions = { mode: 'i' }
 
     expect(options.mode).toBe('i')
+  })
+})
+
+/*****************************************************************************************************************/
+
+// The element set of the International Space Station (ZARYA) of 2008-09-20:
+const iss = parseTwoLineElement(
+  '1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927',
+  '2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537'
+)
+
+/*****************************************************************************************************************/
+
+describe('SatelliteRecord', () => {
+  it('should be defined', () => {
+    expect(SatelliteRecord).toBeDefined()
+  })
+
+  it('should initialise with the gravity model of WGS 72 and the improved mode by default', () => {
+    const record = new SatelliteRecord(iss)
+
+    expect(record.gravity).toBe(WGS72)
+    expect(record.mode).toBe('improved')
+  })
+
+  it('should initialise with the gravity model and mode given', () => {
+    const record = new SatelliteRecord(iss, { gravity: WGS84, mode: 'afspc' })
+
+    expect(record.gravity).toBe(WGS84)
+    expect(record.mode).toBe('afspc')
+  })
+
+  it('should carry a frozen copy of the element set it was initialised from', () => {
+    const tle = { ...iss }
+
+    const record = new SatelliteRecord(tle)
+
+    expect(record.tle).toEqual(iss)
+    expect(record.tle).not.toBe(tle)
+    expect(Object.isFrozen(record.tle)).toBe(true)
+  })
+
+  it('should not be displaced by a mutation of the element set it was initialised from', () => {
+    const tle = { ...iss }
+
+    const record = new SatelliteRecord(tle)
+
+    tle.n = 1
+
+    tle.i = 0
+
+    expect(record.tle.n).toBe(iss.n)
+    expect(record.tle.i).toBe(iss.i)
+  })
+
+  it('should type its gravity model, mode of operation and element set as read-only', () => {
+    const record = new SatelliteRecord(iss)
+
+    expectTypeOf(record.mode).toEqualTypeOf<'improved' | 'afspc'>()
+
+    // @ts-expect-error: the gravity model of a record is not to be reassigned:
+    record.gravity = WGS84
+
+    // @ts-expect-error: the element set of a record is not to be mutated:
+    expect(() => (record.tle.n = 1)).toThrowError(TypeError)
+  })
+
+  it('should throw an SGP4EphemerisTypeError for an element set of ephemeris type 4', () => {
+    expect(() => new SatelliteRecord({ ...iss, ephemeris: 4 })).toThrowError(SGP4EphemerisTypeError)
+  })
+
+  it('should throw for a mode of operation that is not one of "improved" or "afspc"', () => {
+    expect(
+      () => new SatelliteRecord(iss, { mode: 'i' as SatelliteRecordOptions['mode'] })
+    ).toThrowError(/Invalid mode: "i" is not one of "improved" or "afspc"/)
   })
 })
 
