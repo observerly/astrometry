@@ -471,7 +471,7 @@ export { getAirmassPickering } from './seeing'
 
 /*****************************************************************************************************************/
 
-export { SGP4Error, SGP4MeanEccentricityError } from './sgp4'
+export { SGP4Error, SGP4MeanEccentricityError, SGP4MeanMotionError } from './sgp4'
 
 /*****************************************************************************************************************/
 

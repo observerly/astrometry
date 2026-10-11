@@ -10,7 +10,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { SGP4Error, SGP4MeanEccentricityError } from '../src/sgp4'
+import { SGP4Error, SGP4MeanEccentricityError, SGP4MeanMotionError } from '../src/sgp4'
 
 /*****************************************************************************************************************/
 
@@ -108,6 +108,49 @@ describe('SGP4MeanEccentricityError', () => {
     }
 
     expect(propagate).toThrowError(SGP4MeanEccentricityError)
+    expect(propagate).toThrowError(SGP4Error)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('SGP4MeanMotionError', () => {
+  it('should be defined', () => {
+    expect(SGP4MeanMotionError).toBeDefined()
+  })
+
+  it('should be an error, an SGP4 error, and a SGP4MeanMotionError', () => {
+    const error = new SGP4MeanMotionError(-0.0001)
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toBeInstanceOf(SGP4Error)
+    expect(error).toBeInstanceOf(SGP4MeanMotionError)
+  })
+
+  it('should carry its name, and the code 2 of the reference implementation', () => {
+    const error = new SGP4MeanMotionError(-0.0001)
+
+    expect(error.name).toBe('SGP4MeanMotionError')
+    expect(error.code).toBe(2)
+  })
+
+  it('should carry the mean motion that it was raised for', () => {
+    const error = new SGP4MeanMotionError(-0.0001)
+
+    expect(error.n).toBe(-0.0001)
+    expectTypeOf(error.n).toEqualTypeOf<number>()
+  })
+
+  it('should describe the failure in its message', () => {
+    expect(new SGP4MeanMotionError(-0.0001).message).toBe('The mean motion -0.0001 is not greater than zero')
+  })
+
+  it('should be caught as an SGP4 error when it is thrown', () => {
+    const propagate = () => {
+      throw new SGP4MeanMotionError(-0.0001)
+    }
+
+    expect(propagate).toThrowError(SGP4MeanMotionError)
     expect(propagate).toThrowError(SGP4Error)
   })
 })
