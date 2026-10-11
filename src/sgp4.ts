@@ -137,3 +137,31 @@ export class SGP4PerturbedEccentricityError extends SGP4Error {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * SGP4SemiLatusRectumError
+ *
+ * The error of a propagation in which the semi-latus rectum of the orbit, e.g., a(1 - e²), with
+ * the eccentricity carried by the long-period perturbations of the theory, is less than zero, at
+ * which the eccentricity has passed unity, and the orbit is no longer bound.
+ *
+ * N.B. It is the error code 4 of the reference implementation.
+ *
+ * @see Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006), "Revisiting Spacetrack Report #3", AIAA 2006-6753.
+ *
+ */
+export class SGP4SemiLatusRectumError extends SGP4Error {
+  public name = 'SGP4SemiLatusRectumError'
+
+  // The semi-latus rectum of the orbit at the time it was propagated to (in Earth radii):
+  public readonly p: number
+
+  constructor(p: number) {
+    super(`The semi-latus rectum ${p} is less than zero`, 4)
+
+    this.p = p
+  }
+}
+
+/*****************************************************************************************************************/

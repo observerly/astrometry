@@ -475,7 +475,8 @@ export {
   SGP4Error,
   SGP4MeanEccentricityError,
   SGP4MeanMotionError,
-  SGP4PerturbedEccentricityError
+  SGP4PerturbedEccentricityError,
+  SGP4SemiLatusRectumError
 } from './sgp4'
 
 /*****************************************************************************************************************/
