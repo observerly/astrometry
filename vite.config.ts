@@ -53,6 +53,7 @@ const modules = [
   'quality',
   'refraction',
   'seeing',
+  'sgp4',
   'sun',
   'temporal',
   'time',
