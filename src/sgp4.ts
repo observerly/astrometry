@@ -108,3 +108,32 @@ export class SGP4MeanMotionError extends SGP4Error {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * SGP4PerturbedEccentricityError
+ *
+ * The error of a propagation in which the perturbed eccentricity of the orbit, e.g., the mean
+ * eccentricity displaced by the long-period perturbations of the Moon and the Sun of the
+ * deep-space theory, is no longer within [0, 1].
+ *
+ * N.B. It is the error code 3 of the reference implementation, and it is raised for an orbit of
+ * the deep-space theory alone, e.g., of a period of 225 minutes or more.
+ *
+ * @see Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006), "Revisiting Spacetrack Report #3", AIAA 2006-6753.
+ *
+ */
+export class SGP4PerturbedEccentricityError extends SGP4Error {
+  public name = 'SGP4PerturbedEccentricityError'
+
+  // The perturbed eccentricity of the orbit at the time it was propagated to (dimensionless):
+  public readonly eccentricity: number
+
+  constructor(eccentricity: number) {
+    super(`The perturbed eccentricity ${eccentricity} is not within [0, 1]`, 3)
+
+    this.eccentricity = eccentricity
+  }
+}
+
+/*****************************************************************************************************************/
