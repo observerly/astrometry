@@ -478,7 +478,8 @@ export {
   SGP4MeanEccentricityError,
   SGP4MeanMotionError,
   SGP4PerturbedEccentricityError,
-  SGP4SemiLatusRectumError
+  SGP4SemiLatusRectumError,
+  type SatelliteRecordOptions
 } from './sgp4'
 
 /*****************************************************************************************************************/
