@@ -10,7 +10,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { SGP4Error } from '../src/sgp4'
+import { SGP4Error, SGP4MeanEccentricityError } from '../src/sgp4'
 
 /*****************************************************************************************************************/
 
@@ -66,6 +66,49 @@ describe('SGP4Error', () => {
 
     expect(propagate).toThrowError(SGP4Error)
     expect(propagate).toThrowError(/the orbit has decayed/)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('SGP4MeanEccentricityError', () => {
+  it('should be defined', () => {
+    expect(SGP4MeanEccentricityError).toBeDefined()
+  })
+
+  it('should be an error, an SGP4 error, and a SGP4MeanEccentricityError', () => {
+    const error = new SGP4MeanEccentricityError(1.0002)
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toBeInstanceOf(SGP4Error)
+    expect(error).toBeInstanceOf(SGP4MeanEccentricityError)
+  })
+
+  it('should carry its name, and the code 1 of the reference implementation', () => {
+    const error = new SGP4MeanEccentricityError(1.0002)
+
+    expect(error.name).toBe('SGP4MeanEccentricityError')
+    expect(error.code).toBe(1)
+  })
+
+  it('should carry the mean eccentricity that it was raised for', () => {
+    const error = new SGP4MeanEccentricityError(1.0002)
+
+    expect(error.eccentricity).toBe(1.0002)
+    expectTypeOf(error.eccentricity).toEqualTypeOf<number>()
+  })
+
+  it('should describe the failure in its message', () => {
+    expect(new SGP4MeanEccentricityError(1.0002).message).toBe('The mean eccentricity 1.0002 is not within [0, 1)')
+  })
+
+  it('should be caught as an SGP4 error when it is thrown', () => {
+    const propagate = () => {
+      throw new SGP4MeanEccentricityError(1.0002)
+    }
+
+    expect(propagate).toThrowError(SGP4MeanEccentricityError)
+    expect(propagate).toThrowError(SGP4Error)
   })
 })
 

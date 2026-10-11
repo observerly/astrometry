@@ -51,3 +51,32 @@ export class SGP4Error extends Error {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * SGP4MeanEccentricityError
+ *
+ * The error of a propagation in which the mean eccentricity of the orbit, e.g., the eccentricity
+ * of the element set carried to the time of the propagation by the secular effect of drag, is no
+ * longer within [0, 1), e.g., an eccentric orbit whose drag has carried its eccentricity to unity,
+ * at which the orbit is no longer bound.
+ *
+ * N.B. It is the error code 1 of the reference implementation.
+ *
+ * @see Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006), "Revisiting Spacetrack Report #3", AIAA 2006-6753.
+ *
+ */
+export class SGP4MeanEccentricityError extends SGP4Error {
+  public name = 'SGP4MeanEccentricityError'
+
+  // The mean eccentricity of the orbit at the time it was propagated to (dimensionless):
+  public readonly eccentricity: number
+
+  constructor(eccentricity: number) {
+    super(`The mean eccentricity ${eccentricity} is not within [0, 1)`, 1)
+
+    this.eccentricity = eccentricity
+  }
+}
+
+/*****************************************************************************************************************/
