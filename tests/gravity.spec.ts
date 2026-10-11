@@ -10,7 +10,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type GravityModel, WGS72, WGS72OLD } from '../src/gravity'
+import { type GravityModel, WGS72, WGS72OLD, WGS84 } from '../src/gravity'
 
 /*****************************************************************************************************************/
 
@@ -138,6 +138,50 @@ describe('WGS72OLD', () => {
     }).toThrowError(TypeError)
 
     expect(WGS72OLD.xke).toBe(0.0743669161)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('WGS84', () => {
+  it('should be defined', () => {
+    expect(WGS84).toBeDefined()
+    expectTypeOf(WGS84).toEqualTypeOf<GravityModel>()
+  })
+
+  it('should carry the gravitational parameter and equatorial radius of WGS 84', () => {
+    expect(WGS84.μ).toBe(398600.5)
+    expect(WGS84.radius).toBe(6378.137)
+  })
+
+  it('should carry the zonal harmonics of WGS 84', () => {
+    expect(WGS84.J2).toBe(0.00108262998905)
+    expect(WGS84.J3).toBe(-0.00000253215306)
+    expect(WGS84.J4).toBe(-0.00000161098761)
+  })
+
+  it('should carry the second zonal harmonic of WGS 84 itself, from its normalised coefficient', () => {
+    // J2 = -√5 C̄20, where C̄20 is the fully normalised coefficient of WGS 84:
+    expect(WGS84.J2).toBeCloseTo(-Math.sqrt(5) * -0.48416685e-3, 14)
+  })
+
+  it('should resolve xke as the reference implementation resolves it, to the last bit', () => {
+    // The value of the reference implementation, e.g., getgravconst("wgs84") of the sgp4 package:
+    expect(WGS84.xke).toBe(0.07436685316871385)
+  })
+
+  it('should resolve xke as the square root of the gravitational parameter in canonical units', () => {
+    expect(WGS84.xke).toBeCloseTo(60 * Math.sqrt(WGS84.μ / WGS84.radius ** 3), 15)
+  })
+
+  it('should be frozen, such that no constant of it may be reassigned at runtime', () => {
+    expect(Object.isFrozen(WGS84)).toBe(true)
+
+    expect(() => {
+      ;(WGS84 as { μ: number }).μ = 0
+    }).toThrowError(TypeError)
+
+    expect(WGS84.μ).toBe(398600.5)
   })
 })
 
