@@ -473,6 +473,7 @@ export { getAirmassPickering } from './seeing'
 
 export {
   SGP4DecayedError,
+  SGP4EphemerisTypeError,
   SGP4Error,
   SGP4MeanEccentricityError,
   SGP4MeanMotionError,

@@ -196,3 +196,36 @@ export class SGP4DecayedError extends SGP4Error {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * SGP4EphemerisTypeError
+ *
+ * The error of an element set of an ephemeris type that the SGP4 theory does not propagate, e.g.,
+ * an element set of ephemeris type 4, which the United States Space Force publishes for its
+ * extended theory, SGP4-XP, and whose elements are fitted to that theory and not to SGP4.
+ *
+ * Such an element set is of the same two-line format, and so the SGP4 theory would propagate it
+ * without any error, to a position that is not that of the object, e.g., the error is raised in
+ * its place, so that it is not propagated without notice.
+ *
+ * N.B. It carries no code, as the reference implementation does not report it, e.g., it
+ * propagates an element set of any ephemeris type alike.
+ *
+ * @see Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006), "Revisiting Spacetrack Report #3", AIAA 2006-6753.
+ *
+ */
+export class SGP4EphemerisTypeError extends SGP4Error {
+  public name = 'SGP4EphemerisTypeError'
+
+  // The ephemeris type of the element set that was given to be propagated:
+  public readonly ephemeris: number
+
+  constructor(ephemeris: number) {
+    super(`The ephemeris type ${ephemeris} is not one that SGP4 propagates`)
+
+    this.ephemeris = ephemeris
+  }
+}
+
+/*****************************************************************************************************************/
