@@ -14,7 +14,8 @@ import {
   SGP4Error,
   SGP4MeanEccentricityError,
   SGP4MeanMotionError,
-  SGP4PerturbedEccentricityError
+  SGP4PerturbedEccentricityError,
+  SGP4SemiLatusRectumError
 } from '../src/sgp4'
 
 /*****************************************************************************************************************/
@@ -199,6 +200,49 @@ describe('SGP4PerturbedEccentricityError', () => {
     }
 
     expect(propagate).toThrowError(SGP4PerturbedEccentricityError)
+    expect(propagate).toThrowError(SGP4Error)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('SGP4SemiLatusRectumError', () => {
+  it('should be defined', () => {
+    expect(SGP4SemiLatusRectumError).toBeDefined()
+  })
+
+  it('should be an error, an SGP4 error, and a SGP4SemiLatusRectumError', () => {
+    const error = new SGP4SemiLatusRectumError(-0.25)
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toBeInstanceOf(SGP4Error)
+    expect(error).toBeInstanceOf(SGP4SemiLatusRectumError)
+  })
+
+  it('should carry its name, and the code 4 of the reference implementation', () => {
+    const error = new SGP4SemiLatusRectumError(-0.25)
+
+    expect(error.name).toBe('SGP4SemiLatusRectumError')
+    expect(error.code).toBe(4)
+  })
+
+  it('should carry the semi-latus rectum that it was raised for', () => {
+    const error = new SGP4SemiLatusRectumError(-0.25)
+
+    expect(error.p).toBe(-0.25)
+    expectTypeOf(error.p).toEqualTypeOf<number>()
+  })
+
+  it('should describe the failure in its message', () => {
+    expect(new SGP4SemiLatusRectumError(-0.25).message).toBe('The semi-latus rectum -0.25 is less than zero')
+  })
+
+  it('should be caught as an SGP4 error when it is thrown', () => {
+    const propagate = () => {
+      throw new SGP4SemiLatusRectumError(-0.25)
+    }
+
+    expect(propagate).toThrowError(SGP4SemiLatusRectumError)
     expect(propagate).toThrowError(SGP4Error)
   })
 })
