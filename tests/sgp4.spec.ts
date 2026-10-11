@@ -17,8 +17,11 @@ import {
   SGP4MeanEccentricityError,
   SGP4MeanMotionError,
   SGP4PerturbedEccentricityError,
-  SGP4SemiLatusRectumError
+  SGP4SemiLatusRectumError,
+  type SatelliteRecordOptions
 } from '../src/sgp4'
+
+import { type GravityModel, WGS84 } from '../src/gravity'
 
 /*****************************************************************************************************************/
 
@@ -332,6 +335,33 @@ describe('SGP4EphemerisTypeError', () => {
 
     expect(propagate).toThrowError(SGP4EphemerisTypeError)
     expect(propagate).toThrowError(SGP4Error)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('SatelliteRecordOptions', () => {
+  it('should type literal options, read back by gravity model and mode', () => {
+    const options: SatelliteRecordOptions = { gravity: WGS84, mode: 'afspc' }
+
+    expectTypeOf(options).toEqualTypeOf<SatelliteRecordOptions>()
+    expect(options.gravity).toBe(WGS84)
+    expect(options.mode).toBe('afspc')
+  })
+
+  it('should type every option as optional, e.g., such that the options may be empty', () => {
+    const options: SatelliteRecordOptions = {}
+
+    expectTypeOf<SatelliteRecordOptions['gravity']>().toEqualTypeOf<GravityModel | undefined>()
+    expectTypeOf<SatelliteRecordOptions['mode']>().toEqualTypeOf<'improved' | 'afspc' | undefined>()
+    expect(options).toEqual({})
+  })
+
+  it('should type the mode as one of "improved" or "afspc" alone', () => {
+    // @ts-expect-error: a mode of operation that is not one of "improved" or "afspc" is not a mode:
+    const options: SatelliteRecordOptions = { mode: 'i' }
+
+    expect(options.mode).toBe('i')
   })
 })
 

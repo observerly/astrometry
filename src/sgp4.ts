@@ -6,6 +6,10 @@
 
 /*****************************************************************************************************************/
 
+import type { GravityModel } from './gravity'
+
+/*****************************************************************************************************************/
+
 /**
  *
  * SGP4Error
@@ -226,6 +230,33 @@ export class SGP4EphemerisTypeError extends SGP4Error {
 
     this.ephemeris = ephemeris
   }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * The options of a { SatelliteRecord }, e.g., the gravity model and the mode of operation the SGP4
+ * theory is resolved with.
+ *
+ */
+export type SatelliteRecordOptions = {
+  /**
+   *
+   * The gravity model the element set is propagated with. Defaults to { WGS72 }, e.g., the model
+   * that two-line element sets are fitted with.
+   *
+   */
+  gravity?: GravityModel
+  /**
+   *
+   * The mode of operation of the SGP4 theory, e.g., "improved", which carries the corrections of
+   * Vallado et al. (2006), or "afspc", which reproduces the operational implementation of the
+   * United States Air Force Space Command, e.g., its resolution of the sidereal angle at the epoch.
+   * Defaults to "improved".
+   *
+   */
+  mode?: 'improved' | 'afspc'
 }
 
 /*****************************************************************************************************************/
