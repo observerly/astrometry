@@ -10,7 +10,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import type { GravityModel } from '../src/gravity'
+import { type GravityModel, WGS72 } from '../src/gravity'
 
 /*****************************************************************************************************************/
 
@@ -59,6 +59,46 @@ describe('GravityModel', () => {
 
     // @ts-expect-error: a constant of a gravity model is not to be reassigned:
     model.μ = 0
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('WGS72', () => {
+  it('should be defined', () => {
+    expect(WGS72).toBeDefined()
+    expectTypeOf(WGS72).toEqualTypeOf<GravityModel>()
+  })
+
+  it('should carry the gravitational parameter and equatorial radius of WGS 72', () => {
+    expect(WGS72.μ).toBe(398600.8)
+    expect(WGS72.radius).toBe(6378.135)
+  })
+
+  it('should carry the zonal harmonics of WGS 72', () => {
+    expect(WGS72.J2).toBe(0.001082616)
+    expect(WGS72.J3).toBe(-0.00000253881)
+    expect(WGS72.J4).toBe(-0.00000165597)
+  })
+
+  it('should resolve xke as the reference implementation resolves it, to the last bit', () => {
+    // The value of the reference implementation, e.g., getgravconst("wgs72") of the sgp4 package:
+    expect(WGS72.xke).toBe(0.07436691613317342)
+  })
+
+  it('should resolve xke as the square root of the gravitational parameter in canonical units', () => {
+    // The mean motion of an orbit of a semi-major axis of one Earth radius, in radians per minute:
+    expect(WGS72.xke).toBeCloseTo(60 * Math.sqrt(WGS72.μ / WGS72.radius ** 3), 15)
+  })
+
+  it('should be frozen, such that no constant of it may be reassigned at runtime', () => {
+    expect(Object.isFrozen(WGS72)).toBe(true)
+
+    expect(() => {
+      ;(WGS72 as { J2: number }).J2 = 0
+    }).toThrowError(TypeError)
+
+    expect(WGS72.J2).toBe(0.001082616)
   })
 })
 

@@ -79,3 +79,37 @@ export type GravityModel = {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * WGS72
+ *
+ * The gravity model of the World Geodetic System 1972 (WGS 72), e.g., the third of the World
+ * Geodetic Systems of the United States Department of Defense, which succeeded WGS 66, and which
+ * was itself succeeded by WGS 84.
+ *
+ * It is the gravity model that the two-line element sets of the United States Space Force are
+ * fitted with, and so it is the model that an element set is to be propagated with, e.g., the mean
+ * elements of an element set are fitted to the SGP4 theory evaluated with these constants, and an
+ * element set propagated with the constants of any other model is displaced from the orbit it was
+ * fitted to, however much more modern that model is.
+ *
+ * N.B. The constant xke is resolved from the gravitational parameter and the equatorial radius of
+ * the model, in the same order of operations as the reference implementation resolves it, so that
+ * it is the constant of the reference implementation to the last bit.
+ *
+ * N.B. The model is frozen, as it is shared by every propagation that is resolved with it.
+ *
+ * @see Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006), "Revisiting Spacetrack Report #3", AIAA 2006-6753.
+ *
+ */
+export const WGS72: GravityModel = Object.freeze({
+  μ: 398600.8,
+  radius: 6378.135,
+  xke: 60 / Math.sqrt((6378.135 * 6378.135 * 6378.135) / 398600.8),
+  J2: 0.001082616,
+  J3: -0.00000253881,
+  J4: -0.00000165597
+})
+
+/*****************************************************************************************************************/
