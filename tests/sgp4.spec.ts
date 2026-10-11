@@ -478,6 +478,80 @@ describe('SatelliteRecord', () => {
     expect(() => new SatelliteRecord({ ...iss, n: 17.5 })).toThrowError(SGP4DecayedError)
   })
 
+  it('should resolve the state vector at a datetime as the reference implementation does', () => {
+    // The states of the reference implementation, e.g., sgp4(jd, fr) of the sgp4 package (version
+    // 2.24), at datetimes before, at and after the epoch (in SI metres and metres per second):
+    const references = [
+      {
+        datetime: '2008-09-19T06:30:15.500Z',
+        position: [-2176719.1413881686, 4711548.318479676, -4294720.34465269],
+        velocity: [-4406.893644400693, -5229.061561253891, -3513.3726101800307]
+      },
+      {
+        datetime: '2008-09-20T12:25:40.104Z',
+        position: [4083901.9810565645, -993633.3935020985, 5243603.777455451],
+        velocity: [2512.8383219250645, 7259.888275163114, -583.7772143125264]
+      },
+      {
+        datetime: '2008-09-20T18:00:00.000Z',
+        position: [-4250605.231757479, -4529280.246741651, -2612241.8670164663],
+        velocity: [2268.585535699919, -5145.259450708303, 5244.035659673653]
+      },
+      {
+        datetime: '2008-09-21T12:00:00.000Z',
+        position: [-2989332.261932896, 3120873.2547878465, -5169653.2673757],
+        velocity: [-4350.121482006888, -6211.87372952239, -1240.782929218685]
+      }
+    ]
+
+    const record = new SatelliteRecord(iss)
+
+    for (const { datetime, position: p, velocity: v } of references) {
+      const { position, velocity } = record.getStateVector(new Date(datetime))
+
+      // The epoch of the element set is carried as a Julian date, whose resolution displaces the
+      // object by ~0.1 metres from the reference implementation, which carries it in two parts:
+      expect(Math.hypot(position.x - p[0], position.y - p[1], position.z - p[2])).toBeLessThan(0.15)
+      expect(Math.hypot(velocity.x - v[0], velocity.y - v[1], velocity.z - v[2])).toBeLessThan(2e-4)
+    }
+  })
+
+  it('should resolve the state vector at a datetime as it does at the minutes since the epoch', () => {
+    const record = new SatelliteRecord(iss)
+
+    // The epoch of the element set is day 264.51782528 of 2008, e.g., 2008-09-20T12:25:40.104192Z,
+    // which a Date resolves to the millisecond, and so 90 minutes after the millisecond of the epoch
+    // is 0.192 milliseconds short of 90 minutes after the epoch itself:
+    const epoch = Date.UTC(2008, 8, 20, 12, 25, 40, 104)
+
+    const { position: a } = record.getStateVector(new Date(epoch + 90 * 60000))
+
+    const { position: b } = record.getStateVectorAtMinutesSinceEpoch(90 - 0.000192 / 60)
+
+    expect(Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z)).toBeLessThan(0.15)
+  })
+
+  it('should throw for a datetime that is not a valid date', () => {
+    expect(() => new SatelliteRecord(iss).getStateVector(new Date('invalid'))).toThrowError(
+      /Invalid datetime: the datetime must be a valid date/
+    )
+  })
+
+  it('should throw an SGP4DecayedError at a datetime after the orbit has decayed', () => {
+    // The element set of 28872 of the verification set decays ~55 minutes after its epoch:
+    const record = new SatelliteRecord(
+      parseTwoLineElement(
+        '1 28872U 05037B   05333.02012661  .25992681  00000-0  24476-3 0  1534',
+        '2 28872  96.4736 157.9986 0303955 244.0492 110.6523 16.46015938 10708'
+      )
+    )
+
+    // The epoch of the element set is day 333.02012661 of 2005, e.g., 2005-11-29T00:28:58.939Z:
+    expect(() => record.getStateVector(new Date('2005-11-29T01:30:00.000Z'))).toThrowError(
+      SGP4DecayedError
+    )
+  })
+
   it('should throw for a time since the epoch that is not finite', () => {
     const record = new SatelliteRecord(iss)
 

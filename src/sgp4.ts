@@ -8,6 +8,8 @@
 
 import type { StateVector } from './common'
 
+import { J1970 } from './constants'
+
 import { type GravityModel, WGS72 } from './gravity'
 
 import type { TwoLineElement } from './tle'
@@ -1068,6 +1070,38 @@ export class SatelliteRecord {
     // Propagate to the epoch, as the reference implementation does as it initialises, so that an
     // element set the theory fails for at its epoch is rejected as it is initialised:
     propagateSGP4(this.#record, 0)
+  }
+
+  /**
+   *
+   * getStateVector()
+   *
+   * Propagates the record to a datetime, e.g., the state vector of the object at that instant, in
+   * the True Equator, Mean Equinox (TEME) frame of the epoch.
+   *
+   * N.B. The epoch of the element set is carried as a Julian date, whose resolution of ~40
+   * microseconds displaces the object by no more than ~0.15 metres in a low Earth orbit, far
+   * beneath the accuracy of the theory itself.
+   *
+   * @param datetime - The date and time to propagate the record to.
+   * @throws An error if the datetime is not a valid date.
+   * @throws An SGP4Error of the failure, e.g., an SGP4DecayedError, where the theory fails for the record at the datetime.
+   * @returns The state vector of the object (in SI metres and metres per second).
+   *
+   */
+  public getStateVector(datetime: Date): StateVector {
+    // A Date of an invalid time, e.g., new Date('invalid'), has no time to propagate the record to:
+    if (!Number.isFinite(datetime.getTime())) {
+      throw new Error('Invalid datetime: the datetime must be a valid date')
+    }
+
+    // The time since the epoch of the element set, both of which are of Coordinated Universal Time
+    // (UTC). It is resolved in minutes of the Unix epoch, rather than as the difference of two Julian
+    // dates, as the Julian date of the datetime would round it to ~40 microseconds a second time,
+    // whereas the offset of the epoch from J1970 is resolved exactly:
+    const minutes = datetime.getTime() / 60000 - (this.tle.epoch - J1970) * 1440
+
+    return this.getStateVectorAtMinutesSinceEpoch(minutes)
   }
 
   /**
