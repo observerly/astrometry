@@ -12,6 +12,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import {
   SGP4DecayedError,
+  SGP4EphemerisTypeError,
   SGP4Error,
   SGP4MeanEccentricityError,
   SGP4MeanMotionError,
@@ -287,6 +288,49 @@ describe('SGP4DecayedError', () => {
     }
 
     expect(propagate).toThrowError(SGP4DecayedError)
+    expect(propagate).toThrowError(SGP4Error)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('SGP4EphemerisTypeError', () => {
+  it('should be defined', () => {
+    expect(SGP4EphemerisTypeError).toBeDefined()
+  })
+
+  it('should be an error, an SGP4 error, and a SGP4EphemerisTypeError', () => {
+    const error = new SGP4EphemerisTypeError(4)
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toBeInstanceOf(SGP4Error)
+    expect(error).toBeInstanceOf(SGP4EphemerisTypeError)
+  })
+
+  it('should carry its name, and no code, as the reference implementation does not report it', () => {
+    const error = new SGP4EphemerisTypeError(4)
+
+    expect(error.name).toBe('SGP4EphemerisTypeError')
+    expect(error.code).toBeUndefined()
+  })
+
+  it('should carry the ephemeris type that it was raised for', () => {
+    const error = new SGP4EphemerisTypeError(4)
+
+    expect(error.ephemeris).toBe(4)
+    expectTypeOf(error.ephemeris).toEqualTypeOf<number>()
+  })
+
+  it('should describe the failure in its message', () => {
+    expect(new SGP4EphemerisTypeError(4).message).toBe('The ephemeris type 4 is not one that SGP4 propagates')
+  })
+
+  it('should be caught as an SGP4 error when it is thrown', () => {
+    const propagate = () => {
+      throw new SGP4EphemerisTypeError(4)
+    }
+
+    expect(propagate).toThrowError(SGP4EphemerisTypeError)
     expect(propagate).toThrowError(SGP4Error)
   })
 })
