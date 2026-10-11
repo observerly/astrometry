@@ -148,3 +148,44 @@ export const WGS72: GravityModel = Object.freeze({
 })
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * WGS84
+ *
+ * The gravity model of the World Geodetic System 1984 (WGS 84), e.g., the fourth of the World
+ * Geodetic Systems of the United States Department of Defense, which succeeded WGS 72, and which is
+ * the reference frame of the Global Positioning System (GPS). It is maintained by the National
+ * Geospatial-Intelligence Agency (NGA), and has been realised anew several times since 1984.
+ *
+ * N.B. It is not the gravity model a two-line element set is fitted with, which is { WGS72 }, and
+ * so it does not propagate an element set more accurately for being the more modern model, e.g.,
+ * an element set of a low Earth orbit propagated with it is displaced from the orbit it was fitted
+ * to by ~14 metres at its epoch, ~70 metres after a day, and ~250 metres after a week, as measured
+ * against the reference implementation. It is provided for a comparison against an implementation
+ * that propagates with it, as the reference implementation provides it.
+ *
+ * N.B. The constants are those the reference implementation adopts, e.g., the equatorial radius and
+ * the second zonal harmonic of WGS 84 itself, the latter resolved from its fully normalised
+ * coefficient C̄20 of -0.484166850 × 10⁻³, and its gravitational parameter of 398600.4418 km³/s²
+ * rounded to 398600.5 km³/s².
+ *
+ * N.B. The constant xke is resolved from the gravitational parameter and the equatorial radius of
+ * the model, in the same order of operations as the reference implementation resolves it, so that
+ * it is the constant of the reference implementation to the last bit.
+ *
+ * N.B. The model is frozen, as it is shared by every propagation that is resolved with it.
+ *
+ * @see Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006), "Revisiting Spacetrack Report #3", AIAA 2006-6753.
+ *
+ */
+export const WGS84: GravityModel = Object.freeze({
+  μ: 398600.5,
+  radius: 6378.137,
+  xke: 60 / Math.sqrt((6378.137 * 6378.137 * 6378.137) / 398600.5),
+  J2: 0.00108262998905,
+  J3: -0.00000253215306,
+  J4: -0.00000161098761
+})
+
+/*****************************************************************************************************************/
