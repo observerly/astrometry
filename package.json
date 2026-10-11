@@ -212,6 +212,11 @@
       "require": "./dist/seeing.cjs",
       "types": "./dist/seeing.d.ts"
     },
+    "./sgp4": {
+      "import": "./dist/sgp4.js",
+      "require": "./dist/sgp4.cjs",
+      "types": "./dist/sgp4.d.ts"
+    },
     "./sun": {
       "import": "./dist/sun.js",
       "require": "./dist/sun.cjs",
