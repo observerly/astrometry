@@ -11,6 +11,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  SGP4DecayedError,
   SGP4Error,
   SGP4MeanEccentricityError,
   SGP4MeanMotionError,
@@ -243,6 +244,49 @@ describe('SGP4SemiLatusRectumError', () => {
     }
 
     expect(propagate).toThrowError(SGP4SemiLatusRectumError)
+    expect(propagate).toThrowError(SGP4Error)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('SGP4DecayedError', () => {
+  it('should be defined', () => {
+    expect(SGP4DecayedError).toBeDefined()
+  })
+
+  it('should be an error, an SGP4 error, and a SGP4DecayedError', () => {
+    const error = new SGP4DecayedError(0.98)
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toBeInstanceOf(SGP4Error)
+    expect(error).toBeInstanceOf(SGP4DecayedError)
+  })
+
+  it('should carry its name, and the code 6 of the reference implementation', () => {
+    const error = new SGP4DecayedError(0.98)
+
+    expect(error.name).toBe('SGP4DecayedError')
+    expect(error.code).toBe(6)
+  })
+
+  it('should carry the radius that it was raised for', () => {
+    const error = new SGP4DecayedError(0.98)
+
+    expect(error.radius).toBe(0.98)
+    expectTypeOf(error.radius).toEqualTypeOf<number>()
+  })
+
+  it('should describe the failure in its message', () => {
+    expect(new SGP4DecayedError(0.98).message).toBe('The orbit has decayed, as its radius of 0.98 Earth radii is less than that of the Earth')
+  })
+
+  it('should be caught as an SGP4 error when it is thrown', () => {
+    const propagate = () => {
+      throw new SGP4DecayedError(0.98)
+    }
+
+    expect(propagate).toThrowError(SGP4DecayedError)
     expect(propagate).toThrowError(SGP4Error)
   })
 })

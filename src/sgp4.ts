@@ -165,3 +165,34 @@ export class SGP4SemiLatusRectumError extends SGP4Error {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * SGP4DecayedError
+ *
+ * The error of a propagation in which the radius of the orbit, e.g., the distance of the object
+ * from the centre of the Earth at the time of the propagation, is less than the equatorial radius
+ * of the Earth, e.g., an object whose orbit has decayed, and which has re-entered.
+ *
+ * N.B. It is the error code 6 of the reference implementation.
+ *
+ * @see Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006), "Revisiting Spacetrack Report #3", AIAA 2006-6753.
+ *
+ */
+export class SGP4DecayedError extends SGP4Error {
+  public name = 'SGP4DecayedError'
+
+  // The radius of the orbit at the time it was propagated to (in Earth radii):
+  public readonly radius: number
+
+  constructor(radius: number) {
+    super(
+      `The orbit has decayed, as its radius of ${radius} Earth radii is less than that of the Earth`,
+      6
+    )
+
+    this.radius = radius
+  }
+}
+
+/*****************************************************************************************************************/
