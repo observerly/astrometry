@@ -80,3 +80,31 @@ export class SGP4MeanEccentricityError extends SGP4Error {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * SGP4MeanMotionError
+ *
+ * The error of a propagation in which the mean motion of the orbit, e.g., as the integration of
+ * the resonance terms of the deep-space theory carries it to the time of the propagation, is no
+ * longer greater than zero, at which the semi-major axis of the orbit is no longer defined.
+ *
+ * N.B. It is the error code 2 of the reference implementation.
+ *
+ * @see Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006), "Revisiting Spacetrack Report #3", AIAA 2006-6753.
+ *
+ */
+export class SGP4MeanMotionError extends SGP4Error {
+  public name = 'SGP4MeanMotionError'
+
+  // The mean motion of the orbit at the time it was propagated to (in radians per minute):
+  public readonly n: number
+
+  constructor(n: number) {
+    super(`The mean motion ${n} is not greater than zero`, 2)
+
+    this.n = n
+  }
+}
+
+/*****************************************************************************************************************/
