@@ -82,6 +82,41 @@ export type GravityModel = {
 
 /**
  *
+ * WGS72OLD
+ *
+ * The gravity model of the World Geodetic System 1972 (WGS 72), as the original implementation of
+ * Spacetrack Report #3 of 1980 carried it, e.g., with the constant xke given directly, to ten
+ * decimal places, rather than resolved from the gravitational parameter and the equatorial radius
+ * of the model, and with the gravitational parameter that is consistent with it.
+ *
+ * It is retained so that a propagation may reproduce that of an older implementation of SGP4 that
+ * carries these constants, e.g., for a comparison against its published results, and it is not to
+ * be preferred over { WGS72 } otherwise.
+ *
+ * N.B. The two differ in xke by ~4.5 parts in 10¹⁰, which scales the semi-major axis of an orbit,
+ * but not the mean motion it is propagated with, and so it displaces a propagation by a constant
+ * that does not grow with time, e.g., ~2 millimetres in a low Earth orbit and ~1 centimetre in a
+ * geostationary orbit, as measured against the reference implementation.
+ *
+ * N.B. The model is frozen, as it is shared by every propagation that is resolved with it.
+ *
+ * @see Hoots, F. R., & Roehrich, R. L. (1980), "Spacetrack Report No. 3: Models for Propagation of NORAD Element Sets".
+ * @see Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006), "Revisiting Spacetrack Report #3", AIAA 2006-6753.
+ *
+ */
+export const WGS72OLD: GravityModel = Object.freeze({
+  μ: 398600.79964,
+  radius: 6378.135,
+  xke: 0.0743669161,
+  J2: 0.001082616,
+  J3: -0.00000253881,
+  J4: -0.00000165597
+})
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * WGS72
  *
  * The gravity model of the World Geodetic System 1972 (WGS 72), e.g., the third of the World

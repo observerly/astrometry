@@ -10,7 +10,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type GravityModel, WGS72 } from '../src/gravity'
+import { type GravityModel, WGS72, WGS72OLD } from '../src/gravity'
 
 /*****************************************************************************************************************/
 
@@ -99,6 +99,45 @@ describe('WGS72', () => {
     }).toThrowError(TypeError)
 
     expect(WGS72.J2).toBe(0.001082616)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('WGS72OLD', () => {
+  it('should be defined', () => {
+    expect(WGS72OLD).toBeDefined()
+    expectTypeOf(WGS72OLD).toEqualTypeOf<GravityModel>()
+  })
+
+  it('should carry the gravitational parameter and equatorial radius of the original WGS 72', () => {
+    expect(WGS72OLD.μ).toBe(398600.79964)
+    expect(WGS72OLD.radius).toBe(6378.135)
+  })
+
+  it('should carry xke as the original implementation gave it, to ten decimal places', () => {
+    // The value of the reference implementation, e.g., getgravconst("wgs72old") of the sgp4 package:
+    expect(WGS72OLD.xke).toBe(0.0743669161)
+  })
+
+  it('should carry the same zonal harmonics as WGS72', () => {
+    expect(WGS72OLD.J2).toBe(WGS72.J2)
+    expect(WGS72OLD.J3).toBe(WGS72.J3)
+    expect(WGS72OLD.J4).toBe(WGS72.J4)
+  })
+
+  it('should differ from the xke of WGS72 by no more than ~4.5 parts in 10¹⁰', () => {
+    expect(Math.abs(WGS72OLD.xke - WGS72.xke) / WGS72.xke).toBeLessThan(5e-10)
+  })
+
+  it('should be frozen, such that no constant of it may be reassigned at runtime', () => {
+    expect(Object.isFrozen(WGS72OLD)).toBe(true)
+
+    expect(() => {
+      ;(WGS72OLD as { xke: number }).xke = 0
+    }).toThrowError(TypeError)
+
+    expect(WGS72OLD.xke).toBe(0.0743669161)
   })
 })
 
