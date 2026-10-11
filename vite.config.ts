@@ -34,6 +34,7 @@ const modules = [
   'ecliptic',
   'epoch',
   'galactic',
+  'gravity',
   'humanize',
   'iers',
   'maths',
