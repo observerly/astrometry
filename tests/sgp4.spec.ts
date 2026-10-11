@@ -10,7 +10,12 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { SGP4Error, SGP4MeanEccentricityError, SGP4MeanMotionError } from '../src/sgp4'
+import {
+  SGP4Error,
+  SGP4MeanEccentricityError,
+  SGP4MeanMotionError,
+  SGP4PerturbedEccentricityError
+} from '../src/sgp4'
 
 /*****************************************************************************************************************/
 
@@ -151,6 +156,49 @@ describe('SGP4MeanMotionError', () => {
     }
 
     expect(propagate).toThrowError(SGP4MeanMotionError)
+    expect(propagate).toThrowError(SGP4Error)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('SGP4PerturbedEccentricityError', () => {
+  it('should be defined', () => {
+    expect(SGP4PerturbedEccentricityError).toBeDefined()
+  })
+
+  it('should be an error, an SGP4 error, and a SGP4PerturbedEccentricityError', () => {
+    const error = new SGP4PerturbedEccentricityError(1.05)
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toBeInstanceOf(SGP4Error)
+    expect(error).toBeInstanceOf(SGP4PerturbedEccentricityError)
+  })
+
+  it('should carry its name, and the code 3 of the reference implementation', () => {
+    const error = new SGP4PerturbedEccentricityError(1.05)
+
+    expect(error.name).toBe('SGP4PerturbedEccentricityError')
+    expect(error.code).toBe(3)
+  })
+
+  it('should carry the perturbed eccentricity that it was raised for', () => {
+    const error = new SGP4PerturbedEccentricityError(1.05)
+
+    expect(error.eccentricity).toBe(1.05)
+    expectTypeOf(error.eccentricity).toEqualTypeOf<number>()
+  })
+
+  it('should describe the failure in its message', () => {
+    expect(new SGP4PerturbedEccentricityError(1.05).message).toBe('The perturbed eccentricity 1.05 is not within [0, 1]')
+  })
+
+  it('should be caught as an SGP4 error when it is thrown', () => {
+    const propagate = () => {
+      throw new SGP4PerturbedEccentricityError(1.05)
+    }
+
+    expect(propagate).toThrowError(SGP4PerturbedEccentricityError)
     expect(propagate).toThrowError(SGP4Error)
   })
 })
