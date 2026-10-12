@@ -106,3 +106,13 @@ export const J1970 = 2440587.5 as const
 export const J2000 = 2451545.0 as const
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * Two pi, e.g., the angle of a whole turn (in radians), or the circumference of a circle of a
+ * unit radius.
+ *
+ */
+export const TWO_PI = 2 * Math.PI
+
+/*****************************************************************************************************************/
