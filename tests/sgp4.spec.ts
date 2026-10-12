@@ -370,10 +370,16 @@ describe('SatelliteRecordOptions', () => {
 
 /*****************************************************************************************************************/
 
-// The element set of the International Space Station (ZARYA) of 2008-09-20:
+// The element set of the International Space Station (ZARYA) of 2008-09-20, e.g., a near-Earth orbit:
 const iss = parseTwoLineElement(
   '1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927',
   '2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537'
+)
+
+// The element set of a geostationary satellite (24208) of the verification set, e.g., a deep-space orbit:
+const geostationary = parseTwoLineElement(
+  '1 24208U 96044A   06177.04061740 -.00000094  00000-0  10000-3 0  1600',
+  '2 24208   3.8536  80.0121 0026640 311.0977  48.3000  1.00778054 36119'
 )
 
 /*****************************************************************************************************************/
@@ -440,6 +446,101 @@ describe('SatelliteRecord', () => {
     expect(
       () => new SatelliteRecord(iss, { mode: 'i' as SatelliteRecordOptions['mode'] })
     ).toThrowError(/Invalid mode: "i" is not one of "improved" or "afspc"/)
+  })
+
+  it('should throw an SGP4Error for an orbit of the deep-space theory, which is not yet resolved', () => {
+    expect(() => new SatelliteRecord(geostationary)).toThrowError(SGP4Error)
+    expect(() => new SatelliteRecord(geostationary)).toThrowError(/deep-space theory/)
+  })
+
+  it('should throw an SGP4DecayedError for an element set whose orbit has decayed at its epoch', () => {
+    // A mean motion of 17.5 revolutions per day is of an orbit whose semi-major axis is less than
+    // the radius of the Earth:
+    expect(() => new SatelliteRecord({ ...iss, n: 17.5 })).toThrowError(SGP4DecayedError)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getStateVectorAtMinutesSinceEpoch', () => {
+  it('should be defined', () => {
+    expect(new SatelliteRecord(iss).getStateVectorAtMinutesSinceEpoch).toBeDefined()
+  })
+
+  it('should resolve the state vector of a near-Earth orbit in SI metres and metres per second', () => {
+    const { position, velocity } = new SatelliteRecord(iss).getStateVectorAtMinutesSinceEpoch(0)
+
+    // The International Space Station orbits at ~350 km above the surface, at ~7.7 km/s:
+    const radius = Math.hypot(position.x, position.y, position.z)
+
+    const speed = Math.hypot(velocity.x, velocity.y, velocity.z)
+
+    expect(radius).toBeGreaterThan(6.6e6)
+    expect(radius).toBeLessThan(6.8e6)
+    expect(speed).toBeGreaterThan(7.6e3)
+    expect(speed).toBeLessThan(7.8e3)
+  })
+
+  it('should return to its position after one orbital period, to within the perturbations of the theory', () => {
+    const record = new SatelliteRecord(iss)
+
+    // The period of the orbit, from its mean motion of revolutions per day (in minutes):
+    const period = 1440 / iss.n
+
+    const { position: start } = record.getStateVectorAtMinutesSinceEpoch(0)
+
+    const { position: end } = record.getStateVectorAtMinutesSinceEpoch(period)
+
+    // The secular perturbations of the theory, e.g., the regression of the node and the advance of
+    // the perigee, carry the object ~5.6 km from where it began over one period:
+    const separation = Math.hypot(end.x - start.x, end.y - start.y, end.z - start.z)
+
+    expect(separation).toBeGreaterThan(1e3)
+    expect(separation).toBeLessThan(10e3)
+  })
+
+  it('should propagate to a time before the epoch, e.g., a negative time since it', () => {
+    const { position } = new SatelliteRecord(iss).getStateVectorAtMinutesSinceEpoch(-1440)
+
+    expect(Math.hypot(position.x, position.y, position.z)).toBeGreaterThan(6.6e6)
+  })
+
+  it('should propagate a near-Earth orbit alike in either mode of operation', () => {
+    // The mode of operation displaces the sidereal angle at the epoch alone, which the near-Earth
+    // theory does not resolve the state vector from:
+    const improved = new SatelliteRecord(iss, { mode: 'improved' })
+
+    const afspc = new SatelliteRecord(iss, { mode: 'afspc' })
+
+    expect(afspc.getStateVectorAtMinutesSinceEpoch(720)).toEqual(
+      improved.getStateVectorAtMinutesSinceEpoch(720)
+    )
+  })
+
+  it('should not be displaced by a mutation of the element set it was initialised from', () => {
+    const tle = { ...iss }
+
+    const record = new SatelliteRecord(tle)
+
+    const before = record.getStateVectorAtMinutesSinceEpoch(90)
+
+    tle.n = 1
+
+    tle.i = 0
+
+    expect(record.getStateVectorAtMinutesSinceEpoch(90)).toEqual(before)
+  })
+
+  it('should throw for a time since the epoch that is not finite', () => {
+    const record = new SatelliteRecord(iss)
+
+    expect(() => record.getStateVectorAtMinutesSinceEpoch(Number.NaN)).toThrowError(
+      /the minutes since the epoch must be finite/
+    )
+
+    expect(() => record.getStateVectorAtMinutesSinceEpoch(Number.POSITIVE_INFINITY)).toThrowError(
+      /the minutes since the epoch must be finite/
+    )
   })
 })
 
