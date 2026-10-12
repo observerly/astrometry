@@ -90,7 +90,8 @@ export {
   SECONDS_IN_DAY,
   SECONDS_IN_HOUR,
   SECONDS_IN_YEAR,
-  SPEED_OF_LIGHT
+  SPEED_OF_LIGHT,
+  TWO_PI
 } from './constants'
 
 /*****************************************************************************************************************/
