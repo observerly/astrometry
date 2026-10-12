@@ -10,7 +10,24 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { TWO_PI } from '../src/constants'
+import { MINUTES_IN_DAY, SECONDS_IN_DAY, TWO_PI } from '../src/constants'
+
+/*****************************************************************************************************************/
+
+describe('MINUTES_IN_DAY', () => {
+  it('should be defined', () => {
+    expect(MINUTES_IN_DAY).toBeDefined()
+  })
+
+  it('should be the number of minutes in a mean solar day', () => {
+    expect(MINUTES_IN_DAY).toBe(1440)
+    expect(MINUTES_IN_DAY).toBe(24 * 60)
+  })
+
+  it('should be the number of seconds in a day in minutes', () => {
+    expect(MINUTES_IN_DAY).toBe(SECONDS_IN_DAY / 60)
+  })
+})
 
 /*****************************************************************************************************************/
 
