@@ -10,15 +10,19 @@ import { getHourAngle } from './astrometry'
 
 import type { CartesianCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
 
-import { EARTH_ANGULAR_VELOCITY, EARTH_RADIUS, c } from './constants'
+import { AU_IN_METERS, EARTH_ANGULAR_VELOCITY, EARTH_RADIUS, c } from './constants'
+
+import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './coordinates'
 
 import { getEccentricityOfOrbit } from './earth'
 
-import { getTrueObliquityOfTheEcliptic } from './ecliptic'
+import { getObliquityOfTheEcliptic, getTrueObliquityOfTheEcliptic } from './ecliptic'
 
-import { getJulianDate } from './epoch'
+import { getJulianDate, getTerrestrialTime } from './epoch'
 
-import { getSolarTrueGeometricLongitude } from './sun'
+import { getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
+
+import { getSolarGeometricEclipticCoordinate, getSolarTrueGeometricLongitude } from './sun'
 
 import {
   convertRadiansToDegrees as degrees,
@@ -242,6 +246,142 @@ export const getCorrectionToEquatorialForVelocityAberration = (
   return {
     ra: Δra,
     dec: Δdec
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getCorrectionToEquatorialForLightDeflection()
+ *
+ * Corrects the equatorial coordinate of a target for the gravitational deflection of light by the
+ * Sun, e.g., the bending of the light of the target towards the Sun as it passes through the
+ * gravitational field of the Sun, which displaces the apparent place of the target away from the
+ * Sun. The correction terms should be added to the target's coordinate by the caller.
+ *
+ * The deflection is that of the first post-Newtonian order of the Schwarzschild metric, e.g., up to
+ * ~1.75 arcseconds at the limb of the Sun, and ~4 milliarcseconds at right angles to the Sun.
+ *
+ * N.B. The deflection is unbounded for a target behind the Sun, and so the distance of the target
+ * from the direction of the Sun is held to a small floor of 10⁻⁶ / max(d², 1), where d is the
+ * distance of the Sun in astronomical units, as eraLdsun of the IAU Standards of Fundamental
+ * Astronomy (SOFA) holds it.
+ *
+ * @param datetime - The date to correct the equatorial coordinate for.
+ * @param target - The equatorial J2000 coordinate of the target.
+ * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
+ *
+ */
+export const getCorrectionToEquatorialForLightDeflection = (
+  datetime: Date,
+  target: EquatorialCoordinate
+): EquatorialCoordinate => {
+  // The Schwarzschild radius of the Sun, e.g., 2GM☉/c² for the TDB-compatible heliocentric gravitational constant
+  // of the IAU 2009 system of astronomical constants (in astronomical units):
+  const SRS = 1.97412574336e-8
+
+  // Get the geometric ecliptic coordinate of the Sun, e.g., the direction of the Sun from the Earth before the
+  // corrections for the nutation and for the aberration of light, as the deflection is a function of the geometry
+  // of the Sun, the Earth and the target, and not of the apparent place of the Sun:
+  const sun = getSolarGeometricEclipticCoordinate(datetime)
+
+  // Get the difference in fractional Julian centuries between the target date and J2000.0, at the Terrestrial
+  // Time of the given date, which the precession angles are referred to:
+  const T = (getJulianDate(getTerrestrialTime(datetime)) - 2451545.0) / 36525
+
+  // Calculate the precession angle ζ of the equatorial precession of IAU 2006 (in degrees):
+  const ζ =
+    (2.650545 +
+      2306.083227 * T +
+      0.2988499 * T ** 2 +
+      0.01801828 * T ** 3 -
+      0.000005971 * T ** 4 -
+      0.0000003173 * T ** 5) /
+    3600
+
+  // Calculate the precession angle z of the equatorial precession of IAU 2006 (in degrees):
+  const z =
+    (-2.650545 +
+      2306.077181 * T +
+      1.0927348 * T ** 2 +
+      0.01826837 * T ** 3 -
+      0.000028596 * T ** 4 -
+      0.0000002904 * T ** 5) /
+    3600
+
+  // Calculate the precession angle θ of the equatorial precession of IAU 2006 (in degrees):
+  const θ =
+    (2004.191903 * T -
+      0.4294934 * T ** 2 -
+      0.04182264 * T ** 3 -
+      0.000007089 * T ** 4 -
+      0.0000001274 * T ** 5) /
+    3600
+
+  // The unit vector of the Sun in the frame of the mean ecliptic and equinox of the date, e.g., the spherical to
+  // cartesian conversion of the ecliptic coordinate, which is that of the equatorial coordinate with the longitude
+  // and latitude in place of the right ascension and declination:
+  const ecliptic = convertEquatorialToCartesian({ ra: sun.λ, dec: sun.β })
+
+  // The unit vector of the Sun, rotated from the mean ecliptic of the date into the mean equator and equinox of
+  // the date, e.g., by the passive rotation of the frame about the x axis by the negative of the mean obliquity of
+  // the ecliptic of the date:
+  const mean = getRotatedCartesianCoordinate(
+    getRotationMatrix('x', -getObliquityOfTheEcliptic(datetime)),
+    ecliptic
+  )
+
+  // The unit vector of the Sun, carried from the mean equator and equinox of the date back to the mean equator and
+  // equinox of J2000.0 by the transpose of the precession matrix of IAU 2006, e.g., R3(ζ)·R2(−θ)·R3(z), which
+  // refers both the precession of the equator and the precession of the ecliptic back to J2000.0, as the
+  // reference implementation of the IAU Standards of Fundamental Astronomy (SOFA) refers the Sun to the BCRS:
+  const equatorial = getRotatedCartesianCoordinate(
+    getRotationMatrix('z', ζ),
+    getRotatedCartesianCoordinate(
+      getRotationMatrix('y', -θ),
+      getRotatedCartesianCoordinate(getRotationMatrix('z', z), mean)
+    )
+  )
+
+  // Get the distance of the Sun from the Earth (in astronomical units):
+  const d = sun.R / AU_IN_METERS
+
+  // The unit vector of the target:
+  const p = convertEquatorialToCartesian(target)
+
+  // The unit vector from the Sun to the Earth, e.g., the direction of the Sun from the Earth reversed:
+  const e = {
+    x: -equatorial.x,
+    y: -equatorial.y,
+    z: -equatorial.z
+  }
+
+  // The cosine of the angle between the target and the direction from the Sun to the Earth, e.g., the cosine of
+  // the supplement of the elongation of the target from the Sun:
+  const cosine = p.x * e.x + p.y * e.y + p.z * e.z
+
+  // The magnitude of the deflection, e.g., the Schwarzschild radius of the Sun over the distance of the Sun,
+  // divided by 1 + cos θ, held to the floor of 10⁻⁶ / max(d², 1) for a target behind the Sun, as eraLdsun holds
+  // it (in radians):
+  const w = SRS / d / Math.max(1 + cosine, 1e-6 / Math.max(d * d, 1))
+
+  // The unit vector of the target, displaced away from the Sun by the deflection, e.g., along the component of
+  // the direction from the Sun to the Earth at right angles to the target:
+  const apparent = {
+    x: p.x + w * (e.x - cosine * p.x),
+    y: p.y + w * (e.y - cosine * p.y),
+    z: p.z + w * (e.z - cosine * p.z)
+  }
+
+  // The coordinate is recovered from the displaced vector, and is not expanded about the target, which would
+  // divide by cos δ and so be unbounded at the poles:
+  const { ra, dec } = convertCartesianToEquatorial(apparent)
+
+  // The displacement in right ascension, taken the shorter of the two ways about the sphere:
+  return {
+    ra: getNormalizedAzimuthalDegree(ra - target.ra + 180) - 180,
+    dec: dec - target.dec
   }
 }
 
