@@ -8,7 +8,10 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { getCorrectionToEquatorialForAnnualAberration } from '../../src/aberration'
+import {
+  getCorrectionToEquatorialForAnnualAberration,
+  getCorrectionToEquatorialForLightDeflection
+} from '../../src/aberration'
 
 import {
   getAngularSeparation,
@@ -25,7 +28,7 @@ import {
   getCorrectionToEquatorialForPrecessionOfEquinoxes
 } from '../../src/precession'
 
-import { erfaInstants } from './erfa'
+import { erfaInstants, erfaLightDeflections } from './erfa'
 
 /*****************************************************************************************************************/
 
@@ -72,9 +75,15 @@ const PRECESSION_TOLERANCE = 0.0000001
 
 /*****************************************************************************************************************/
 
+// The gravitational deflection of light by the Sun, against eraLdsun, e.g., to within 1 milliarcsecond from the limb
+// of the Sun outwards, which is the envelope of the geometric direction of the Sun of the library (in degrees):
+const LIGHT_DEFLECTION_TOLERANCE = 1 / 3600000
+
+/*****************************************************************************************************************/
+
 // The equinox-based apparent place of a star away from the celestial poles, resolved as the catalogue coordinate
-// displaced by the corrections for frame bias, precession, nutation and annual aberration in turn, against IAU
-// 2006/2000A (in degrees):
+// carried to J2000.0 by the frame bias and displaced by the corrections for light deflection, precession, nutation
+// and annual aberration in turn, against IAU 2006/2000A (in degrees):
 const APPARENT_PLACE_TOLERANCE = 0.00001
 
 /*****************************************************************************************************************/
@@ -180,24 +189,33 @@ describe('conformance of the apparent place to ERFA', () => {
       for (const star of reference.stars) {
         const target = { ra: star.ra, dec: star.dec }
 
-        // The apparent place of the date, e.g., the catalogue coordinate displaced by the corrections for the
-        // frame bias, the precession of the equinoxes, the nutation and the annual aberration in turn, each about
-        // the place the one before it resolves:
+        // The catalogue coordinate is referred to the ICRS, and so it is carried to the mean equator and equinox
+        // of J2000.0 by the frame bias, e.g., the frame the corrections of the library are referred from:
         const bias = getCorrectionToEquatorialForFrameBias(target)
 
         const J2000 = { ra: target.ra + bias.ra, dec: target.dec + bias.dec }
 
-        const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, J2000)
+        // The apparent place of the date, e.g., the J2000.0 coordinate displaced by the gravitational deflection
+        // of light within the frame of J2000.0, and carried by the corrections for the precession of the
+        // equinoxes, the nutation and the annual aberration in turn, each about the place the one before it
+        // resolves:
+        const deflection = getCorrectionToEquatorialForLightDeflection(when, J2000)
 
-        const mean = { ra: J2000.ra + precession.ra, dec: J2000.dec + precession.dec }
+        const deflected = { ra: J2000.ra + deflection.ra, dec: J2000.dec + deflection.dec }
+
+        const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, deflected)
+
+        const mean = { ra: deflected.ra + precession.ra, dec: deflected.dec + precession.dec }
 
         const nutation = getCorrectionToEquatorialForNutation(when, mean)
 
-        const aberration = getCorrectionToEquatorialForAnnualAberration(when, mean)
+        const trueOfDate = { ra: mean.ra + nutation.ra, dec: mean.dec + nutation.dec }
+
+        const aberration = getCorrectionToEquatorialForAnnualAberration(when, trueOfDate)
 
         const apparent = {
-          ra: mean.ra + nutation.ra + aberration.ra,
-          dec: mean.dec + nutation.dec + aberration.dec
+          ra: trueOfDate.ra + aberration.ra,
+          dec: trueOfDate.dec + aberration.dec
         }
 
         const separation = getAngularSeparation(
@@ -213,6 +231,32 @@ describe('conformance of the apparent place to ERFA', () => {
             : APPARENT_PLACE_POLAR_TOLERANCE
 
         expect(separation).toBeLessThan(tolerance)
+      }
+    }
+  )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the light deflection to ERFA', () => {
+  it.each(erfaLightDeflections)(
+    'should be within the pinned envelope of eraLdsun at $datetime',
+    reference => {
+      const when = new Date(reference.datetime)
+
+      for (const target of reference.targets) {
+        const { ra, dec } = getCorrectionToEquatorialForLightDeflection(when, {
+          ra: target.ra,
+          dec: target.dec
+        })
+
+        // The displacement between the two deflections, with the right ascension scaled onto the sphere by the
+        // cosine of the declination, as the deflections are small:
+        const Δα = (ra - target.deflection.ra) * Math.cos((target.dec * Math.PI) / 180)
+
+        const Δδ = dec - target.deflection.dec
+
+        expect(Math.hypot(Δα, Δδ)).toBeLessThan(LIGHT_DEFLECTION_TOLERANCE)
       }
     }
   )

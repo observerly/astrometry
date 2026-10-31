@@ -16,11 +16,20 @@ import {
   EARTH_RADIUS,
   type EquatorialCoordinate,
   SPEED_OF_LIGHT,
+  convertCartesianToEquatorial,
+  convertEquatorialToCartesian,
   getCorrectionToEquatorialForAberration,
   getCorrectionToEquatorialForAnnualAberration,
   getCorrectionToEquatorialForDiurnalAberration,
+  getCorrectionToEquatorialForLightDeflection,
   getCorrectionToEquatorialForVelocityAberration,
-  getHourAngle
+  getHourAngle,
+  getJulianDate,
+  getObliquityOfTheEcliptic,
+  getRotatedCartesianCoordinate,
+  getRotationMatrix,
+  getSolarGeometricEclipticCoordinate,
+  getTerrestrialTime
 } from '../src'
 
 import { convertDegreesToRadians as radians } from '../src/utilities'
@@ -360,5 +369,105 @@ describe('getCorrectionToEquatorialForVelocityAberration', () => {
     expect(backward.dec).toBeCloseTo(-forward.dec, 6)
   })
 })
+/*****************************************************************************************************************/
 
-/***************************************************************************************************************/
+describe('getCorrectionToEquatorialForLightDeflection', () => {
+  // The equinox of 2013-09-22, with the Sun at ~1.004 AU from the Earth:
+  const equinox = new Date('2013-09-22T04:00:00.000+00:00')
+
+  // The geometric direction of the Sun, referred to the equatorial frame of J2000, e.g., the geometric ecliptic
+  // coordinate rotated about the mean obliquity of the ecliptic of the date into the mean equator and equinox of
+  // the date, and carried back to J2000 by the transpose of the precession matrix of IAU 2006, resolved at the
+  // Terrestrial Time the ephemeris of the Sun is, as the correction resolves it:
+  const sun = (() => {
+    const { λ, β } = getSolarGeometricEclipticCoordinate(equinox)
+
+    const T = (getJulianDate(getTerrestrialTime(equinox)) - 2451545.0) / 36525
+
+    const ζ =
+      (2.650545 +
+        2306.083227 * T +
+        0.2988499 * T ** 2 +
+        0.01801828 * T ** 3 -
+        0.000005971 * T ** 4 -
+        0.0000003173 * T ** 5) /
+      3600
+
+    const z =
+      (-2.650545 +
+        2306.077181 * T +
+        1.0927348 * T ** 2 +
+        0.01826837 * T ** 3 -
+        0.000028596 * T ** 4 -
+        0.0000002904 * T ** 5) /
+      3600
+
+    const θ =
+      (2004.191903 * T -
+        0.4294934 * T ** 2 -
+        0.04182264 * T ** 3 -
+        0.000007089 * T ** 4 -
+        0.0000001274 * T ** 5) /
+      3600
+
+    const mean = getRotatedCartesianCoordinate(
+      getRotationMatrix('x', -getObliquityOfTheEcliptic(equinox)),
+      convertEquatorialToCartesian({ ra: λ, dec: β })
+    )
+
+    return convertCartesianToEquatorial(
+      getRotatedCartesianCoordinate(
+        getRotationMatrix('z', ζ),
+        getRotatedCartesianCoordinate(
+          getRotationMatrix('y', -θ),
+          getRotatedCartesianCoordinate(getRotationMatrix('z', z), mean)
+        )
+      )
+    )
+  })()
+
+  it('should be defined', () => {
+    expect(getCorrectionToEquatorialForLightDeflection).toBeDefined()
+  })
+
+  it('should deflect a target at the limb of the Sun by ~1.75 arcseconds away from the Sun', () => {
+    // A target along the equator of the date, at the eastern limb of the Sun, e.g., at the angular radius of
+    // the Sun from its centre in right ascension:
+    const target = { ra: sun.ra + 0.2666, dec: sun.dec }
+
+    const { ra, dec } = getCorrectionToEquatorialForLightDeflection(equinox, target)
+
+    // The deflection (in arcseconds), e.g., 1.75 arcseconds at 1 AU, scaled by the distance of the Sun:
+    expect(ra * Math.cos(radians(target.dec)) * 3600).toBeCloseTo(1.7437, 3)
+
+    expect(Math.abs(dec * 3600)).toBeLessThan(0.0001)
+  })
+
+  it('should deflect a target at right angles to the Sun by ~4 milliarcseconds away from the Sun', () => {
+    const target = { ra: sun.ra + 90, dec: sun.dec }
+
+    const { ra, dec } = getCorrectionToEquatorialForLightDeflection(equinox, target)
+
+    expect(ra * Math.cos(radians(target.dec)) * 3600).toBeCloseTo(0.0041, 3)
+
+    expect(Math.abs(dec * 3600)).toBeLessThan(0.0001)
+  })
+
+  it('should deflect a target to the west of the Sun towards the west', () => {
+    const target = { ra: sun.ra - 1, dec: sun.dec }
+
+    const { ra } = getCorrectionToEquatorialForLightDeflection(equinox, target)
+
+    expect(ra).toBeLessThan(0)
+  })
+
+  it('should return a finite correction for a target in the direction of the Sun', () => {
+    const { ra, dec } = getCorrectionToEquatorialForLightDeflection(equinox, sun)
+
+    expect(Number.isFinite(ra)).toBe(true)
+
+    expect(Number.isFinite(dec)).toBe(true)
+  })
+})
+
+/*****************************************************************************************************************/
