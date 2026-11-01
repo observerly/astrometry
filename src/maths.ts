@@ -259,3 +259,28 @@ export const getRotatedCartesianCoordinate = (
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * doDotProduct()
+ *
+ * Resolves the dot product a · b of two cartesian vectors, e.g., the sum of the products of their
+ * corresponding components, such that a · b = |a| |b| cos θ, where θ is the angle between them.
+ *
+ * N.B. The dot product of two unit vectors is the cosine of the angle between them, e.g., as for the
+ * directions of two targets on the celestial sphere, and so it is positive for an acute angle, zero
+ * for a right angle, e.g., for two orthogonal vectors, and negative for an obtuse angle.
+ *
+ * @param a - The first cartesian vector, e.g., { x, y, z }.
+ * @param b - The second cartesian vector, e.g., { x, y, z }.
+ * @returns The dot product a · b of the two vectors.
+ *
+ */
+export const doDotProduct = (
+  a: Required<CartesianCoordinate>,
+  b: Required<CartesianCoordinate>
+): number => {
+  return a.x * b.x + a.y * b.y + a.z * b.z
+}
+
+/*****************************************************************************************************************/
