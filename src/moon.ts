@@ -221,8 +221,12 @@ export const getLunarMeanGeometricLongitude = (datetime: Date): number => {
  *
  */
 export const getLunarArgumentOfLatitude = (datetime: Date): number => {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date:
+  const tt = getTerrestrialTime(datetime)
+
   // Calculate the number of centuries since J2000.0:
-  const T = getNumberOfCenturiesSinceJ2000(datetime)
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // k represents the number of new moons since the standard epoch J2000:
   const k = Math.round(T * 1236.85)
