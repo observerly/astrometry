@@ -54,5 +54,9 @@ jobs:
       - name: Run vitest tests 🧪
         run: pnpm run test
 
+      # npm never packs symbolic links, so replace the README.md symlink with a copy of docs/README.md:
+      - name: Copy the README for publishing 📄
+        run: cp --remove-destination docs/README.md README.md
+
       - name: Publish to NPM 📦
         run: npm publish --access public
