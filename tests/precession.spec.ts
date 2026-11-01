@@ -13,7 +13,8 @@ import { describe, expect, it } from 'vitest'
 import {
   type EquatorialCoordinate,
   getCorrectionToEquatorialForFrameBias,
-  getCorrectionToEquatorialForPrecessionOfEquinoxes
+  getCorrectionToEquatorialForPrecessionOfEquinoxes,
+  getPrecessionAngles
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -24,6 +25,36 @@ export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
 
 // For testing
 const polaris: EquatorialCoordinate = { ra: 37.95454961, dec: 89.264113893 }
+
+/*****************************************************************************************************************/
+
+describe('getPrecessionAngles', () => {
+  it('should be defined', () => {
+    expect(getPrecessionAngles).toBeDefined()
+  })
+
+  // The equatorial precession angles of IAU 2006, as eraP06e of the IAU Standards of Fundamental Astronomy (SOFA)
+  // resolves them, for the Terrestrial Time of each instant (in degrees):
+  it.each([
+    { datetime: '2000-01-01T12:00:00.000Z', ζ: 0.000736275528526131, z: -0.0007362494715080268, θ: 1.1322950652280641e-08 },
+    { datetime: '2021-05-14T00:00:00.000Z', ζ: 0.13759858640121758, z: 0.13613576917705666, θ: 0.11893666567219895 },
+    { datetime: '2050-03-20T12:00:00.000Z', ζ: 0.32242391945022586, z: 0.3210061653867071, θ: 0.27952495446101727 }
+  ])('should return the precession angles of eraP06e at $datetime', reference => {
+    const { ζ, z, θ } = getPrecessionAngles(new Date(reference.datetime))
+
+    expect(ζ).toBeCloseTo(reference.ζ, 10)
+    expect(z).toBeCloseTo(reference.z, 10)
+    expect(θ).toBeCloseTo(reference.θ, 10)
+  })
+
+  it('should return the offsets of the precession angles at J2000.0, e.g., ζ and z are equal and opposite', () => {
+    const { ζ, z, θ } = getPrecessionAngles(new Date('2000-01-01T11:58:55.816Z'))
+
+    expect(ζ * 3600).toBeCloseTo(2.650545, 6)
+    expect(z * 3600).toBeCloseTo(-2.650545, 6)
+    expect(θ * 3600).toBeCloseTo(0, 6)
+  })
+})
 
 /*****************************************************************************************************************/
 
