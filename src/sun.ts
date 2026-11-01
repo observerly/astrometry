@@ -130,8 +130,12 @@ export const getSolarEquationOfCenter = (datetime: Date): number => {
  *
  */
 export const getSolarMeanGeometricLongitude = (datetime: Date): number => {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date:
+  const tt = getTerrestrialTime(datetime)
+
   // Calculate the number of centuries since J2000.0:
-  const T = getNumberOfCenturiesSinceJ2000(datetime)
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // Calculate the mean geometric longitude:
   let L = (280.46646 + 36000.76983 * T + 0.0003032 * T ** 2) % 360

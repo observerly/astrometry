@@ -86,7 +86,13 @@ describe('getSolarMeanGeometricLongitude', () => {
 
   it('should return the correct Solar mean geometric longitude for the given date', () => {
     const L = getSolarMeanGeometricLongitude(datetime)
-    expect(L).toBe(51.96564888161811)
+    expect(L).toBe(51.96643812978073)
+  })
+
+  it('should return the Solar mean geometric longitude of Meeus Example 25.a for 1992 October 13.0 TD', () => {
+    // 1992 October 13.0 TD is 1992 October 12 23:59:00.816 UTC, e.g., TT − UTC = 27 s + 32.184 s:
+    const L = getSolarMeanGeometricLongitude(new Date('1992-10-12T23:59:00.816Z'))
+    expect(L).toBeCloseTo(201.8072, 5)
   })
 })
 
@@ -112,7 +118,7 @@ describe('getSolarTrueGeometricLongitude', () => {
 
   it('should return the correct Solar true geometric longitude for the given date', () => {
     const L = getSolarTrueGeometricLongitude(datetime)
-    expect(L).toBe(53.44050048665483)
+    expect(L).toBe(53.441289734817445)
   })
 })
 
