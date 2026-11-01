@@ -174,6 +174,29 @@ describe('getSolarEclipse', () => {
     expect(eclipse.γ).toBeCloseTo(1.1371)
   })
 
+  it('should resolve the solar eclipse of 21st May 1993 at the Terrestrial Time of the given date', () => {
+    // Give me a location in Vancouver Island, Canada:
+    const observer = {
+      latitude: 49.2827,
+      longitude: -123.1207,
+      elevation: 0
+    }
+
+    // 1993 May 21 14:16:00 UTC is 14:16:59.184 TT, e.g., TT − UTC = 27 s + 32.184 s, and so the number of Julian
+    // centuries since J2000.0 is T = −0.066143870514873, e.g., for k = −82,
+    // Ω = 124.7746 − 1.56375588 k + 0.0020672 T² + 0.00000215 T³ (mod 360):
+    const datetime = new Date('1993-05-21T14:16:00Z')
+
+    const eclipse = getSolarEclipse(datetime, observer)
+
+    if (!eclipse) {
+      throw new Error('Expected a solar eclipse')
+    }
+
+    expect(eclipse.k).toBe(-82)
+    expect(eclipse.Ω).toBeCloseTo(253.00259120340183, 13)
+  })
+
   it('should return the solar eclipse of 11th August 1999', () => {
     // Give me an observer that is based in Truro, Cornwall, UK
     const observer = {
@@ -196,6 +219,34 @@ describe('getSolarEclipse', () => {
     expect(eclipse.magnitude).toBeGreaterThan(1)
     expect(eclipse.magnitude).toBeCloseTo(1.0139)
     expect(eclipse.γ).toBeCloseTo(0.5063)
+  })
+
+  it('should resolve the solar eclipse of 11th August 1999 over St Agnes at the Terrestrial Time of the given date', () => {
+    // Give me an observer that is based in St Agnes, Cornwall, UK:
+    const observer = {
+      latitude: 50.312,
+      longitude: -5.204,
+      elevation: 0
+    }
+
+    // 1999 August 11 11:04:00 UTC is 11:05:04.184 TT, e.g., TT − UTC = 32 s + 32.184 s, and so the number of Julian
+    // centuries since J2000.0 is T = −0.003916171006667113, e.g., for k = −5,
+    // Ω = 124.7746 − 1.56375588 k + 0.0020672 T² + 0.00000215 T³ (mod 360):
+    const datetime = new Date('1999-08-11T11:04:00Z')
+
+    const eclipse = getSolarEclipse(datetime, observer)
+
+    if (!eclipse) {
+      throw new Error('Expected a solar eclipse')
+    }
+
+    expect(eclipse.k).toBe(-5)
+    expect(eclipse.type).toBe('total')
+    expect(eclipse.isCentral).toBe(true)
+    expect(eclipse.magnitude).toBeCloseTo(1.0139)
+    expect(eclipse.γ).toBeCloseTo(0.5063)
+    expect(eclipse.alt).toBeGreaterThan(0)
+    expect(eclipse.Ω).toBeCloseTo(132.59337943170326, 13)
   })
 
   it('should return the solar eclipse of 14th December 2001', () => {
