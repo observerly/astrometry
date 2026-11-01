@@ -10,7 +10,13 @@ import { getHourAngle } from './astrometry'
 
 import type { CartesianCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
 
-import { AU_IN_METERS, c, EARTH_ANGULAR_VELOCITY, EARTH_RADIUS } from './constants'
+import {
+  AU_IN_METERS,
+  c,
+  EARTH_ANGULAR_VELOCITY,
+  EARTH_RADIUS,
+  SCHWARZSCHILD_RADIUS_OF_THE_SUN
+} from './constants'
 
 import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './coordinates'
 
@@ -95,10 +101,6 @@ export const getCorrectionToEquatorialForAnnualAberration = (
   datetime: Date,
   target: EquatorialCoordinate
 ): EquatorialCoordinate => {
-  // The Schwarzschild radius of the Sun, e.g., 2GM☉/c² for the TDB-compatible heliocentric gravitational constant
-  // of the IAU 2009 system of astronomical constants (in astronomical units):
-  const SRS = 1.97412574336e-8
-
   // The barycentric velocity of the Earth (in astronomical units per day):
   const velocity = getBarycentricEarthVelocity(datetime)
 
@@ -123,7 +125,7 @@ export const getCorrectionToEquatorialForAnnualAberration = (
 
   const w1 = 1 + pdv / (1 + bm1)
 
-  const w2 = SRS / d
+  const w2 = SCHWARZSCHILD_RADIUS_OF_THE_SUN / d
 
   // The unit vector of the target, displaced by the velocity of the Earth, e.g., the apparent direction of the
   // target, which is resolved as a displaced vector, and not expanded about the target, which would divide by
@@ -322,10 +324,6 @@ export const getCorrectionToEquatorialForLightDeflection = (
   datetime: Date,
   target: EquatorialCoordinate
 ): EquatorialCoordinate => {
-  // The Schwarzschild radius of the Sun, e.g., 2GM☉/c² for the TDB-compatible heliocentric gravitational constant
-  // of the IAU 2009 system of astronomical constants (in astronomical units):
-  const SRS = 1.97412574336e-8
-
   // Get the geometric position of the Sun from the Earth, referred to the mean equator and equinox of J2000.0,
   // e.g., before the corrections for the nutation and for the aberration of light, as the deflection is a function
   // of the geometry of the Sun, the Earth and the target, and not of the apparent place of the Sun:
@@ -353,7 +351,7 @@ export const getCorrectionToEquatorialForLightDeflection = (
   // The magnitude of the deflection, e.g., the Schwarzschild radius of the Sun over the distance of the Sun,
   // divided by 1 + cos θ, held to the floor of 10⁻⁶ / max(d², 1) for a target behind the Sun, as eraLdsun holds
   // it (in radians):
-  const w = SRS / d / Math.max(1 + cosine, 1e-6 / Math.max(d * d, 1))
+  const w = SCHWARZSCHILD_RADIUS_OF_THE_SUN / d / Math.max(1 + cosine, 1e-6 / Math.max(d * d, 1))
 
   // The unit vector of the target, displaced away from the Sun by the deflection, e.g., along the component of
   // the direction from the Sun to the Earth at right angles to the target:
