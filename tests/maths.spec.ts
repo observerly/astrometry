@@ -14,7 +14,14 @@ import type { CartesianCoordinate, Matrix3 } from '../src/common'
 
 import { convertCartesianToEquatorial, convertEquatorialToCartesian } from '../src/coordinates'
 
-import { getMatrixProduct, getRotatedCartesianCoordinate, getRotationMatrix } from '../src/maths'
+import { getAngularSeparation } from '../src/astrometry'
+
+import {
+  doDotProduct,
+  getMatrixProduct,
+  getRotatedCartesianCoordinate,
+  getRotationMatrix
+} from '../src/maths'
 
 /*****************************************************************************************************************/
 
@@ -764,6 +771,195 @@ describe('getRotatedCartesianCoordinate', () => {
     expect(x).toBeNaN()
     expect(y).toBeNaN()
     expect(z).toBeNaN()
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('doDotProduct', () => {
+  it('should be defined', () => {
+    expect(doDotProduct).toBeDefined()
+  })
+
+  it('should return a number', () => {
+    expectTypeOf(doDotProduct({ x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 })).toEqualTypeOf<number>()
+  })
+
+  it('should return the literal dot product of two arbitrary vectors', () => {
+    // 1 · 4 + 2 · (−5) + 3 · 6 = 4 − 10 + 18 = 12:
+    expect(doDotProduct({ x: 1, y: 2, z: 3 }, { x: 4, y: -5, z: 6 })).toBe(12)
+  })
+
+  it('should return 1 for each unit axis with itself', () => {
+    expect(doDotProduct({ x: 1, y: 0, z: 0 }, { x: 1, y: 0, z: 0 })).toBe(1)
+    expect(doDotProduct({ x: 0, y: 1, z: 0 }, { x: 0, y: 1, z: 0 })).toBe(1)
+    expect(doDotProduct({ x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: 1 })).toBe(1)
+  })
+
+  it('should return 0 for each pair of distinct unit axes, e.g., as they are orthogonal', () => {
+    expect(doDotProduct({ x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 })).toBe(0)
+    expect(doDotProduct({ x: 0, y: 1, z: 0 }, { x: 0, y: 0, z: 1 })).toBe(0)
+    expect(doDotProduct({ x: 0, y: 0, z: 1 }, { x: 1, y: 0, z: 0 })).toBe(0)
+  })
+
+  it('should return 0 for an arbitrary pair of orthogonal vectors', () => {
+    // 2 · 3 + (−1) · 4 + 1 · (−2) = 6 − 4 − 2 = 0:
+    expect(doDotProduct({ x: 2, y: -1, z: 1 }, { x: 3, y: 4, z: -2 })).toBe(0)
+  })
+
+  it('should return 0 for the zero vector with any vector', () => {
+    expect(doDotProduct({ x: 0, y: 0, z: 0 }, { x: 0.3, y: -1.2, z: 2.5 })).toBe(0)
+    expect(doDotProduct({ x: 0.3, y: -1.2, z: 2.5 }, { x: 0, y: 0, z: 0 })).toBe(0)
+  })
+
+  it('should return the square of the length of a vector with itself', () => {
+    const vector = { x: 0.3, y: -1.2, z: 2.5 }
+    expect(doDotProduct(vector, vector)).toBeCloseTo(
+      Math.hypot(vector.x, vector.y, vector.z) ** 2,
+      14
+    )
+  })
+
+  it('should return the negated square of the length of a vector with its opposite', () => {
+    // 0.3² + 1.2² + 2.5² = 0.09 + 1.44 + 6.25 = 7.78:
+    expect(doDotProduct({ x: 0.3, y: -1.2, z: 2.5 }, { x: -0.3, y: 1.2, z: -2.5 })).toBeCloseTo(
+      -7.78,
+      14
+    )
+  })
+
+  it('should be positive for an acute angle, and negative for an obtuse angle, between two vectors', () => {
+    expect(doDotProduct({ x: 1, y: 0, z: 0 }, { x: 1, y: 1, z: 0 })).toBeGreaterThan(0)
+    expect(doDotProduct({ x: 1, y: 0, z: 0 }, { x: -1, y: 1, z: 0 })).toBeLessThan(0)
+  })
+
+  it('should be commutative, e.g., a · b = b · a', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    expect(doDotProduct(a, b)).toBe(doDotProduct(b, a))
+  })
+
+  it('should be distributive over the sum of two vectors, e.g., a · (b + c) = a · b + a · c', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const c = { x: 1.5, y: 2.25, z: -0.75 }
+
+    expect(doDotProduct(a, { x: b.x + c.x, y: b.y + c.y, z: b.z + c.z })).toBeCloseTo(
+      doDotProduct(a, b) + doDotProduct(a, c),
+      13
+    )
+  })
+
+  it('should scale with a scalar multiple of either vector, e.g., (ka) · b = k (a · b)', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const k = -3.5
+
+    expect(doDotProduct({ x: k * a.x, y: k * a.y, z: k * a.z }, b)).toBeCloseTo(
+      k * doDotProduct(a, b),
+      13
+    )
+    expect(doDotProduct(a, { x: k * b.x, y: k * b.y, z: k * b.z })).toBeCloseTo(
+      k * doDotProduct(a, b),
+      13
+    )
+  })
+
+  it('should return the element of a matrix for its row and the unit axis of its column', () => {
+    const R = getRotationMatrix('y', 40)
+
+    // The i-th component of R e_j is R[i][j], e.g., the dot product of e_i with the j-th column:
+    const column = getRotatedCartesianCoordinate(R, { x: 0, y: 0, z: 1 })
+
+    expect(doDotProduct({ x: 1, y: 0, z: 0 }, column)).toBe(R[0][2])
+    expect(doDotProduct({ x: 0, y: 1, z: 0 }, column)).toBe(R[1][2])
+    expect(doDotProduct({ x: 0, y: 0, z: 1 }, column)).toBe(R[2][2])
+  })
+
+  it('should be unchanged when both vectors are rotated by the same rotation about each axis', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    for (const axis of axes) {
+      for (const angle of angles) {
+        const R = getRotationMatrix(axis, angle)
+
+        expect(
+          doDotProduct(getRotatedCartesianCoordinate(R, a), getRotatedCartesianCoordinate(R, b))
+        ).toBeCloseTo(doDotProduct(a, b), 13)
+      }
+    }
+  })
+
+  it('should return the cosine of the angle between two unit directions on the celestial equator', () => {
+    // Two directions on the celestial equator, 60° apart in right ascension, e.g., cos 60° = 0.5:
+    expect(
+      doDotProduct(
+        convertEquatorialToCartesian({ ra: 0, dec: 0 }),
+        convertEquatorialToCartesian({ ra: 60, dec: 0 })
+      )
+    ).toBeCloseTo(0.5, 15)
+  })
+
+  it('should return the cosine of the angular separation of Vega and Altair', () => {
+    // The J2000.0 equatorial coordinates of Vega (α Lyrae) and Altair (α Aquilae):
+    const vega = { ra: 279.23473479, dec: 38.78368896 }
+
+    const altair = { ra: 297.6958273, dec: 8.8683212 }
+
+    const separation = getAngularSeparation(
+      { θ: vega.dec, φ: vega.ra },
+      { θ: altair.dec, φ: altair.ra }
+    )
+
+    expect(
+      doDotProduct(convertEquatorialToCartesian(vega), convertEquatorialToCartesian(altair))
+    ).toBeCloseTo(Math.cos((separation * Math.PI) / 180), 14)
+  })
+
+  it('should return the square of the equatorial radius of the Earth for the geocentric vector to its equator', () => {
+    // The equatorial radius of the Earth of WGS 84 (in metres), e.g., 6378137² = 40680631590769:
+    const vector = { x: 6378137, y: 0, z: 0 }
+
+    expect(doDotProduct(vector, vector)).toBe(40680631590769)
+  })
+
+  it('should not mutate either vector', () => {
+    const a = { x: 1, y: 2, z: 3 }
+
+    const b = { x: 4, y: -5, z: 6 }
+
+    doDotProduct(a, b)
+
+    expect(a).toEqual({ x: 1, y: 2, z: 3 })
+    expect(b).toEqual({ x: 4, y: -5, z: 6 })
+  })
+
+  it('should propagate a component that is NaN as NaN', () => {
+    expect(doDotProduct({ x: Number.NaN, y: 0, z: 1 }, { x: 1, y: 2, z: 3 })).toBeNaN()
+    expect(doDotProduct({ x: 1, y: 2, z: 3 }, { x: 1, y: Number.NaN, z: 3 })).toBeNaN()
+  })
+
+  it('should return NaN for an infinite component against a zero component, e.g., as ∞ · 0 is NaN', () => {
+    expect(
+      doDotProduct({ x: Number.POSITIVE_INFINITY, y: 0, z: 0 }, { x: 0, y: 1, z: 0 })
+    ).toBeNaN()
+  })
+
+  it('should return ±∞ for an infinite component against a non-zero component', () => {
+    expect(doDotProduct({ x: Number.POSITIVE_INFINITY, y: 0, z: 0 }, { x: 2, y: 0, z: 0 })).toBe(
+      Number.POSITIVE_INFINITY
+    )
+    expect(doDotProduct({ x: Number.POSITIVE_INFINITY, y: 0, z: 0 }, { x: -2, y: 0, z: 0 })).toBe(
+      Number.NEGATIVE_INFINITY
+    )
   })
 })
 
