@@ -67,7 +67,13 @@ describe('getSolarEquationOfCenter', () => {
 
   it('should return the correct Solar equation of center for the given date', () => {
     const C = getSolarEquationOfCenter(datetime)
-    expect(C).toBe(1.47546735889979)
+    expect(C).toBe(1.4748516050367209)
+  })
+
+  it('should return the Solar equation of center of Meeus Example 25.a for 1992 October 13.0 TD', () => {
+    // 1992 October 13.0 TD is 1992 October 12 23:59:00.816 UTC, e.g., TT − UTC = 27 s + 32.184 s:
+    const C = getSolarEquationOfCenter(new Date('1992-10-12T23:59:00.816Z'))
+    expect(C).toBeCloseTo(-1.89732, 5)
   })
 })
 
@@ -93,7 +99,7 @@ describe('getSolarTrueAnomaly', () => {
 
   it('should return the correct Solar true anomaly for the given date', () => {
     const ν = getSolarTrueAnomaly(datetime)
-    expect(ν).toBe(130.13715799347597)
+    expect(ν).toBe(130.1365422396129)
   })
 })
 
@@ -106,7 +112,7 @@ describe('getSolarTrueGeometricLongitude', () => {
 
   it('should return the correct Solar true geometric longitude for the given date', () => {
     const L = getSolarTrueGeometricLongitude(datetime)
-    expect(L).toBe(53.4411162405179)
+    expect(L).toBe(53.44050048665483)
   })
 })
 
@@ -120,7 +126,7 @@ describe('getSolarEclipticLongitude', () => {
   it('should return the correct Solar ecliptic longitude for the given date', () => {
     const datetime = new Date('2015-02-05T12:00:00.000+00:00')
     const λ = getSolarEclipticLongitude(datetime)
-    expect(λ).toBe(316.1046691201687)
+    expect(λ).toBe(316.1043289481397)
   })
 })
 
@@ -315,7 +321,7 @@ describe('getSolarDistance', () => {
 
     const R = getSolarDistance(d)
 
-    expect(R).toBeCloseTo(0.997661843191 * AU_IN_METERS, 0)
+    expect(R).toBeCloseTo(0.997661949974 * AU_IN_METERS, 0)
   })
 })
 
