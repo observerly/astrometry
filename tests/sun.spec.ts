@@ -54,7 +54,7 @@ describe('getSolarMeanAnomaly', () => {
 
   it('should return the correct Solar mean anomaly for the given date', () => {
     const M = getSolarMeanAnomaly(datetime)
-    expect(M).toBe(128.66090142411576)
+    expect(M).toBe(128.6616906345762)
   })
 })
 
@@ -67,7 +67,7 @@ describe('getSolarEquationOfCenter', () => {
 
   it('should return the correct Solar equation of center for the given date', () => {
     const C = getSolarEquationOfCenter(datetime)
-    expect(C).toBe(1.475483942359445)
+    expect(C).toBe(1.4754673589341347)
   })
 })
 
@@ -93,7 +93,7 @@ describe('getSolarTrueAnomaly', () => {
 
   it('should return the correct Solar true anomaly for the given date', () => {
     const ν = getSolarTrueAnomaly(datetime)
-    expect(ν).toBe(130.1363853664752)
+    expect(ν).toBe(130.13715799351033)
   })
 })
 
@@ -106,7 +106,7 @@ describe('getSolarTrueGeometricLongitude', () => {
 
   it('should return the correct Solar true geometric longitude for the given date', () => {
     const L = getSolarTrueGeometricLongitude(datetime)
-    expect(L).toBe(53.441132823977554)
+    expect(L).toBe(53.44111624055224)
   })
 })
 
@@ -120,7 +120,7 @@ describe('getSolarEclipticLongitude', () => {
   it('should return the correct Solar ecliptic longitude for the given date', () => {
     const datetime = new Date('2015-02-05T12:00:00.000+00:00')
     const λ = getSolarEclipticLongitude(datetime)
-    expect(λ).toBe(316.10388080739784)
+    expect(λ).toBe(316.10466912018575)
   })
 })
 
@@ -307,7 +307,11 @@ describe('getSolarDistance', () => {
     // differential w.r.t a time component. We set it to the date provided
     // on p.165 of Meeus, Jean. 1991. Astronomical algorithms.Richmond,
     // Va: Willmann - Bell.:
-    const d = new Date('1992-10-13T00:00:00.000+00:00')
+    //
+    // N.B. The example is given for 1992 October 13.0 TD, e.g., at 0h of Dynamical Time, which is 0h of
+    // Terrestrial Time, and so the date is the civil time of that instant, e.g., 59.184 seconds before
+    // 0h UTC, as the series is resolved at the Terrestrial Time of the date given:
+    const d = new Date('1992-10-12T23:59:00.816+00:00')
 
     const R = getSolarDistance(d)
 
