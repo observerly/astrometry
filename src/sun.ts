@@ -109,8 +109,8 @@ export const getSolarEquationOfCenter = (datetime: Date): number => {
 
   // Calculate the equation of center:
   const C =
-    (1.914602 - 0.004817 * T ** 2 - 0.000014 * T ** 3) * Math.sin(radians(M)) +
-    (0.019993 - 0.000101 * T ** 2) * Math.sin(radians(2 * M)) +
+    (1.914602 - 0.004817 * T - 0.000014 * T ** 2) * Math.sin(radians(M)) +
+    (0.019993 - 0.000101 * T) * Math.sin(radians(2 * M)) +
     0.000289 * Math.sin(radians(3 * M))
 
   return C
