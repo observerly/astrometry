@@ -302,6 +302,7 @@ export {
 
 export {
   doCrossProduct,
+  doDeterminant,
   doDotProduct,
   doTranspose,
   getMatrixProduct,
