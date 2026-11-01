@@ -31,10 +31,11 @@ import { getCorrectionToEquatorialForAnnualParallax } from '../../src/parallax'
 
 import {
   getCorrectionToEquatorialForFrameBias,
-  getCorrectionToEquatorialForPrecessionOfEquinoxes
+  getCorrectionToEquatorialForPrecessionOfEquinoxes,
+  getFrameBiasMatrix
 } from '../../src/precession'
 
-import { erfaCorrections, erfaInstants, erfaLightDeflections } from './erfa'
+import { ERFAFrameBiasMatrix, erfaCorrections, erfaInstants, erfaLightDeflections } from './erfa'
 
 /*****************************************************************************************************************/
 
@@ -346,6 +347,22 @@ describe('conformance of the nutation, the annual aberration and the annual para
       }
     }
   )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the frame bias matrix to ERFA', () => {
+  it('should agree with each element of the frame bias matrix of bp00', () => {
+    const B = getFrameBiasMatrix()
+
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        // N.B. The off-diagonal elements are of the order of 1e-7 radians, e.g., ~15 to ~17 mas, and so an
+        // agreement to 1e-18 is an agreement to ~0.2 nanoarcseconds:
+        expect(Math.abs(B[i][j] - ERFAFrameBiasMatrix[i][j])).toBeLessThan(i === j ? 1e-15 : 1e-18)
+      }
+    }
+  })
 })
 
 /*****************************************************************************************************************/

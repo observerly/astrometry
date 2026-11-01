@@ -6,9 +6,11 @@
 
 /*****************************************************************************************************************/
 
-import type { EquatorialCoordinate } from './common'
+import type { EquatorialCoordinate, Matrix3 } from './common'
 
 import { getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
+
+import { getMatrixProduct, getRotationMatrix } from './maths'
 
 import {
   convertRadiansToDegrees as degrees,
@@ -90,6 +92,60 @@ export const getCorrectionToEquatorialForFrameBias = (
     ra: getNormalizedAzimuthalDegree(degrees(Math.atan2(mean.y, mean.x)) - target.ra + 180) - 180,
     dec: degrees(Math.atan2(mean.z, Math.hypot(mean.x, mean.y))) - target.dec
   }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getFrameBiasMatrix()
+ *
+ * Resolves the frame bias matrix B of IAU 2000, e.g., the fixed rotation from the International
+ * Celestial Reference System (ICRS), which a modern catalogue coordinate is referred to, to the
+ * mean equator and equinox of J2000.0, which the precession of the equinoxes is referred from, as
+ * is defined by the iauBi00 and iauBp00 routines of the IAU SOFA library:
+ *
+ * B = R1(−δε₀) · R2(δψ₀ sin ε₀) · R3(δα₀)
+ *
+ * where δα₀ is the offset of the ICRS origin of right ascension from the mean equinox of
+ * J2000.0, and δψ₀ and δε₀ are the offsets of the ICRS pole from the mean pole of J2000.0 in
+ * longitude and in obliquity, respectively, referred to the mean obliquity of the ecliptic at
+ * J2000.0, ε₀.
+ *
+ * N.B. The frame bias is fixed, e.g., it is not a function of the date, and is of the order of
+ * 20 mas, such that the matrix differs from the identity by less than 1e-7 in each element.
+ *
+ * N.B. The transpose of the matrix is its inverse, e.g., Bᵀ rotates the mean equator and equinox
+ * of J2000.0 back into the ICRS.
+ *
+ * @returns The 3×3 frame bias matrix, in row-major order.
+ *
+ */
+export const getFrameBiasMatrix = (): Matrix3 => {
+  // The frame bias in right ascension of IAU 2000, e.g., the offset of the ICRS origin of right
+  // ascension from the mean equinox of J2000.0 (in degrees):
+  const δα0 = -0.0146 / 3600
+
+  // The frame bias in longitude of IAU 2000, e.g., the offset of the ICRS pole from the mean pole
+  // of J2000.0 in the direction of the mean equinox of J2000.0 (in degrees):
+  const δψ0 = -0.041775 / 3600
+
+  // The frame bias in obliquity of IAU 2000, e.g., the offset of the ICRS pole from the mean pole
+  // of J2000.0 at right angles to the mean equinox of J2000.0 (in degrees):
+  const δε0 = -0.0068192 / 3600
+
+  // The mean obliquity of the ecliptic at J2000.0 of IAU 1980, which the frame bias in longitude
+  // is referred to (in degrees):
+  const ε0 = 84381.448 / 3600
+
+  // The rotation about the z-axis is applied first, and the rotation about the x-axis last:
+  return getMatrixProduct(
+    getRotationMatrix('x', -δε0),
+    getMatrixProduct(
+      getRotationMatrix('y', δψ0 * Math.sin(radians(ε0))),
+      getRotationMatrix('z', δα0)
+    )
+  )
 }
 
 /*****************************************************************************************************************/
