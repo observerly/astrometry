@@ -374,3 +374,23 @@ export const doDeterminant = (m: Matrix3): number => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * IDENTITY_MATRIX
+ *
+ * The 3×3 identity matrix I, e.g., ones along the leading diagonal and zeros elsewhere, such that
+ * I · M = M · I = M for any 3×3 matrix M, and I v = v for any vector v, e.g., the transformation
+ * between a reference frame and itself, or the rotation of 0° about any axis.
+ *
+ * N.B. The matrix, and each of its rows, is frozen, e.g., as it is shared by every caller, and so an
+ * attempt to mutate it at runtime throws a TypeError, rather than corrupting it for every other.
+ *
+ */
+export const IDENTITY_MATRIX: Matrix3 = Object.freeze([
+  Object.freeze([1, 0, 0] as const),
+  Object.freeze([0, 1, 0] as const),
+  Object.freeze([0, 0, 1] as const)
+] as const)
+
+/*****************************************************************************************************************/
