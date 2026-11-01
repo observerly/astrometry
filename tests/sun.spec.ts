@@ -16,6 +16,7 @@ import {
   type EquatorialCoordinate,
   convertEclipticToEquatorial,
   getBarycentricJulianDate,
+  getBarycentricSolarVector,
   getEclipticPlane,
   getGeometricSolarVector,
   getHeliocentricJulianDate,
@@ -190,6 +191,20 @@ describe('getGeometricSolarVector', () => {
 
     expect(d).toBeGreaterThan(0.983)
     expect(d).toBeLessThan(1.017)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getBarycentricSolarVector', () => {
+  it('should be defined', () => {
+    expect(getBarycentricSolarVector).toBeDefined()
+  })
+
+  it('should displace the Sun from the barycentre by no more than ~0.01 astronomical units', () => {
+    const { x, y, z } = getBarycentricSolarVector(datetime)
+
+    expect(Math.hypot(x, y, z)).toBeLessThan(0.011)
   })
 })
 

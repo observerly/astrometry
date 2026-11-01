@@ -8,7 +8,6 @@
 
 export {
   getBarycentricEarthVelocity,
-  getBarycentricSolarVector,
   getCorrectionToEquatorialForAberration,
   getCorrectionToEquatorialForAnnualAberration,
   getCorrectionToEquatorialForDiurnalAberration,
@@ -490,6 +489,7 @@ export {
 
 export {
   getBarycentricJulianDate,
+  getBarycentricSolarVector,
   getEclipticPlane,
   getGeometricSolarVector,
   getHeliocentricJulianDate,

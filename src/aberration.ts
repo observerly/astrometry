@@ -14,83 +14,13 @@ import { AU_IN_METERS, c, EARTH_ANGULAR_VELOCITY, EARTH_RADIUS } from './constan
 
 import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './coordinates'
 
-import { getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
-
-import {
-  getPlanetaryHeliocentricDistance,
-  getPlanetaryHeliocentricEclipticLatitude,
-  getPlanetaryHeliocentricEclipticLongitude,
-  jupiter,
-  neptune,
-  saturn,
-  uranus
-} from './planets'
-
-import { getGeometricSolarVector } from './sun'
+import { getBarycentricSolarVector, getGeometricSolarVector } from './sun'
 
 import {
   convertRadiansToDegrees as degrees,
   getNormalizedAzimuthalDegree,
   convertDegreesToRadians as radians
 } from './utilities'
-
-/*****************************************************************************************************************/
-
-/**
- *
- * getBarycentricSolarVector()
- *
- * The position of the Sun about the barycentre of the Solar System, referred to the mean equator and equinox of
- * J2000.0, e.g., the reflex of the heliocentric positions of the giant planets, weighted by the ratio of the mass
- * of each to the mass of the Sun, which displaces the Sun by up to ~0.01 astronomical units, and moves it at up to
- * ~16 metres per second, as eraEpv00 of the IAU Standards of Fundamental Astronomy (SOFA) resolves the barycentric
- * place of the Earth from its heliocentric place.
- *
- * N.B. The terrestrial planets displace the Sun by less than a thousandth of the giant planets, and so they are
- * neglected.
- *
- * @param datetime - The date to resolve the position of the Sun for.
- * @returns The barycentric position of the Sun (in astronomical units).
- *
- */
-export const getBarycentricSolarVector = (datetime: Date): Required<CartesianCoordinate> => {
-  // The ratio of the mass of the Sun to the mass of the Earth, e.g., the masses of the planets are given relative
-  // to the Earth:
-  const SUN_TO_EARTH_MASS_RATIO = 332946.0487
-
-  // The mean obliquity of the ecliptic at J2000.0 of IAU 2006, e.g., the elements of the planets are referred to
-  // the ecliptic and equinox of J2000.0 (in degrees):
-  const ε = 84381.406 / 3600
-
-  const giants = [jupiter, saturn, uranus, neptune]
-
-  // The sum of the ratios of the masses of the giant planets to the mass of the Sun:
-  const M = giants.reduce((sum, planet) => sum + planet.m / SUN_TO_EARTH_MASS_RATIO, 0)
-
-  const position = { x: 0, y: 0, z: 0 }
-
-  for (const planet of giants) {
-    const μ = planet.m / SUN_TO_EARTH_MASS_RATIO
-
-    // The heliocentric position of the planet, referred to the ecliptic and equinox of J2000.0:
-    const r = getPlanetaryHeliocentricDistance(datetime, planet)
-
-    const ecliptic = convertEquatorialToCartesian({
-      ra: getPlanetaryHeliocentricEclipticLongitude(datetime, planet),
-      dec: getPlanetaryHeliocentricEclipticLatitude(datetime, planet)
-    })
-
-    // The heliocentric position of the planet, rotated into the mean equator and equinox of J2000.0:
-    const equatorial = getRotatedCartesianCoordinate(getRotationMatrix('x', -ε), ecliptic)
-
-    // The Sun is displaced from the barycentre opposite to the planet, by the ratio of the masses:
-    position.x -= (μ / (1 + M)) * r * equatorial.x
-    position.y -= (μ / (1 + M)) * r * equatorial.y
-    position.z -= (μ / (1 + M)) * r * equatorial.z
-  }
-
-  return position
-}
 
 /*****************************************************************************************************************/
 
