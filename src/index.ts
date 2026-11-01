@@ -13,8 +13,7 @@ export {
   getCorrectionToEquatorialForAnnualAberration,
   getCorrectionToEquatorialForDiurnalAberration,
   getCorrectionToEquatorialForLightDeflection,
-  getCorrectionToEquatorialForVelocityAberration,
-  getGeometricSolarVector
+  getCorrectionToEquatorialForVelocityAberration
 } from './aberration'
 
 /*****************************************************************************************************************/
@@ -492,6 +491,7 @@ export {
 export {
   getBarycentricJulianDate,
   getEclipticPlane,
+  getGeometricSolarVector,
   getHeliocentricJulianDate,
   getSolarAngularDiameter,
   getSolarDistance,

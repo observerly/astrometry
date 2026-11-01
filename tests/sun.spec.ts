@@ -17,6 +17,7 @@ import {
   convertEclipticToEquatorial,
   getBarycentricJulianDate,
   getEclipticPlane,
+  getGeometricSolarVector,
   getHeliocentricJulianDate,
   getJulianDate,
   getSolarAngularDiameter,
@@ -172,6 +173,23 @@ describe('getSolarGeometricEclipticCoordinate', () => {
 
     expect(apparent.β).toBe(β)
     expect(apparent.R).toBe(R)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getGeometricSolarVector', () => {
+  it('should be defined', () => {
+    expect(getGeometricSolarVector).toBeDefined()
+  })
+
+  it('should resolve the Sun at between perihelion and aphelion from the Earth', () => {
+    const { x, y, z } = getGeometricSolarVector(datetime)
+
+    const d = Math.hypot(x, y, z)
+
+    expect(d).toBeGreaterThan(0.983)
+    expect(d).toBeLessThan(1.017)
   })
 })
 
