@@ -448,10 +448,6 @@ describe('SatelliteRecord', () => {
     ).toThrowError(/Invalid mode: "i" is not one of "improved" or "afspc"/)
   })
 
-  it('should throw an SGP4Error for an orbit of the deep-space theory, which is not yet resolved', () => {
-    expect(() => new SatelliteRecord(geostationary)).toThrowError(SGP4Error)
-    expect(() => new SatelliteRecord(geostationary)).toThrowError(/deep-space theory/)
-  })
 
   it('should throw an SGP4DecayedError for an element set whose orbit has decayed at its epoch', () => {
     // A mean motion of 17.5 revolutions per day is of an orbit whose semi-major axis is less than
@@ -585,6 +581,32 @@ describe('getStateVectorAtMinutesSinceEpoch', () => {
     const { position } = new SatelliteRecord(iss).getStateVectorAtMinutesSinceEpoch(-1440)
 
     expect(Math.hypot(position.x, position.y, position.z)).toBeGreaterThan(6.6e6)
+  })
+
+  it('should resolve the state vector of a geostationary orbit by the deep-space theory', () => {
+    const { position, velocity } = new SatelliteRecord(geostationary).getStateVectorAtMinutesSinceEpoch(0)
+
+    // A geostationary orbit is of a radius of ~42,164 km, at ~3.07 km/s:
+    const radius = Math.hypot(position.x, position.y, position.z)
+
+    const speed = Math.hypot(velocity.x, velocity.y, velocity.z)
+
+    expect(radius).toBeGreaterThan(41.9e6)
+    expect(radius).toBeLessThan(42.4e6)
+    expect(speed).toBeGreaterThan(3.0e3)
+    expect(speed).toBeLessThan(3.15e3)
+  })
+
+  it('should propagate a deep-space orbit differently in each mode of operation', () => {
+    // The mode of operation displaces the sidereal angle at the epoch, which the resonance of a
+    // geosynchronous orbit is resolved against:
+    const improved = new SatelliteRecord(geostationary, { mode: 'improved' })
+
+    const afspc = new SatelliteRecord(geostationary, { mode: 'afspc' })
+
+    expect(afspc.getStateVectorAtMinutesSinceEpoch(1440)).not.toEqual(
+      improved.getStateVectorAtMinutesSinceEpoch(1440)
+    )
   })
 
   it('should propagate a near-Earth orbit alike in either mode of operation', () => {
