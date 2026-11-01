@@ -17,7 +17,7 @@ import { convertEquatorialToHorizontal } from './coordinates'
 
 import { getCoefficientOfEccentricity } from './earth'
 
-import { getNumberOfCenturiesSinceJ2000 } from './epoch'
+import { getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
 
 import {
   getLunarCorrectedEclipticLongitudeOfTheAscendingNode,
@@ -175,9 +175,13 @@ export const getLunarEclipse = (
         σ: number
       })
   | false => {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date:
+  const tt = getTerrestrialTime(datetime)
+
   // Get the difference in fractional Julian centuries between the target
   // date and J2000.0
-  const T = getNumberOfCenturiesSinceJ2000(datetime)
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // k represents the number of new moons since the standard epoch J2000:
   const k = snap(datetime, 0.5)

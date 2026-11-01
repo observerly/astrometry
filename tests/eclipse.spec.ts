@@ -53,6 +53,29 @@ describe('getLunarEclipse', () => {
     expect(eclipse.γ).toBeCloseTo(-1.3216)
   })
 
+  it('should resolve the lunar eclipse of 15th June 1973 at the Terrestrial Time of the given date', () => {
+    // Give me a location in Naples, Italy:
+    const observer = {
+      latitude: 40.8518,
+      longitude: 14.2681,
+      elevation: 0
+    }
+
+    // 1973 June 15 20:50:41 UTC is 20:51:25.184 TT, e.g., TT − UTC = 12 s + 32.184 s, and so the number of Julian
+    // centuries since J2000.0 is T = −0.2654519085152219, e.g., for k = −328.5,
+    // Ω = 124.7746 − 1.56375588 k + 0.0020672 T² + 0.00000215 T³ (mod 360):
+    const datetime = new Date('1973-06-15T20:50:41Z')
+
+    const eclipse = getLunarEclipse(datetime, observer)
+
+    if (!eclipse) {
+      throw new Error('Expected a lunar eclipse')
+    }
+
+    expect(eclipse.k).toBe(-328.5)
+    expect(eclipse.Ω).toBeCloseTo(278.4685522044447, 12)
+  })
+
   it('should return the lunar eclipse of 21st January 2000', () => {
     // Give me a location in New Mexico, USA:
     const observer = {
