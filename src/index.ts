@@ -435,6 +435,7 @@ export {
 export {
   getCorrectionToEquatorialForFrameBias,
   getCorrectionToEquatorialForPrecessionOfEquinoxes,
+  getFrameBiasMatrix,
   getPrecessionAngles
 } from './precession'
 

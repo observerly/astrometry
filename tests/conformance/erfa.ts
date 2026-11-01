@@ -27,6 +27,10 @@
 
 /*****************************************************************************************************************/
 
+import type { Matrix3 } from '../../src/common'
+
+/*****************************************************************************************************************/
+
 export interface ERFAStarReference {
   // The name of the star:
   name: string
@@ -926,6 +930,19 @@ export const erfaCorrections: ERFACorrectionReference[] = [
       }
     ]
   }
+]
+
+/*****************************************************************************************************************/
+
+// The frame bias matrix of IAU 2000, e.g., the fixed rotation from the ICRS to the mean equator and equinox of
+// J2000.0, as resolved by bp00 (the rb matrix of iauBp00), in row-major order.
+//
+// N.B. The frame bias of bp06 is resolved through the Fukushima-Williams angles at J2000.0, and differs from that
+// of bp00 by less than 1e-12, e.g., ~0.2 µas:
+export const ERFAFrameBiasMatrix: Matrix3 = [
+  [0.9999999999999942, -7.078279744199198e-8, 8.056217146976134e-8],
+  [7.078279477857338e-8, 0.9999999999999969, 3.3060414542221364e-8],
+  [-8.056217380986972e-8, -3.3060408839805523e-8, 0.9999999999999962]
 ]
 
 /*****************************************************************************************************************/

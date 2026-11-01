@@ -6,15 +6,25 @@
 
 /*****************************************************************************************************************/
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
 import {
+  convertCartesianToEquatorial,
+  convertEquatorialToCartesian,
+  doDeterminant,
+  doTranspose,
   type EquatorialCoordinate,
+  getAngularSeparation,
   getCorrectionToEquatorialForFrameBias,
   getCorrectionToEquatorialForPrecessionOfEquinoxes,
-  getPrecessionAngles
+  getFrameBiasMatrix,
+  getMatrixProduct,
+  getPrecessionAngles,
+  getRotatedCartesianCoordinate,
+  IDENTITY_MATRIX,
+  type Matrix3
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -160,6 +170,152 @@ describe('getCorrectionToEquatorialForFrameBias', () => {
       expect(Math.abs(correction.dec)).toBeLessThan(0.0001)
     }
   )
+})
+
+/*****************************************************************************************************************/
+
+describe('getFrameBiasMatrix', () => {
+  // The number of milliarcseconds in a radian, e.g., 180 / π × 3600 × 1000:
+  const mas = (180 / Math.PI) * 3600 * 1000
+
+  it('should be defined', () => {
+    expect(getFrameBiasMatrix).toBeDefined()
+  })
+
+  it('should return a Matrix3', () => {
+    const B = getFrameBiasMatrix()
+    expectTypeOf(B).toEqualTypeOf<Matrix3>()
+    expect(B).toHaveLength(3)
+    for (const row of B) {
+      expect(row).toHaveLength(3)
+      for (const element of row) {
+        expect(Number.isFinite(element)).toBe(true)
+      }
+    }
+  })
+
+  it('should have a determinant of 1, e.g., as it is a proper rotation', () => {
+    expect(doDeterminant(getFrameBiasMatrix())).toBeCloseTo(1, 15)
+  })
+
+  it('should be orthogonal, e.g., B · Bᵀ = Bᵀ · B = I', () => {
+    const B = getFrameBiasMatrix()
+
+    const BBᵀ = getMatrixProduct(B, doTranspose(B))
+
+    const BᵀB = getMatrixProduct(doTranspose(B), B)
+
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        expect(Math.abs(BBᵀ[i][j] - IDENTITY_MATRIX[i][j])).toBeLessThan(1e-15)
+        expect(Math.abs(BᵀB[i][j] - IDENTITY_MATRIX[i][j])).toBeLessThan(1e-15)
+      }
+    }
+  })
+
+  it('should be within ~1e-7 of the identity, but not equal to it, e.g., as the bias is of the order of 20 mas', () => {
+    const B = getFrameBiasMatrix()
+
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        const offset = Math.abs(B[i][j] - IDENTITY_MATRIX[i][j])
+        expect(offset).toBeGreaterThan(0)
+        expect(offset).toBeLessThan(1e-7)
+      }
+    }
+  })
+
+  it('should place the ICRS origin of right ascension at (+14.6, −16.617) mas in the mean frame of J2000.0', () => {
+    // The ICRS x-axis, e.g., the origin of right ascension of the ICRS, carried into the mean frame of J2000.0,
+    // where the mean equinox lies 14.6 mas to the west, e.g., the frame bias in right ascension, δα₀, of −14.6 mas:
+    const { ra, dec } = convertCartesianToEquatorial(
+      getRotatedCartesianCoordinate(getFrameBiasMatrix(), { x: 1, y: 0, z: 0 })
+    )
+
+    expect(ra * 3600 * 1000).toBeCloseTo(14.6, 5)
+
+    // N.B. The tilt of the pole towards the origin of right ascension, e.g., δψ₀ sin ε₀ of −16.617 mas, also
+    // tilts the origin of right ascension below the equator by the same angle:
+    expect(dec * 3600 * 1000).toBeCloseTo(
+      -41.775 * Math.sin((84381.448 / 3600) * (Math.PI / 180)),
+      6
+    )
+  })
+
+  it('should offset the ICRS pole from the mean pole of J2000.0 by (16.617, 6.8192) mas, e.g., (−δψ₀ sin ε₀, −δε₀)', () => {
+    // The ICRS pole, carried into the mean frame of J2000.0, e.g., the third column of the frame bias matrix:
+    const { x, y, z } = getRotatedCartesianCoordinate(getFrameBiasMatrix(), { x: 0, y: 0, z: 1 })
+
+    // The frame bias in longitude of −41.775 mas, projected onto the equator by sin ε₀ of IAU 1980:
+    expect(x * mas).toBeCloseTo(41.775 * Math.sin((84381.448 / 3600) * (Math.PI / 180)), 6)
+
+    // The frame bias in obliquity of −6.8192 mas:
+    expect(y * mas).toBeCloseTo(6.8192, 6)
+
+    // N.B. The pole is tilted by ~18 mas, and so z is its cosine, e.g., 1 − ~3.8e-15:
+    expect(z).toBeCloseTo(1, 14)
+  })
+
+  it('should displace any direction by no more than the ~23.147 mas of the whole rotation of the frame bias', () => {
+    const B = getFrameBiasMatrix()
+
+    // The angle of the whole rotation, e.g., the length of the rotation vector (δα₀, δψ₀ sin ε₀, δε₀) (in mas):
+    const limit = Math.hypot(14.6, 41.775 * Math.sin((84381.448 / 3600) * (Math.PI / 180)), 6.8192)
+
+    expect(limit).toBeCloseTo(23.147, 3)
+
+    for (const ra of [0, 45, 88.7929583, 137.25, 180, 279.23473479, 333.3]) {
+      for (const dec of [-89.9, -52.69566111, 0, 7.4070639, 38.78368896, 89.26410897]) {
+        const biased = convertCartesianToEquatorial(
+          getRotatedCartesianCoordinate(B, convertEquatorialToCartesian({ ra, dec }))
+        )
+
+        const separation = getAngularSeparation({ θ: dec, φ: ra }, { θ: biased.dec, φ: biased.ra })
+
+        expect(separation * 3600 * 1000).toBeLessThan(limit + 1e-6)
+      }
+    }
+  })
+
+  it.each([
+    { name: 'Betelgeuse', ra: 88.7929583, dec: 7.4070639 },
+    { name: 'Polaris', ra: 37.95456067, dec: 89.26410897 },
+    { name: 'Canopus', ra: 95.98787778, dec: -52.69566111 },
+    { name: 'Vega', ra: 279.23473479, dec: 38.78368896 },
+    { name: 'σ Octantis', ra: 317.19541667, dec: -88.9565 }
+  ])('should agree with getCorrectionToEquatorialForFrameBias for $name', ({ ra, dec }) => {
+    const correction = getCorrectionToEquatorialForFrameBias({ ra, dec })
+
+    const biased = convertCartesianToEquatorial(
+      getRotatedCartesianCoordinate(getFrameBiasMatrix(), convertEquatorialToCartesian({ ra, dec }))
+    )
+
+    expect(biased.ra).toBeCloseTo(ra + correction.ra, 10)
+    expect(biased.dec).toBeCloseTo(dec + correction.dec, 10)
+  })
+
+  it('should be undone by its transpose, e.g., Bᵀ (B v) = v, from the mean frame of J2000.0 back to the ICRS', () => {
+    const vega = convertEquatorialToCartesian({ ra: 279.23473479, dec: 38.78368896 })
+
+    const B = getFrameBiasMatrix()
+
+    const { x, y, z } = getRotatedCartesianCoordinate(
+      doTranspose(B),
+      getRotatedCartesianCoordinate(B, vega)
+    )
+
+    expect(x).toBeCloseTo(vega.x, 15)
+    expect(y).toBeCloseTo(vega.y, 15)
+    expect(z).toBeCloseTo(vega.z, 15)
+  })
+
+  it('should return the same matrix on each call, e.g., as the frame bias is fixed, and not a function of the date', () => {
+    expect(getFrameBiasMatrix()).toEqual(getFrameBiasMatrix())
+  })
+
+  it('should return a new matrix on each call, and not a shared reference', () => {
+    expect(getFrameBiasMatrix()).not.toBe(getFrameBiasMatrix())
+  })
 })
 
 /*****************************************************************************************************************/
