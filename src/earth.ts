@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { getJulianDate } from './epoch'
+import { getNumberOfCenturiesSinceJ2000 } from './epoch'
 
 import type { Planet } from './planets'
 
@@ -58,11 +58,8 @@ export const R = [R0, R1, R2, R3, R4]
  *
  */
 export const getEccentricityOfOrbit = (datetime: Date): number => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
-
   // Get the difference in fractional Julian centuries between the target date and J2000.0
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(datetime)
 
   // Get the eccentricity of the Earth's orbit
   return 0.0167086342 - 0.000042037 * T - ((0.0000001267 * T ** 2) % 360)
@@ -85,11 +82,8 @@ export const getEccentricityOfOrbit = (datetime: Date): number => {
  *
  */
 export const getObliquityOfEcliptic = (datetime: Date): number => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
-
   // Get the difference in fractional Julian centuries between the target date and J2000.0
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(datetime)
 
   // Get the obliquity of the ecliptic
   return (
@@ -116,11 +110,8 @@ export const getObliquityOfEcliptic = (datetime: Date): number => {
  * @returns The coefficient of eccentricity of the Earth's orbit
  */
 export const getCoefficientOfEccentricity = (datetime: Date): number => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
-
   // Get the difference in fractional Julian centuries between the target date and J2000.0
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(datetime)
 
   // Get the coefficient of the eccentricity of the Earth's orbit:
   return 1 - 0.002516 * T - 0.0000074 * T ** 2

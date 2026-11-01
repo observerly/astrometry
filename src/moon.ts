@@ -18,7 +18,7 @@ import { earth } from './earth'
 
 import { getObliquityOfTheEcliptic } from './ecliptic'
 
-import { getJulianDate } from './epoch'
+import { getJulianDate, getNumberOfCenturiesSinceJ2000 } from './epoch'
 
 import { getFOrbitalParameter } from './orbit'
 
@@ -154,11 +154,8 @@ export const getLunarAnnualEquationCorrection = (datetime: Date): number => {
  *
  */
 export const getLunarMeanAnomaly = (datetime: Date): number => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
-
   // Calculate the number of centuries since J2000.0:
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(datetime)
 
   // Get the Moon's mean anomaly at the current epoch relative to J2000:
   let M =
@@ -187,11 +184,8 @@ export const getLunarMeanAnomaly = (datetime: Date): number => {
  *
  */
 export const getLunarMeanGeometricLongitude = (datetime: Date): number => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
-
   // Calculate the number of centuries since J2000.0:
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(datetime)
 
   let l =
     (218.3164477 + 481267.88123421 * T - 0.0015786 * T ** 2 + T ** 3 / 538841 - T ** 4 / 65194000) %
@@ -219,11 +213,8 @@ export const getLunarMeanGeometricLongitude = (datetime: Date): number => {
  *
  */
 export const getLunarArgumentOfLatitude = (datetime: Date): number => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
-
   // Calculate the number of centuries since J2000.0:
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(datetime)
 
   // k represents the number of new moons since the standard epoch J2000:
   const k = Math.round(T * 1236.85)

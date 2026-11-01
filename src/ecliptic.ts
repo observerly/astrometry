@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { getJulianDate, getTerrestrialTime } from './epoch'
+import { getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
 
 /*****************************************************************************************************************/
 
@@ -24,10 +24,10 @@ import { getJulianDate, getTerrestrialTime } from './epoch'
 export const getObliquityOfTheEcliptic = (datetime: Date): number => {
   // The polynomial is referred to Terrestrial Time, and so it is resolved at the Terrestrial Time of the given
   // date, as the nutation it is corrected by is:
-  const JD = getJulianDate(getTerrestrialTime(datetime))
+  const tt = getTerrestrialTime(datetime)
 
   // Calculate the number of centuries since J2000.0:
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // Calculate the obliquity of the ecliptic, e.g., the mean obliquity of IAU 2006, converted from arcseconds to
   // degrees:

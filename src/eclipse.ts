@@ -17,7 +17,7 @@ import { convertEquatorialToHorizontal } from './coordinates'
 
 import { getCoefficientOfEccentricity } from './earth'
 
-import { getJulianDate } from './epoch'
+import { getNumberOfCenturiesSinceJ2000 } from './epoch'
 
 import {
   getLunarCorrectedEclipticLongitudeOfTheAscendingNode,
@@ -175,12 +175,9 @@ export const getLunarEclipse = (
         σ: number
       })
   | false => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
-
   // Get the difference in fractional Julian centuries between the target
   // date and J2000.0
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(datetime)
 
   // k represents the number of new moons since the standard epoch J2000:
   const k = snap(datetime, 0.5)
@@ -354,12 +351,9 @@ export const getSolarEclipse = (
   | (Eclipse &
       EquatorialCoordinate & { k: number; JD: number; F: number; Ω: number; γ: number; u: number })
   | false => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
-
   // Get the difference in fractional Julian centuries between the target
   // date and J2000.0
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(datetime)
 
   // k represents the number of new moons since the standard epoch J2000:
   const k = snap(datetime, 0)
