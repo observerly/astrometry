@@ -18,7 +18,7 @@ import { earth } from './earth'
 
 import { getObliquityOfTheEcliptic } from './ecliptic'
 
-import { getJulianDate, getNumberOfCenturiesSinceJ2000 } from './epoch'
+import { getJulianDate, getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
 
 import { getFOrbitalParameter } from './orbit'
 
@@ -154,8 +154,12 @@ export const getLunarAnnualEquationCorrection = (datetime: Date): number => {
  *
  */
 export const getLunarMeanAnomaly = (datetime: Date): number => {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date:
+  const tt = getTerrestrialTime(datetime)
+
   // Calculate the number of centuries since J2000.0:
-  const T = getNumberOfCenturiesSinceJ2000(datetime)
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // Get the Moon's mean anomaly at the current epoch relative to J2000:
   let M =

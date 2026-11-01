@@ -69,7 +69,13 @@ describe('getLunarMeanAnomaly', () => {
 
   it('should return the correct Lunar mean anomaly for the given date', () => {
     const M = getLunarMeanAnomaly(datetime)
-    expect(M).toBe(207.63633585681964)
+    expect(M).toBe(207.64679753119708)
+  })
+
+  it('should return the Lunar mean anomaly of Meeus Example 47.a for 1992 April 12.0 TD', () => {
+    // 1992 April 12.0 TD is 1992 April 11 23:59:01.816 UTC, e.g., TT − UTC = 26 s + 32.184 s:
+    const M = getLunarMeanAnomaly(new Date('1992-04-11T23:59:01.816Z'))
+    expect(M).toBeCloseTo(5.150833, 4)
   })
 })
 
@@ -133,7 +139,7 @@ describe('getLunarEvectionCorrection', () => {
 
   it('should return the correct Lunar evection correction for the given date', () => {
     const Ev = getLunarEvectionCorrection(datetime)
-    expect(Ev).toBe(-0.558045992102503)
+    expect(Ev).toBe(-0.557836886125)
   })
 })
 
@@ -167,7 +173,7 @@ describe('getLunarMeanAnomalyCorrection', () => {
 
   it('should return the correct Lunar mean anomaly correction for the given date', () => {
     const Ac = getLunarMeanAnomalyCorrection(datetime)
-    expect(Ac).toBe(206.64429438766146)
+    expect(Ac).toBe(206.65496516801642)
   })
 })
 
@@ -180,7 +186,7 @@ describe('getLunarTrueAnomaly', () => {
 
   it('should return the correct Lunar true anomaly for the given date', () => {
     const ν = getLunarTrueAnomaly(datetime)
-    expect(ν).toBe(357.35143052675875)
+    expect(ν).toBe(357.3504313945242)
   })
 })
 
@@ -193,7 +199,7 @@ describe('getLunarTrueEclipticLongitude', () => {
 
   it('should return the correct Lunar true ecliptic longitude for the given date', () => {
     const λ = getLunarTrueEclipticLongitude(datetime)
-    expect(λ).toBe(77.01224576022344)
+    expect(λ).toBe(77.01144333266842)
   })
 })
 
@@ -219,7 +225,7 @@ describe('getLunarEclipticLongitude', () => {
 
   it('should return the correct Lunar ecliptic longitude for the given date', () => {
     const λ = getLunarEclipticLongitude(datetime)
-    expect(λ).toBe(76.99093639675651)
+    expect(λ).toBe(76.99013714750532)
   })
 })
 
@@ -232,7 +238,7 @@ describe('getLunarEclipticLatitude', () => {
 
   it('should return the correct Lunar ecliptic latitude for the given date', () => {
     const β = getLunarEclipticLatitude(datetime)
-    expect(β).toBe(0.47629490442529826)
+    expect(β).toBe(0.476223247242901)
   })
 })
 
@@ -245,8 +251,8 @@ describe('getLunarEclipticCoordinate', () => {
 
   it('should return the correct Lunar ecliptic coordinate for the given date', () => {
     const { λ, β } = getLunarEclipticCoordinate(datetime)
-    expect(λ).toBe(76.99093639675651)
-    expect(β).toBe(0.47629490442529826)
+    expect(λ).toBe(76.99013714750532)
+    expect(β).toBe(0.476223247242901)
   })
 })
 
@@ -260,8 +266,8 @@ describe('getLunarEquatorialCoordinate', () => {
   it('should return the correct Lunar equatorial coordinate for the given date', () => {
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const { ra, dec } = getLunarEquatorialCoordinate(datetime)
-    expect(ra).toBe(63.85417495452368)
-    expect(dec).toBe(17.24581087785214)
+    expect(ra).toBe(63.85440996232972)
+    expect(dec).toBe(17.24583774172551)
   })
 })
 
@@ -275,7 +281,7 @@ describe('getLunarElongation', () => {
   it('should return the correct Lunar elongation for the given date', () => {
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const E = getLunarElongation(datetime)
-    expect(E).toBe(143.73314591273768)
+    expect(E).toBe(143.73336935525546)
   })
 })
 
@@ -289,7 +295,7 @@ describe('getLunarAngularDiameter', () => {
   it('should return the correct Lunar angular diameter for the given date', () => {
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const δ = getLunarAngularDiameter(datetime)
-    expect(δ).toBe(0.5480234986125895)
+    expect(δ).toBe(0.548023498472043)
   })
 
   it('should return the correct Lunar angular diameter for the given date in 1977 from Meeus', () => {
@@ -315,7 +321,7 @@ describe('getLunarDistance', () => {
   it('should return the correct Lunar distance for the given date', () => {
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const Δ = getLunarDistance(datetime)
-    expect(Δ).toBe(363410767.064186)
+    expect(Δ).toBe(363410767.15738654)
   })
 })
 
@@ -329,8 +335,8 @@ describe('getLunarAge', () => {
   it('should return the correct Lunar age for the given date', () => {
     const datetime = new Date('2015-01-01T00:00:00.000+00:00')
     const { A, age } = getLunarAge(datetime)
-    expect(A).toBe(130.40172426964648)
-    expect(age).toBe(10.696780996436729)
+    expect(A).toBe(130.40224609728125)
+    expect(age).toBe(10.696823801667705)
   })
 })
 
@@ -344,7 +350,7 @@ describe('getLunarPhaseAngle', () => {
   it('should return the correct Lunar phase angle for the given date', () => {
     const datetime = new Date('2015-01-01T00:00:00.000+00:00')
     const PA = getLunarPhaseAngle(datetime)
-    expect(PA).toBe(49.66523469737639)
+    expect(PA).toBe(49.664717529444054)
   })
 })
 
@@ -358,7 +364,7 @@ describe('getLunarIllumination', () => {
   it('should return the correct Lunar illumination for the given date', () => {
     const datetime = new Date('2015-01-01T00:00:00.000+00:00')
     const K = getLunarIllumination(datetime)
-    expect(K).toBe(82.3626211957544)
+    expect(K).toBe(82.36296522027031)
   })
 })
 
@@ -473,7 +479,7 @@ describe('getNextNewMoon', () => {
 
   it('should return the correct date of the next New Moon', () => {
     const nextNewMoon = getNextNewMoon(datetime)
-    expect(nextNewMoon.toISOString()).toBe('2021-06-10T10:54:20.000Z')
+    expect(nextNewMoon.toISOString()).toBe('2021-06-10T10:54:30.000Z')
   })
 
   it('should return a new Moon that is still to come for a datetime just after one', () => {
@@ -504,7 +510,7 @@ describe('getNextFullMoon', () => {
 
   it('should return the correct date of the next Full Moon', () => {
     const nextFullMoon = getNextFullMoon(datetime)
-    expect(nextFullMoon.toISOString()).toBe('2021-05-26T11:31:30.000Z')
+    expect(nextFullMoon.toISOString()).toBe('2021-05-26T11:31:20.000Z')
   })
 
   it('should return a full Moon that is still to come for a datetime just after one', () => {
