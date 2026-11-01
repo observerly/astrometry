@@ -284,3 +284,36 @@ export const doDotProduct = (
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * doCrossProduct()
+ *
+ * Resolves the cross product a × b of two cartesian vectors, e.g., the vector orthogonal to both of
+ * them, in the direction given by the right-hand rule, such that x × y = z, y × z = x and z × x = y,
+ * with a length of |a| |b| sin θ, where θ is the angle between them.
+ *
+ * N.B. The cross product is anticommutative, e.g., a × b = −(b × a), and so the order of the two
+ * vectors matters, and it is the zero vector for two parallel vectors, e.g., for a vector with itself.
+ *
+ * N.B. The cross product of two directions on the celestial sphere is the pole of the great circle
+ * through them, e.g., the north celestial pole for two directions on the celestial equator, as is
+ * taken in order of increasing right ascension.
+ *
+ * @param a - The first cartesian vector, e.g., { x, y, z }.
+ * @param b - The second cartesian vector, e.g., { x, y, z }.
+ * @returns The cross product a × b of the two vectors, e.g., { x, y, z }.
+ *
+ */
+export const doCrossProduct = (
+  a: Required<CartesianCoordinate>,
+  b: Required<CartesianCoordinate>
+): Required<CartesianCoordinate> => {
+  return {
+    x: a.y * b.z - a.z * b.y,
+    y: a.z * b.x - a.x * b.z,
+    z: a.x * b.y - a.y * b.x
+  }
+}
+
+/*****************************************************************************************************************/

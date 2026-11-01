@@ -301,6 +301,7 @@ export {
 /*****************************************************************************************************************/
 
 export {
+  doCrossProduct,
   doDotProduct,
   getMatrixProduct,
   getRotatedCartesianCoordinate,

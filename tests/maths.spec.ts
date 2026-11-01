@@ -17,6 +17,7 @@ import { convertCartesianToEquatorial, convertEquatorialToCartesian } from '../s
 import { getAngularSeparation } from '../src/astrometry'
 
 import {
+  doCrossProduct,
   doDotProduct,
   getMatrixProduct,
   getRotatedCartesianCoordinate,
@@ -960,6 +961,310 @@ describe('doDotProduct', () => {
     expect(doDotProduct({ x: Number.POSITIVE_INFINITY, y: 0, z: 0 }, { x: -2, y: 0, z: 0 })).toBe(
       Number.NEGATIVE_INFINITY
     )
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('doCrossProduct', () => {
+  it('should be defined', () => {
+    expect(doCrossProduct).toBeDefined()
+  })
+
+  it('should return a Required<CartesianCoordinate>', () => {
+    expectTypeOf(doCrossProduct({ x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 })).toEqualTypeOf<
+      Required<CartesianCoordinate>
+    >()
+  })
+
+  it('should return the literal cross product of two arbitrary vectors', () => {
+    // (2 · 6 − 3 · (−5), 3 · 4 − 1 · 6, 1 · (−5) − 2 · 4) = (27, 6, −13):
+    expect(doCrossProduct({ x: 1, y: 2, z: 3 }, { x: 4, y: -5, z: 6 })).toEqual({
+      x: 27,
+      y: 6,
+      z: -13
+    })
+  })
+
+  it('should be right-handed for the unit axes, e.g., x × y = z, y × z = x and z × x = y', () => {
+    // The unit vector along the x-axis:
+    const x = { x: 1, y: 0, z: 0 }
+
+    // The unit vector along the y-axis:
+    const y = { x: 0, y: 1, z: 0 }
+
+    // The unit vector along the z-axis:
+    const z = { x: 0, y: 0, z: 1 }
+
+    expect(doCrossProduct(x, y)).toEqual(z)
+
+    expect(doCrossProduct(y, z)).toEqual(x)
+
+    expect(doCrossProduct(z, x)).toEqual(y)
+  })
+
+  it('should return the negated axis for the unit axes in the reverse order, e.g., y × x = −z', () => {
+    const { x, y, z } = doCrossProduct({ x: 0, y: 1, z: 0 }, { x: 1, y: 0, z: 0 })
+    expect(x).toBeCloseTo(0, 15)
+    expect(y).toBeCloseTo(0, 15)
+    expect(z).toBe(-1)
+  })
+
+  it('should be anticommutative, e.g., a × b = −(b × a)', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const ab = doCrossProduct(a, b)
+
+    const ba = doCrossProduct(b, a)
+
+    expect(ab.x).toBe(-ba.x)
+    expect(ab.y).toBe(-ba.y)
+    expect(ab.z).toBe(-ba.z)
+  })
+
+  it('should return the zero vector for a vector with itself', () => {
+    expect(doCrossProduct({ x: 0.3, y: -1.2, z: 2.5 }, { x: 0.3, y: -1.2, z: 2.5 })).toEqual({
+      x: 0,
+      y: 0,
+      z: 0
+    })
+  })
+
+  it('should return the zero vector for two parallel vectors', () => {
+    const { x, y, z } = doCrossProduct({ x: 1, y: 2, z: 3 }, { x: -2, y: -4, z: -6 })
+    expect(x).toBeCloseTo(0, 15)
+    expect(y).toBeCloseTo(0, 15)
+    expect(z).toBeCloseTo(0, 15)
+  })
+
+  it('should return the zero vector for the zero vector with any vector', () => {
+    const { x, y, z } = doCrossProduct({ x: 0, y: 0, z: 0 }, { x: 0.3, y: -1.2, z: 2.5 })
+    expect(x).toBeCloseTo(0, 15)
+    expect(y).toBeCloseTo(0, 15)
+    expect(z).toBeCloseTo(0, 15)
+  })
+
+  it('should be orthogonal to both vectors', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const c = doCrossProduct(a, b)
+
+    expect(doDotProduct(c, a)).toBeCloseTo(0, 13)
+    expect(doDotProduct(c, b)).toBeCloseTo(0, 13)
+  })
+
+  it('should have the length |a| |b| sin θ, e.g., 0.5 for two unit vectors 30° apart', () => {
+    const { x, y, z } = doCrossProduct(
+      convertEquatorialToCartesian({ ra: 0, dec: 0 }),
+      convertEquatorialToCartesian({ ra: 30, dec: 0 })
+    )
+
+    expect(Math.hypot(x, y, z)).toBeCloseTo(0.5, 15)
+  })
+
+  it("should satisfy Lagrange's identity, e.g., |a × b|² + (a · b)² = |a|² |b|²", () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const c = doCrossProduct(a, b)
+
+    expect(doDotProduct(c, c) + doDotProduct(a, b) ** 2).toBeCloseTo(
+      doDotProduct(a, a) * doDotProduct(b, b),
+      12
+    )
+  })
+
+  it('should be distributive over the sum of two vectors, e.g., a × (b + c) = a × b + a × c', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const c = { x: 1.5, y: 2.25, z: -0.75 }
+
+    const sum = doCrossProduct(a, { x: b.x + c.x, y: b.y + c.y, z: b.z + c.z })
+
+    const ab = doCrossProduct(a, b)
+
+    const ac = doCrossProduct(a, c)
+
+    expect(sum.x).toBeCloseTo(ab.x + ac.x, 13)
+    expect(sum.y).toBeCloseTo(ab.y + ac.y, 13)
+    expect(sum.z).toBeCloseTo(ab.z + ac.z, 13)
+  })
+
+  it('should scale with a scalar multiple of either vector, e.g., (ka) × b = k (a × b)', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const k = -3.5
+
+    const ab = doCrossProduct(a, b)
+
+    for (const scaled of [
+      doCrossProduct({ x: k * a.x, y: k * a.y, z: k * a.z }, b),
+      doCrossProduct(a, { x: k * b.x, y: k * b.y, z: k * b.z })
+    ]) {
+      expect(scaled.x).toBeCloseTo(k * ab.x, 13)
+      expect(scaled.y).toBeCloseTo(k * ab.y, 13)
+      expect(scaled.z).toBeCloseTo(k * ab.z, 13)
+    }
+  })
+
+  it('should not be associative, e.g., (x × x) × y = 0 whereas x × (x × y) = −y', () => {
+    const i = { x: 1, y: 0, z: 0 }
+
+    const j = { x: 0, y: 1, z: 0 }
+
+    const left = doCrossProduct(doCrossProduct(i, i), j)
+
+    const right = doCrossProduct(i, doCrossProduct(i, j))
+
+    expect(Math.hypot(left.x, left.y, left.z)).toBe(0)
+
+    expect(right.x).toBeCloseTo(0, 15)
+    expect(right.y).toBe(-1)
+    expect(right.z).toBeCloseTo(0, 15)
+  })
+
+  it('should return the literal scalar triple product a · (b × c), e.g., the determinant of [a; b; c]', () => {
+    const a = { x: 1, y: 2, z: 3 }
+
+    const b = { x: 4, y: -5, z: 6 }
+
+    const c = { x: 7, y: 8, z: 10 }
+
+    // det [[1, 2, 3], [4, −5, 6], [7, 8, 10]] = 1 · (−98) − 2 · (−2) + 3 · 67 = 107:
+    expect(doDotProduct(a, doCrossProduct(b, c))).toBe(107)
+  })
+
+  it('should keep the scalar triple product under a cyclic permutation, e.g., a · (b × c) = b · (c × a) = c · (a × b)', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const c = { x: 1.5, y: 2.25, z: -0.75 }
+
+    const abc = doDotProduct(a, doCrossProduct(b, c))
+
+    expect(doDotProduct(b, doCrossProduct(c, a))).toBeCloseTo(abc, 12)
+    expect(doDotProduct(c, doCrossProduct(a, b))).toBeCloseTo(abc, 12)
+  })
+
+  it('should commute with a rotation about each axis, e.g., R (a × b) = (R a) × (R b)', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    for (const axis of axes) {
+      for (const angle of angles) {
+        const R = getRotationMatrix(axis, angle)
+
+        const rotated = getRotatedCartesianCoordinate(R, doCrossProduct(a, b))
+
+        const product = doCrossProduct(
+          getRotatedCartesianCoordinate(R, a),
+          getRotatedCartesianCoordinate(R, b)
+        )
+
+        expect(product.x).toBeCloseTo(rotated.x, 13)
+        expect(product.y).toBeCloseTo(rotated.y, 13)
+        expect(product.z).toBeCloseTo(rotated.z, 13)
+      }
+    }
+  })
+
+  it('should return the north celestial pole for two directions on the celestial equator 90° apart', () => {
+    const { ra, dec } = convertCartesianToEquatorial(
+      doCrossProduct(
+        convertEquatorialToCartesian({ ra: 0, dec: 0 }),
+        convertEquatorialToCartesian({ ra: 90, dec: 0 })
+      )
+    )
+
+    expect(ra).toBe(0)
+    expect(dec).toBeCloseTo(90, 13)
+  })
+
+  it('should return the north ecliptic pole for the vernal equinox crossed with the ecliptic at a longitude of 90°', () => {
+    // The mean obliquity of the ecliptic at J2000.0:
+    const ε = 23.4392911
+
+    // The direction of the ecliptic at a longitude of 90°, e.g., the y-axis of the ecliptic frame in equatorial
+    // coordinates:
+    const solstice = getRotatedCartesianCoordinate(getRotationMatrix('x', -ε), { x: 0, y: 1, z: 0 })
+
+    // The north ecliptic pole lies at a right ascension of 18h (270°) and a declination of 90° − ε:
+    const { ra, dec } = convertCartesianToEquatorial(doCrossProduct({ x: 1, y: 0, z: 0 }, solstice))
+
+    expect(ra).toBeCloseTo(270, 12)
+    expect(dec).toBeCloseTo(90 - ε, 12)
+  })
+
+  it('should have the length of the sine of the angular separation of Vega and Altair', () => {
+    // The J2000.0 equatorial coordinates of Vega (α Lyrae) and Altair (α Aquilae):
+    const vega = { ra: 279.23473479, dec: 38.78368896 }
+
+    const altair = { ra: 297.6958273, dec: 8.8683212 }
+
+    const separation = getAngularSeparation(
+      { θ: vega.dec, φ: vega.ra },
+      { θ: altair.dec, φ: altair.ra }
+    )
+
+    const { x, y, z } = doCrossProduct(
+      convertEquatorialToCartesian(vega),
+      convertEquatorialToCartesian(altair)
+    )
+
+    expect(Math.hypot(x, y, z)).toBeCloseTo(Math.sin((separation * Math.PI) / 180), 14)
+  })
+
+  it('should not mutate either vector', () => {
+    const a = { x: 1, y: 2, z: 3 }
+
+    const b = { x: 4, y: -5, z: 6 }
+
+    doCrossProduct(a, b)
+
+    expect(a).toEqual({ x: 1, y: 2, z: 3 })
+    expect(b).toEqual({ x: 4, y: -5, z: 6 })
+  })
+
+  it('should return a new vector, and not either vector given', () => {
+    const a = { x: 1, y: 2, z: 3 }
+
+    const b = { x: 4, y: -5, z: 6 }
+
+    const c = doCrossProduct(a, b)
+
+    expect(c).not.toBe(a)
+    expect(c).not.toBe(b)
+  })
+
+  it('should propagate a component that is NaN as NaN to the other two components alone', () => {
+    // The x-component, e.g., a.y · b.z − a.z · b.y, does not depend on a.x:
+    const { x, y, z } = doCrossProduct({ x: Number.NaN, y: 2, z: 3 }, { x: 4, y: -5, z: 6 })
+
+    expect(x).toBe(27)
+    expect(y).toBeNaN()
+    expect(z).toBeNaN()
+  })
+
+  it('should return NaN for an infinite component against a zero component, e.g., as ∞ · 0 is NaN', () => {
+    const { x, y, z } = doCrossProduct(
+      { x: Number.POSITIVE_INFINITY, y: 0, z: 0 },
+      { x: 0, y: 1, z: 0 }
+    )
+
+    expect(x).toBe(0)
+    expect(y).toBeNaN()
+    expect(z).toBe(Number.POSITIVE_INFINITY)
   })
 })
 
