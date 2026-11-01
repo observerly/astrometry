@@ -14,8 +14,6 @@ import { AU_IN_METERS, c, EARTH_ANGULAR_VELOCITY, EARTH_RADIUS } from './constan
 
 import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './coordinates'
 
-import { getObliquityOfTheEcliptic } from './ecliptic'
-
 import { getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
 
 import {
@@ -28,67 +26,13 @@ import {
   uranus
 } from './planets'
 
-import { getPrecessionAngles } from './precession'
-
-import { getSolarGeometricEclipticCoordinate } from './sun'
+import { getGeometricSolarVector } from './sun'
 
 import {
   convertRadiansToDegrees as degrees,
   getNormalizedAzimuthalDegree,
   convertDegreesToRadians as radians
 } from './utilities'
-
-/*****************************************************************************************************************/
-
-/**
- *
- * getGeometricSolarVector()
- *
- * The geometric position of the Sun from the centre of the Earth, referred to the mean equator and equinox of
- * J2000.0, e.g., the geometric ecliptic coordinate of the Sun of the VSOP87 theory, rotated by the mean obliquity
- * of the ecliptic of the date into the mean equator and equinox of the date, and carried back to J2000.0 by the
- * transpose of the precession matrix of IAU 2006, R3(ζ)·R2(−θ)·R3(z), which refers both the precession of the
- * equator and the precession of the ecliptic back to J2000.0.
- *
- * @param datetime - The date to resolve the position of the Sun for.
- * @returns The geocentric position of the Sun (in astronomical units).
- *
- */
-export const getGeometricSolarVector = (datetime: Date): Required<CartesianCoordinate> => {
-  // Get the geometric ecliptic coordinate of the Sun, referred to the mean ecliptic and equinox of the date:
-  const sun = getSolarGeometricEclipticCoordinate(datetime)
-
-  // Get the equatorial precession angles of IAU 2006 (in degrees):
-  const { ζ, z, θ } = getPrecessionAngles(datetime)
-
-  // The unit vector of the Sun in the frame of the mean ecliptic and equinox of the date, e.g., the spherical to
-  // cartesian conversion of the ecliptic coordinate, which is that of the equatorial coordinate with the longitude
-  // and latitude in place of the right ascension and declination:
-  const ecliptic = convertEquatorialToCartesian({ ra: sun.λ, dec: sun.β })
-
-  // The unit vector of the Sun, rotated from the mean ecliptic of the date into the mean equator and equinox of
-  // the date, e.g., by the passive rotation of the frame about the x axis by the negative of the mean obliquity of
-  // the ecliptic of the date:
-  const mean = getRotatedCartesianCoordinate(
-    getRotationMatrix('x', -getObliquityOfTheEcliptic(datetime)),
-    ecliptic
-  )
-
-  // The unit vector of the Sun, carried from the mean equator and equinox of the date back to the mean equator and
-  // equinox of J2000.0 by the transpose of the precession matrix of IAU 2006:
-  const unit = getRotatedCartesianCoordinate(
-    getRotationMatrix('z', ζ),
-    getRotatedCartesianCoordinate(
-      getRotationMatrix('y', -θ),
-      getRotatedCartesianCoordinate(getRotationMatrix('z', z), mean)
-    )
-  )
-
-  // Get the distance of the Sun from the Earth (in astronomical units):
-  const d = sun.R / AU_IN_METERS
-
-  return { x: d * unit.x, y: d * unit.y, z: d * unit.z }
-}
 
 /*****************************************************************************************************************/
 
