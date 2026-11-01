@@ -19,6 +19,7 @@ import { getAngularSeparation } from '../src/astrometry'
 import {
   doCrossProduct,
   doDotProduct,
+  doTranspose,
   getMatrixProduct,
   getRotatedCartesianCoordinate,
   getRotationMatrix
@@ -1265,6 +1266,266 @@ describe('doCrossProduct', () => {
     expect(x).toBe(0)
     expect(y).toBeNaN()
     expect(z).toBe(Number.POSITIVE_INFINITY)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('doTranspose', () => {
+  it('should be defined', () => {
+    expect(doTranspose).toBeDefined()
+  })
+
+  it('should return a Matrix3', () => {
+    const T = doTranspose(identity)
+    expectTypeOf(T).toEqualTypeOf<Matrix3>()
+    expect(T).toHaveLength(3)
+    for (const row of T) {
+      expect(row).toHaveLength(3)
+    }
+  })
+
+  it('should return the literal transpose of an arbitrary matrix, e.g., its rows written as columns', () => {
+    expect(
+      doTranspose([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]
+      ])
+    ).toEqual([
+      [1, 4, 7],
+      [2, 5, 8],
+      [3, 6, 9]
+    ])
+  })
+
+  it('should return the element of the j-th row and the i-th column of the matrix for each element', () => {
+    const m: Matrix3 = [
+      [0.3, -1.2, 2.5],
+      [-4.1, 0.07, 9.9],
+      [1.5, 2.25, -0.75]
+    ]
+
+    const T = doTranspose(m)
+
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        expect(T[i][j]).toBe(m[j][i])
+      }
+    }
+  })
+
+  it('should return the identity for the identity', () => {
+    expect(doTranspose(identity)).toEqual(identity)
+  })
+
+  it('should return the zero matrix for the zero matrix', () => {
+    expect(
+      doTranspose([
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
+      ])
+    ).toEqual([
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0]
+    ])
+  })
+
+  it('should return a diagonal matrix unchanged', () => {
+    const m: Matrix3 = [
+      [2, 0, 0],
+      [0, -3, 0],
+      [0, 0, 0.5]
+    ]
+
+    expect(doTranspose(m)).toEqual(m)
+  })
+
+  it('should return a symmetric matrix unchanged', () => {
+    const m: Matrix3 = [
+      [1, 7, -2],
+      [7, 4, 0.5],
+      [-2, 0.5, 9]
+    ]
+
+    expect(doTranspose(m)).toEqual(m)
+  })
+
+  it('should return the negated matrix for a skew-symmetric matrix, e.g., Aᵀ = −A', () => {
+    expect(
+      doTranspose([
+        [0, 1, -2],
+        [-1, 0, 3],
+        [2, -3, 0]
+      ])
+    ).toEqual([
+      [0, -1, 2],
+      [1, 0, -3],
+      [-2, 3, 0]
+    ])
+  })
+
+  it('should be an involution, e.g., (Mᵀ)ᵀ = M', () => {
+    const m: Matrix3 = [
+      [0.3, -1.2, 2.5],
+      [-4.1, 0.07, 9.9],
+      [1.5, 2.25, -0.75]
+    ]
+
+    expect(doTranspose(doTranspose(m))).toEqual(m)
+  })
+
+  it('should reverse the order of a product, e.g., (a · b)ᵀ = bᵀ · aᵀ', () => {
+    const a: Matrix3 = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ]
+
+    const b: Matrix3 = [
+      [2, -1, 0],
+      [3, 4, -5],
+      [-6, 7, 8]
+    ]
+
+    expect(doTranspose(getMatrixProduct(a, b))).toEqual(
+      getMatrixProduct(doTranspose(b), doTranspose(a))
+    )
+  })
+
+  it('should return the rotation by the negated angle for an elementary rotation about each axis, e.g., R(θ)ᵀ = R(−θ)', () => {
+    for (const axis of axes) {
+      for (const angle of angles) {
+        expectMatrixToBeCloseTo(
+          doTranspose(getRotationMatrix(axis, angle)),
+          getRotationMatrix(axis, -angle)
+        )
+      }
+    }
+  })
+
+  it('should return the inverse of an elementary rotation about each axis, e.g., R · Rᵀ = Rᵀ · R = I', () => {
+    for (const axis of axes) {
+      for (const angle of angles) {
+        const R = getRotationMatrix(axis, angle)
+
+        expectMatrixToBeCloseTo(getMatrixProduct(R, doTranspose(R)), identity)
+
+        expectMatrixToBeCloseTo(getMatrixProduct(doTranspose(R), R), identity)
+      }
+    }
+  })
+
+  it('should return the inverse of a rotation composed about all three axes', () => {
+    const R = getMatrixProduct(
+      getRotationMatrix('z', 137.25),
+      getMatrixProduct(getRotationMatrix('y', -23.4392911), getRotationMatrix('x', 333.3))
+    )
+
+    expectMatrixToBeCloseTo(getMatrixProduct(R, doTranspose(R)), identity)
+
+    expectMatrixToBeCloseTo(getMatrixProduct(doTranspose(R), R), identity)
+  })
+
+  it('should undo a rotation of an arbitrary vector, e.g., Rᵀ (R v) = v', () => {
+    const vector = { x: 0.3, y: -1.2, z: 2.5 }
+
+    for (const axis of axes) {
+      for (const angle of angles) {
+        const R = getRotationMatrix(axis, angle)
+
+        const { x, y, z } = getRotatedCartesianCoordinate(
+          doTranspose(R),
+          getRotatedCartesianCoordinate(R, vector)
+        )
+
+        expect(x).toBeCloseTo(vector.x, 14)
+        expect(y).toBeCloseTo(vector.y, 14)
+        expect(z).toBeCloseTo(vector.z, 14)
+      }
+    }
+  })
+
+  it('should be the adjoint of the matrix under the dot product, e.g., (Mᵀ a) · b = a · (M b)', () => {
+    const m: Matrix3 = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ]
+
+    const a = { x: 1, y: -1, z: 2 }
+
+    const b = { x: 3, y: 0, z: -2 }
+
+    expect(doDotProduct(getRotatedCartesianCoordinate(doTranspose(m), a), b)).toBe(
+      doDotProduct(a, getRotatedCartesianCoordinate(m, b))
+    )
+  })
+
+  it('should transform the north ecliptic pole into equatorial coordinates by the transpose of R1(ε)', () => {
+    // The mean obliquity of the ecliptic at J2000.0, e.g., R1(ε) rotates the equatorial frame into the ecliptic
+    // frame, and so its transpose rotates the ecliptic frame back into the equatorial frame:
+    const ε = 23.4392911
+
+    // The north ecliptic pole lies at a right ascension of 18h (270°) and a declination of 90° − ε:
+    const { ra, dec } = convertCartesianToEquatorial(
+      getRotatedCartesianCoordinate(doTranspose(getRotationMatrix('x', ε)), { x: 0, y: 0, z: 1 })
+    )
+
+    expect(ra).toBeCloseTo(270, 12)
+    expect(dec).toBeCloseTo(90 - ε, 12)
+  })
+
+  it('should not mutate the matrix', () => {
+    const m: Matrix3 = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ]
+
+    doTranspose(m)
+
+    expect(m).toEqual([
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ])
+  })
+
+  it('should return a new matrix, and not the matrix given, even where the matrix is symmetric', () => {
+    expect(doTranspose(identity)).not.toBe(identity)
+  })
+
+  it('should move an element that is NaN to the transposed position alone', () => {
+    const T = doTranspose([
+      [1, Number.NaN, 3],
+      [4, 5, 6],
+      [7, 8, 9]
+    ])
+
+    expect(T[1][0]).toBeNaN()
+
+    expect(T).toEqual([
+      [1, 4, 7],
+      [Number.NaN, 5, 8],
+      [3, 6, 9]
+    ])
+  })
+
+  it('should move an element that is infinite to the transposed position alone', () => {
+    expect(
+      doTranspose([
+        [1, 2, 3],
+        [4, 5, 6],
+        [Number.NEGATIVE_INFINITY, 8, 9]
+      ])
+    ).toEqual([
+      [1, 4, Number.NEGATIVE_INFINITY],
+      [2, 5, 8],
+      [3, 6, 9]
+    ])
   })
 })
 
