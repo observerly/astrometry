@@ -13,6 +13,8 @@ import {
   getCorrectionToEquatorialForLightDeflection
 } from '../../src/aberration'
 
+import { getCorrectionToEquatorialForAnnualParallax } from '../../src/parallax'
+
 import {
   getAngularSeparation,
   getGreenwichApparentSiderealTime,
@@ -28,7 +30,7 @@ import {
   getCorrectionToEquatorialForPrecessionOfEquinoxes
 } from '../../src/precession'
 
-import { erfaInstants, erfaLightDeflections } from './erfa'
+import { erfaCorrections, erfaInstants, erfaLightDeflections } from './erfa'
 
 /*****************************************************************************************************************/
 
@@ -81,21 +83,39 @@ const LIGHT_DEFLECTION_TOLERANCE = 1 / 3600000
 
 /*****************************************************************************************************************/
 
+// The rotation of the nutation, against eraNumat, e.g., to within 2 milliarcseconds over the whole of the sphere,
+// which is the envelope of the series of the nutation of the library (in degrees):
+const NUTATION_ROTATION_TOLERANCE = 2 / 3600000
+
+/*****************************************************************************************************************/
+
+// The annual aberration, against eraAb, e.g., to within 1 milliarcsecond over the whole of the sphere, which is the
+// envelope of the barycentric velocity of the Earth of the library of ~0.5 metres per second (in degrees):
+const ANNUAL_ABERRATION_TOLERANCE = 1 / 3600000
+
+/*****************************************************************************************************************/
+
+// The annual parallax of a target of 0.768 arcseconds, against eraPmpx, e.g., to within 0.1 milliarcseconds over
+// the whole of the sphere (in degrees):
+const ANNUAL_PARALLAX_TOLERANCE = 0.1 / 3600000
+
+/*****************************************************************************************************************/
+
 // The equinox-based apparent place of a star away from the celestial poles, resolved as the catalogue coordinate
-// carried to J2000.0 by the frame bias and displaced by the corrections for light deflection, precession, nutation
-// and annual aberration in turn, against IAU 2006/2000A (in degrees):
-const APPARENT_PLACE_TOLERANCE = 0.00001
+// carried to J2000.0 by the frame bias and displaced by the corrections for light deflection, annual aberration,
+// precession and nutation in turn, against IAU 2006/2000A, e.g., to within 2 milliarcseconds (in degrees):
+const APPARENT_PLACE_TOLERANCE = 2 / 3600000
 
 /*****************************************************************************************************************/
 
 // The equinox-based apparent place of a star near a celestial pole, resolved likewise, against IAU 2006/2000A (in
 // degrees):
-const APPARENT_PLACE_POLAR_TOLERANCE = 0.00005
+const APPARENT_PLACE_POLAR_TOLERANCE = 2 / 3600000
 
 /*****************************************************************************************************************/
 
 // The declination (in degrees) at or above which the apparent place of a star is held to the polar envelope, e.g.,
-// the envelope of the first order corrections near the pole:
+// the envelope of the corrections near the pole:
 const POLAR_DECLINATION = 85
 
 /*****************************************************************************************************************/
@@ -196,35 +216,33 @@ describe('conformance of the apparent place to ERFA', () => {
         const J2000 = { ra: target.ra + bias.ra, dec: target.dec + bias.dec }
 
         // The apparent place of the date, e.g., the J2000.0 coordinate displaced by the gravitational deflection
-        // of light within the frame of J2000.0, and carried by the corrections for the precession of the
-        // equinoxes, the nutation and the annual aberration in turn, each about the place the one before it
-        // resolves:
+        // of light and by the annual aberration within the frame of J2000.0, as eraAtciq displaces it within the
+        // BCRS, carried to its mean place of the date by the correction for the precession of the equinoxes, and
+        // from that mean place to the true equator and equinox of the date by the correction for the nutation,
+        // given the mean place:
         const deflection = getCorrectionToEquatorialForLightDeflection(when, J2000)
 
         const deflected = { ra: J2000.ra + deflection.ra, dec: J2000.dec + deflection.dec }
 
-        const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, deflected)
+        const aberration = getCorrectionToEquatorialForAnnualAberration(when, deflected)
 
-        const mean = { ra: deflected.ra + precession.ra, dec: deflected.dec + precession.dec }
+        const aberrated = { ra: deflected.ra + aberration.ra, dec: deflected.dec + aberration.dec }
+
+        const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(when, aberrated)
+
+        const mean = { ra: aberrated.ra + precession.ra, dec: aberrated.dec + precession.dec }
 
         const nutation = getCorrectionToEquatorialForNutation(when, mean)
 
-        const trueOfDate = { ra: mean.ra + nutation.ra, dec: mean.dec + nutation.dec }
-
-        const aberration = getCorrectionToEquatorialForAnnualAberration(when, trueOfDate)
-
-        const apparent = {
-          ra: trueOfDate.ra + aberration.ra,
-          dec: trueOfDate.dec + aberration.dec
-        }
+        const apparent = { ra: mean.ra + nutation.ra, dec: mean.dec + nutation.dec }
 
         const separation = getAngularSeparation(
           { θ: apparent.dec, φ: apparent.ra },
           { θ: star.apparent.dec, φ: star.apparent.ra }
         )
 
-        // The first order corrections to the right ascension divide by the cosine of the declination, and so a
-        // star near a celestial pole is held to the polar envelope:
+        // The corrections near a celestial pole are the most sensitive to the place they are resolved about, and
+        // so a star near a celestial pole is held to the polar envelope:
         const tolerance =
           Math.abs(star.dec) < POLAR_DECLINATION
             ? APPARENT_PLACE_TOLERANCE
@@ -257,6 +275,70 @@ describe('conformance of the light deflection to ERFA', () => {
         const Δδ = dec - target.deflection.dec
 
         expect(Math.hypot(Δα, Δδ)).toBeLessThan(LIGHT_DEFLECTION_TOLERANCE)
+      }
+    }
+  )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the nutation, the annual aberration and the annual parallax to ERFA', () => {
+  // The displacement between two coordinates, with the right ascension scaled onto the sphere by the cosine of the
+  // declination, and taken the shorter of the two ways about it, as the displacements are small (in degrees):
+  const getDisplacement = (
+    a: { ra: number; dec: number },
+    b: { ra: number; dec: number }
+  ): number => {
+    const Δα = ((((a.ra - b.ra + 180) % 360) + 360) % 360) - 180
+
+    return Math.hypot(Δα * Math.cos((b.dec * Math.PI) / 180), a.dec - b.dec)
+  }
+
+  it.each(erfaCorrections)(
+    'should rotate by the nutation within the pinned envelope of eraNumat at $datetime',
+    reference => {
+      const when = new Date(reference.datetime)
+
+      for (const target of reference.targets) {
+        const { ra, dec } = getCorrectionToEquatorialForNutation(when, target)
+
+        expect(
+          getDisplacement({ ra: target.ra + ra, dec: target.dec + dec }, target.nutated)
+        ).toBeLessThan(NUTATION_ROTATION_TOLERANCE)
+      }
+    }
+  )
+
+  it.each(erfaCorrections)(
+    'should displace by the annual aberration within the pinned envelope of eraAb at $datetime',
+    reference => {
+      const when = new Date(reference.datetime)
+
+      for (const target of reference.targets) {
+        const { ra, dec } = getCorrectionToEquatorialForAnnualAberration(when, target)
+
+        expect(
+          getDisplacement({ ra: target.ra + ra, dec: target.dec + dec }, target.aberrated)
+        ).toBeLessThan(ANNUAL_ABERRATION_TOLERANCE)
+      }
+    }
+  )
+
+  it.each(erfaCorrections)(
+    'should displace by the annual parallax within the pinned envelope of eraPmpx at $datetime',
+    reference => {
+      const when = new Date(reference.datetime)
+
+      for (const target of reference.targets) {
+        const { ra, dec } = getCorrectionToEquatorialForAnnualParallax(when, {
+          ra: target.ra,
+          dec: target.dec,
+          parallax: reference.parallax
+        })
+
+        expect(
+          getDisplacement({ ra: target.ra + ra, dec: target.dec + dec }, target.parallaxed)
+        ).toBeLessThan(ANNUAL_PARALLAX_TOLERANCE)
       }
     }
   )

@@ -18,11 +18,14 @@ import {
   SPEED_OF_LIGHT,
   convertCartesianToEquatorial,
   convertEquatorialToCartesian,
+  getBarycentricEarthVelocity,
+  getBarycentricSolarVector,
   getCorrectionToEquatorialForAberration,
   getCorrectionToEquatorialForAnnualAberration,
   getCorrectionToEquatorialForDiurnalAberration,
   getCorrectionToEquatorialForLightDeflection,
   getCorrectionToEquatorialForVelocityAberration,
+  getGeometricSolarVector,
   getHourAngle,
   getJulianDate,
   getObliquityOfTheEcliptic,
@@ -61,14 +64,14 @@ describe('getCorrectionToEquatorialForAnnualAberration', () => {
       new Date('2000-01-01T00:00:00+00:00'),
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBe(88.79868727112795)
-    expect(dec + betelgeuse.dec).toBe(7.406803873334351)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.798686690145, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.406803713851167, 9)
   })
 
   it('should return the correct aberration correction for the designated epoch', () => {
     const { ra, dec } = getCorrectionToEquatorialForAnnualAberration(datetime, betelgeuse)
-    expect(ra + betelgeuse.ra).toBe(88.78837432108541)
-    expect(dec + betelgeuse.dec).toBe(7.406109080849657)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.788391902834, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.406101846632362, 9)
   })
 })
 
@@ -184,8 +187,8 @@ describe('getCorrectionToEquatorialForAberration', () => {
       },
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBe(88.79861879630835)
-    expect(dec + betelgeuse.dec).toBe(7.406797581411706)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.7986182153254, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.406797421928522, 9)
   })
 
   it('should return the correct aberration correction for the designated epoch', () => {
@@ -193,8 +196,8 @@ describe('getCorrectionToEquatorialForAberration', () => {
       latitude,
       longitude
     }, betelgeuse)
-    expect(ra + betelgeuse.ra).toBe(88.78845671208443)
-    expect(dec + betelgeuse.dec).toBe(7.406106784046001)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.788474293833, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.406099549828706, 9)
   })
 })
 
@@ -467,6 +470,65 @@ describe('getCorrectionToEquatorialForLightDeflection', () => {
     expect(Number.isFinite(ra)).toBe(true)
 
     expect(Number.isFinite(dec)).toBe(true)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getGeometricSolarVector', () => {
+  it('should be defined', () => {
+    expect(getGeometricSolarVector).toBeDefined()
+  })
+
+  it('should resolve the Sun at between perihelion and aphelion from the Earth', () => {
+    const { x, y, z } = getGeometricSolarVector(datetime)
+
+    const d = Math.hypot(x, y, z)
+
+    expect(d).toBeGreaterThan(0.983)
+    expect(d).toBeLessThan(1.017)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getBarycentricSolarVector', () => {
+  it('should be defined', () => {
+    expect(getBarycentricSolarVector).toBeDefined()
+  })
+
+  it('should displace the Sun from the barycentre by no more than ~0.01 astronomical units', () => {
+    const { x, y, z } = getBarycentricSolarVector(datetime)
+
+    expect(Math.hypot(x, y, z)).toBeLessThan(0.011)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getBarycentricEarthVelocity', () => {
+  it('should be defined', () => {
+    expect(getBarycentricEarthVelocity).toBeDefined()
+  })
+
+  it('should move the Earth at between its aphelion and perihelion orbital speeds', () => {
+    const { x, y, z } = getBarycentricEarthVelocity(datetime)
+
+    // The speed of the Earth (in kilometres per second):
+    const v = (Math.hypot(x, y, z) * 149597870.7) / 86400
+
+    expect(v).toBeGreaterThan(29.2)
+    expect(v).toBeLessThan(30.4)
+  })
+
+  it('should move the Earth at right angles to the direction of the Sun, to within its eccentricity', () => {
+    const v = getBarycentricEarthVelocity(datetime)
+
+    const s = getGeometricSolarVector(datetime)
+
+    const cosine = (v.x * s.x + v.y * s.y + v.z * s.z) / Math.hypot(v.x, v.y, v.z) / Math.hypot(s.x, s.y, s.z)
+
+    expect(Math.abs(cosine)).toBeLessThan(0.02)
   })
 })
 

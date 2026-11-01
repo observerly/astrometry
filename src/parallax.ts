@@ -8,11 +8,7 @@
 
 import type { EquatorialCoordinate } from './common'
 
-import { AU_IN_METERS } from './constants'
-
-import { convertEclipticToEquatorial } from './coordinates'
-
-import { getSolarEclipticCoordinate } from './sun'
+import { getBarycentricSolarVector, getGeometricSolarVector } from './aberration'
 
 import {
   convertRadiansToDegrees as degrees,
@@ -30,8 +26,9 @@ import {
  * the displacement of a nearby star as the Earth is carried about the Sun, which traces an ellipse
  * over the year whose semi-major axis is the parallax of the star.
  *
- * The position of the Sun is taken as it is, and not negated: the observer is displaced from the
- * Sun by the negative of it, and a target by the negative of that, and so the two cancel.
+ * The position of the barycentre of the Solar System from the Earth is taken as it is, and not
+ * negated: the observer is displaced from the barycentre by the negative of it, and a target by the
+ * negative of that, and so the two cancel.
  *
  * @param datetime - The date and time of the observation.
  * @param target - The equatorial coordinate of the target, of a given parallax (in arcseconds).
@@ -59,21 +56,24 @@ export const getCorrectionToEquatorialForAnnualParallax = (
 
   const cosDec = Math.cos(dec)
 
-  // The geocentric ecliptic coordinate of the Sun, which resolves the direction to it and the
-  // distance to it from the one model, and from the one evaluation of it:
-  const ecliptic = getSolarEclipticCoordinate(datetime)
+  // The geometric position of the Sun from the Earth, referred to the mean equator and equinox of
+  // J2000.0, as the target is (in astronomical units, e.g., in the same measure as the parallax):
+  const sun = getGeometricSolarVector(datetime)
 
-  const sun = convertEclipticToEquatorial(datetime, ecliptic)
+  // The position of the Sun about the barycentre of the Solar System, referred likewise (in
+  // astronomical units):
+  const barycentre = getBarycentricSolarVector(datetime)
 
-  // The distance to the Sun, in astronomical units, e.g., in the same measure as the parallax:
-  const R = ecliptic.R / AU_IN_METERS
+  // The rectangular equatorial coordinate of the barycentre of the Solar System from the Earth, e.g.,
+  // the negative of the barycentric position of the Earth, as eraPmpx of the IAU Standards of
+  // Fundamental Astronomy (SOFA) displaces the target by the barycentric position of the observer,
+  // and not by its heliocentric position, the two differing by up to ~0.01 astronomical units, or
+  // ~1 % of the parallax (in astronomical units):
+  const X = sun.x - barycentre.x
 
-  // The rectangular geocentric equatorial coordinate of the Sun (in astronomical units):
-  const X = R * Math.cos(radians(sun.dec)) * Math.cos(radians(sun.ra))
+  const Y = sun.y - barycentre.y
 
-  const Y = R * Math.cos(radians(sun.dec)) * Math.sin(radians(sun.ra))
-
-  const Z = R * Math.sin(radians(sun.dec))
+  const Z = sun.z - barycentre.z
 
   // The unit vector of the target, in the equatorial frame:
   const n = {
@@ -83,7 +83,7 @@ export const getCorrectionToEquatorialForAnnualParallax = (
   }
 
   // The vector from the observer to the target, e.g., the unit vector of the target displaced by
-  // the position of the Sun, scaled by the parallax. Only its direction is wanted, and so it is
+  // the position of the barycentre from the observer, scaled by the parallax. Only its direction is wanted, and so it is
   // left unnormalised:
   const apparent = {
     x: n.x + π * X,

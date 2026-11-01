@@ -14,15 +14,23 @@ import { AU_IN_METERS, EARTH_ANGULAR_VELOCITY, EARTH_RADIUS, c } from './constan
 
 import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './coordinates'
 
-import { getEccentricityOfOrbit } from './earth'
-
-import { getObliquityOfTheEcliptic, getTrueObliquityOfTheEcliptic } from './ecliptic'
+import { getObliquityOfTheEcliptic } from './ecliptic'
 
 import { getJulianDate, getTerrestrialTime } from './epoch'
 
 import { getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
 
-import { getSolarGeometricEclipticCoordinate, getSolarTrueGeometricLongitude } from './sun'
+import {
+  getPlanetaryHeliocentricDistance,
+  getPlanetaryHeliocentricEclipticLatitude,
+  getPlanetaryHeliocentricEclipticLongitude,
+  jupiter,
+  neptune,
+  saturn,
+  uranus
+} from './planets'
+
+import { getSolarGeometricEclipticCoordinate } from './sun'
 
 import {
   convertRadiansToDegrees as degrees,
@@ -34,67 +42,260 @@ import {
 
 /**
  *
+ * getGeometricSolarVector()
+ *
+ * The geometric position of the Sun from the centre of the Earth, referred to the mean equator and equinox of
+ * J2000.0, e.g., the geometric ecliptic coordinate of the Sun of the VSOP87 theory, rotated by the mean obliquity
+ * of the ecliptic of the date into the mean equator and equinox of the date, and carried back to J2000.0 by the
+ * transpose of the precession matrix of IAU 2006, R3(ζ)·R2(−θ)·R3(z), which refers both the precession of the
+ * equator and the precession of the ecliptic back to J2000.0.
+ *
+ * @param datetime - The date to resolve the position of the Sun for.
+ * @returns The geocentric position of the Sun (in astronomical units).
+ *
+ */
+export const getGeometricSolarVector = (datetime: Date): Required<CartesianCoordinate> => {
+  // Get the geometric ecliptic coordinate of the Sun, referred to the mean ecliptic and equinox of the date:
+  const sun = getSolarGeometricEclipticCoordinate(datetime)
+
+  // Get the difference in fractional Julian centuries between the target date and J2000.0, at the Terrestrial
+  // Time of the given date, which the precession angles are referred to:
+  const T = (getJulianDate(getTerrestrialTime(datetime)) - 2451545.0) / 36525
+
+  // Calculate the precession angle ζ of the equatorial precession of IAU 2006 (in degrees):
+  const ζ =
+    (2.650545 +
+      2306.083227 * T +
+      0.2988499 * T ** 2 +
+      0.01801828 * T ** 3 -
+      0.000005971 * T ** 4 -
+      0.0000003173 * T ** 5) /
+    3600
+
+  // Calculate the precession angle z of the equatorial precession of IAU 2006 (in degrees):
+  const z =
+    (-2.650545 +
+      2306.077181 * T +
+      1.0927348 * T ** 2 +
+      0.01826837 * T ** 3 -
+      0.000028596 * T ** 4 -
+      0.0000002904 * T ** 5) /
+    3600
+
+  // Calculate the precession angle θ of the equatorial precession of IAU 2006 (in degrees):
+  const θ =
+    (2004.191903 * T -
+      0.4294934 * T ** 2 -
+      0.04182264 * T ** 3 -
+      0.000007089 * T ** 4 -
+      0.0000001274 * T ** 5) /
+    3600
+
+  // The unit vector of the Sun in the frame of the mean ecliptic and equinox of the date, e.g., the spherical to
+  // cartesian conversion of the ecliptic coordinate, which is that of the equatorial coordinate with the longitude
+  // and latitude in place of the right ascension and declination:
+  const ecliptic = convertEquatorialToCartesian({ ra: sun.λ, dec: sun.β })
+
+  // The unit vector of the Sun, rotated from the mean ecliptic of the date into the mean equator and equinox of
+  // the date, e.g., by the passive rotation of the frame about the x axis by the negative of the mean obliquity of
+  // the ecliptic of the date:
+  const mean = getRotatedCartesianCoordinate(
+    getRotationMatrix('x', -getObliquityOfTheEcliptic(datetime)),
+    ecliptic
+  )
+
+  // The unit vector of the Sun, carried from the mean equator and equinox of the date back to the mean equator and
+  // equinox of J2000.0 by the transpose of the precession matrix of IAU 2006:
+  const unit = getRotatedCartesianCoordinate(
+    getRotationMatrix('z', ζ),
+    getRotatedCartesianCoordinate(
+      getRotationMatrix('y', -θ),
+      getRotatedCartesianCoordinate(getRotationMatrix('z', z), mean)
+    )
+  )
+
+  // Get the distance of the Sun from the Earth (in astronomical units):
+  const d = sun.R / AU_IN_METERS
+
+  return { x: d * unit.x, y: d * unit.y, z: d * unit.z }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getBarycentricSolarVector()
+ *
+ * The position of the Sun about the barycentre of the Solar System, referred to the mean equator and equinox of
+ * J2000.0, e.g., the reflex of the heliocentric positions of the giant planets, weighted by the ratio of the mass
+ * of each to the mass of the Sun, which displaces the Sun by up to ~0.01 astronomical units, and moves it at up to
+ * ~16 metres per second, as eraEpv00 of the IAU Standards of Fundamental Astronomy (SOFA) resolves the barycentric
+ * place of the Earth from its heliocentric place.
+ *
+ * N.B. The terrestrial planets displace the Sun by less than a thousandth of the giant planets, and so they are
+ * neglected.
+ *
+ * @param datetime - The date to resolve the position of the Sun for.
+ * @returns The barycentric position of the Sun (in astronomical units).
+ *
+ */
+export const getBarycentricSolarVector = (datetime: Date): Required<CartesianCoordinate> => {
+  // The ratio of the mass of the Sun to the mass of the Earth, e.g., the masses of the planets are given relative
+  // to the Earth:
+  const SUN_TO_EARTH_MASS_RATIO = 332946.0487
+
+  // The mean obliquity of the ecliptic at J2000.0 of IAU 2006, e.g., the elements of the planets are referred to
+  // the ecliptic and equinox of J2000.0 (in degrees):
+  const ε = 84381.406 / 3600
+
+  const giants = [jupiter, saturn, uranus, neptune]
+
+  // The sum of the ratios of the masses of the giant planets to the mass of the Sun:
+  const M = giants.reduce((sum, planet) => sum + planet.m / SUN_TO_EARTH_MASS_RATIO, 0)
+
+  const position = { x: 0, y: 0, z: 0 }
+
+  for (const planet of giants) {
+    const μ = planet.m / SUN_TO_EARTH_MASS_RATIO
+
+    // The heliocentric position of the planet, referred to the ecliptic and equinox of J2000.0:
+    const r = getPlanetaryHeliocentricDistance(datetime, planet)
+
+    const ecliptic = convertEquatorialToCartesian({
+      ra: getPlanetaryHeliocentricEclipticLongitude(datetime, planet),
+      dec: getPlanetaryHeliocentricEclipticLatitude(datetime, planet)
+    })
+
+    // The heliocentric position of the planet, rotated into the mean equator and equinox of J2000.0:
+    const equatorial = getRotatedCartesianCoordinate(getRotationMatrix('x', -ε), ecliptic)
+
+    // The Sun is displaced from the barycentre opposite to the planet, by the ratio of the masses:
+    position.x -= (μ / (1 + M)) * r * equatorial.x
+    position.y -= (μ / (1 + M)) * r * equatorial.y
+    position.z -= (μ / (1 + M)) * r * equatorial.z
+  }
+
+  return position
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getBarycentricEarthVelocity()
+ *
+ * The velocity of the centre of the Earth about the barycentre of the Solar System, referred to the mean equator
+ * and equinox of J2000.0, e.g., the velocity of the Earth about the Sun of the VSOP87 theory, which carries the
+ * motion of the Earth about the barycentre of the Earth and the Moon, together with the velocity of the Sun about
+ * the barycentre of the Solar System, as eraEpv00 resolves the barycentric velocity of the Earth.
+ *
+ * The velocities are resolved as the central differences of the positions over a day, e.g., the truncation of the
+ * difference is ~0.2 % of the monthly motion of the Earth about the barycentre of the Earth and the Moon, which is
+ * ~12.5 metres per second, and so is ~0.02 metres per second, or ~0.02 milliarcseconds of aberration.
+ *
+ * @param datetime - The date to resolve the velocity of the Earth for.
+ * @returns The barycentric velocity of the Earth (in astronomical units per day).
+ *
+ */
+export const getBarycentricEarthVelocity = (datetime: Date): Required<CartesianCoordinate> => {
+  // The half interval of the central difference (in milliseconds), e.g., half of a day:
+  const h = 43200000
+
+  const before = new Date(datetime.getTime() - h)
+
+  const after = new Date(datetime.getTime() + h)
+
+  // The heliocentric position of the Earth is the geocentric position of the Sun reversed, and so the
+  // heliocentric velocity of the Earth is the rate of the geocentric position of the Sun reversed:
+  const s0 = getGeometricSolarVector(before)
+
+  const s1 = getGeometricSolarVector(after)
+
+  // The barycentric position of the Sun at either end of the interval:
+  const b0 = getBarycentricSolarVector(before)
+
+  const b1 = getBarycentricSolarVector(after)
+
+  // The barycentric velocity of the Earth, e.g., its heliocentric velocity and the barycentric velocity of the
+  // Sun, over the one day of the interval (in astronomical units per day):
+  return {
+    x: -(s1.x - s0.x) + (b1.x - b0.x),
+    y: -(s1.y - s0.y) + (b1.y - b0.y),
+    z: -(s1.z - s0.z) + (b1.z - b0.z)
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * getCorrectionToEquatorialForAnnualAberration()
  *
- * Corrects the equatorial coordinate of a target for aberration in
- * longitude and obliquity due to the apparent motion of the Earth.
+ * Corrects the equatorial coordinate of a target for the annual aberration of light, e.g., the displacement of the
+ * target towards the direction of the motion of the Earth about the barycentre of the Solar System, of up to ~20.5
+ * arcseconds. The correction terms should be added to the target's coordinate by the caller.
  *
- * @param date - The date to correct the equatorial coordinate for.
+ * The aberration is that of the special relativistic composition of the velocity of the Earth with the direction
+ * of the target, to the second order in the velocity, together with the term of the gravitational potential of
+ * the Sun at the Earth, as eraAb of the IAU Standards of Fundamental Astronomy (SOFA) resolves it.
+ *
+ * N.B. The aberration is resolved within the mean equator and equinox of J2000.0, as eraAtciq resolves it within
+ * the BCRS, and so it is applied to the J2000 coordinate before the precession and the nutation.
+ *
+ * @param datetime - The date to correct the equatorial coordinate for.
  * @param target - The equatorial J2000 coordinate of the target.
- * @returns The corrected equatorial coordinate of the target.
+ * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
  *
  */
 export const getCorrectionToEquatorialForAnnualAberration = (
   datetime: Date,
   target: EquatorialCoordinate
 ): EquatorialCoordinate => {
-  const ra = radians(target.ra)
+  // The Schwarzschild radius of the Sun, e.g., 2GM☉/c² for the TDB-compatible heliocentric gravitational constant
+  // of the IAU 2009 system of astronomical constants (in astronomical units):
+  const SRS = 1.97412574336e-8
 
-  const dec = radians(target.dec)
+  // The barycentric velocity of the Earth (in astronomical units per day):
+  const velocity = getBarycentricEarthVelocity(datetime)
 
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
+  // The barycentric velocity of the Earth as a fraction of the speed of light:
+  const k = AU_IN_METERS / 86400 / c
 
-  // Get the difference in fractional Julian centuries between the target date and J2000.0
-  const T = (JD - 2451545.0) / 36525
+  const v = { x: velocity.x * k, y: velocity.y * k, z: velocity.z * k }
 
-  // Get the true obliquity of the ecliptic (in radians):
-  const ε = radians(getTrueObliquityOfTheEcliptic(datetime))
+  // The reciprocal of the Lorentz factor of the velocity of the Earth, e.g., √(1 − v²):
+  const bm1 = Math.sqrt(1 - (v.x ** 2 + v.y ** 2 + v.z ** 2))
 
-  // Get the constant of aberration (in degrees):
-  const κ = radians(20.49552 / 3600)
+  // The distance of the Sun from the Earth (in astronomical units):
+  const s = getGeometricSolarVector(datetime)
 
-  // Get the eccentricity of the Earth's orbit (dimensionless):
-  const e = getEccentricityOfOrbit(datetime)
+  const d = Math.hypot(s.x, s.y, s.z)
 
-  // Get the longitude of perihelion (in degrees):
-  const ϖ = radians(102.93735 + 1.71953 * T + 0.00046 * T ** 2)
+  // The unit vector of the target:
+  const p = convertEquatorialToCartesian(target)
 
-  // Get the true geometric longitude of the sun (in degrees):
-  const S = radians(getSolarTrueGeometricLongitude(datetime))
+  // The component of the velocity of the Earth along the direction of the target:
+  const pdv = p.x * v.x + p.y * v.y + p.z * v.z
 
-  // The velocity of the Earth as a fraction of the speed of light, in the plane of the ecliptic, rotated about the
-  // obliquity of the ecliptic into the equatorial frame:
-  const v = {
-    x: κ * (Math.sin(S) - e * Math.sin(ϖ)),
-    y: -κ * (Math.cos(S) - e * Math.cos(ϖ)) * Math.cos(ε),
-    z: -κ * (Math.cos(S) - e * Math.cos(ϖ)) * Math.sin(ε)
-  }
+  const w1 = 1 + pdv / (1 + bm1)
+
+  const w2 = SRS / d
 
   // The unit vector of the target, displaced by the velocity of the Earth, e.g., the apparent direction of the
   // target, which is resolved as a displaced vector, and not expanded about the target, which would divide by
   // cos δ and so degrade towards the celestial poles:
   const apparent = {
-    x: Math.cos(dec) * Math.cos(ra) + v.x,
-    y: Math.cos(dec) * Math.sin(ra) + v.y,
-    z: Math.sin(dec) + v.z
+    x: p.x * bm1 + w1 * v.x + w2 * (v.x - pdv * p.x),
+    y: p.y * bm1 + w1 * v.y + w2 * (v.y - pdv * p.y),
+    z: p.z * bm1 + w1 * v.z + w2 * (v.z - pdv * p.z)
   }
 
+  const { ra, dec } = convertCartesianToEquatorial(apparent)
+
+  // The displacement in right ascension, taken the shorter of the two ways about the sphere:
   return {
-    ra:
-      getNormalizedAzimuthalDegree(degrees(Math.atan2(apparent.y, apparent.x)) - target.ra + 180) -
-      180,
-    dec: degrees(Math.atan2(apparent.z, Math.hypot(apparent.x, apparent.y))) - target.dec
+    ra: getNormalizedAzimuthalDegree(ra - target.ra + 180) - 180,
+    dec: dec - target.dec
   }
 }
 
@@ -281,71 +482,15 @@ export const getCorrectionToEquatorialForLightDeflection = (
   // of the IAU 2009 system of astronomical constants (in astronomical units):
   const SRS = 1.97412574336e-8
 
-  // Get the geometric ecliptic coordinate of the Sun, e.g., the direction of the Sun from the Earth before the
-  // corrections for the nutation and for the aberration of light, as the deflection is a function of the geometry
-  // of the Sun, the Earth and the target, and not of the apparent place of the Sun:
-  const sun = getSolarGeometricEclipticCoordinate(datetime)
-
-  // Get the difference in fractional Julian centuries between the target date and J2000.0, at the Terrestrial
-  // Time of the given date, which the precession angles are referred to:
-  const T = (getJulianDate(getTerrestrialTime(datetime)) - 2451545.0) / 36525
-
-  // Calculate the precession angle ζ of the equatorial precession of IAU 2006 (in degrees):
-  const ζ =
-    (2.650545 +
-      2306.083227 * T +
-      0.2988499 * T ** 2 +
-      0.01801828 * T ** 3 -
-      0.000005971 * T ** 4 -
-      0.0000003173 * T ** 5) /
-    3600
-
-  // Calculate the precession angle z of the equatorial precession of IAU 2006 (in degrees):
-  const z =
-    (-2.650545 +
-      2306.077181 * T +
-      1.0927348 * T ** 2 +
-      0.01826837 * T ** 3 -
-      0.000028596 * T ** 4 -
-      0.0000002904 * T ** 5) /
-    3600
-
-  // Calculate the precession angle θ of the equatorial precession of IAU 2006 (in degrees):
-  const θ =
-    (2004.191903 * T -
-      0.4294934 * T ** 2 -
-      0.04182264 * T ** 3 -
-      0.000007089 * T ** 4 -
-      0.0000001274 * T ** 5) /
-    3600
-
-  // The unit vector of the Sun in the frame of the mean ecliptic and equinox of the date, e.g., the spherical to
-  // cartesian conversion of the ecliptic coordinate, which is that of the equatorial coordinate with the longitude
-  // and latitude in place of the right ascension and declination:
-  const ecliptic = convertEquatorialToCartesian({ ra: sun.λ, dec: sun.β })
-
-  // The unit vector of the Sun, rotated from the mean ecliptic of the date into the mean equator and equinox of
-  // the date, e.g., by the passive rotation of the frame about the x axis by the negative of the mean obliquity of
-  // the ecliptic of the date:
-  const mean = getRotatedCartesianCoordinate(
-    getRotationMatrix('x', -getObliquityOfTheEcliptic(datetime)),
-    ecliptic
-  )
-
-  // The unit vector of the Sun, carried from the mean equator and equinox of the date back to the mean equator and
-  // equinox of J2000.0 by the transpose of the precession matrix of IAU 2006, e.g., R3(ζ)·R2(−θ)·R3(z), which
-  // refers both the precession of the equator and the precession of the ecliptic back to J2000.0, as the
-  // reference implementation of the IAU Standards of Fundamental Astronomy (SOFA) refers the Sun to the BCRS:
-  const equatorial = getRotatedCartesianCoordinate(
-    getRotationMatrix('z', ζ),
-    getRotatedCartesianCoordinate(
-      getRotationMatrix('y', -θ),
-      getRotatedCartesianCoordinate(getRotationMatrix('z', z), mean)
-    )
-  )
+  // Get the geometric position of the Sun from the Earth, referred to the mean equator and equinox of J2000.0,
+  // e.g., before the corrections for the nutation and for the aberration of light, as the deflection is a function
+  // of the geometry of the Sun, the Earth and the target, and not of the apparent place of the Sun:
+  const sun = getGeometricSolarVector(datetime)
 
   // Get the distance of the Sun from the Earth (in astronomical units):
-  const d = sun.R / AU_IN_METERS
+  const d = Math.hypot(sun.x, sun.y, sun.z)
+
+  const equatorial = { x: sun.x / d, y: sun.y / d, z: sun.z / d }
 
   // The unit vector of the target:
   const p = convertEquatorialToCartesian(target)

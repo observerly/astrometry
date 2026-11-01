@@ -8,7 +8,7 @@
 
 import { getCorrectionToEquatorialForAnnualAberration } from './aberration'
 
-import { getHourAngle, getNormalisedSphericalCoordinate } from './astrometry'
+import { getApparentHourAngle, getNormalisedSphericalCoordinate } from './astrometry'
 
 import type { EquatorialCoordinate, HorizontalCoordinate, Observer } from './common'
 
@@ -141,15 +141,23 @@ export class Observation extends Object {
   }
 
   private setEquatorialCoordinates(target: EquatorialCoordinate) {
+    // The annual aberration displaces the J2000 coordinate within the frame of J2000.0, the
+    // correction for the precession of the equinoxes carries the displaced coordinate to its mean
+    // place of the date, and the correction for the nutation, given that mean place, carries it
+    // to the true equator and equinox of the date:
     const aberration = getCorrectionToEquatorialForAnnualAberration(this.datetime, target)
 
-    const nutation = getCorrectionToEquatorialForNutation(this.datetime, target)
+    const aberrated = { ra: target.ra + aberration.ra, dec: target.dec + aberration.dec }
 
-    const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(this.datetime, target)
+    const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(this.datetime, aberrated)
 
-    const α = target.ra + aberration.ra + nutation.ra + precession.ra
+    const mean = { ra: aberrated.ra + precession.ra, dec: aberrated.dec + precession.dec }
 
-    const δ = target.dec + aberration.dec + nutation.dec + precession.dec
+    const nutation = getCorrectionToEquatorialForNutation(this.datetime, mean)
+
+    const α = mean.ra + nutation.ra
+
+    const δ = mean.dec + nutation.dec
 
     // Normalise the corrected coordinate to the range [0, 360) in Right Ascension and [-90, 90]
     // in declination. N.B. The two are normalised as a pair: a declination that crosses a pole is
@@ -163,7 +171,10 @@ export class Observation extends Object {
   }
 
   private setHourAngle() {
-    this.ha = getHourAngle(this.datetime, this.longitude, this.ra)
+    // The equatorial coordinate is referred to the true equator and equinox of the date, and so its
+    // hour angle is taken against the Local Apparent Sidereal Time, which balances the nutation in
+    // longitude the right ascension carries:
+    this.ha = getApparentHourAngle(this.datetime, this.longitude, this.ra)
   }
 
   private setHorizontalCoordinates(target: HorizontalCoordinate) {
