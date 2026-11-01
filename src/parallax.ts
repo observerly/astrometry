@@ -6,11 +6,9 @@
 
 /*****************************************************************************************************************/
 
-import { getBarycentricSolarVector } from './aberration'
-
 import type { EquatorialCoordinate } from './common'
 
-import { getGeometricSolarVector } from './sun'
+import { getBarycentricSolarVector, getGeometricSolarVector } from './sun'
 
 import {
   convertRadiansToDegrees as degrees,
