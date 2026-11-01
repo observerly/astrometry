@@ -312,8 +312,12 @@ export const getLunarEvectionCorrection = (datetime: Date): number => {
  *
  */
 export const getLunarMeanEclipticLongitudeOfTheAscendingNode = (datetime: Date): number => {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date:
+  const tt = getTerrestrialTime(datetime)
+
   // Get the number of days since the standard epoch J2000:
-  const d = getJulianDate(datetime) - 2451545.0
+  const d = getJulianDate(tt) - J2000
 
   // Get the Moon's ecliptic longitude of the ascending node at the current epoch relative to J2000:
   let Ω = (125.044522 - 0.0529539 * d) % 360
