@@ -12,11 +12,10 @@ import { describe, expect, it } from 'vitest'
 
 import {
   type CartesianCoordinate,
+  convertCartesianToEquatorial,
   EARTH_ANGULAR_VELOCITY,
   EARTH_RADIUS,
   type EquatorialCoordinate,
-  SPEED_OF_LIGHT,
-  convertCartesianToEquatorial,
   getBarycentricEarthVelocity,
   getCorrectionToEquatorialForAberration,
   getCorrectionToEquatorialForAnnualAberration,
@@ -24,7 +23,8 @@ import {
   getCorrectionToEquatorialForLightDeflection,
   getCorrectionToEquatorialForVelocityAberration,
   getGeometricSolarVector,
-  getHourAngle
+  getHourAngle,
+  SPEED_OF_LIGHT
 } from '../src'
 
 import { convertDegreesToRadians as radians } from '../src/utilities'
@@ -33,13 +33,13 @@ import { convertDegreesToRadians as radians } from '../src/utilities'
 
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
-export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+const datetime = new Date('2021-05-14T00:00:00.000+00:00')
 
 // For testing we will fix the latitude to be Manua Kea, Hawaii, US
-export const latitude = 19.820611
+const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
-export const longitude = -155.468094
+const longitude = -155.468094
 
 // For testing
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
@@ -88,10 +88,14 @@ describe('getCorrectionToEquatorialForDiurnalAberration', () => {
   })
 
   it('should return the correct aberration correction for the designated epoch', () => {
-    const { ra, dec } = getCorrectionToEquatorialForDiurnalAberration(datetime, {
-      latitude,
-      longitude
-    }, betelgeuse)
+    const { ra, dec } = getCorrectionToEquatorialForDiurnalAberration(
+      datetime,
+      {
+        latitude,
+        longitude
+      },
+      betelgeuse
+    )
     expect(ra + betelgeuse.ra).toBe(88.793040690999)
     expect(dec + betelgeuse.dec).toBe(7.407061603196344)
   })
@@ -100,10 +104,10 @@ describe('getCorrectionToEquatorialForDiurnalAberration', () => {
     // The constant of diurnal aberration is ~0.32 arcseconds at the equator, and it is scaled by
     // the cosine of the observer's latitude, and, in right ascension, by the secant of the
     // declination of the target:
-    const k = ((radians(EARTH_ANGULAR_VELOCITY) * EARTH_RADIUS) / SPEED_OF_LIGHT) * (180 / Math.PI) * 3600
+    const k =
+      ((radians(EARTH_ANGULAR_VELOCITY) * EARTH_RADIUS) / SPEED_OF_LIGHT) * (180 / Math.PI) * 3600
 
-    const bound =
-      (k * Math.cos(radians(latitude))) / Math.cos(radians(betelgeuse.dec))
+    const bound = (k * Math.cos(radians(latitude))) / Math.cos(radians(betelgeuse.dec))
 
     // Sample the correction over a whole rotation of the Earth, e.g., every minute for 24 hours:
     for (let minute = 0; minute < 1440; minute++) {
@@ -140,9 +144,7 @@ describe('getCorrectionToEquatorialForDiurnalAberration', () => {
 
     // The datetime at which the target culminates, e.g., ~4 minutes of time per degree of the
     // hour angle still to be traversed:
-    const culmination = new Date(
-      datetime.getTime() + ((360 - meridian) % 360) * 3.9934469 * 60000
-    )
+    const culmination = new Date(datetime.getTime() + ((360 - meridian) % 360) * 3.9934469 * 60000)
 
     const { ra, dec } = getCorrectionToEquatorialForDiurnalAberration(
       culmination,
@@ -150,7 +152,8 @@ describe('getCorrectionToEquatorialForDiurnalAberration', () => {
       betelgeuse
     )
 
-    const k = ((radians(EARTH_ANGULAR_VELOCITY) * EARTH_RADIUS) / SPEED_OF_LIGHT) * (180 / Math.PI) * 3600
+    const k =
+      ((radians(EARTH_ANGULAR_VELOCITY) * EARTH_RADIUS) / SPEED_OF_LIGHT) * (180 / Math.PI) * 3600
 
     // The correction in right ascension is at its bound, and the correction in declination, which
     // scales with the sine of the hour angle, vanishes:
@@ -184,10 +187,14 @@ describe('getCorrectionToEquatorialForAberration', () => {
   })
 
   it('should return the correct aberration correction for the designated epoch', () => {
-    const { ra, dec } = getCorrectionToEquatorialForAberration(datetime, {
-      latitude,
-      longitude
-    }, betelgeuse)
+    const { ra, dec } = getCorrectionToEquatorialForAberration(
+      datetime,
+      {
+        latitude,
+        longitude
+      },
+      betelgeuse
+    )
     expect(ra + betelgeuse.ra).toBeCloseTo(88.788474293833, 9)
     expect(dec + betelgeuse.dec).toBeCloseTo(7.406099549828706, 9)
   })
@@ -201,7 +208,7 @@ describe('getCorrectionToEquatorialForVelocityAberration', () => {
 
   // The displacement of a target perpendicular to the direction of travel, e.g., the constant of
   // aberration for the velocity, in arcseconds:
-  const maximum = ((V / SPEED_OF_LIGHT) * (180 / Math.PI)) * 3600
+  const maximum = (V / SPEED_OF_LIGHT) * (180 / Math.PI) * 3600
 
   it('should be defined', () => {
     expect(getCorrectionToEquatorialForVelocityAberration).toBeDefined()
@@ -326,8 +333,7 @@ describe('getCorrectionToEquatorialForVelocityAberration', () => {
         //
         // N.B. The bound is the first order of v/c, which the displacement exceeds by its own
         // second order for an observer with a component of travel away from the target:
-        const separation =
-          Math.hypot(correction.ra * Math.cos(radians(dec)), correction.dec) * 3600
+        const separation = Math.hypot(correction.ra * Math.cos(radians(dec)), correction.dec) * 3600
 
         expect(separation).toBeLessThanOrEqual(Math.hypot(1, 1, 0.5) * maximum * (1 + 1e-4))
       }
@@ -440,7 +446,8 @@ describe('getBarycentricEarthVelocity', () => {
 
     const s = getGeometricSolarVector(datetime)
 
-    const cosine = (v.x * s.x + v.y * s.y + v.z * s.z) / Math.hypot(v.x, v.y, v.z) / Math.hypot(s.x, s.y, s.z)
+    const cosine =
+      (v.x * s.x + v.y * s.y + v.z * s.z) / Math.hypot(v.x, v.y, v.z) / Math.hypot(s.x, s.y, s.z)
 
     expect(Math.abs(cosine)).toBeLessThan(0.02)
   })

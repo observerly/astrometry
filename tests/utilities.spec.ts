@@ -10,13 +10,13 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate } from '../src'
+import type { EquatorialCoordinate } from '../src'
 
 import {
   convertDegreesToRadians,
-  convertRadiansToDegrees,
   convertDegreeToDMS,
   convertDegreeToHMS,
+  convertRadiansToDegrees,
   getNormalizedAzimuthalDegree,
   getNormalizedInclinationDegree
 } from '../src/utilities'

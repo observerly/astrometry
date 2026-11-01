@@ -24,13 +24,7 @@ import {
 
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
-export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
-
-// For testing we will fix the latitude to be Manua Kea, Hawaii, US
-export const latitude = 19.820611
-
-// For testing we will fix the longitude to be Manua Kea, Hawaii, US:
-export const longitude = -155.468094
+const datetime = new Date('2021-05-14T00:00:00.000+00:00')
 
 // For testing
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
@@ -67,7 +61,10 @@ describe('getCorrectionToEquatorialForNutation', () => {
     expect(dec).toBeCloseTo(7.409983972426182, 9)
   })
 
-  it.each([{ ra: 10, dec: 89.9999 }, { ra: 200, dec: -89.9999 }])(
+  it.each([
+    { ra: 10, dec: 89.9999 },
+    { ra: 200, dec: -89.9999 }
+  ])(
     'should rotate a target at the celestial pole by the nutation without diverging for $ra, $dec',
     target => {
       const { ra, dec } = getCorrectionToEquatorialForNutation(datetime, target)

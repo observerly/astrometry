@@ -13,9 +13,9 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   type EquatorialCoordinate,
   type EquatorialProperMotion,
-  isEquatorialProperMotion,
   type HorizontalCoordinate,
   isEquatorialCoordinate,
+  isEquatorialProperMotion,
   isHorizontalCoordinate,
   type Matrix3,
   type StateVector

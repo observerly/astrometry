@@ -22,19 +22,22 @@ import {
   isNight
 } from '../src'
 
-import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from '../src/utilities'
+import {
+  convertRadiansToDegrees as degrees,
+  convertDegreesToRadians as radians
+} from '../src/utilities'
 
 /*****************************************************************************************************************/
 
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
-export const datetime = new Date('2021-05-14T03:00:00.000+00:00')
+const datetime = new Date('2021-05-14T03:00:00.000+00:00')
 
 // For testing, we will fix the latitude to be the Isles of Scilly, Cornwall, UK.
-export const latitude: number = 49.914425
+const latitude: number = 49.914425
 
 // For testing, we will fix the longitude to be the Isles of Scilly, Cornwall, UK.
-export const longitude: number = -6.315165
+const longitude: number = -6.315165
 
 // For testing the poles, we will fix the observer to be at Alert, Nunavut, Canada, which is within
 // the Arctic Circle, and therefore experiences both perpetual daylight and perpetual night:
@@ -517,10 +520,18 @@ describe('isNight at the poles', () => {
     // zero does not fire at ±90°, where the cosine is ~6.1e-17. It is polar day at the summer
     // pole and polar night at the winter one, whatever the hour:
     for (const hour of ['00', '12']) {
-      expect(isNight(new Date(`2021-06-21T${hour}:00:00.000+00:00`), { latitude: 90, longitude: 0 }, 0)).toBe(false)
-      expect(isNight(new Date(`2021-06-21T${hour}:00:00.000+00:00`), { latitude: -90, longitude: 0 }, 0)).toBe(true)
-      expect(isNight(new Date(`2021-12-21T${hour}:00:00.000+00:00`), { latitude: 90, longitude: 0 }, 0)).toBe(true)
-      expect(isNight(new Date(`2021-12-21T${hour}:00:00.000+00:00`), { latitude: -90, longitude: 0 }, 0)).toBe(false)
+      expect(
+        isNight(new Date(`2021-06-21T${hour}:00:00.000+00:00`), { latitude: 90, longitude: 0 }, 0)
+      ).toBe(false)
+      expect(
+        isNight(new Date(`2021-06-21T${hour}:00:00.000+00:00`), { latitude: -90, longitude: 0 }, 0)
+      ).toBe(true)
+      expect(
+        isNight(new Date(`2021-12-21T${hour}:00:00.000+00:00`), { latitude: 90, longitude: 0 }, 0)
+      ).toBe(true)
+      expect(
+        isNight(new Date(`2021-12-21T${hour}:00:00.000+00:00`), { latitude: -90, longitude: 0 }, 0)
+      ).toBe(false)
     }
   })
 })

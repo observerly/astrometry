@@ -13,8 +13,6 @@ import {
   getCorrectionToEquatorialForLightDeflection
 } from '../../src/aberration'
 
-import { getCorrectionToEquatorialForAnnualParallax } from '../../src/parallax'
-
 import {
   getAngularSeparation,
   getGreenwichApparentSiderealTime,
@@ -28,6 +26,8 @@ import {
   getNutation,
   getTrueObliquityOfTheEcliptic
 } from '../../src/nutation'
+
+import { getCorrectionToEquatorialForAnnualParallax } from '../../src/parallax'
 
 import {
   getCorrectionToEquatorialForFrameBias,

@@ -11,13 +11,13 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  convertEquatorialToHorizontal,
   DEFAULT_SURFACE_HUMIDITY,
   DEFAULT_SURFACE_PRESSURE,
   DEFAULT_SURFACE_TEMPERATURE,
   type EquatorialCoordinate,
-  convertEquatorialToHorizontal,
-  getAirRefractiveIndex,
   getAirmass,
+  getAirRefractiveIndex,
   getCorrectionToHorizontalForRefraction,
   getRefraction
 } from '../src'
@@ -26,13 +26,13 @@ import {
 
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
-export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+const datetime = new Date('2021-05-14T00:00:00.000+00:00')
 
 // For testing we will fix the latitude to be Manua Kea, Hawaii, US
-export const latitude = 19.820611
+const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
-export const longitude = -155.468094
+const longitude = -155.468094
 
 // For testing
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
@@ -167,7 +167,7 @@ describe('getAirmass', () => {
     expect(X).toBeCloseTo(1.0464788807785839, 9)
   })
 
-  it('should return the airmass value for the observed object', () => {
+  it('should return an airmass of 1 for an object at the zenith', () => {
     const target = convertEquatorialToHorizontal(
       datetime,
       {
@@ -314,7 +314,7 @@ describe('getAirRefractiveIndex', () => {
 /*****************************************************************************************************************/
 
 describe('the default conditions at the surface', () => {
-  it('should be the conditions Sæmundsson\'s formula is stated at', () => {
+  it("should be the conditions Sæmundsson's formula is stated at", () => {
     // The default temperature is the temperature the formula is stated at, e.g., the refraction at
     // the default conditions is the standard ~34 arcminutes at the horizon that the -0.833° of
     // sunrise and sunset is drawn from, and so a caller that gives no conditions is not returned a

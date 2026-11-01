@@ -17,10 +17,10 @@ import { getLunarEclipse, getSolarEclipse, isLunarEclipse, isSolarEclipse } from
 const datetime = new Date('2021-04-01T00:00:00.000+00:00')
 
 // For testing we will fix the latitude to be Manua Kea, Hawaii, US
-export const latitude = 19.820611
+const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
-export const longitude = -155.468094
+const longitude = -155.468094
 
 /*****************************************************************************************************************/
 

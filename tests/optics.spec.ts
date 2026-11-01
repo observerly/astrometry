@@ -13,13 +13,13 @@ import { getAiryDiskDiameter, getFieldOfView, getFocalRatio } from '../src'
 /*****************************************************************************************************************/
 
 // For testing we will fix the aperture to be 0.08m (80mm):
-export const apertureWidth = 0.08
+const apertureWidth = 0.08
 
 // For testing we will fix the focal length to be 0.6m (600mm):
-export const focalLength = 0.6
+const focalLength = 0.6
 
 // For testing we will fix the pixel size to be 6.45μm:
-export const pixelSize = 6.45e-6
+const pixelSize = 6.45e-6
 
 /*****************************************************************************************************************/
 

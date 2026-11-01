@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, constellations, getConstellation } from '../src'
+import { constellations, type EquatorialCoordinate, getConstellation } from '../src'
 
 /*****************************************************************************************************************/
 

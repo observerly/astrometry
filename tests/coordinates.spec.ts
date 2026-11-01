@@ -13,34 +13,34 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   type CartesianCoordinate,
   convertCartesianToEquatorial,
-  EARTH_RADIUS,
-  type EquatorialCoordinate,
   convertEclipticToEquatorial,
   convertEquatorialToCartesian,
   convertEquatorialToHorizontal,
-  convertGeocentricToGeographic,
   convertGalacticToEquatorial,
+  convertGeocentricToGeographic,
   convertHorizontalToEquatorial,
+  EARTH_RADIUS,
+  type EquatorialCoordinate,
   getGreenwichApparentSiderealTime,
   getGreenwichSiderealTime
 } from '../src'
 
 import {
-  convertDegreesToRadians as radians,
-  convertRadiansToDegrees as degrees
+  convertRadiansToDegrees as degrees,
+  convertDegreesToRadians as radians
 } from '../src/utilities'
 
 /*****************************************************************************************************************/
 
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
-export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+const datetime = new Date('2021-05-14T00:00:00.000+00:00')
 
 // For testing we will fix the latitude to be Manua Kea, Hawaii, US
-export const latitude = 19.820611
+const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
-export const longitude = -155.468094
+const longitude = -155.468094
 
 // For testing
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
@@ -97,7 +97,11 @@ describe('convertEquatorialToHorizontal', () => {
   it('should not displace a distant target for an observer at an elevation greater than 0', () => {
     // The elevation of the observer does not change where a distant target is on the celestial
     // sphere: it depresses the observer's horizon, which the horizon-relative predicates apply:
-    const { alt, az } = convertEquatorialToHorizontal(datetime, { latitude, longitude, elevation: 100 }, betelgeuse)
+    const { alt, az } = convertEquatorialToHorizontal(
+      datetime,
+      { latitude, longitude, elevation: 100 },
+      betelgeuse
+    )
     expect(alt).toBeCloseTo(72.78239710139869, 9)
     expect(az).toBeCloseTo(134.43777898765828, 9)
   })
@@ -140,7 +144,11 @@ describe('convertEquatorialToHorizontal', () => {
       betelgeuse
     )
 
-    const { alt: sea } = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
+    const { alt: sea } = convertEquatorialToHorizontal(
+      datetime,
+      { latitude, longitude },
+      betelgeuse
+    )
 
     expect(alt).toBeCloseTo(sea, 9)
   })
@@ -150,10 +158,14 @@ describe('convertEquatorialToHorizontal', () => {
     const geocentric = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
 
     // The topocentric horizontal coordinate of the target, at the mean distance of the Moon:
-    const topocentric = convertEquatorialToHorizontal(datetime, { latitude, longitude }, {
-      ...betelgeuse,
-      distance: 384400000
-    })
+    const topocentric = convertEquatorialToHorizontal(
+      datetime,
+      { latitude, longitude },
+      {
+        ...betelgeuse,
+        distance: 384400000
+      }
+    )
 
     // The horizontal parallax at the mean distance of the Moon is ~0.95°, and the parallax at the
     // altitude of the target is that parallax projected onto the vertical circle of the target:
@@ -174,10 +186,14 @@ describe('convertEquatorialToHorizontal', () => {
     const geocentric = convertEquatorialToHorizontal(datetime, { latitude, longitude }, betelgeuse)
 
     // At the distance of Betelgeuse, e.g., ~548 light years, the parallax is negligible:
-    const topocentric = convertEquatorialToHorizontal(datetime, { latitude, longitude }, {
-      ...betelgeuse,
-      distance: 5.18e18
-    })
+    const topocentric = convertEquatorialToHorizontal(
+      datetime,
+      { latitude, longitude },
+      {
+        ...betelgeuse,
+        distance: 5.18e18
+      }
+    )
 
     expect(topocentric.alt).toBeCloseTo(geocentric.alt, 9)
     expect(topocentric.az).toBe(geocentric.az)
@@ -243,7 +259,11 @@ describe('convertEquatorialToHorizontal for an observer at a celestial pole', ()
     // A latitude of NaN or of ±Infinity does not name an observer, and so the coordinate returned
     // is NaN, rather than a sentinel a caller would take for a real coordinate:
     for (const latitude of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
-      const coordinate = convertEquatorialToHorizontal(datetime, { latitude, longitude: 0 }, betelgeuse)
+      const coordinate = convertEquatorialToHorizontal(
+        datetime,
+        { latitude, longitude: 0 },
+        betelgeuse
+      )
 
       expect(Number.isNaN(coordinate.alt)).toBe(true)
       expect(Number.isNaN(coordinate.az)).toBe(true)
@@ -319,7 +339,11 @@ describe('convertGeocentricToGeographic', () => {
     const distance = EARTH_RADIUS + 420000
 
     for (const meridian of [179.5, -179.5, 90, -90]) {
-      const position = getGeocentricPosition(datetime, { latitude: 0, longitude: meridian }, distance)
+      const position = getGeocentricPosition(
+        datetime,
+        { latitude: 0, longitude: meridian },
+        distance
+      )
 
       const { longitude } = convertGeocentricToGeographic(datetime, position)
 
@@ -494,9 +518,9 @@ describe('convertEquatorialToCartesian', () => {
   it('should resolve the direction alone, and so ignore the epoch and parallax of the target', () => {
     const target: EquatorialCoordinate = { ra: 279.23473479, dec: 38.78368896 }
 
-    expect(convertEquatorialToCartesian({ ...target, epoch: 2457388.5, parallax: 0.13023 })).toEqual(
-      convertEquatorialToCartesian(target)
-    )
+    expect(
+      convertEquatorialToCartesian({ ...target, epoch: 2457388.5, parallax: 0.13023 })
+    ).toEqual(convertEquatorialToCartesian(target))
   })
 
   it('should share the frame of convertGeocentricToGeographic, e.g., x towards the vernal equinox', () => {
@@ -546,7 +570,9 @@ describe('convertCartesianToEquatorial', () => {
   })
 
   it('should return an EquatorialCoordinate', () => {
-    expectTypeOf(convertCartesianToEquatorial({ x: 1, y: 0, z: 0 })).toEqualTypeOf<EquatorialCoordinate>()
+    expectTypeOf(
+      convertCartesianToEquatorial({ x: 1, y: 0, z: 0 })
+    ).toEqualTypeOf<EquatorialCoordinate>()
   })
 
   it('should return (0°, 0°) for the vector (1, 0, 0)', () => {
@@ -592,7 +618,11 @@ describe('convertCartesianToEquatorial', () => {
     const { ra, dec } = convertCartesianToEquatorial({ x: 0.3, y: -1.2, z: 2.5 })
 
     for (const scale of [1e-12, 0.5, 3, 6378137, 1e12]) {
-      const coordinate = convertCartesianToEquatorial({ x: 0.3 * scale, y: -1.2 * scale, z: 2.5 * scale })
+      const coordinate = convertCartesianToEquatorial({
+        x: 0.3 * scale,
+        y: -1.2 * scale,
+        z: 2.5 * scale
+      })
       expect(coordinate.ra).toBeCloseTo(ra, 12)
       expect(coordinate.dec).toBeCloseTo(dec, 12)
     }

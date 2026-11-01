@@ -171,8 +171,16 @@ describe('getRotationMatrix', () => {
   it('should be periodic in 360° about each axis', () => {
     for (const axis of axes) {
       for (const angle of angles) {
-        expectMatrixToBeCloseTo(getRotationMatrix(axis, angle + 360), getRotationMatrix(axis, angle), 1e-14)
-        expectMatrixToBeCloseTo(getRotationMatrix(axis, angle - 720), getRotationMatrix(axis, angle), 1e-14)
+        expectMatrixToBeCloseTo(
+          getRotationMatrix(axis, angle + 360),
+          getRotationMatrix(axis, angle),
+          1e-14
+        )
+        expectMatrixToBeCloseTo(
+          getRotationMatrix(axis, angle - 720),
+          getRotationMatrix(axis, angle),
+          1e-14
+        )
       }
     }
   })
@@ -370,19 +378,25 @@ describe('getMatrixProduct', () => {
   })
 
   it('should return the literal product R1(90°) · R3(90°)', () => {
-    expectMatrixToBeCloseTo(getMatrixProduct(getRotationMatrix('x', 90), getRotationMatrix('z', 90)), [
-      [0, 1, 0],
-      [0, 0, 1],
-      [1, 0, 0]
-    ])
+    expectMatrixToBeCloseTo(
+      getMatrixProduct(getRotationMatrix('x', 90), getRotationMatrix('z', 90)),
+      [
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 0, 0]
+      ]
+    )
   })
 
   it('should return the literal product R3(90°) · R1(90°)', () => {
-    expectMatrixToBeCloseTo(getMatrixProduct(getRotationMatrix('z', 90), getRotationMatrix('x', 90)), [
-      [0, 0, 1],
-      [-1, 0, 0],
-      [0, -1, 0]
-    ])
+    expectMatrixToBeCloseTo(
+      getMatrixProduct(getRotationMatrix('z', 90), getRotationMatrix('x', 90)),
+      [
+        [0, 0, 1],
+        [-1, 0, 0],
+        [0, -1, 0]
+      ]
+    )
   })
 
   it('should not be commutative, e.g., the order of the product matters', () => {
@@ -453,7 +467,10 @@ describe('getMatrixProduct', () => {
   it('should return the identity for four successive rotations of 90° about each axis', () => {
     for (const axis of axes) {
       const R = getRotationMatrix(axis, 90)
-      expectMatrixToBeCloseTo(getMatrixProduct(getMatrixProduct(R, R), getMatrixProduct(R, R)), identity)
+      expectMatrixToBeCloseTo(
+        getMatrixProduct(getMatrixProduct(R, R), getMatrixProduct(R, R)),
+        identity
+      )
     }
   })
 
@@ -537,7 +554,11 @@ describe('getRotatedCartesianCoordinate', () => {
       [0, 0, 0]
     ]
 
-    expect(getRotatedCartesianCoordinate(zero, { x: 0.3, y: -1.2, z: 2.5 })).toEqual({ x: 0, y: 0, z: 0 })
+    expect(getRotatedCartesianCoordinate(zero, { x: 0.3, y: -1.2, z: 2.5 })).toEqual({
+      x: 0,
+      y: 0,
+      z: 0
+    })
   })
 
   it('should return the literal product of an arbitrary matrix and a column vector', () => {
@@ -552,7 +573,11 @@ describe('getRotatedCartesianCoordinate', () => {
   })
 
   it('should return (0, −1, 0) for R3(90°) applied to (1, 0, 0)', () => {
-    const { x, y, z } = getRotatedCartesianCoordinate(getRotationMatrix('z', 90), { x: 1, y: 0, z: 0 })
+    const { x, y, z } = getRotatedCartesianCoordinate(getRotationMatrix('z', 90), {
+      x: 1,
+      y: 0,
+      z: 0
+    })
     expect(x).toBeCloseTo(0, 15)
     expect(y).toBeCloseTo(-1, 15)
     expect(z).toBeCloseTo(0, 15)
@@ -561,9 +586,21 @@ describe('getRotatedCartesianCoordinate', () => {
   it('should return the column of the matrix for each unit vector', () => {
     const R = getRotationMatrix('y', 40)
 
-    expect(getRotatedCartesianCoordinate(R, { x: 1, y: 0, z: 0 })).toEqual({ x: R[0][0], y: R[1][0], z: R[2][0] })
-    expect(getRotatedCartesianCoordinate(R, { x: 0, y: 1, z: 0 })).toEqual({ x: R[0][1], y: R[1][1], z: R[2][1] })
-    expect(getRotatedCartesianCoordinate(R, { x: 0, y: 0, z: 1 })).toEqual({ x: R[0][2], y: R[1][2], z: R[2][2] })
+    expect(getRotatedCartesianCoordinate(R, { x: 1, y: 0, z: 0 })).toEqual({
+      x: R[0][0],
+      y: R[1][0],
+      z: R[2][0]
+    })
+    expect(getRotatedCartesianCoordinate(R, { x: 0, y: 1, z: 0 })).toEqual({
+      x: R[0][1],
+      y: R[1][1],
+      z: R[2][1]
+    })
+    expect(getRotatedCartesianCoordinate(R, { x: 0, y: 0, z: 1 })).toEqual({
+      x: R[0][2],
+      y: R[1][2],
+      z: R[2][2]
+    })
   })
 
   it('should keep the length of an arbitrary vector for a rotation about each axis', () => {

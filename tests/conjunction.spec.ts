@@ -11,20 +11,20 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
-  type Planet,
   convertEclipticToEquatorial,
   convertEquatorialToHorizontal,
   findConjunction,
   findConjunctions,
   findPlanetaryConjunction,
   findPlanetaryConjunctions,
-  getLunarEquatorialCoordinate,
   getCorrectionToEquatorialForPrecessionOfEquinoxes,
+  getLunarEquatorialCoordinate,
   getMidpointEquatorialCoordinate,
   getPlanetaryGeocentricEclipticCoordinate,
   isConjunction,
   isPlanetaryConjunction,
   jupiter,
+  type Planet,
   saturn,
   venus
 } from '../src'
@@ -35,10 +35,10 @@ import {
 const planets = [jupiter, venus] as [Planet, Planet]
 
 // For testing we will fix the latitude to be Manua Kea, Hawaii, US
-export const latitude = 19.820611
+const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
-export const longitude = -155.468094
+const longitude = -155.468094
 
 /*****************************************************************************************************************/
 
@@ -48,10 +48,7 @@ describe('getMidpointEquatorialCoordinate', () => {
   })
 
   it('should return the midpoint of two equatorial coordinates', () => {
-    const { ra, dec } = getMidpointEquatorialCoordinate(
-      { ra: 179, dec: -20 },
-      { ra: 181, dec: 20 }
-    )
+    const { ra, dec } = getMidpointEquatorialCoordinate({ ra: 179, dec: -20 }, { ra: 181, dec: 20 })
 
     expect(ra).toBeCloseTo(180, 9)
     expect(dec).toBeCloseTo(0, 9)

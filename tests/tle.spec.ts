@@ -250,7 +250,10 @@ describe('parseTwoLineElement', () => {
     const tle = parseTwoLineElement(line1, line2)
 
     // Day 264.51782528 of 2008 is the 20th of September 2008, at 12:25:40.104 UTC:
-    expect((tle.epoch - 2440587.5) * 86400000).toBeCloseTo(Date.UTC(2008, 8, 20, 12, 25, 40, 104), 0)
+    expect((tle.epoch - 2440587.5) * 86400000).toBeCloseTo(
+      Date.UTC(2008, 8, 20, 12, 25, 40, 104),
+      0
+    )
   })
 
   it('should resolve the years 57 to 99 to the 20th century', () => {
@@ -387,9 +390,9 @@ describe('parseTwoLineElement', () => {
 
   it('should throw for a line whose separators do not fall in their columns', () => {
     // The inclination shifted one column to the left, e.g., a line that is not of the format:
-    expect(() =>
-      parseTwoLineElement(line1, splice(line2, 7, '51.6416  '))
-    ).toThrowError(/line 2 must carry/)
+    expect(() => parseTwoLineElement(line1, splice(line2, 7, '51.6416  '))).toThrowError(
+      /line 2 must carry/
+    )
   })
 
   it('should throw for a line without the separator between the designator and the epoch', () => {

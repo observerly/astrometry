@@ -10,19 +10,19 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
+import { type GravityModel, WGS72, WGS84 } from '../src/gravity'
+
 import {
+  SatelliteRecord,
+  type SatelliteRecordOptions,
   SGP4DecayedError,
   SGP4EphemerisTypeError,
   SGP4Error,
   SGP4MeanEccentricityError,
   SGP4MeanMotionError,
   SGP4PerturbedEccentricityError,
-  SGP4SemiLatusRectumError,
-  SatelliteRecord,
-  type SatelliteRecordOptions
+  SGP4SemiLatusRectumError
 } from '../src/sgp4'
-
-import { type GravityModel, WGS72, WGS84 } from '../src/gravity'
 
 import { parseTwoLineElement } from '../src/tle'
 
@@ -113,7 +113,9 @@ describe('SGP4MeanEccentricityError', () => {
   })
 
   it('should describe the failure in its message', () => {
-    expect(new SGP4MeanEccentricityError(1.0002).message).toBe('The mean eccentricity 1.0002 is not within [0, 1)')
+    expect(new SGP4MeanEccentricityError(1.0002).message).toBe(
+      'The mean eccentricity 1.0002 is not within [0, 1)'
+    )
   })
 
   it('should be caught as an SGP4 error when it is thrown', () => {
@@ -156,7 +158,9 @@ describe('SGP4MeanMotionError', () => {
   })
 
   it('should describe the failure in its message', () => {
-    expect(new SGP4MeanMotionError(-0.0001).message).toBe('The mean motion -0.0001 is not greater than zero')
+    expect(new SGP4MeanMotionError(-0.0001).message).toBe(
+      'The mean motion -0.0001 is not greater than zero'
+    )
   })
 
   it('should be caught as an SGP4 error when it is thrown', () => {
@@ -199,7 +203,9 @@ describe('SGP4PerturbedEccentricityError', () => {
   })
 
   it('should describe the failure in its message', () => {
-    expect(new SGP4PerturbedEccentricityError(1.05).message).toBe('The perturbed eccentricity 1.05 is not within [0, 1]')
+    expect(new SGP4PerturbedEccentricityError(1.05).message).toBe(
+      'The perturbed eccentricity 1.05 is not within [0, 1]'
+    )
   })
 
   it('should be caught as an SGP4 error when it is thrown', () => {
@@ -242,7 +248,9 @@ describe('SGP4SemiLatusRectumError', () => {
   })
 
   it('should describe the failure in its message', () => {
-    expect(new SGP4SemiLatusRectumError(-0.25).message).toBe('The semi-latus rectum -0.25 is less than zero')
+    expect(new SGP4SemiLatusRectumError(-0.25).message).toBe(
+      'The semi-latus rectum -0.25 is less than zero'
+    )
   })
 
   it('should be caught as an SGP4 error when it is thrown', () => {
@@ -285,7 +293,9 @@ describe('SGP4DecayedError', () => {
   })
 
   it('should describe the failure in its message', () => {
-    expect(new SGP4DecayedError(0.98).message).toBe('The orbit has decayed, as its radius of 0.98 Earth radii is less than that of the Earth')
+    expect(new SGP4DecayedError(0.98).message).toBe(
+      'The orbit has decayed, as its radius of 0.98 Earth radii is less than that of the Earth'
+    )
   })
 
   it('should be caught as an SGP4 error when it is thrown', () => {
@@ -328,7 +338,9 @@ describe('SGP4EphemerisTypeError', () => {
   })
 
   it('should describe the failure in its message', () => {
-    expect(new SGP4EphemerisTypeError(4).message).toBe('The ephemeris type 4 is not one that SGP4 propagates')
+    expect(new SGP4EphemerisTypeError(4).message).toBe(
+      'The ephemeris type 4 is not one that SGP4 propagates'
+    )
   })
 
   it('should be caught as an SGP4 error when it is thrown', () => {
