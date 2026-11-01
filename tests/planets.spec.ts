@@ -51,6 +51,31 @@ describe('getPlanetaryMeanAnomaly', () => {
     const M = getPlanetaryMeanAnomaly(new Date('2016-01-04T03:00:00+00:00'), venus)
     expect(M).toBeCloseTo(57.636998)
   })
+
+  it.each([
+    ['Mercury', 174.792528],
+    ['Venus', 50.376633],
+    ['Earth', 357.52689],
+    ['Mars', 19.390197],
+    ['Jupiter', 19.667962],
+    ['Saturn', 317.355366],
+    ['Uranus', 142.283828],
+    ['Neptune', 259.915209]
+  ])(
+    'should return the mean longitude less the longitude of perihelion for %s at the J2000.0 epoch (TT)',
+    (name, expected) => {
+      const planet = planets.find(planet => planet.name === name)
+      expect(planet).toBeDefined()
+
+      if (!planet) {
+        throw new Error(`${name} is not defined`)
+      }
+
+      // 2000 January 1.5 TT is 2000 January 1 11:58:55.816 UTC, e.g., TT − UTC = 32 s + 32.184 s:
+      const M = getPlanetaryMeanAnomaly(new Date('2000-01-01T11:58:55.816+00:00'), planet)
+      expect(M).toBeCloseTo(expected, 6)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
@@ -89,7 +114,7 @@ describe('getPlanetaryTrueAnomaly', () => {
 
     expect(venus).toBeDefined()
     const E = getPlanetaryTrueAnomaly(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(E).toBeCloseTo(58.288946)
+    expect(E).toBeCloseTo(58.294206)
   })
 })
 
@@ -112,7 +137,7 @@ describe('getPlanetaryHeliocentricEclipticLongitude', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       venus
     )
-    expect(L).toBeCloseTo(189.891413)
+    expect(L).toBeCloseTo(189.896673)
   })
 })
 
@@ -152,7 +177,7 @@ describe('getPlanetaryHeliocentricDistance', () => {
     }
 
     const R = getPlanetaryHeliocentricDistance(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(R).toBe(0.7207354164908778)
+    expect(R).toBe(0.7207355085244032)
   })
 })
 
@@ -175,8 +200,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       venus
     )
-    expect(λ).toBe(245.79403406596947)
-    expect(β).toBe(1.8937944394473665)
+    expect(λ).toBe(245.79499387030154)
+    expect(β).toBe(1.8937687210761236)
   })
 
   it('should return the correct value for Saturn (an exterior planet) at the datetime prescribed', () => {
@@ -191,8 +216,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       saturn
     )
-    expect(λ).toBe(251.5017460271163)
-    expect(β).toBe(1.6685889641726377)
+    expect(λ).toBe(251.5018263629497)
+    expect(β).toBe(1.6685864468959957)
   })
 
   it('should return the correct value for Mercury (an inferior planet) at the datetime prescribed', () => {
@@ -264,12 +289,12 @@ describe('getPlanetaryPositions', () => {
     expect(venus).toMatchObject({
       name: 'Venus',
       symbol: '♀',
-      λ: 245.79403406596947,
-      β: 1.8937944394473665,
-      ra: 244.248410736812,
-      dec: -19.4032236885202,
-      alt: -23.17428823538593,
-      az: 256.71232448336434
+      λ: 245.79499387030154,
+      β: 1.8937687210761236,
+      ra: 244.24940775385573,
+      dec: -19.403414860199373,
+      alt: -23.173421327788937,
+      az: 256.71187684275975
     })
 
     expect(venus).toHaveProperty('ra')

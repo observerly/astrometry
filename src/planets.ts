@@ -19,7 +19,7 @@ import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './co
 
 import { earth } from './earth'
 
-import { getJulianDate } from './epoch'
+import { getJulianDate, getTerrestrialTime } from './epoch'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
@@ -277,8 +277,12 @@ export const getPlanetaryMeanAnomaly = (
   datetime: Date,
   planet: PlanetOrbitalParameters
 ): number => {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date:
+  const tt = getTerrestrialTime(datetime)
+
   // Get the Julian date:
-  const JD = getJulianDate(datetime)
+  const JD = getJulianDate(tt)
 
   // Get the number of Julian days since the epoch:
   const De = JD - J2000
