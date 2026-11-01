@@ -10,11 +10,11 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
+import { getAngularSeparation } from '../src/astrometry'
+
 import type { CartesianCoordinate, Matrix3 } from '../src/common'
 
 import { convertCartesianToEquatorial, convertEquatorialToCartesian } from '../src/coordinates'
-
-import { getAngularSeparation } from '../src/astrometry'
 
 import {
   doCrossProduct,
