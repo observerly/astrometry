@@ -96,19 +96,20 @@ export const getCorrectionToEquatorialForFrameBias = (
 
 /**
  *
- * getCorrectionToEquatorialForPrecessionOfEquinoxes()
+ * getPrecessionAngles()
  *
- * Corrects the equatorial coordinates of a target for the precession of the equinoxes.
+ * The equatorial precession angles ζ, z and θ of IAU 2006, e.g., the angles of the rotation from the mean
+ * equator and equinox of J2000.0 to the mean equator and equinox of the date, as the product R3(−z) · R2(θ) ·
+ * R3(−ζ) of the passive rotations of the frame, as is defined by the precession of P03 (Capitaine et al. 2003).
  *
- * @param date - The date to correct the equatorial coordinates for.
- * @param target - The equatorial J2000 coordinates of the target.
- * @returns The corrected equatorial coordinates of the target.
+ * N.B. The transpose of the rotation, R3(ζ) · R2(−θ) · R3(z), carries a coordinate from the mean equator and
+ * equinox of the date back to the mean equator and equinox of J2000.0.
+ *
+ * @param datetime - The date to resolve the precession angles for.
+ * @returns The precession angles ζ, z and θ (in degrees).
  *
  */
-export const getCorrectionToEquatorialForPrecessionOfEquinoxes = (
-  datetime: Date,
-  target: EquatorialCoordinate
-): EquatorialCoordinate => {
+export const getPrecessionAngles = (datetime: Date): { ζ: number; z: number; θ: number } => {
   // The precession angles are referred to Terrestrial Time, and so they are resolved at the Terrestrial Time of
   // the given date:
   const JD = getJulianDate(getTerrestrialTime(datetime))
@@ -144,6 +145,29 @@ export const getCorrectionToEquatorialForPrecessionOfEquinoxes = (
       0.000007089 * T ** 4 -
       0.0000001274 * T ** 5) /
     3600
+
+  return { ζ, z, θ }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getCorrectionToEquatorialForPrecessionOfEquinoxes()
+ *
+ * Corrects the equatorial coordinates of a target for the precession of the equinoxes.
+ *
+ * @param date - The date to correct the equatorial coordinates for.
+ * @param target - The equatorial J2000 coordinates of the target.
+ * @returns The corrected equatorial coordinates of the target.
+ *
+ */
+export const getCorrectionToEquatorialForPrecessionOfEquinoxes = (
+  datetime: Date,
+  target: EquatorialCoordinate
+): EquatorialCoordinate => {
+  // Get the equatorial precession angles of IAU 2006 (in degrees):
+  const { ζ, z, θ } = getPrecessionAngles(datetime)
 
   // Calculate the reduction coordinates of the target:
   const A = Math.cos(radians(target.dec)) * Math.sin(radians(target.ra + ζ))

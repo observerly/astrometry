@@ -16,8 +16,6 @@ import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './co
 
 import { getObliquityOfTheEcliptic } from './ecliptic'
 
-import { getJulianDate, getTerrestrialTime } from './epoch'
-
 import { getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
 
 import {
@@ -29,6 +27,8 @@ import {
   saturn,
   uranus
 } from './planets'
+
+import { getPrecessionAngles } from './precession'
 
 import { getSolarGeometricEclipticCoordinate } from './sun'
 
@@ -58,38 +58,8 @@ export const getGeometricSolarVector = (datetime: Date): Required<CartesianCoord
   // Get the geometric ecliptic coordinate of the Sun, referred to the mean ecliptic and equinox of the date:
   const sun = getSolarGeometricEclipticCoordinate(datetime)
 
-  // Get the difference in fractional Julian centuries between the target date and J2000.0, at the Terrestrial
-  // Time of the given date, which the precession angles are referred to:
-  const T = (getJulianDate(getTerrestrialTime(datetime)) - 2451545.0) / 36525
-
-  // Calculate the precession angle ζ of the equatorial precession of IAU 2006 (in degrees):
-  const ζ =
-    (2.650545 +
-      2306.083227 * T +
-      0.2988499 * T ** 2 +
-      0.01801828 * T ** 3 -
-      0.000005971 * T ** 4 -
-      0.0000003173 * T ** 5) /
-    3600
-
-  // Calculate the precession angle z of the equatorial precession of IAU 2006 (in degrees):
-  const z =
-    (-2.650545 +
-      2306.077181 * T +
-      1.0927348 * T ** 2 +
-      0.01826837 * T ** 3 -
-      0.000028596 * T ** 4 -
-      0.0000002904 * T ** 5) /
-    3600
-
-  // Calculate the precession angle θ of the equatorial precession of IAU 2006 (in degrees):
-  const θ =
-    (2004.191903 * T -
-      0.4294934 * T ** 2 -
-      0.04182264 * T ** 3 -
-      0.000007089 * T ** 4 -
-      0.0000001274 * T ** 5) /
-    3600
+  // Get the equatorial precession angles of IAU 2006 (in degrees):
+  const { ζ, z, θ } = getPrecessionAngles(datetime)
 
   // The unit vector of the Sun in the frame of the mean ecliptic and equinox of the date, e.g., the spherical to
   // cartesian conversion of the ecliptic coordinate, which is that of the equatorial coordinate with the longitude
