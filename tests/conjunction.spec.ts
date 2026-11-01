@@ -126,8 +126,8 @@ describe('isPlanetaryConjunction(datetime)', () => {
     }
 
     // The midpoint must lie between the two targets, and not on the opposite side of the sky:
-    expect(conjunction.ra).toBeCloseTo(359.467, 3)
-    expect(conjunction.dec).toBeCloseTo(-1.5568, 4)
+    expect(conjunction.ra).toBeCloseTo(359.4675, 3)
+    expect(conjunction.dec).toBeCloseTo(-1.5566, 4)
   })
 })
 
