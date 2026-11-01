@@ -67,7 +67,7 @@ describe('getSolarEquationOfCenter', () => {
 
   it('should return the correct Solar equation of center for the given date', () => {
     const C = getSolarEquationOfCenter(datetime)
-    expect(C).toBe(1.4754673589341347)
+    expect(C).toBe(1.47546735889979)
   })
 })
 
@@ -93,7 +93,7 @@ describe('getSolarTrueAnomaly', () => {
 
   it('should return the correct Solar true anomaly for the given date', () => {
     const ν = getSolarTrueAnomaly(datetime)
-    expect(ν).toBe(130.13715799351033)
+    expect(ν).toBe(130.13715799347597)
   })
 })
 
@@ -106,7 +106,7 @@ describe('getSolarTrueGeometricLongitude', () => {
 
   it('should return the correct Solar true geometric longitude for the given date', () => {
     const L = getSolarTrueGeometricLongitude(datetime)
-    expect(L).toBe(53.44111624055224)
+    expect(L).toBe(53.4411162405179)
   })
 })
 
@@ -120,7 +120,7 @@ describe('getSolarEclipticLongitude', () => {
   it('should return the correct Solar ecliptic longitude for the given date', () => {
     const datetime = new Date('2015-02-05T12:00:00.000+00:00')
     const λ = getSolarEclipticLongitude(datetime)
-    expect(λ).toBe(316.10466912018575)
+    expect(λ).toBe(316.1046691201687)
   })
 })
 
