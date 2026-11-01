@@ -268,7 +268,6 @@ export {
 /*****************************************************************************************************************/
 
 export {
-  getEclipticPlane,
   getObliquityOfTheEcliptic,
   getTrueObliquityOfTheEcliptic
 } from './ecliptic'
@@ -494,6 +493,7 @@ export {
 
 export {
   getBarycentricJulianDate,
+  getEclipticPlane,
   getHeliocentricJulianDate,
   getSolarAngularDiameter,
   getSolarDistance,
