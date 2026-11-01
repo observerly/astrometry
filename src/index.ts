@@ -267,10 +267,7 @@ export {
 
 /*****************************************************************************************************************/
 
-export {
-  getObliquityOfTheEcliptic,
-  getTrueObliquityOfTheEcliptic
-} from './ecliptic'
+export { getObliquityOfTheEcliptic } from './ecliptic'
 
 /*****************************************************************************************************************/
 
@@ -370,7 +367,8 @@ export {
 
 export {
   getCorrectionToEquatorialForNutation,
-  getNutation
+  getNutation,
+  getTrueObliquityOfTheEcliptic
 } from './nutation'
 
 /*****************************************************************************************************************/

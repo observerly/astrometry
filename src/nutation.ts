@@ -8,6 +8,8 @@
 
 import type { EquatorialCoordinate } from './common'
 
+import { getObliquityOfTheEcliptic } from './ecliptic'
+
 import { getJulianDate, getTerrestrialTime } from './epoch'
 
 import { getMatrixProduct, getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
@@ -218,21 +220,8 @@ export const getCorrectionToEquatorialForNutation = (
   // Get the nutation in longitude and obliquity (in degrees):
   const { Δψ, Δε } = getNutation(datetime)
 
-  // Calculate the number of centuries since J2000.0, at the Terrestrial Time of the given date:
-  const T = (getJulianDate(getTerrestrialTime(datetime)) - 2451545.0) / 36525
-
-  // Get the mean obliquity of the ecliptic (in degrees), e.g., the mean obliquity of IAU 2006.
-  //
-  // N.B. The polynomial is that of getObliquityOfTheEcliptic(), which is resolved here so that this module does
-  // not depend on the ecliptic module, which depends on this module:
-  const ε0 =
-    (84381.406 -
-      46.836769 * T -
-      0.0001831 * T ** 2 +
-      0.0020034 * T ** 3 -
-      0.000000576 * T ** 4 -
-      0.0000000434 * T ** 5) /
-    3600
+  // Get the mean obliquity of the ecliptic, e.g., the mean obliquity of IAU 2006 (in degrees):
+  const ε0 = getObliquityOfTheEcliptic(datetime)
 
   // The nutation matrix, e.g., the rotation from the mean equator and equinox of the date to the true equator and
   // equinox of the date, as the product R1(−ε) · R3(−Δψ) · R1(ε0) of the passive rotations of the frame about the
@@ -265,6 +254,33 @@ export const getCorrectionToEquatorialForNutation = (
       180,
     dec: degrees(Math.atan2(apparent.z, Math.hypot(apparent.x, apparent.y))) - target.dec
   }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getTrueObliquityOfTheEcliptic()
+ *
+ * The true obliquity of the ecliptic is the mean obliquity of the ecliptic of the date corrected
+ * for the nutation in obliquity, e.g., the angle between the ecliptic and the true celestial
+ * equator of the date, about which a coordinate referred to the true equator and equinox of the
+ * date is converted.
+ *
+ * @param date - The date for which to calculate the true obliquity of the ecliptic for.
+ * @returns The true obliquity of the ecliptic in degrees.
+ *
+ */
+export const getTrueObliquityOfTheEcliptic = (datetime: Date): number => {
+  // Get the mean obliquity of the ecliptic (in degrees):
+  const ε = getObliquityOfTheEcliptic(datetime)
+
+  // Get the nutation in obliquity (in degrees):
+  const { Δε } = getNutation(datetime)
+
+  // Correct for the nutation in obliquity, e.g., the displacement of the true equator of the
+  // date from the mean equator of the date (in degrees):
+  return ε + Δε
 }
 
 /*****************************************************************************************************************/

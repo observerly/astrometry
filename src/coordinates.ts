@@ -22,7 +22,7 @@ import type {
 } from './common'
 import { EARTH_RADIUS } from './constants'
 
-import { getTrueObliquityOfTheEcliptic } from './ecliptic'
+import { getTrueObliquityOfTheEcliptic } from './nutation'
 
 import {
   convertRadiansToDegrees as degrees,

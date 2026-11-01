@@ -21,9 +21,13 @@ import {
   getGreenwichSiderealTime
 } from '../../src/astrometry'
 
-import { getObliquityOfTheEcliptic, getTrueObliquityOfTheEcliptic } from '../../src/ecliptic'
+import { getObliquityOfTheEcliptic } from '../../src/ecliptic'
 
-import { getCorrectionToEquatorialForNutation, getNutation } from '../../src/nutation'
+import {
+  getCorrectionToEquatorialForNutation,
+  getNutation,
+  getTrueObliquityOfTheEcliptic
+} from '../../src/nutation'
 
 import {
   getCorrectionToEquatorialForFrameBias,
