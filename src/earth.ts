@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import { getNumberOfCenturiesSinceJ2000 } from './epoch'
+import { getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
 
 import type { Planet } from './planets'
 
@@ -58,8 +58,12 @@ export const R = [R0, R1, R2, R3, R4]
  *
  */
 export const getEccentricityOfOrbit = (datetime: Date): number => {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date:
+  const tt = getTerrestrialTime(datetime)
+
   // Get the difference in fractional Julian centuries between the target date and J2000.0
-  const T = getNumberOfCenturiesSinceJ2000(datetime)
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // Get the eccentricity of the Earth's orbit
   return 0.0167086342 - 0.000042037 * T - ((0.0000001267 * T ** 2) % 360)
