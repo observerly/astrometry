@@ -97,8 +97,12 @@ export const getSolarMeanAnomaly = (datetime: Date): number => {
  * @returns The Sun's equation of center at the given date.
  */
 export const getSolarEquationOfCenter = (datetime: Date): number => {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date:
+  const tt = getTerrestrialTime(datetime)
+
   // Calculate the number of centuries since J2000.0:
-  const T = getNumberOfCenturiesSinceJ2000(datetime)
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // Get the mean anomaly:
   const M = getSolarMeanAnomaly(datetime)
