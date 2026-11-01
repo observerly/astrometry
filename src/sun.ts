@@ -23,7 +23,7 @@ import { B, getEccentricityOfOrbit, L, R } from './earth'
 
 import { getObliquityOfTheEcliptic } from './ecliptic'
 
-import { getJulianDate, getTerrestrialTime } from './epoch'
+import { getJulianDate, getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
 
 import { getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
 
@@ -66,11 +66,8 @@ export const SOLAR_TROPICAL_YEAR = 365.242189 as const
  *
  */
 export const getSolarMeanAnomaly = (datetime: Date): number => {
-  // Get the Julian Date:
-  const JD = getJulianDate(datetime)
-
   // Calculate the number of centuries since J2000.0:
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(datetime)
 
   // Get the Sun's mean anomaly at the current epoch relative to J2000:
   let M = (357.52911 + 35999.05029 * T - 0.0001537 * T ** 2) % 360
@@ -95,11 +92,8 @@ export const getSolarMeanAnomaly = (datetime: Date): number => {
  * @returns The Sun's equation of center at the given date.
  */
 export const getSolarEquationOfCenter = (datetime: Date): number => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
-
   // Calculate the number of centuries since J2000.0:
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(datetime)
 
   // Get the mean anomaly:
   const M = getSolarMeanAnomaly(datetime)
@@ -127,11 +121,8 @@ export const getSolarEquationOfCenter = (datetime: Date): number => {
  *
  */
 export const getSolarMeanGeometricLongitude = (datetime: Date): number => {
-  // Get the Julian date:
-  const JD = getJulianDate(datetime)
-
   // Calculate the number of centuries since J2000.0:
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(datetime)
 
   // Calculate the mean geometric longitude:
   let L = (280.46646 + 36000.76983 * T + 0.0003032 * T ** 2) % 360
@@ -246,11 +237,8 @@ export function getSolarGeometricEclipticCoordinate(datetime: Date): EclipticCoo
   // which the Sun moves ~2.8 arcseconds in longitude:
   const tt = getTerrestrialTime(datetime)
 
-  // Get the Julian date:
-  const JD = getJulianDate(tt)
-
   // Get the number of centuries since J2000.0:
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // Get the Julian millenia since J2000.0:
   const τ = T / 10

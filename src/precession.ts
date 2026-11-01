@@ -8,7 +8,7 @@
 
 import type { EquatorialCoordinate } from './common'
 
-import { getJulianDate, getTerrestrialTime } from './epoch'
+import { getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
 
 import {
   convertRadiansToDegrees as degrees,
@@ -112,10 +112,10 @@ export const getCorrectionToEquatorialForFrameBias = (
 export const getPrecessionAngles = (datetime: Date): { ζ: number; z: number; θ: number } => {
   // The precession angles are referred to Terrestrial Time, and so they are resolved at the Terrestrial Time of
   // the given date:
-  const JD = getJulianDate(getTerrestrialTime(datetime))
+  const tt = getTerrestrialTime(datetime)
 
   // Get the difference in fractional Julian centuries between the target date and J2000.0
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // Calculate the precession angle ζ of the equatorial precession of IAU 2006 (in degrees):
   const ζ =

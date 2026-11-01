@@ -54,7 +54,8 @@ export const getModifiedJulianDate = (datetime: Date): number => {
  *
  */
 export const getNumberOfCenturiesSinceJ2000 = (datetime: Date): number => {
-  // Get the Julian Date (JD) of the given date normalised to UTC:
+  // Get the Julian Date (JD) of the given date, e.g., in the time scale the date is given in, such as the
+  // Terrestrial Time of a date resolved by getTerrestrialTime():
   const JD = getJulianDate(datetime)
 
   // Calculate the number of centuries since J2000.0:

@@ -10,7 +10,7 @@ import type { EquatorialCoordinate } from './common'
 
 import { getObliquityOfTheEcliptic } from './ecliptic'
 
-import { getJulianDate, getTerrestrialTime } from './epoch'
+import { getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
 
 import { getMatrixProduct, getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
 
@@ -123,10 +123,10 @@ const IAU2000B_NUTATION_TERMS = [
  */
 export const getNutation = (date: Date): { Δψ: number; Δε: number } => {
   // The series is referred to Terrestrial Time, and so it is resolved at the Terrestrial Time of the given date:
-  const JD = getJulianDate(getTerrestrialTime(date))
+  const tt = getTerrestrialTime(date)
 
   // Calculate the number of centuries since J2000.0:
-  const T = (JD - 2451545.0) / 36525
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // Get the fundamental (Delaunay) arguments of the series (in radians), e.g., the mean anomaly of the Moon, l,
   // the mean anomaly of the Sun, l', the mean argument of the latitude of the Moon, F, the mean elongation of the
