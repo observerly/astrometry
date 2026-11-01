@@ -48,6 +48,13 @@ describe('getCoefficientOfEccentricity', () => {
     const E = getCoefficientOfEccentricity(datetime)
     expect(E).toBeCloseTo(1 - e, 1)
   })
+
+  it('should resolve the coefficient of eccentricity at the Terrestrial Time of the given datetime', () => {
+    // 2021 May 14 0h UTC is JD 2459348.500800741 TT, e.g., TT − UTC = 37 s + 32.184 s, and so the number of Julian
+    // centuries since J2000.0 is T = 0.2136482080969447, e.g., E = 1 − 0.002516 T − 0.0000074 T²:
+    const E = getCoefficientOfEccentricity(datetime)
+    expect(E).toBeCloseTo(0.9994621233313076, 15)
+  })
 })
 
 /*****************************************************************************************************************/
