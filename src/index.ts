@@ -303,6 +303,7 @@ export {
 export {
   doCrossProduct,
   doDotProduct,
+  doTranspose,
   getMatrixProduct,
   getRotatedCartesianCoordinate,
   getRotationMatrix,

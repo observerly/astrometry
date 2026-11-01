@@ -317,3 +317,32 @@ export const doCrossProduct = (
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * doTranspose()
+ *
+ * Resolves the transpose Mᵀ of a 3×3 matrix, e.g., the matrix reflected about its leading diagonal,
+ * such that the element of the i-th row and the j-th column of the transpose is the element of the
+ * j-th row and the i-th column of the matrix, e.g., Mᵀ[i][j] = M[j][i].
+ *
+ * N.B. The transpose of a rotation matrix is its inverse, e.g., R⁻¹ = Rᵀ, and so the transpose of
+ * the matrix that rotates one reference frame into another rotates the second back into the first,
+ * where the transpose of an elementary rotation is the rotation by the negated angle, e.g., as
+ * R3(ψ)ᵀ = R3(−ψ).
+ *
+ * N.B. The transpose reverses the order of a product, e.g., (a · b)ᵀ = bᵀ · aᵀ.
+ *
+ * @param m - The 3×3 matrix to transpose, in row-major order.
+ * @returns The 3×3 transpose of the matrix, in row-major order.
+ *
+ */
+export const doTranspose = (m: Matrix3): Matrix3 => {
+  return [
+    [m[0][0], m[1][0], m[2][0]],
+    [m[0][1], m[1][1], m[2][1]],
+    [m[0][2], m[1][2], m[2][2]]
+  ]
+}
+
+/*****************************************************************************************************************/
