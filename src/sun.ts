@@ -66,8 +66,13 @@ export const SOLAR_TROPICAL_YEAR = 365.242189 as const
  *
  */
 export const getSolarMeanAnomaly = (datetime: Date): number => {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date, e.g., ~69 seconds ahead of the civil time, over which the mean anomaly
+  // advances by ~2.8 arcseconds:
+  const tt = getTerrestrialTime(datetime)
+
   // Calculate the number of centuries since J2000.0:
-  const T = getNumberOfCenturiesSinceJ2000(datetime)
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // Get the Sun's mean anomaly at the current epoch relative to J2000:
   let M = (357.52911 + 35999.05029 * T - 0.0001537 * T ** 2) % 360
