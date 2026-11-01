@@ -107,7 +107,7 @@ describe('getLunarArgumentOfLatitude', () => {
 
   it('should return the correct Lunar argument of latitude for the given date', () => {
     const F = getLunarArgumentOfLatitude(datetime)
-    expect(F).toBe(337.7234761663276)
+    expect(F).toBe(337.72347616631305)
   })
 
   it('should return the correct Lunar argument of latitude for the given date in 1977 from Meeus', () => {
@@ -119,7 +119,15 @@ describe('getLunarArgumentOfLatitude', () => {
   it('should return the correct Lunar argument of latitude for the given date in 2009 from Meeus', () => {
     const datetime = new Date('2009-07-22T02:37:00Z')
     const F = getLunarArgumentOfLatitude(datetime)
-    expect(F).toBe(179.83012040559697)
+    expect(F).toBe(179.8301204055897)
+  })
+
+  it('should resolve the lunation k at the Terrestrial Time of the given date', () => {
+    // k = T · 1236.85 reaches 264.5 at 2021 May 21 08:38:45.585 TT, e.g., 30 seconds after this date in UTC but
+    // ~39 seconds before it in Terrestrial Time, and so k rounds to 265 rather than 264:
+    const datetime = new Date('2021-05-21T08:38:15Z')
+    const F = getLunarArgumentOfLatitude(datetime)
+    expect(F).toBeCloseTo(8.393978867403348, 6)
   })
 })
 
