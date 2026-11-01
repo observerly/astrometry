@@ -12,7 +12,7 @@ import type { GregorianMonth } from './calendar'
 
 import type { EclipticCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
 
-import { AU_IN_METERS } from './constants'
+import { AU_IN_METERS, J2000 } from './constants'
 
 import { earth } from './earth'
 
@@ -261,11 +261,15 @@ export const getLunarArgumentOfLatitude = (datetime: Date): number => {
  *
  */
 export const getLunarMeanEclipticLongitude = (datetime: Date): number => {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date:
+  const tt = getTerrestrialTime(datetime)
+
   // Get the Julian date:
-  const JD = getJulianDate(datetime)
+  const JD = getJulianDate(tt)
 
   // Get the number of days since the standard epoch J2000:
-  const De = JD - 2451545.0
+  const De = JD - J2000
 
   // Get the uncorrected mean eclptic longitude:
   let λ = (13.176339686 * De + 218.31643388) % 360
