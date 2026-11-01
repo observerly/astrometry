@@ -9,13 +9,13 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  type GeographicCoordinateAtEpoch,
   getCorrectionToEquatorialForDiurnalAberration,
   getCorrectionToEquatorialForVelocityAberration,
   getGeocentricRotationalVelocity,
   getGeographicCoordinate,
   getLocalHorizon,
   getLocalSiderealTime,
-  type GeographicCoordinateAtEpoch,
   type Observer
 } from '../src'
 
@@ -24,13 +24,13 @@ import { convertDegreesToRadians as radians } from '../src/utilities'
 /*****************************************************************************************************************/
 
 // For testing we will fix the latitude to be Manua Kea, Hawaii, US
-export const latitude = 19.820611
+const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
-export const longitude = -155.468094
+const longitude = -155.468094
 
 // For testing we will fix the elevant to be at Sea Level:
-export const elevation = 0
+const elevation = 0
 
 /*****************************************************************************************************************/
 
@@ -133,7 +133,11 @@ describe('getGeocentricRotationalVelocity', () => {
   it('should scale with the distance of the observer from the axis of rotation', () => {
     const surface = getGeocentricRotationalVelocity(datetime, { latitude, longitude })
 
-    const elevated = getGeocentricRotationalVelocity(datetime, { latitude, longitude, elevation: 400000 })
+    const elevated = getGeocentricRotationalVelocity(datetime, {
+      latitude,
+      longitude,
+      elevation: 400000
+    })
 
     const ratio = Math.hypot(elevated.x, elevated.y) / Math.hypot(surface.x, surface.y)
 

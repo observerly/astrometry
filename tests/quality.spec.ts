@@ -15,8 +15,8 @@ import {
   type ConstraintContext,
   type ConstraintScore,
   convertEquatorialToHorizontal,
-  type GeographicCoordinateAtEpoch,
   type EquatorialCoordinate,
+  type GeographicCoordinateAtEpoch,
   getCorrectionToEquatorialForAnnualAberration,
   getCorrectionToEquatorialForNutation,
   getCorrectionToEquatorialForPrecessionOfEquinoxes,
@@ -123,7 +123,11 @@ describe('getObservationalQuality', () => {
   })
 
   it('should return the same quality as the unweighted mean for equal weights', () => {
-    const constraints = [new FixedConstraint(0.75), new FixedConstraint(0.25), new FixedConstraint(-0.5)]
+    const constraints = [
+      new FixedConstraint(0.75),
+      new FixedConstraint(0.25),
+      new FixedConstraint(-0.5)
+    ]
 
     const { quality } = getObservationalQuality(datetime, observer, betelgeuse, constraints)
 
@@ -154,7 +158,12 @@ describe('getObservationalQuality', () => {
   })
 
   it('should return an unobservable quality when no constraints are supplied', () => {
-    const { quality, observable, scores } = getObservationalQuality(datetime, observer, betelgeuse, [])
+    const { quality, observable, scores } = getObservationalQuality(
+      datetime,
+      observer,
+      betelgeuse,
+      []
+    )
 
     expect(quality).toBe(-1)
     expect(observable).toBe(false)
@@ -187,7 +196,11 @@ describe('getObservationalQuality', () => {
   })
 
   it('should return a quality within [-1, 1] for an arbitrary observation', () => {
-    const { quality } = getObservationalQuality(new Date(), { latitude: 0, longitude: 0 }, { ra: 0, dec: 0 })
+    const { quality } = getObservationalQuality(
+      new Date(),
+      { latitude: 0, longitude: 0 },
+      { ra: 0, dec: 0 }
+    )
     expect(quality).toBeGreaterThanOrEqual(-1)
     expect(quality).toBeLessThanOrEqual(1)
   })
@@ -313,7 +326,11 @@ describe('getObservationalQualityWindows', () => {
     })
 
     for (const { interval: window } of windows) {
-      for (let when = window.from.getTime(); when < window.to.getTime(); when += stepSeconds * 1000) {
+      for (
+        let when = window.from.getTime();
+        when < window.to.getTime();
+        when += stepSeconds * 1000
+      ) {
         expect(getObservationalQuality(new Date(when), observer, betelgeuse).observable).toBe(true)
       }
     }
@@ -479,10 +496,12 @@ describe('getObservationalQualityRanking', () => {
 
     const below = { name: 'below', ra: 88.7929583, dec: -80 }
 
-    const ranking = getObservationalQualityRanking(datetime, observer, [below, above], [
-      new FixedConstraint(-1, false, 1e16),
-      new RequiredAboveHorizon()
-    ])
+    const ranking = getObservationalQualityRanking(
+      datetime,
+      observer,
+      [below, above],
+      [new FixedConstraint(-1, false, 1e16), new RequiredAboveHorizon()]
+    )
 
     expect(ranking[0].quality).toBe(-1)
     expect(ranking[1].quality).toBe(-1)

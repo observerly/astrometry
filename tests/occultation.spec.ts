@@ -40,7 +40,10 @@ describe('getEarthLimbAngularRadius', () => {
     // Both are resolved from the same right triangle, and so, in the absence of refraction and of
     // a grazing height, the angular radius and the depression sum to 90°:
     for (let elevation = 1; elevation < 4e7; elevation *= 2) {
-      expect(getEarthLimbAngularRadius(elevation) + getLocalHorizon(elevation, 0)).toBeCloseTo(90, 9)
+      expect(getEarthLimbAngularRadius(elevation) + getLocalHorizon(elevation, 0)).toBeCloseTo(
+        90,
+        9
+      )
     }
   })
 

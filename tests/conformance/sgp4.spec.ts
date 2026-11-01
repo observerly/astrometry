@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 import { WGS72, WGS72OLD, WGS84 } from '../../src/gravity'
 
-import { SGP4Error, SatelliteRecord } from '../../src/sgp4'
+import { SatelliteRecord, SGP4Error } from '../../src/sgp4'
 
 import { parseTwoLineElement } from '../../src/tle'
 

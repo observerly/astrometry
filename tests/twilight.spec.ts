@@ -16,13 +16,13 @@ import { getTwilightBandsForDay, Twilight } from '../src'
 
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
-export const datetime = new Date('2021-05-14T03:00:00.000+00:00')
+const datetime = new Date('2021-05-14T03:00:00.000+00:00')
 
 // For testing we will fix the latitude to be Manua Kea, Hawaii, US
-export const latitude = 19.820611
+const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
-export const longitude = -155.468094
+const longitude = -155.468094
 
 /*****************************************************************************************************************/
 
@@ -43,13 +43,29 @@ describe('getTwilightBandsForDay', () => {
 
     expect(bands[0].interval.from).toEqual(
       new Date(
-        Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), datetime.getUTCDate(), 0, 0, 0, 0)
+        Date.UTC(
+          datetime.getUTCFullYear(),
+          datetime.getUTCMonth(),
+          datetime.getUTCDate(),
+          0,
+          0,
+          0,
+          0
+        )
       )
     )
 
     expect(bands[bands.length - 1].interval.to).toEqual(
       new Date(
-        Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), datetime.getUTCDate(), 24, 0, 0, 0)
+        Date.UTC(
+          datetime.getUTCFullYear(),
+          datetime.getUTCMonth(),
+          datetime.getUTCDate(),
+          24,
+          0,
+          0,
+          0
+        )
       )
     )
   })

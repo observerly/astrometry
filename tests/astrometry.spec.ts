@@ -38,13 +38,13 @@ import { convertDegreesToRadians as radians } from '../src/utilities'
 
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
-export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+const datetime = new Date('2021-05-14T00:00:00.000+00:00')
 
 // For testing we will fix the latitude to be Manua Kea, Hawaii, US
-export const latitude = 19.820611
+const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
-export const longitude = -155.468094
+const longitude = -155.468094
 
 // For testing
 const betelgeuse: EquatorialCoordinate = { ra: 88.7929583, dec: 7.4070639 }
@@ -150,7 +150,7 @@ describe('getAntipodeCoordinate', () => {
     expect(antipode.φ).toBe(210)
   })
 
-  it('should return the antipode of the given object', () => {
+  it('should return the antipode of the given object in the northern hemisphere', () => {
     const antipode = getAntipodeCoordinate({
       θ: 60,
       φ: 90
@@ -391,7 +391,7 @@ describe('getLocalSiderealTime', () => {
     expect(LST).toBe(GST)
   })
 
-  it('should return the Local Sidereal Time (LST) of the given date at longitude 0 at Greenwich', () => {
+  it('should return the Local Sidereal Time (LST) of another date at longitude 0 at Greenwich', () => {
     const datetime = new Date('2021-05-14T01:06:33.99870+00:00')
     const LST = getLocalSiderealTime(datetime, 0)
     const GST = getGreenwichSiderealTime(datetime)
@@ -514,7 +514,11 @@ describe('getCorrectionToEquatorialForProperMotion', () => {
   })
 
   it('should return no correction at the epoch of the coordinate', () => {
-    const { ra, dec } = getCorrectionToEquatorialForProperMotion(at(0), barnard, barnardProperMotion)
+    const { ra, dec } = getCorrectionToEquatorialForProperMotion(
+      at(0),
+      barnard,
+      barnardProperMotion
+    )
 
     expect(ra).toBeCloseTo(0, 9)
     expect(dec).toBeCloseTo(0, 9)

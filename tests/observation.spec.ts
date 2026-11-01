@@ -10,28 +10,25 @@ import { describe, expect, it } from 'vitest'
 
 import {
   type EquatorialCoordinate,
-  Observation,
   getAngularSeparation,
+  getApparentHourAngle,
   getCorrectionToEquatorialForAnnualAberration,
   getCorrectionToEquatorialForNutation,
   getCorrectionToEquatorialForPrecessionOfEquinoxes,
-  getApparentHourAngle
+  Observation
 } from '../src'
 
 /*****************************************************************************************************************/
 
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
-export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+const datetime = new Date('2021-05-14T00:00:00.000+00:00')
 
 // For testing we will fix the latitude to be Manua Kea, Hawaii, US
-export const latitude = 19.820611
+const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
-export const longitude = -155.468094
-
-// For testing we will fix the elevant to be at Sea Level:
-export const elevation = 0
+const longitude = -155.468094
 
 // For testing
 const polaris: EquatorialCoordinate = { ra: 37.95454961, dec: 89.264113893 }
@@ -137,9 +134,10 @@ describe('Observation for a target near the celestial pole', () => {
 
     // The angular separation between the corrected coordinate and the normalised coordinate of
     // the observation is zero if, and only if, both describe the same point on the sphere:
-    expect(
-      getAngularSeparation(corrected, { θ: observation.dec, φ: observation.ra })
-    ).toBeCloseTo(0, 5)
+    expect(getAngularSeparation(corrected, { θ: observation.dec, φ: observation.ra })).toBeCloseTo(
+      0,
+      5
+    )
   })
 })
 

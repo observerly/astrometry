@@ -29,13 +29,13 @@ import {
 
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
-export const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+const datetime = new Date('2021-05-14T00:00:00.000+00:00')
 
 // For testing we will fix the latitude to be Manua Kea, Hawaii, US
-export const latitude = 19.820611
+const latitude = 19.820611
 
 // For testing we will fix the longitude to be Manua Kea, Hawaii, US:
-export const longitude = -155.468094
+const longitude = -155.468094
 
 // For testing
 const polaris: EquatorialCoordinate = { ra: 37.95456, dec: 89.264108 }
@@ -436,7 +436,9 @@ describe('isBodyVisible and isBodyCircumpolar for an elevated observer', () => {
     expect(isBodyAboveHorizon(datetime, elevated, { alt: -1, az: 90 }, 0)).toBe(true)
 
     expect(isBodyVisible({ latitude, longitude }, target, 0)).toBe(false)
-    expect(isBodyAboveHorizon(datetime, { latitude, longitude }, { alt: -1, az: 90 }, 0)).toBe(false)
+    expect(isBodyAboveHorizon(datetime, { latitude, longitude }, { alt: -1, az: 90 }, 0)).toBe(
+      false
+    )
   })
 })
 
@@ -481,9 +483,9 @@ describe('doesBodyRiseOrSet', () => {
 
     expect(doesBodyRiseOrSet({ latitude: 90, longitude }, { ra: 0, dec: 20 }, 15)).toBe(false)
 
-    expect(
-      doesBodyRiseOrSet({ latitude, longitude }, betelgeuse, Number.POSITIVE_INFINITY)
-    ).toBe(false)
+    expect(doesBodyRiseOrSet({ latitude, longitude }, betelgeuse, Number.POSITIVE_INFINITY)).toBe(
+      false
+    )
 
     expect(doesBodyRiseOrSet({ latitude, longitude }, betelgeuse, Number.NaN)).toBe(false)
 
@@ -542,7 +544,7 @@ describe('getBodyTransit', () => {
 
     expect(arc(raised)).toBeLessThan(arc(astronomical))
 
-    expect(raised.R).toBeCloseTo(87.40427669101627)
+    expect(raised.R).toBeCloseTo(87.40427669101626)
     expect(raised.S).toBeCloseTo(272.5957233089837)
   })
 

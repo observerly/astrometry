@@ -13,8 +13,8 @@ import { describe, expect, it } from 'vitest'
 import {
   AirmassConstraint,
   Constraint,
-  EarthLimbConstraint,
   type ConstraintContext,
+  EarthLimbConstraint,
   IsAstronomicalTwilight,
   IsMoonDown,
   IsNight,

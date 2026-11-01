@@ -8,11 +8,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import {
-  type SIP2DParameters,
-  WCS,
-  convertPixelToWorldCoordinateSystem
-} from '../src'
+import { convertPixelToWorldCoordinateSystem, type SIP2DParameters, type WCS } from '../src'
 
 /*****************************************************************************************************************/
 
@@ -44,8 +40,20 @@ describe('convertPixelToWorldCoordinateSystem', () => {
     const sip = {
       AOrder: 2,
       BOrder: 2,
-      APower: { A_1_0: 0, A_0_1: 0, A_1_1: 2.47110429124e-07, A_2_0: 6.71868472834e-07, A_0_2: 2.8223469986e-07 },
-      BPower: { B_1_0: 0, B_0_1: 0, B_1_1: 2.47110429124e-07, B_2_0: 6.71868472834e-07, B_0_2: 2.8223469986e-07 }
+      APower: {
+        A_1_0: 0,
+        A_0_1: 0,
+        A_1_1: 2.47110429124e-7,
+        A_2_0: 6.71868472834e-7,
+        A_0_2: 2.8223469986e-7
+      },
+      BPower: {
+        B_1_0: 0,
+        B_0_1: 0,
+        B_1_1: 2.47110429124e-7,
+        B_2_0: 6.71868472834e-7,
+        B_0_2: 2.8223469986e-7
+      }
     } satisfies SIP2DParameters
 
     const wcs = {

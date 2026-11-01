@@ -29,9 +29,9 @@ const vite = readFileSync(join(root, 'vite.config.ts'), 'utf-8')
 const modules = [...vite.matchAll(/^ {2}'([a-z0-9]+)',?$/gm)].map(([, module]) => module)
 
 // The modules the root index re-exports:
-const index = [...readFileSync(join(root, 'src/index.ts'), 'utf-8').matchAll(/from '\.\/([a-z0-9]+)'/g)].map(
-  ([, module]) => module
-)
+const index = [
+  ...readFileSync(join(root, 'src/index.ts'), 'utf-8').matchAll(/from '\.\/([a-z0-9]+)'/g)
+].map(([, module]) => module)
 
 /*****************************************************************************************************************/
 

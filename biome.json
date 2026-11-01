@@ -10,6 +10,7 @@
       "**/lib/**/*.tsx",
       "**/lib/**/*.js",
       "**/lib/**/*.jsx",
+      "**/tests/**/*.ts",
       "biome.json",
       "package.json",
       "tsconfig.json",
@@ -49,6 +50,16 @@
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "overrides": [
+    {
+      "includes": ["**/tests/**/*.ts"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noAdjacentSpacesInRegex": "off"
+          }
+        }
+      }
+    },
     {
       "includes": ["**/*.json"],
       "formatter": {
