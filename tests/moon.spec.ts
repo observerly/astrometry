@@ -173,7 +173,14 @@ describe('getLunarMeanEclipticLongitudeOfTheAscendingNode', () => {
 
   it('should return the correct Lunar mean ecliptic longitude of the ascending node for the given date', () => {
     const Ω = getLunarMeanEclipticLongitudeOfTheAscendingNode(datetime)
-    expect(Ω).toBe(71.81876335000004)
+    expect(Ω).toBe(71.81872094764617)
+  })
+
+  it('should resolve the Lunar mean ecliptic longitude of the ascending node at the Terrestrial Time of the given date', () => {
+    // 2021 May 14 0h UTC is JD 2459348.500800741 TT, e.g., TT − UTC = 37 s + 32.184 s, and so the number of days
+    // since J2000.0 is 7803.500800741, e.g., Ω = 125.044522 − 0.0529539 · 7803.500800741 (mod 360):
+    const Ω = getLunarMeanEclipticLongitudeOfTheAscendingNode(datetime)
+    expect(Ω).toBeCloseTo(71.81872094764617, 9)
   })
 
   it('should return the mean (uncorrected) ascending node for the Meeus example epoch', () => {
@@ -233,7 +240,7 @@ describe('getLunarCorrectedEclipticLongitudeOfTheAscendingNode', () => {
 
   it('should return the correct Lunar corrected ecliptic longitude of the ascending node for the given date', () => {
     const Ω = getLunarCorrectedEclipticLongitudeOfTheAscendingNode(datetime)
-    expect(Ω).toBe(71.6938276243273)
+    expect(Ω).toBe(71.69378522197343)
   })
 })
 
@@ -246,7 +253,7 @@ describe('getLunarEclipticLongitude', () => {
 
   it('should return the correct Lunar ecliptic longitude for the given date', () => {
     const λ = getLunarEclipticLongitude(datetime)
-    expect(λ).toBe(77.00042439757546)
+    expect(λ).toBe(77.00042422963654)
   })
 })
 
@@ -259,7 +266,7 @@ describe('getLunarEclipticLatitude', () => {
 
   it('should return the correct Lunar ecliptic latitude for the given date', () => {
     const β = getLunarEclipticLatitude(datetime)
-    expect(β).toBe(0.47714554976674856)
+    expect(β).toBe(0.47714933625741096)
   })
 })
 
@@ -272,8 +279,8 @@ describe('getLunarEclipticCoordinate', () => {
 
   it('should return the correct Lunar ecliptic coordinate for the given date', () => {
     const { λ, β } = getLunarEclipticCoordinate(datetime)
-    expect(λ).toBe(77.00042439757546)
-    expect(β).toBe(0.47714554976674856)
+    expect(λ).toBe(77.00042422963654)
+    expect(β).toBe(0.47714933625741096)
   })
 })
 
@@ -287,8 +294,8 @@ describe('getLunarEquatorialCoordinate', () => {
   it('should return the correct Lunar equatorial coordinate for the given date', () => {
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const { ra, dec } = getLunarEquatorialCoordinate(datetime)
-    expect(ra).toBe(63.86467443082057)
-    expect(dec).toBe(17.247010804918908)
+    expect(ra).toBe(63.86467489679362)
+    expect(dec).toBe(17.247008481986228)
   })
 })
 
@@ -302,7 +309,7 @@ describe('getLunarElongation', () => {
   it('should return the correct Lunar elongation for the given date', () => {
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const E = getLunarElongation(datetime)
-    expect(E).toBe(143.7431285944423)
+    expect(E).toBe(143.74312840144532)
   })
 })
 
@@ -371,7 +378,7 @@ describe('getLunarPhaseAngle', () => {
   it('should return the correct Lunar phase angle for the given date', () => {
     const datetime = new Date('2015-01-01T00:00:00.000+00:00')
     const PA = getLunarPhaseAngle(datetime)
-    expect(PA).toBe(49.65505337839233)
+    expect(PA).toBe(49.65505356540341)
   })
 })
 
@@ -385,7 +392,7 @@ describe('getLunarIllumination', () => {
   it('should return the correct Lunar illumination for the given date', () => {
     const datetime = new Date('2015-01-01T00:00:00.000+00:00')
     const K = getLunarIllumination(datetime)
-    expect(K).toBe(82.36939341087891)
+    expect(K).toBe(82.36939328649584)
   })
 })
 
