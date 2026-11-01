@@ -247,7 +247,6 @@ export {
   earth,
   getCoefficientOfEccentricity,
   getEccentricityOfOrbit,
-  getObliquityOfEcliptic,
   L,
   R
 } from './earth'

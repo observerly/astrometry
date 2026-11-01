@@ -10,8 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   getCoefficientOfEccentricity,
-  getEccentricityOfOrbit,
-  getObliquityOfEcliptic
+  getEccentricityOfOrbit
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -30,19 +29,6 @@ describe('getEccentricityOfOrbit', () => {
   it("should return the eccentricity of the Earth's orbit for the given datetime", () => {
     const e = getEccentricityOfOrbit(datetime)
     expect(e).toBe(0.016699647287906946)
-  })
-})
-
-/*****************************************************************************************************************/
-
-describe('getObliquityOfEcliptic', () => {
-  it('should be defined', () => {
-    expect(getObliquityOfEcliptic).toBeDefined()
-  })
-
-  it('should return the obliquity of the ecliptic for the given datetime', () => {
-    const ε = getObliquityOfEcliptic(datetime)
-    expect(ε).toBeCloseTo(23.437313)
   })
 })
 
