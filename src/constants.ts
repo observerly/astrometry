@@ -77,6 +77,17 @@ export const c = SPEED_OF_LIGHT
 
 /**
  *
+ * The Schwarzschild radius of the Sun, e.g., 2GM☉/c² for the TDB-compatible heliocentric
+ * gravitational constant of the IAU 2009 system of astronomical constants (in astronomical
+ * units), equivalent to ~2,953.25 meters.
+ *
+ */
+export const SCHWARZSCHILD_RADIUS_OF_THE_SUN = 1.97412574336e-8 as const
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * The previous standard epoch "J1900" was defined by international agreement to
  * be equivalent to: The Gregorian date January 0.5, 1900, at 12:00 TT (Terrestrial Time),
  * equivalent to noon on December 31, 1899.
