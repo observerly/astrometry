@@ -88,7 +88,13 @@ describe('getLunarMeanGeometricLongitude', () => {
 
   it('should return the correct Lunar mean geometric longitude for the given date', () => {
     const l = getLunarMeanGeometricLongitude(datetime)
-    expect(l).toBe(80.32626508452813)
+    expect(l).toBe(80.33681596415408)
+  })
+
+  it('should return the Lunar mean geometric longitude of Meeus Example 47.a for 1992 April 12.0 TD', () => {
+    // 1992 April 12.0 TD is 1992 April 11 23:59:01.816 UTC, e.g., TT − UTC = 26 s + 32.184 s:
+    const l = getLunarMeanGeometricLongitude(new Date('1992-04-11T23:59:01.816Z'))
+    expect(l).toBeCloseTo(134.290182, 5)
   })
 })
 
