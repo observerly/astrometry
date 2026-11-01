@@ -18,6 +18,7 @@ import { getAngularSeparation } from '../src/astrometry'
 
 import {
   doCrossProduct,
+  doDeterminant,
   doDotProduct,
   doTranspose,
   getMatrixProduct,
@@ -1526,6 +1527,264 @@ describe('doTranspose', () => {
       [2, 5, 8],
       [3, 6, 9]
     ])
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('doDeterminant', () => {
+  it('should be defined', () => {
+    expect(doDeterminant).toBeDefined()
+  })
+
+  it('should return a number', () => {
+    expectTypeOf(doDeterminant(identity)).toEqualTypeOf<number>()
+  })
+
+  it('should return the literal determinant of an arbitrary matrix', () => {
+    // 1 · (−5 · 10 − 6 · 8) − 2 · (4 · 10 − 6 · 7) + 3 · (4 · 8 − (−5) · 7) = −98 + 4 + 201 = 107:
+    expect(
+      doDeterminant([
+        [1, 2, 3],
+        [4, -5, 6],
+        [7, 8, 10]
+      ])
+    ).toBe(107)
+  })
+
+  it('should return 1 for the identity', () => {
+    expect(doDeterminant(identity)).toBe(1)
+  })
+
+  it('should return 0 for the zero matrix', () => {
+    expect(
+      doDeterminant([
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
+      ])
+    ).toBe(0)
+  })
+
+  it('should return 0 for a singular matrix, e.g., where one row is a linear combination of the others', () => {
+    // The middle row is the mean of the first and the last:
+    expect(
+      doDeterminant([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]
+      ])
+    ).toBe(0)
+  })
+
+  it('should return 0 within rounding for a matrix with a repeated row', () => {
+    // N.B. The cofactors of non-integral elements do not cancel exactly in floating point, e.g., the
+    // determinant resolves to the order of 1e-15, and not to 0:
+    expect(
+      doDeterminant([
+        [0.3, -1.2, 2.5],
+        [-4.1, 0.07, 9.9],
+        [0.3, -1.2, 2.5]
+      ])
+    ).toBeCloseTo(0, 14)
+  })
+
+  it('should return the product of the leading diagonal for a diagonal matrix', () => {
+    // 2 · (−3) · 0.5 = −3:
+    expect(
+      doDeterminant([
+        [2, 0, 0],
+        [0, -3, 0],
+        [0, 0, 0.5]
+      ])
+    ).toBe(-3)
+  })
+
+  it('should return the product of the leading diagonal for a triangular matrix', () => {
+    // 2 · 3 · 4 = 24:
+    expect(
+      doDeterminant([
+        [2, 5, 7],
+        [0, 3, -1],
+        [0, 0, 4]
+      ])
+    ).toBe(24)
+
+    expect(
+      doDeterminant([
+        [2, 0, 0],
+        [5, 3, 0],
+        [7, -1, 4]
+      ])
+    ).toBe(24)
+  })
+
+  it('should negate the determinant when two rows are swapped', () => {
+    expect(
+      doDeterminant([
+        [4, -5, 6],
+        [1, 2, 3],
+        [7, 8, 10]
+      ])
+    ).toBe(-107)
+  })
+
+  it('should keep the determinant when a multiple of one row is added to another', () => {
+    // The second row is (4, −5, 6) + 2 · (1, 2, 3) = (6, −1, 12):
+    expect(
+      doDeterminant([
+        [1, 2, 3],
+        [6, -1, 12],
+        [7, 8, 10]
+      ])
+    ).toBe(107)
+  })
+
+  it('should scale by the cube of a scalar multiple of the matrix, e.g., det(kM) = k³ det(M)', () => {
+    // 2³ · 107 = 856:
+    expect(
+      doDeterminant([
+        [2, 4, 6],
+        [8, -10, 12],
+        [14, 16, 20]
+      ])
+    ).toBe(856)
+  })
+
+  it('should be unchanged by the transpose, e.g., det(Mᵀ) = det(M)', () => {
+    const m: Matrix3 = [
+      [1, 2, 3],
+      [4, -5, 6],
+      [7, 8, 10]
+    ]
+
+    expect(doDeterminant(doTranspose(m))).toBe(doDeterminant(m))
+  })
+
+  it('should be multiplicative over a product, e.g., det(a · b) = det(a) det(b)', () => {
+    const a: Matrix3 = [
+      [1, 2, 3],
+      [4, -5, 6],
+      [7, 8, 10]
+    ]
+
+    const b: Matrix3 = [
+      [2, -1, 0],
+      [3, 4, -5],
+      [-6, 7, 8]
+    ]
+
+    // det(b) = 2 · (4 · 8 − (−5) · 7) − (−1) · (3 · 8 − (−5) · (−6)) + 0 = 134 − 6 = 128:
+    expect(doDeterminant(b)).toBe(128)
+
+    // det(a · b) = 107 · 128 = 13696:
+    expect(doDeterminant(getMatrixProduct(a, b))).toBe(13696)
+  })
+
+  it('should return the scalar triple product of its rows, e.g., det [a; b; c] = a · (b × c)', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const c = { x: 1.5, y: 2.25, z: -0.75 }
+
+    expect(
+      doDeterminant([
+        [a.x, a.y, a.z],
+        [b.x, b.y, b.z],
+        [c.x, c.y, c.z]
+      ])
+    ).toBeCloseTo(doDotProduct(a, doCrossProduct(b, c)), 12)
+  })
+
+  it('should return 1 for an elementary rotation about each axis, e.g., as it is a proper rotation', () => {
+    for (const axis of axes) {
+      for (const angle of angles) {
+        expect(doDeterminant(getRotationMatrix(axis, angle))).toBeCloseTo(1, 15)
+      }
+    }
+  })
+
+  it('should return 1 for the transpose of an elementary rotation about each axis', () => {
+    for (const axis of axes) {
+      for (const angle of angles) {
+        expect(doDeterminant(doTranspose(getRotationMatrix(axis, angle)))).toBeCloseTo(1, 15)
+      }
+    }
+  })
+
+  it('should return 1 for a rotation composed of the equatorial precession angles ζ, z and θ, e.g., R3(−z) · R2(θ) · R3(−ζ)', () => {
+    // The precession angles of IAU 2006 one Julian century after J2000.0, e.g., T = 1 (in degrees):
+    const ζ = 2306.083227 / 3600
+
+    const z = 2306.077181 / 3600
+
+    const θ = 2004.191903 / 3600
+
+    const P = getMatrixProduct(
+      getRotationMatrix('z', -z),
+      getMatrixProduct(getRotationMatrix('y', θ), getRotationMatrix('z', -ζ))
+    )
+
+    expect(doDeterminant(P)).toBeCloseTo(1, 15)
+  })
+
+  it('should return −1 for a reflection, e.g., the flip of a single axis between a right- and a left-handed frame', () => {
+    // The flip of the y-axis, e.g., as between the hour angle, measured westwards, and the right ascension,
+    // measured eastwards:
+    expect(
+      doDeterminant([
+        [1, 0, 0],
+        [0, -1, 0],
+        [0, 0, 1]
+      ])
+    ).toBe(-1)
+  })
+
+  it('should return −1 for the point reflection through the origin, e.g., the antipode of every direction', () => {
+    expect(
+      doDeterminant([
+        [-1, 0, 0],
+        [0, -1, 0],
+        [0, 0, -1]
+      ])
+    ).toBe(-1)
+  })
+
+  it('should not mutate the matrix', () => {
+    const m: Matrix3 = [
+      [1, 2, 3],
+      [4, -5, 6],
+      [7, 8, 10]
+    ]
+
+    doDeterminant(m)
+
+    expect(m).toEqual([
+      [1, 2, 3],
+      [4, -5, 6],
+      [7, 8, 10]
+    ])
+  })
+
+  it('should propagate an element that is NaN as NaN', () => {
+    expect(
+      doDeterminant([
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, Number.NaN]
+      ])
+    ).toBeNaN()
+  })
+
+  it('should return ∞ for an infinite element at the head of the leading diagonal of the identity', () => {
+    expect(
+      doDeterminant([
+        [Number.POSITIVE_INFINITY, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+      ])
+    ).toBe(Number.POSITIVE_INFINITY)
   })
 })
 

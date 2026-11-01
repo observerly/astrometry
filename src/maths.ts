@@ -346,3 +346,31 @@ export const doTranspose = (m: Matrix3): Matrix3 => {
 }
 
 /*****************************************************************************************************************/
+
+/**
+ *
+ * doDeterminant()
+ *
+ * Resolves the determinant det(M) of a 3×3 matrix, by the cofactor expansion along its first row,
+ * e.g., the signed volume of the parallelepiped spanned by its rows, such that it is the scalar
+ * triple product of its rows, e.g., det [a; b; c] = a · (b × c).
+ *
+ * N.B. The determinant of a rotation matrix is +1, e.g., for a proper rotation between two right-
+ * handed reference frames, whereas it is −1 for a reflection, e.g., for the flip of a single axis
+ * between a right-handed and a left-handed frame, and it is 0 for a singular matrix, which has no
+ * inverse.
+ *
+ * N.B. The determinant is multiplicative, e.g., det(a · b) = det(a) det(b), and it is unchanged by
+ * the transpose, e.g., det(Mᵀ) = det(M).
+ *
+ * @param m - The 3×3 matrix, in row-major order.
+ * @returns The determinant of the matrix.
+ *
+ */
+export const doDeterminant = (m: Matrix3): number => {
+  const [[a, b, c], [d, e, f], [g, h, i]] = m
+
+  return a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g)
+}
+
+/*****************************************************************************************************************/
