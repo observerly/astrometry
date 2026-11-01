@@ -14,7 +14,7 @@ import { AU_IN_METERS, c } from './constants'
 
 import { convertEclipticToEquatorial } from './coordinates'
 
-import { B, L, R, getEccentricityOfOrbit } from './earth'
+import { B, getEccentricityOfOrbit, L, R } from './earth'
 
 import { getJulianDate, getTerrestrialTime } from './epoch'
 

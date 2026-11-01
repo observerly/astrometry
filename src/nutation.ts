@@ -16,8 +16,8 @@ import { getMatrixProduct, getRotatedCartesianCoordinate, getRotationMatrix } fr
 
 import {
   convertRadiansToDegrees as degrees,
-  convertDegreesToRadians as radians,
-  getNormalizedAzimuthalDegree
+  getNormalizedAzimuthalDegree,
+  convertDegreesToRadians as radians
 } from './utilities'
 
 /*****************************************************************************************************************/

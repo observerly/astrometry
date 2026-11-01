@@ -15,7 +15,9 @@
   },
   "type": "module",
   "sideEffects": false,
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "astronomy",
     "astrometry",
@@ -259,7 +261,9 @@
     }
   },
   "release": {
-    "branches": ["main"]
+    "branches": [
+      "main"
+    ]
   },
   "scripts": {
     "build": "tsc --noEmit && vite build",
@@ -275,7 +279,7 @@
     "@types/geojson": "^7946.0.14"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.8.3",
+    "@biomejs/biome": "2.6.4",
     "@changesets/cli": "^2.26.2",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "^20.11.19",
@@ -300,7 +304,7 @@
     "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
       "biome check --files-ignore-unknown=true",
       "biome check --write --no-errors-on-unmatched",
-      "biome check --write --organize-imports-enabled=false --no-errors-on-unmatched",
+      "biome check --write --assist-enabled=false --no-errors-on-unmatched",
       "biome check --write --unsafe --no-errors-on-unmatched",
       "biome format --write --no-errors-on-unmatched",
       "biome lint --write --no-errors-on-unmatched"

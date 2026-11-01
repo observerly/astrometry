@@ -6,8 +6,6 @@
 
 /*****************************************************************************************************************/
 
-import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
-
 import type {
   EclipticCoordinate,
   EquatorialCoordinate,
@@ -16,6 +14,8 @@ import type {
 } from './common'
 
 import { J2000 } from './constants'
+
+import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
 
 import { earth } from './earth'
 

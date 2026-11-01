@@ -20,9 +20,9 @@ import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './co
 import { getLunarEquatorialCoordinate } from './moon'
 
 import {
-  type Planet,
   getPlanetaryGeocentricEclipticCoordinate,
-  getPlanetaryPositions
+  getPlanetaryPositions,
+  type Planet
 } from './planets'
 
 import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'

@@ -1,32 +1,34 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
   "files": {
-    "include": [
-      "src/**/*.ts",
-      "src/**/*.tsx",
-      "src/**/*.js",
-      "src/**/*.jsx",
-      "lib/**/*.ts",
-      "lib/**/*.tsx",
-      "lib/**/*.js",
-      "lib/**/*.jsx",
-      "./biome.json",
-      "./package.json",
-      "./tsconfig.json",
-      "./vite.config.ts"
+    "includes": [
+      "**/src/**/*.ts",
+      "**/src/**/*.tsx",
+      "**/src/**/*.js",
+      "**/src/**/*.jsx",
+      "**/lib/**/*.ts",
+      "**/lib/**/*.tsx",
+      "**/lib/**/*.js",
+      "**/lib/**/*.jsx",
+      "biome.json",
+      "package.json",
+      "tsconfig.json",
+      "vite.config.ts",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/bin"
     ],
-    "ignore": ["node_modules", "**/node_modules/**", "dist", "bin"],
     "ignoreUnknown": true
   },
   "formatter": {
     "enabled": true,
-    "ignore": ["dist", "node_modules"]
+    "includes": ["**", "!**/dist", "!**/node_modules"]
   },
   "linter": {
     "enabled": true,
-    "ignore": ["dist", "node_modules"],
+    "includes": ["**", "!**/dist", "!**/node_modules"],
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "style": {
         "noParameterAssign": {
           "level": "info"
@@ -35,16 +37,20 @@
       "suspicious": {
         "noApproximativeNumericConstant": {
           "level": "info"
+        },
+        "noImportCycles": {
+          "level": "error",
+          "options": {
+            "ignoreTypes": true
+          }
         }
       }
     }
   },
-  "organizeImports": {
-    "enabled": true
-  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "overrides": [
     {
-      "include": ["*.json"],
+      "includes": ["**/*.json"],
       "formatter": {
         "indentWidth": 2
       }

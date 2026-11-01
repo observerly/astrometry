@@ -10,9 +10,9 @@ import { getHourAngle } from './astrometry'
 
 import type { GregorianMonth } from './calendar'
 
-import { AU_IN_METERS } from './constants'
-
 import type { EclipticCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
+
+import { AU_IN_METERS } from './constants'
 
 import { earth } from './earth'
 

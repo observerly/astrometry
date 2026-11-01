@@ -10,7 +10,7 @@ import type { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson'
 
 import type { EquatorialCoordinate } from './common'
 
-import { NANCY_ROMAN_TABLE_I, isNancyRomanRecord } from './nancy'
+import { isNancyRomanRecord, NANCY_ROMAN_TABLE_I } from './nancy'
 
 import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
 

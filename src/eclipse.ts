@@ -486,7 +486,7 @@ export const getSolarEclipse = (
       u < 0.00464 * Math.sqrt(1 - γ ** 2) ? EclipseType.AnnularTotal : EclipseType.Annular
   }
 
-  let magnitude = undefined
+  let magnitude: number | undefined
 
   if (eclipseType === EclipseType.Partial) {
     magnitude = (1.5433 + u - Math.abs(γ)) / (0.5461 + 2 * u)
