@@ -83,8 +83,12 @@ export const getEccentricityOfOrbit = (datetime: Date): number => {
  * @returns The coefficient of eccentricity of the Earth's orbit
  */
 export const getCoefficientOfEccentricity = (datetime: Date): number => {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date:
+  const tt = getTerrestrialTime(datetime)
+
   // Get the difference in fractional Julian centuries between the target date and J2000.0
-  const T = getNumberOfCenturiesSinceJ2000(datetime)
+  const T = getNumberOfCenturiesSinceJ2000(tt)
 
   // Get the coefficient of the eccentricity of the Earth's orbit:
   return 1 - 0.002516 * T - 0.0000074 * T ** 2
