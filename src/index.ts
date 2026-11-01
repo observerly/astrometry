@@ -308,6 +308,7 @@ export {
   getMatrixProduct,
   getRotatedCartesianCoordinate,
   getRotationMatrix,
+  IDENTITY_MATRIX,
   interpolate,
   interpolateGeodesic,
   interpolateRank2DArray,

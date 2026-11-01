@@ -23,7 +23,8 @@ import {
   doTranspose,
   getMatrixProduct,
   getRotatedCartesianCoordinate,
-  getRotationMatrix
+  getRotationMatrix,
+  IDENTITY_MATRIX
 } from '../src/maths'
 
 /*****************************************************************************************************************/
@@ -1785,6 +1786,164 @@ describe('doDeterminant', () => {
         [0, 0, 1]
       ])
     ).toBe(Number.POSITIVE_INFINITY)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('IDENTITY_MATRIX', () => {
+  it('should be defined', () => {
+    expect(IDENTITY_MATRIX).toBeDefined()
+  })
+
+  it('should be a Matrix3', () => {
+    expectTypeOf(IDENTITY_MATRIX).toEqualTypeOf<Matrix3>()
+    expect(IDENTITY_MATRIX).toHaveLength(3)
+    for (const row of IDENTITY_MATRIX) {
+      expect(row).toHaveLength(3)
+    }
+  })
+
+  it('should be the literal 3×3 identity matrix, e.g., ones along the leading diagonal and zeros elsewhere', () => {
+    expect(IDENTITY_MATRIX).toEqual([
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ])
+  })
+
+  it('should be the Kronecker delta for each element, e.g., 1 where i = j and 0 otherwise', () => {
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        expect(IDENTITY_MATRIX[i][j]).toBe(i === j ? 1 : 0)
+      }
+    }
+  })
+
+  it('should have a determinant of 1', () => {
+    expect(doDeterminant(IDENTITY_MATRIX)).toBe(1)
+  })
+
+  it('should be its own transpose', () => {
+    expect(doTranspose(IDENTITY_MATRIX)).toEqual(IDENTITY_MATRIX)
+  })
+
+  it('should be its own inverse, e.g., I · I = I', () => {
+    expect(getMatrixProduct(IDENTITY_MATRIX, IDENTITY_MATRIX)).toEqual(IDENTITY_MATRIX)
+  })
+
+  it('should return an arbitrary matrix unchanged as either factor of a product, e.g., I · M = M · I = M', () => {
+    const m: Matrix3 = [
+      [0.3, -1.2, 2.5],
+      [-4.1, 0.07, 9.9],
+      [1.5, 2.25, -0.75]
+    ]
+
+    expect(getMatrixProduct(IDENTITY_MATRIX, m)).toEqual(m)
+    expect(getMatrixProduct(m, IDENTITY_MATRIX)).toEqual(m)
+  })
+
+  it('should return an arbitrary vector unchanged, e.g., I v = v', () => {
+    expect(getRotatedCartesianCoordinate(IDENTITY_MATRIX, { x: 0.3, y: -1.2, z: 2.5 })).toEqual({
+      x: 0.3,
+      y: -1.2,
+      z: 2.5
+    })
+  })
+
+  it('should return each unit axis unchanged', () => {
+    expect(getRotatedCartesianCoordinate(IDENTITY_MATRIX, { x: 1, y: 0, z: 0 })).toEqual({
+      x: 1,
+      y: 0,
+      z: 0
+    })
+    expect(getRotatedCartesianCoordinate(IDENTITY_MATRIX, { x: 0, y: 1, z: 0 })).toEqual({
+      x: 0,
+      y: 1,
+      z: 0
+    })
+    expect(getRotatedCartesianCoordinate(IDENTITY_MATRIX, { x: 0, y: 0, z: 1 })).toEqual({
+      x: 0,
+      y: 0,
+      z: 1
+    })
+  })
+
+  it('should equal the rotation of 0° about each axis', () => {
+    for (const axis of axes) {
+      expectMatrixToBeCloseTo(getRotationMatrix(axis, 0), IDENTITY_MATRIX, 0)
+    }
+  })
+
+  it('should equal the rotation of a whole turn of 360° about each axis within rounding', () => {
+    for (const axis of axes) {
+      expectMatrixToBeCloseTo(getRotationMatrix(axis, 360), IDENTITY_MATRIX)
+    }
+  })
+
+  it('should equal the product of a rotation and its transpose about each axis, e.g., R · Rᵀ = I', () => {
+    for (const axis of axes) {
+      for (const angle of angles) {
+        const R = getRotationMatrix(axis, angle)
+        expectMatrixToBeCloseTo(getMatrixProduct(R, doTranspose(R)), IDENTITY_MATRIX)
+      }
+    }
+  })
+
+  it('should keep the equatorial coordinate of Vega unchanged, e.g., as the transformation between a frame and itself', () => {
+    // The J2000.0 equatorial coordinate of Vega (α Lyrae):
+    const vega = { ra: 279.23473479, dec: 38.78368896 }
+
+    const { ra, dec } = convertCartesianToEquatorial(
+      getRotatedCartesianCoordinate(IDENTITY_MATRIX, convertEquatorialToCartesian(vega))
+    )
+
+    expect(ra).toBeCloseTo(vega.ra, 12)
+    expect(dec).toBeCloseTo(vega.dec, 12)
+  })
+
+  it('should be frozen, together with each of its rows, e.g., so that it cannot be mutated at runtime', () => {
+    expect(Object.isFrozen(IDENTITY_MATRIX)).toBe(true)
+    for (const row of IDENTITY_MATRIX) {
+      expect(Object.isFrozen(row)).toBe(true)
+    }
+  })
+
+  it('should throw a TypeError on an attempt to mutate an element, and keep its value', () => {
+    expect(() => {
+      ;(IDENTITY_MATRIX as unknown as number[][])[0][0] = 2
+    }).toThrow(TypeError)
+
+    expect(() => {
+      ;(IDENTITY_MATRIX as unknown as number[][])[1] = [9, 9, 9]
+    }).toThrow(TypeError)
+
+    expect(IDENTITY_MATRIX).toEqual([
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ])
+  })
+
+  it('should be unchanged after it is used as an operand', () => {
+    getMatrixProduct(IDENTITY_MATRIX, getRotationMatrix('z', 45))
+
+    doTranspose(IDENTITY_MATRIX)
+
+    doDeterminant(IDENTITY_MATRIX)
+
+    getRotatedCartesianCoordinate(IDENTITY_MATRIX, { x: 0.3, y: -1.2, z: 2.5 })
+
+    expect(IDENTITY_MATRIX).toEqual([
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ])
+  })
+
+  it('should not be returned by reference from an operation, e.g., so that a caller cannot reach it', () => {
+    expect(doTranspose(IDENTITY_MATRIX)).not.toBe(IDENTITY_MATRIX)
+    expect(getMatrixProduct(IDENTITY_MATRIX, IDENTITY_MATRIX)).not.toBe(IDENTITY_MATRIX)
   })
 })
 
