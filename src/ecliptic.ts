@@ -8,8 +8,6 @@
 
 import { getJulianDate, getTerrestrialTime } from './epoch'
 
-import { getNutation } from './nutation'
-
 /*****************************************************************************************************************/
 
 /**
@@ -42,33 +40,6 @@ export const getObliquityOfTheEcliptic = (datetime: Date): number => {
       0.0000000434 * T ** 5) /
     3600
   )
-}
-
-/*****************************************************************************************************************/
-
-/**
- *
- * getTrueObliquityOfTheEcliptic()
- *
- * The true obliquity of the ecliptic is the mean obliquity of the ecliptic of the date corrected
- * for the nutation in obliquity, e.g., the angle between the ecliptic and the true celestial
- * equator of the date, about which a coordinate referred to the true equator and equinox of the
- * date is converted.
- *
- * @param date - The date for which to calculate the true obliquity of the ecliptic for.
- * @returns The true obliquity of the ecliptic in degrees.
- *
- */
-export const getTrueObliquityOfTheEcliptic = (datetime: Date): number => {
-  // Get the mean obliquity of the ecliptic (in degrees):
-  const ε = getObliquityOfTheEcliptic(datetime)
-
-  // Get the nutation in obliquity (in degrees):
-  const { Δε } = getNutation(datetime)
-
-  // Correct for the nutation in obliquity, e.g., the displacement of the true equator of the
-  // date from the mean equator of the date (in degrees):
-  return ε + Δε
 }
 
 /*****************************************************************************************************************/
