@@ -6,9 +6,9 @@
 
 /*****************************************************************************************************************/
 
-import { J1970 } from './constants'
-
 import type { GeographicCoordinate } from './common'
+
+import { J1970 } from './constants'
 
 import { getJulianDate } from './epoch'
 

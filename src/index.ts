@@ -25,6 +25,7 @@ export { getApparentEquatorialCoordinate } from './apparent'
 
 export {
   GAST,
+  GST,
   getAngularSeparation,
   getAntipodeCoordinate,
   getApparentHourAngle,
@@ -36,7 +37,6 @@ export {
   getLocalSiderealTime,
   getNormalisedSphericalCoordinate,
   getParallacticAngle,
-  GST,
   LAST,
   LST
 } from './astrometry'
@@ -476,15 +476,15 @@ export { getAirmassPickering } from './seeing'
 /*****************************************************************************************************************/
 
 export {
+  SatelliteRecord,
+  type SatelliteRecordOptions,
   SGP4DecayedError,
   SGP4EphemerisTypeError,
   SGP4Error,
   SGP4MeanEccentricityError,
   SGP4MeanMotionError,
   SGP4PerturbedEccentricityError,
-  SGP4SemiLatusRectumError,
-  SatelliteRecord,
-  type SatelliteRecordOptions
+  SGP4SemiLatusRectumError
 } from './sgp4'
 
 /*****************************************************************************************************************/
@@ -496,10 +496,10 @@ export {
   getSolarAngularDiameter,
   getSolarDistance,
   getSolarEclipticCoordinate,
-  getSolarGeometricEclipticCoordinate,
   getSolarEclipticLongitude,
   getSolarEquationOfCenter,
   getSolarEquatorialCoordinate,
+  getSolarGeometricEclipticCoordinate,
   getSolarMeanAnomaly,
   getSolarMeanGeometricLongitude,
   getSolarNoon,

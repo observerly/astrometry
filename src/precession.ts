@@ -12,8 +12,8 @@ import { getJulianDate, getTerrestrialTime } from './epoch'
 
 import {
   convertRadiansToDegrees as degrees,
-  convertDegreesToRadians as radians,
-  getNormalizedAzimuthalDegree
+  getNormalizedAzimuthalDegree,
+  convertDegreesToRadians as radians
 } from './utilities'
 
 /*****************************************************************************************************************/

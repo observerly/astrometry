@@ -10,11 +10,11 @@
 
 /*****************************************************************************************************************/
 
-import { type BuildOptions, defineConfig } from 'vite'
-
 import typescript from '@rollup/plugin-typescript'
 
 import { resolve } from 'path'
+
+import { type BuildOptions, defineConfig } from 'vite'
 
 /*****************************************************************************************************************/
 

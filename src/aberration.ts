@@ -10,7 +10,7 @@ import { getHourAngle } from './astrometry'
 
 import type { CartesianCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
 
-import { AU_IN_METERS, EARTH_ANGULAR_VELOCITY, EARTH_RADIUS, c } from './constants'
+import { AU_IN_METERS, c, EARTH_ANGULAR_VELOCITY, EARTH_RADIUS } from './constants'
 
 import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './coordinates'
 

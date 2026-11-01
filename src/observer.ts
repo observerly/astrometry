@@ -8,14 +8,14 @@
 
 import { getLocalSiderealTime } from './astrometry'
 
-import { EARTH_ANGULAR_VELOCITY, EARTH_RADIUS } from './constants'
-
 import type {
   CartesianCoordinate,
   GeographicCoordinate,
   GeographicCoordinateAtEpoch,
   Observer
 } from './common'
+
+import { EARTH_ANGULAR_VELOCITY, EARTH_RADIUS } from './constants'
 
 import { convertRadiansToDegrees, convertDegreesToRadians as radians } from './utilities'
 

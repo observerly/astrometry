@@ -6,9 +6,9 @@
 
 /*****************************************************************************************************************/
 
-import { createConstellationAsGeoJSON } from './create'
-
 import type { EquatorialCoordinate } from '../common'
+
+import { createConstellationAsGeoJSON } from './create'
 
 /*****************************************************************************************************************/
 
