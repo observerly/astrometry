@@ -15,7 +15,7 @@ import type {
   GeographicCoordinate
 } from './common'
 
-import { AU_IN_METERS, c } from './constants'
+import { AU_IN_METERS, c, MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000 } from './constants'
 
 import { convertEclipticToEquatorial, convertEquatorialToCartesian } from './coordinates'
 
@@ -366,7 +366,7 @@ export const getBarycentricSolarVector = (datetime: Date): Required<CartesianCoo
 
   // The mean obliquity of the ecliptic at J2000.0 of IAU 2006, e.g., the elements of the planets are referred to
   // the ecliptic and equinox of J2000.0 (in degrees):
-  const ε = 84381.406 / 3600
+  const ε = MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000
 
   const giants = [jupiter, saturn, uranus, neptune]
 

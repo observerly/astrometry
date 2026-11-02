@@ -12,12 +12,15 @@ import { describe, expect, it } from 'vitest'
 
 import {
   AU_IN_METERS,
+  MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000,
   MINUTES_IN_DAY,
   SCHWARZSCHILD_RADIUS_OF_THE_SUN,
   SECONDS_IN_DAY,
   SPEED_OF_LIGHT,
   TWO_PI
 } from '../src/constants'
+
+import { getObliquityOfTheEcliptic } from '../src/ecliptic'
 
 /*****************************************************************************************************************/
 
@@ -33,6 +36,49 @@ describe('MINUTES_IN_DAY', () => {
 
   it('should be the number of seconds in a day in minutes', () => {
     expect(MINUTES_IN_DAY).toBe(SECONDS_IN_DAY / 60)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000', () => {
+  it('should be defined', () => {
+    expect(MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000).toBeDefined()
+  })
+
+  it('should be the mean obliquity of the ecliptic at J2000.0 of IAU 2006 (in degrees)', () => {
+    expect(MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000).toBe(84381.406 / 3600)
+    expect(MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000).toBeCloseTo(23.439279444444445, 15)
+  })
+
+  it('should be 84381.406 arcseconds, e.g., the constant term of the IAU 2006 polynomial', () => {
+    expect(MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000 * 3600).toBeCloseTo(84381.406, 9)
+  })
+
+  it('should be ~23° 26′ 21.406″', () => {
+    const degrees = Math.floor(MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000)
+    const minutes = Math.floor((MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000 - degrees) * 60)
+    const seconds = ((MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000 - degrees) * 60 - minutes) * 60
+
+    expect(degrees).toBe(23)
+    expect(minutes).toBe(26)
+    expect(seconds).toBeCloseTo(21.406, 9)
+  })
+
+  it('should be the mean obliquity of the ecliptic resolved at J2000.0 TT, e.g., 2000-01-01T11:58:55.816Z', () => {
+    // J2000.0 is 2000-01-01T12:00:00 TT, where TT - UTC = 32 + 32.184 = 64.184 seconds:
+    const datetime = new Date('2000-01-01T11:58:55.816Z')
+
+    expect(getObliquityOfTheEcliptic(datetime)).toBeCloseTo(
+      MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000,
+      12
+    )
+  })
+
+  it('should be a positive, finite number less than 90°', () => {
+    expect(Number.isFinite(MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000)).toBe(true)
+    expect(MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000).toBeGreaterThan(0)
+    expect(MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000).toBeLessThan(90)
   })
 })
 

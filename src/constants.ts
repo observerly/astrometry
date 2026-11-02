@@ -129,6 +129,16 @@ export const J2000 = 2451545.0 as const
 
 /**
  *
+ * The mean obliquity of the ecliptic at J2000.0 of IAU 2006, e.g., 84381.406 arcseconds, or
+ * ~23° 26′ 21.406″, the angle between the mean equator and the ecliptic of J2000.0 (in degrees).
+ *
+ */
+export const MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000 = 84381.406 / 3600
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * Two pi, e.g., the angle of a whole turn (in radians), or the circumference of a circle of a
  * unit radius.
  *
