@@ -21,7 +21,7 @@ import {
 
 import { getObliquityOfTheEcliptic } from '../../src/ecliptic'
 
-import { getBiasPrecessionNutationMatrix } from '../../src/frames'
+import { getBiasPrecessionNutationMatrix, getEquatorialToEclipticMatrix } from '../../src/frames'
 
 import {
   getCorrectionToEquatorialForNutation,
@@ -41,6 +41,7 @@ import {
 
 import {
   ERFABiasPrecessionNutationMatrices,
+  ERFAEquatorialToEclipticMatrices,
   ERFAFrameBiasMatrix,
   ERFANutationMatrices,
   ERFAPrecessionMatrices,
@@ -123,6 +124,13 @@ const NUTATION_MATRIX_TOLERANCE = 1e-8
 // within ~2 milliarcseconds, which is the envelope of the nutation matrix of the library, as the
 // frame bias and precession matrices agree to within ~1 µas (in radians):
 const BIAS_PRECESSION_NUTATION_MATRIX_TOLERANCE = 1e-8
+
+/*****************************************************************************************************************/
+
+// Each element of the equatorial to ecliptic matrix, against R1(ε) of the true obliquity of obl06
+// and nut06a, e.g., to within ~1 milliarcsecond, which is the envelope of the true obliquity of
+// the library (in radians):
+const EQUATORIAL_TO_ECLIPTIC_MATRIX_TOLERANCE = 5e-9
 
 /*****************************************************************************************************************/
 
@@ -443,6 +451,25 @@ describe('conformance of the bias-precession-nutation matrix to ERFA', () => {
         for (let j = 0; j < 3; j++) {
           expect(Math.abs(NPB[i][j] - reference.NPB[i][j])).toBeLessThan(
             BIAS_PRECESSION_NUTATION_MATRIX_TOLERANCE
+          )
+        }
+      }
+    }
+  )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the equatorial to ecliptic matrix to ERFA', () => {
+  it.each(ERFAEquatorialToEclipticMatrices)(
+    'should agree with each element of R1(ε) of the true obliquity at $datetime',
+    reference => {
+      const E = getEquatorialToEclipticMatrix(new Date(reference.datetime))
+
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          expect(Math.abs(E[i][j] - reference.E[i][j])).toBeLessThan(
+            EQUATORIAL_TO_ECLIPTIC_MATRIX_TOLERANCE
           )
         }
       }

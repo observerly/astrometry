@@ -12,6 +12,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import {
   convertCartesianToEquatorial,
+  convertEclipticToEquatorial,
   convertEquatorialToCartesian,
   doDeterminant,
   doTranspose,
@@ -20,11 +21,14 @@ import {
   getCorrectionToEquatorialForFrameBias,
   getCorrectionToEquatorialForNutation,
   getCorrectionToEquatorialForPrecessionOfEquinoxes,
+  getEquatorialToEclipticMatrix,
   getFrameBiasMatrix,
   getMatrixProduct,
   getNutationMatrix,
   getPrecessionMatrix,
   getRotatedCartesianCoordinate,
+  getRotationMatrix,
+  getTrueObliquityOfTheEcliptic,
   IDENTITY_MATRIX,
   type Matrix3
 } from '../src'
@@ -206,6 +210,165 @@ describe('getBiasPrecessionNutationMatrix', () => {
   it('should return a new matrix on each call, and not a shared reference', () => {
     expect(getBiasPrecessionNutationMatrix(datetime)).not.toBe(
       getBiasPrecessionNutationMatrix(datetime)
+    )
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getEquatorialToEclipticMatrix', () => {
+  // The dates across which the equatorial to ecliptic matrix is resolved, about J2000.0:
+  const dates = [
+    '1980-04-22T06:00:00.000Z',
+    '2000-01-01T12:00:00.000Z',
+    '2013-09-22T04:00:00.000Z',
+    '2021-05-14T00:00:00.000Z',
+    '2026-09-06T00:00:00.000Z',
+    '2050-03-20T12:00:00.000Z'
+  ]
+
+  it('should be defined', () => {
+    expect(getEquatorialToEclipticMatrix).toBeDefined()
+  })
+
+  it('should return a Matrix3', () => {
+    const E = getEquatorialToEclipticMatrix(datetime)
+    expectTypeOf(E).toEqualTypeOf<Matrix3>()
+    expect(E).toHaveLength(3)
+    for (const row of E) {
+      expect(row).toHaveLength(3)
+      for (const element of row) {
+        expect(Number.isFinite(element)).toBe(true)
+      }
+    }
+  })
+
+  it.each(dates)('should have a determinant of 1 at %s, e.g., as it is a proper rotation', when => {
+    expect(doDeterminant(getEquatorialToEclipticMatrix(new Date(when)))).toBeCloseTo(1, 15)
+  })
+
+  it.each(dates)('should be orthogonal at %s, e.g., E · Eᵀ = Eᵀ · E = I', when => {
+    const E = getEquatorialToEclipticMatrix(new Date(when))
+
+    const EEᵀ = getMatrixProduct(E, doTranspose(E))
+
+    const EᵀE = getMatrixProduct(doTranspose(E), E)
+
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        expect(Math.abs(EEᵀ[i][j] - IDENTITY_MATRIX[i][j])).toBeLessThan(1e-15)
+        expect(Math.abs(EᵀE[i][j] - IDENTITY_MATRIX[i][j])).toBeLessThan(1e-15)
+      }
+    }
+  })
+
+  it.each(dates)('should equal R1(ε) of the true obliquity of the ecliptic at %s', when => {
+    const ε = getTrueObliquityOfTheEcliptic(new Date(when))
+
+    expect(getEquatorialToEclipticMatrix(new Date(when))).toEqual(getRotationMatrix('x', ε))
+  })
+
+  it('should leave the true equinox of the date fixed, e.g., the x-axis is common to both', () => {
+    const { x, y, z } = getRotatedCartesianCoordinate(getEquatorialToEclipticMatrix(datetime), {
+      x: 1,
+      y: 0,
+      z: 0
+    })
+
+    expect(x).toBe(1)
+    expect(y).toBe(0)
+    expect(z).toBe(0)
+  })
+
+  it('should carry the celestial pole to an ecliptic coordinate of (90°, 90° − ε)', () => {
+    const ε = getTrueObliquityOfTheEcliptic(datetime)
+
+    // N.B. The ecliptic longitude, λ, and latitude, β, are resolved as the right ascension and
+    // declination of the vector in the ecliptic frame:
+    const { ra: λ, dec: β } = convertCartesianToEquatorial(
+      getRotatedCartesianCoordinate(getEquatorialToEclipticMatrix(datetime), { x: 0, y: 0, z: 1 })
+    )
+
+    expect(λ).toBeCloseTo(90, 10)
+    expect(β).toBeCloseTo(90 - ε, 10)
+  })
+
+  it('should carry the ecliptic pole, at (270°, 90° − ε), to an ecliptic latitude of 90°', () => {
+    const ε = getTrueObliquityOfTheEcliptic(datetime)
+
+    const { z } = getRotatedCartesianCoordinate(
+      getEquatorialToEclipticMatrix(datetime),
+      convertEquatorialToCartesian({ ra: 270, dec: 90 - ε })
+    )
+
+    expect(z).toBeCloseTo(1, 15)
+  })
+
+  it('should carry the solstice, at (90°, ε), onto the ecliptic at a longitude of 90°', () => {
+    const ε = getTrueObliquityOfTheEcliptic(datetime)
+
+    const { ra: λ, dec: β } = convertCartesianToEquatorial(
+      getRotatedCartesianCoordinate(
+        getEquatorialToEclipticMatrix(datetime),
+        convertEquatorialToCartesian({ ra: 90, dec: ε })
+      )
+    )
+
+    expect(λ).toBeCloseTo(90, 10)
+    expect(β).toBeCloseTo(0, 10)
+  })
+
+  it('should agree with convertEclipticToEquatorial for its transpose across the sphere', () => {
+    const Eᵀ = doTranspose(getEquatorialToEclipticMatrix(datetime))
+
+    for (const λ of [0, 30, 90, 135.5, 180, 247.25, 270, 333.3]) {
+      for (const β of [-89, -60, -23.4, 0, 5.15, 45, 89]) {
+        const { ra, dec } = convertEclipticToEquatorial(datetime, { λ, β })
+
+        // N.B. The ecliptic coordinate is resolved to a unit vector in the ecliptic frame as an
+        // equatorial coordinate would be, e.g., λ in place of the right ascension, and β in place
+        // of the declination:
+        const rotated = convertCartesianToEquatorial(
+          getRotatedCartesianCoordinate(Eᵀ, convertEquatorialToCartesian({ ra: λ, dec: β }))
+        )
+
+        const separation = getAngularSeparation(
+          { θ: dec, φ: ra },
+          { θ: rotated.dec, φ: rotated.ra }
+        )
+
+        expect(separation).toBeLessThan(1e-10)
+      }
+    }
+  })
+
+  it('should be undone by its transpose, e.g., Eᵀ (E v) = v, back to the true equator', () => {
+    const vega = convertEquatorialToCartesian({ ra: 279.23473479, dec: 38.78368896 })
+
+    const E = getEquatorialToEclipticMatrix(datetime)
+
+    const { x, y, z } = getRotatedCartesianCoordinate(
+      doTranspose(E),
+      getRotatedCartesianCoordinate(E, vega)
+    )
+
+    expect(x).toBeCloseTo(vega.x, 15)
+    expect(y).toBeCloseTo(vega.y, 15)
+    expect(z).toBeCloseTo(vega.z, 15)
+  })
+
+  it('should return the same matrix for the same date, and another for another date', () => {
+    expect(getEquatorialToEclipticMatrix(datetime)).toEqual(
+      getEquatorialToEclipticMatrix(new Date(datetime))
+    )
+    expect(getEquatorialToEclipticMatrix(datetime)).not.toEqual(
+      getEquatorialToEclipticMatrix(new Date('2050-03-20T12:00:00.000Z'))
+    )
+  })
+
+  it('should return a new matrix on each call, and not a shared reference', () => {
+    expect(getEquatorialToEclipticMatrix(datetime)).not.toBe(
+      getEquatorialToEclipticMatrix(datetime)
     )
   })
 })
