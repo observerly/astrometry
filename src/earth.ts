@@ -57,7 +57,7 @@ export const R = [R0, R1, R2, R3, R4]
  * @returns The eccentricity of the Earth's orbit in degrees
  *
  */
-export const getEccentricityOfOrbit = (datetime: Date): number => {
+export function getEccentricityOfOrbit(datetime: Date): number {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(datetime)
@@ -82,7 +82,7 @@ export const getEccentricityOfOrbit = (datetime: Date): number => {
  * @param datetime - The date to get the coefficient of eccentricity for
  * @returns The coefficient of eccentricity of the Earth's orbit
  */
-export const getCoefficientOfEccentricity = (datetime: Date): number => {
+export function getCoefficientOfEccentricity(datetime: Date): number {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(datetime)

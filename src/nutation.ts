@@ -121,7 +121,7 @@ const IAU2000B_NUTATION_TERMS = [
  * @returns The nutation in longitude (Δψ) and obliquity (Δε), both in degrees.
  *
  */
-export const getNutation = (date: Date): { Δψ: number; Δε: number } => {
+export function getNutation(date: Date): { Δψ: number; Δε: number } {
   // The series is referred to Terrestrial Time, and so it is resolved at the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(date)
 
@@ -209,10 +209,10 @@ export const getNutation = (date: Date): { Δψ: number; Δε: number } => {
  * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
  *
  */
-export const getCorrectionToEquatorialForNutation = (
+export function getCorrectionToEquatorialForNutation(
   datetime: Date,
   target: EquatorialCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   const ra = radians(target.ra)
 
   const dec = radians(target.dec)
@@ -271,7 +271,7 @@ export const getCorrectionToEquatorialForNutation = (
  * @returns The true obliquity of the ecliptic in degrees.
  *
  */
-export const getTrueObliquityOfTheEcliptic = (datetime: Date): number => {
+export function getTrueObliquityOfTheEcliptic(datetime: Date): number {
   // Get the mean obliquity of the ecliptic (in degrees):
   const ε = getObliquityOfTheEcliptic(datetime)
 

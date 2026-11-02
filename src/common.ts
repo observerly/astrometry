@@ -190,7 +190,7 @@ export type EquatorialCoordinate = {
 
 /*****************************************************************************************************************/
 
-export const isEquatorialCoordinate = (target: unknown): target is EquatorialCoordinate => {
+export function isEquatorialCoordinate(target: unknown): target is EquatorialCoordinate {
   return (
     typeof target === 'object' &&
     target !== null &&
@@ -242,7 +242,7 @@ export type EquatorialProperMotion = {
 
 /*****************************************************************************************************************/
 
-export const isEquatorialProperMotion = (target: unknown): target is EquatorialProperMotion => {
+export function isEquatorialProperMotion(target: unknown): target is EquatorialProperMotion {
   return (
     typeof target === 'object' &&
     target !== null &&
@@ -329,7 +329,7 @@ export type HorizontalCoordinate = {
 
 /*****************************************************************************************************************/
 
-export const isHorizontalCoordinate = (target: unknown): target is HorizontalCoordinate => {
+export function isHorizontalCoordinate(target: unknown): target is HorizontalCoordinate {
   return (
     typeof target === 'object' &&
     target !== null &&

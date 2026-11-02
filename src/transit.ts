@@ -108,7 +108,7 @@ export interface TransitInstance {
 
 /*****************************************************************************************************************/
 
-export const isTransitInstance = (value: unknown): value is TransitInstance => {
+export function isTransitInstance(value: unknown): value is TransitInstance {
   if (typeof value === 'boolean' || typeof value !== 'object' || value === null) {
     return false
   }
@@ -149,11 +149,11 @@ export const isTransitInstance = (value: unknown): value is TransitInstance => {
  * @param horizon - The observer's horizon (in degrees).
  * @returns a boolean indicating whether the target is circumpolar.
  */
-export const isBodyCircumpolar = (
+export function isBodyCircumpolar(
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
   horizon = 0
-): boolean => {
+): boolean {
   // We only need to consider the latitude of the observer:
   const { latitude } = observer
 
@@ -185,11 +185,11 @@ export const isBodyCircumpolar = (
  * @param horizon - The observer's horizon (in degrees).
  * @returns a boolean indicating whether the target is ever visible for the observer.
  */
-export const isBodyVisible = (
+export function isBodyVisible(
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
   horizon = 0
-): boolean => {
+): boolean {
   // We only need to consider the latitude of the observer:
   const { latitude } = observer
 
@@ -219,12 +219,12 @@ export const isBodyVisible = (
  * @returns a boolean indicating whether the target is above the horizon for the observer's location and for the time of observation.
  *
  */
-export const isBodyAboveHorizon = (
+export function isBodyAboveHorizon(
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate | HorizontalCoordinate,
   horizon = 0
-): boolean => {
+): boolean {
   let alt = Number.NEGATIVE_INFINITY
 
   // Is the target an equatorial coordinate?
@@ -266,11 +266,11 @@ export const isBodyAboveHorizon = (
  * @returns false if the object never rises or sets for the observer, otherwise returns the Ar and H1 transit parameters.
  *
  */
-export const doesBodyRiseOrSet = (
+export function doesBodyRiseOrSet(
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
   horizon = 0
-): false | Parameters => {
+): false | Parameters {
   // We only need to consider the latitude of the observer:
   const { latitude } = observer
 
@@ -322,11 +322,11 @@ export const doesBodyRiseOrSet = (
  * @returns the transit for the body, or undefined if the body never rises or sets for the observer.
  *
  */
-export const getBodyTransit = (
+export function getBodyTransit(
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
   horizon = 0
-): Transit | undefined => {
+): Transit | undefined {
   // Convert the right ascension to hours:
   const ra = target.ra / 15
 
@@ -389,12 +389,12 @@ export const getBodyTransit = (
  * rise to return in either case. Which of the two it is is resolved by isBodyCircumpolar() and by
  * isBodyVisible().
  */
-export const getBodyNextRise = (
+export function getBodyNextRise(
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
   horizon = 0
-): TransitInstance | false => {
+): TransitInstance | false {
   const tomorrow = new Date(
     Date.UTC(
       datetime.getUTCFullYear(),
@@ -463,12 +463,12 @@ export const getBodyNextRise = (
  * truthy but carries no set, e.g., the caller may take any truthy return to be a set. Which of the
  * two it is is resolved by isBodyCircumpolar() and by isBodyVisible().
  */
-export const getBodyNextSet = (
+export function getBodyNextSet(
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
   horizon = 0
-): TransitInstance | false => {
+): TransitInstance | false {
   const tomorrow = new Date(
     Date.UTC(
       datetime.getUTCFullYear(),
@@ -538,12 +538,12 @@ export const getBodyNextSet = (
  * @returns a boolean indicating whether the object is visible at some point during the night.
  *
  */
-export const isBodyVisibleForNight = (
+export function isBodyVisibleForNight(
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate,
   horizon = 0
-): boolean => {
+): boolean {
   // Set the datetime to be at midnight UTC for the date specified, taking a copy of the
   // datetime so as to not modify the date given by the caller, and deriving the day
   // boundary in UTC so as to be independent of the timezone of the host system:

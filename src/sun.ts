@@ -70,7 +70,7 @@ export const SOLAR_TROPICAL_YEAR = 365.242189 as const
  * @returns The Sun's mean anomaly at the given date.
  *
  */
-export const getSolarMeanAnomaly = (datetime: Date): number => {
+export function getSolarMeanAnomaly(datetime: Date): number {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date, e.g., ~69 seconds ahead of the civil time, over which the mean anomaly
   // advances by ~2.8 arcseconds:
@@ -101,7 +101,7 @@ export const getSolarMeanAnomaly = (datetime: Date): number => {
  * @param datetime - The date to calculate the Sun's equation of center for.
  * @returns The Sun's equation of center at the given date.
  */
-export const getSolarEquationOfCenter = (datetime: Date): number => {
+export function getSolarEquationOfCenter(datetime: Date): number {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(datetime)
@@ -134,7 +134,7 @@ export const getSolarEquationOfCenter = (datetime: Date): number => {
  * @returns The Sun's true geometric longitude at the given date.
  *
  */
-export const getSolarMeanGeometricLongitude = (datetime: Date): number => {
+export function getSolarMeanGeometricLongitude(datetime: Date): number {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(datetime)
@@ -167,7 +167,7 @@ export const getSolarMeanGeometricLongitude = (datetime: Date): number => {
  * @returns The Sun's true anomaly at the given date.
  *
  */
-export const getSolarTrueAnomaly = (datetime: Date): number => {
+export function getSolarTrueAnomaly(datetime: Date): number {
   // Get the mean anomaly:
   const M = getSolarMeanAnomaly(datetime)
 
@@ -192,7 +192,7 @@ export const getSolarTrueAnomaly = (datetime: Date): number => {
  * @returns The Sun's true geometric longitude at the given date.
  *
  */
-export const getSolarTrueGeometricLongitude = (datetime: Date): number => {
+export function getSolarTrueGeometricLongitude(datetime: Date): number {
   // Get the mean geometric longitude:
   const L = getSolarMeanGeometricLongitude(datetime)
 
@@ -218,7 +218,7 @@ export const getSolarTrueGeometricLongitude = (datetime: Date): number => {
  * @returns The Sun's ecliptic longitude at the given date.
  *
  */
-export const getSolarEclipticLongitude = (datetime: Date): number => {
+export function getSolarEclipticLongitude(datetime: Date): number {
   // Get the true anomaly:
   const ν = getSolarTrueAnomaly(datetime)
 
@@ -309,7 +309,7 @@ export function getSolarGeometricEclipticCoordinate(datetime: Date): EclipticCoo
  * @returns The geocentric position of the Sun (in astronomical units).
  *
  */
-export const getGeometricSolarVector = (datetime: Date): Required<CartesianCoordinate> => {
+export function getGeometricSolarVector(datetime: Date): Required<CartesianCoordinate> {
   // Get the geometric ecliptic coordinate of the Sun, referred to the mean ecliptic and equinox of the date:
   const sun = getSolarGeometricEclipticCoordinate(datetime)
 
@@ -364,7 +364,7 @@ export const getGeometricSolarVector = (datetime: Date): Required<CartesianCoord
  * @returns The barycentric position of the Sun (in astronomical units).
  *
  */
-export const getBarycentricSolarVector = (datetime: Date): Required<CartesianCoordinate> => {
+export function getBarycentricSolarVector(datetime: Date): Required<CartesianCoordinate> {
   // The ratio of the mass of the Sun to the mass of the Earth, e.g., the masses of the planets are given relative
   // to the Earth:
   const SUN_TO_EARTH_MASS_RATIO = 332946.0487
@@ -495,7 +495,7 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
  * @returns The Sun's equatorial coordinate at the given date.
  *
  */
-export const getSolarEquatorialCoordinate = (datetime: Date): EquatorialCoordinate => {
+export function getSolarEquatorialCoordinate(datetime: Date): EquatorialCoordinate {
   // Get the ecliptic coordinates of the Sun:
   // The latitude, β, term is close to zero for the Sun, so we can largely ignore it by refactoring
   // the standard equations for the conversion between ecliptic and equatorial
@@ -513,7 +513,7 @@ export const getSolarEquatorialCoordinate = (datetime: Date): EquatorialCoordina
  * @returns The ecliptic plane at the given date.
  *
  */
-export const getEclipticPlane = (date: Date): EquatorialCoordinate[] => {
+export function getEclipticPlane(date: Date): EquatorialCoordinate[] {
   const ecliptic = [] as EquatorialCoordinate[]
 
   // Get the current year start date, deriving the year boundary in UTC so as to be independent of
@@ -544,7 +544,7 @@ export const getEclipticPlane = (date: Date): EquatorialCoordinate[] => {
  * @returns The Sun's angular diameter in degrees
  *
  */
-export const getSolarAngularDiameter = (datetime: Date): number => {
+export function getSolarAngularDiameter(datetime: Date): number {
   // Get the true anomaly:
   const ν = getSolarTrueAnomaly(datetime)
 
@@ -564,7 +564,7 @@ export const getSolarAngularDiameter = (datetime: Date): number => {
  * @param datetime - The date to calculate the distance to the Sun for.
  * @returns The distance to the Sun in metres forthe given date.
  */
-export const getSolarDistance = (datetime: Date): number => {
+export function getSolarDistance(datetime: Date): number {
   // Get the eccentricity of the Earth's orbit:
   const e = getEccentricityOfOrbit(datetime)
 
@@ -577,7 +577,7 @@ export const getSolarDistance = (datetime: Date): number => {
 
 /*****************************************************************************************************************/
 
-export const getHeliocentricJulianDate = (datetime: Date): number => {
+export function getHeliocentricJulianDate(datetime: Date): number {
   const JD = getJulianDate(datetime)
 
   // Get the eccentricity of the Earth's orbit:
@@ -614,7 +614,7 @@ export const getHeliocentricJulianDate = (datetime: Date): number => {
  * @returns The barycentric Julian date of the observation.
  *
  */
-export const getBarycentricJulianDate = (datetime: Date, target: EquatorialCoordinate): number => {
+export function getBarycentricJulianDate(datetime: Date, target: EquatorialCoordinate): number {
   const JD = getJulianDate(datetime)
 
   // The geocentric equatorial coordinate of the Sun, and its distance from the observer:
@@ -739,7 +739,7 @@ const getSolarMeridianTransit = (datetime: Date, observer: GeographicCoordinate)
  * @returns The solar noon of the given date for the observer.
  *
  */
-export const getSolarNoon = (datetime: Date, observer: GeographicCoordinate): Date => {
+export function getSolarNoon(datetime: Date, observer: GeographicCoordinate): Date {
   return new Date(getSolarMeridianTransit(datetime, observer))
 }
 
@@ -808,7 +808,7 @@ const getSolarHorizonCrossing = (
  * the horizon, e.g., for an observer in a polar day or a polar night.
  *
  */
-export const getSunrise = (datetime: Date, observer: GeographicCoordinate): Date | null => {
+export function getSunrise(datetime: Date, observer: GeographicCoordinate): Date | null {
   return getSolarHorizonCrossing(getSolarMeridianTransit(datetime, observer), observer, true)
 }
 
@@ -834,7 +834,7 @@ export const getSunrise = (datetime: Date, observer: GeographicCoordinate): Date
  * the horizon, e.g., for an observer in a polar day or a polar night.
  *
  */
-export const getSunset = (datetime: Date, observer: GeographicCoordinate): Date | null => {
+export function getSunset(datetime: Date, observer: GeographicCoordinate): Date | null {
   return getSolarHorizonCrossing(getSolarMeridianTransit(datetime, observer), observer, false)
 }
 

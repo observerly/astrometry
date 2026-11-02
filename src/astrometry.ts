@@ -48,7 +48,7 @@ import {
  * @returns The angular separation between the two objects in degrees.
  *
  */
-export const getAngularSeparation = (A: SphericalCoordinate, B: SphericalCoordinate): number => {
+export function getAngularSeparation(A: SphericalCoordinate, B: SphericalCoordinate): number {
   // The unit vector of A, in the frame the two coordinates are both given in:
   const a = {
     x: Math.cos(radians(A.θ)) * Math.cos(radians(A.φ)),
@@ -90,7 +90,7 @@ export const getAngularSeparation = (A: SphericalCoordinate, B: SphericalCoordin
  * @param A - The coordinate of the observed object, in Spherical coordinates (accepts Equatorial, Horizontal, and Ecliptic coordinates).
  * @returns The antipode of the observed object, in Spherical coordinates.
  */
-export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordinate => {
+export function getAntipodeCoordinate(A: SphericalCoordinate): SphericalCoordinate {
   return {
     θ: -A.θ,
     φ: getNormalizedAzimuthalDegree(A.φ + 180)
@@ -114,7 +114,7 @@ export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordina
  * @returns The normalised Spherical coordinate.
  *
  */
-export const getNormalizedSphericalCoordinate = (A: SphericalCoordinate): SphericalCoordinate => {
+export function getNormalizedSphericalCoordinate(A: SphericalCoordinate): SphericalCoordinate {
   const { θ, φ } = A
 
   // Wrap the polar angle onto the range [-90, 270), e.g., a single meridian of the sphere,
@@ -159,7 +159,7 @@ export const getNormalizedSphericalCoordinate = (A: SphericalCoordinate): Spheri
  * @returns Greenwich Sidereal Time as number - the Greenwich Sidereal Time (GST) of the given date normalised to UTC.
  *
  */
-export const getGreenwichSiderealTime = (datetime: Date): number => {
+export function getGreenwichSiderealTime(datetime: Date): number {
   // Get the Julian Date of the given date:
   const JD = getJulianDate(datetime)
 
@@ -222,7 +222,7 @@ export const GST = getGreenwichSiderealTime
  * @returns Greenwich Apparent Sidereal Time as number - the Greenwich Apparent Sidereal Time (GAST) of the given date normalised to UTC.
  *
  */
-export const getGreenwichApparentSiderealTime = (datetime: Date): number => {
+export function getGreenwichApparentSiderealTime(datetime: Date): number {
   // Get the Greenwich Mean Sidereal Time (GMST) of the given date (in hours):
   const GMST = getGreenwichSiderealTime(datetime)
 
@@ -264,7 +264,7 @@ export const GAST = getGreenwichApparentSiderealTime
  * @returs Local Sidereal Time as number - the Local Sidereal Time (LST) of the given date normalised to UTC.
  *
  */
-export const getLocalSiderealTime = (datetime: Date, longitude: number): number => {
+export function getLocalSiderealTime(datetime: Date, longitude: number): number {
   // Get the Greenwich Sidereal Time (GST) of the given date:
   const GST = getGreenwichSiderealTime(datetime)
 
@@ -303,7 +303,7 @@ export const LST = getLocalSiderealTime
  * @returns Local Apparent Sidereal Time as number - the Local Apparent Sidereal Time (LAST) of the given date normalised to UTC.
  *
  */
-export const getLocalApparentSiderealTime = (datetime: Date, longitude: number): number => {
+export function getLocalApparentSiderealTime(datetime: Date, longitude: number): number {
   // Get the Greenwich Apparent Sidereal Time (GAST) of the given date (in hours):
   const GAST = getGreenwichApparentSiderealTime(datetime)
 
@@ -343,7 +343,7 @@ export const LAST = getLocalApparentSiderealTime
  * @returns The Hour Angle (HA) of the given date.
  *
  */
-export const getHourAngle = (datetime: Date, longitude: number, ra: number): number => {
+export function getHourAngle(datetime: Date, longitude: number, ra: number): number {
   // Get the Local Sidereal Time (LST) of the given date:
   const LST = getLocalSiderealTime(datetime, longitude)
 
@@ -380,7 +380,7 @@ export const getHourAngle = (datetime: Date, longitude: number, ra: number): num
  * @returns The apparent Hour Angle (HA) of the given date.
  *
  */
-export const getApparentHourAngle = (datetime: Date, longitude: number, ra: number): number => {
+export function getApparentHourAngle(datetime: Date, longitude: number, ra: number): number {
   // Get the Local Apparent Sidereal Time (LAST) of the given date:
   const LAST = getLocalApparentSiderealTime(datetime, longitude)
 
@@ -410,11 +410,11 @@ export const getApparentHourAngle = (datetime: Date, longitude: number, ra: numb
  * @return The parallactic angle of the observed object in degrees.
  *
  */
-export const getParallacticAngle = (
+export function getParallacticAngle(
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate
-): number => {
+): number {
   const { latitude, longitude } = observer
 
   const { ra, dec } = target
@@ -465,11 +465,11 @@ export const getParallacticAngle = (
  * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
  *
  */
-export const getCorrectionToEquatorialForProperMotion = (
+export function getCorrectionToEquatorialForProperMotion(
   datetime: Date,
   target: EquatorialCoordinate,
   properMotion: EquatorialProperMotion
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   // The number of Julian years between the epoch of the coordinate and the datetime given:
   const years = (getJulianDate(datetime) - (target.epoch ?? J2000)) / 365.25
 

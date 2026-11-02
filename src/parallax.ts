@@ -35,10 +35,10 @@ import {
  * @returns The correction to the equatorial coordinate of the target (in degrees).
  *
  */
-export const getCorrectionToEquatorialForAnnualParallax = (
+export function getCorrectionToEquatorialForAnnualParallax(
   datetime: Date,
   target: EquatorialCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   // A target of no parallax is at an infinite distance, and so it is not displaced at all by the
   // motion of the observer about the Sun:
   const π = ((target.parallax ?? 0) / 3600) * (Math.PI / 180)

@@ -85,13 +85,13 @@ const getWhatTwilight = (altitude: number) => {
  * @param params - Optional parameters for the calculation
  * @returns An array of twilight bands for the given day
  */
-export const getTwilightBandsForDay = (
+export function getTwilightBandsForDay(
   datetime: Date,
   observer: GeographicCoordinate,
   params: { stepSeconds?: number } = {
     stepSeconds: 10
   }
-): TwilightBand[] => {
+): TwilightBand[] {
   const { stepSeconds = 10 } = params
 
   // Set the datetime to be at midnight UTC for the date specified, taking a copy of the datetime so

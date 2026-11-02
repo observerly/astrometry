@@ -74,7 +74,7 @@ const getApparentSolarAltitude = (
  * @returns The generalized solar transit for the given date.
  *
  */
-export const getGeneralizedSolarTransit = (
+export function getGeneralizedSolarTransit(
   datetime: Date,
   observer: GeographicCoordinate
 ): {
@@ -83,7 +83,7 @@ export const getGeneralizedSolarTransit = (
   sunset: Date | null
   J: number
   ha: number
-} => {
+} {
   const { latitude, longitude } = observer
 
   // Get the Julian Date:
@@ -145,7 +145,7 @@ export const getGeneralizedSolarTransit = (
 
 /*****************************************************************************************************************/
 
-export const getSolarTransit = (
+export function getSolarTransit(
   datetime: Date,
   observer: GeographicCoordinate,
   horizon = -12,
@@ -155,7 +155,7 @@ export const getSolarTransit = (
   sunrise: Date | null
   noon: Date | null
   sunset: Date | null
-} => {
+} {
   // Set the datetime to be at midnight UTC for the date specified, taking a copy of the
   // datetime so as to not modify the date given by the caller, and deriving the day
   // boundary in UTC so as to be independent of the timezone of the host system:
@@ -317,7 +317,7 @@ export const getSolarTransit = (
  * @returns The start and end of the next night for the observer.
  *
  */
-export const getNight = (
+export function getNight(
   datetime: Date,
   observer: GeographicCoordinate,
   horizon = -12,
@@ -326,7 +326,7 @@ export const getNight = (
 ): {
   start: Date | null
   end: Date | null
-} => {
+} {
   const { sunset } = getSolarTransit(datetime, observer, horizon, temperature, pressure)
 
   const { sunrise } = getSolarTransit(
@@ -346,13 +346,13 @@ export const getNight = (
 
 /*****************************************************************************************************************/
 
-export const isNight = (
+export function isNight(
   datetime: Date,
   observer: GeographicCoordinate,
   horizon = -12,
   temperature = DEFAULT_SURFACE_TEMPERATURE,
   pressure = DEFAULT_SURFACE_PRESSURE
-): boolean => {
+): boolean {
   // The altitude the night is resolved at, e.g., the horizon given by the caller, depressed
   // below the astronomical horizon by the elevation of the observer:
   const h = horizon - getLocalHorizon(observer.elevation ?? 0)

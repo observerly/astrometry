@@ -21,7 +21,7 @@ import { utc } from './utc'
  * @returns Julian Date as number - the Julian Date (JD) of the given date normalised to UTC.
  *
  */
-export const getJulianDate = (datetime: Date): number => {
+export function getJulianDate(datetime: Date): number {
   const UTC = utc(datetime)
 
   // Return the Julian Date (JD) of the given date normalised to UTC.
@@ -39,7 +39,7 @@ export const getJulianDate = (datetime: Date): number => {
  * @returns Modified Julian Date as number - the Modified Julian Date (MJD) of the given date normalised to UTC.
  *
  */
-export const getModifiedJulianDate = (datetime: Date): number => {
+export function getModifiedJulianDate(datetime: Date): number {
   return getJulianDate(datetime) - 2400000.5
 }
 
@@ -53,7 +53,7 @@ export const getModifiedJulianDate = (datetime: Date): number => {
  * @returns number - the number of centuries since J2000.0.
  *
  */
-export const getNumberOfCenturiesSinceJ2000 = (datetime: Date): number => {
+export function getNumberOfCenturiesSinceJ2000(datetime: Date): number {
   // Get the Julian Date (JD) of the given date, e.g., in the time scale the date is given in, such as the
   // Terrestrial Time of a date resolved by getTerrestrialTime():
   const JD = getJulianDate(datetime)
@@ -72,7 +72,7 @@ export const getNumberOfCenturiesSinceJ2000 = (datetime: Date): number => {
  * @returns number - the number of millennia since J2000.0.
  *
  */
-export const getNumberOfMillenniaSinceJ2000 = (datetime: Date): number => {
+export function getNumberOfMillenniaSinceJ2000(datetime: Date): number {
   // Get the Julian Date (JD) of the given date, e.g., in the time scale the date is given in, such as the
   // Terrestrial Time of a date resolved by getTerrestrialTime():
   const JD = getJulianDate(datetime)
@@ -100,7 +100,7 @@ export const getNumberOfMillenniaSinceJ2000 = (datetime: Date): number => {
  * @returns The International Atomic Time (TAI) of the given date.
  *
  */
-export const getInternationalAtomicTime = (datetime: Date): Date => {
+export function getInternationalAtomicTime(datetime: Date): Date {
   const when = datetime.getTime()
 
   // The difference between TAI and UTC, e.g., the number of leap seconds that have been added
@@ -135,7 +135,7 @@ export const getInternationalAtomicTime = (datetime: Date): Date => {
  * @returns The Terrestrial Time (TT) of the given date.
  *
  */
-export const getTerrestrialTime = (datetime: Date): Date => {
+export function getTerrestrialTime(datetime: Date): Date {
   return new Date(getInternationalAtomicTime(datetime).getTime() + 32184)
 }
 

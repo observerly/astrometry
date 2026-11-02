@@ -1062,7 +1062,7 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
  * @returns The constellation that the target equatorial coordinate is in, or undefined
  *
  */
-export const getConstellation = (target: EquatorialCoordinate): Constellation | undefined => {
+export function getConstellation(target: EquatorialCoordinate): Constellation | undefined {
   // We precess to 1875, as the Nancy Roman lookup table is accurate for that epoch:
   const corr = getCorrectionToEquatorialForPrecessionOfEquinoxes(new Date(1875, 0, 0), target)
 

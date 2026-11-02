@@ -21,7 +21,7 @@ import { getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
  * @returns The obliquity of the ecliptic in degrees.
  *
  */
-export const getObliquityOfTheEcliptic = (datetime: Date): number => {
+export function getObliquityOfTheEcliptic(datetime: Date): number {
   // The polynomial is referred to Terrestrial Time, and so it is resolved at the Terrestrial Time of the given
   // date, as the nutation it is corrected by is:
   const tt = getTerrestrialTime(datetime)

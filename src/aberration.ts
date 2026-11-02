@@ -47,7 +47,7 @@ import {
  * @returns The barycentric velocity of the Earth (in astronomical units per day).
  *
  */
-export const getBarycentricEarthVelocity = (datetime: Date): Required<CartesianCoordinate> => {
+export function getBarycentricEarthVelocity(datetime: Date): Required<CartesianCoordinate> {
   // The half interval of the central difference (in milliseconds), e.g., half of a day:
   const h = 43200000
 
@@ -97,10 +97,10 @@ export const getBarycentricEarthVelocity = (datetime: Date): Required<CartesianC
  * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
  *
  */
-export const getCorrectionToEquatorialForAnnualAberration = (
+export function getCorrectionToEquatorialForAnnualAberration(
   datetime: Date,
   target: EquatorialCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   // The barycentric velocity of the Earth (in astronomical units per day):
   const velocity = getBarycentricEarthVelocity(datetime)
 
@@ -159,11 +159,11 @@ export const getCorrectionToEquatorialForAnnualAberration = (
  * @returns The corrected equatorial coordinate of the target.
  *
  */
-export const getCorrectionToEquatorialForDiurnalAberration = (
+export function getCorrectionToEquatorialForDiurnalAberration(
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   const dec = radians(target.dec)
 
   const phi = radians(observer.latitude)
@@ -207,11 +207,11 @@ export const getCorrectionToEquatorialForDiurnalAberration = (
  * @returns The corrected equatorial coordinate of the target.
  *
  */
-export const getCorrectionToEquatorialForAberration = (
+export function getCorrectionToEquatorialForAberration(
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   // Get the annual aberration correction:
   const annual = getCorrectionToEquatorialForAnnualAberration(datetime, target)
 
@@ -245,10 +245,10 @@ export const getCorrectionToEquatorialForAberration = (
  * @returns The correction to the equatorial coordinate of the target (in degrees).
  *
  */
-export const getCorrectionToEquatorialForVelocityAberration = (
+export function getCorrectionToEquatorialForVelocityAberration(
   target: EquatorialCoordinate,
   velocity: Required<CartesianCoordinate>
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   const ra = radians(target.ra)
 
   const dec = radians(target.dec)
@@ -320,10 +320,10 @@ export const getCorrectionToEquatorialForVelocityAberration = (
  * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
  *
  */
-export const getCorrectionToEquatorialForLightDeflection = (
+export function getCorrectionToEquatorialForLightDeflection(
   datetime: Date,
   target: EquatorialCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   // Get the geometric position of the Sun from the Earth, referred to the mean equator and equinox of J2000.0,
   // e.g., before the corrections for the nutation and for the aberration of light, as the deflection is a function
   // of the geometry of the Sun, the Earth and the target, and not of the apparent place of the Sun:

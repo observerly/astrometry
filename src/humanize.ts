@@ -20,7 +20,7 @@ import { convertDegreeToDMS, convertDegreeToHMS } from './utilities'
  * @returns e.g., a humanized degree in format string '0º 0' 00"'
  *
  */
-export const formatDegreeToDMSHumanized = (degree: number): string => {
+export function formatDegreeToDMSHumanized(degree: number): string {
   const { deg, min, sec } = convertDegreeToDMS(degree)
 
   // Add a plus sign if positive, minus if negative. N.B. The sign is taken from the value given, as
@@ -48,7 +48,7 @@ export const formatDegreeToDMSHumanized = (degree: number): string => {
  * @returns e.g., a humanized degree in format string '0ʰ 0ᵐ 00ˢ'
  *
  */
-export const formatDegreeToHMSHumanized = (degree: number): string => {
+export function formatDegreeToHMSHumanized(degree: number): string {
   const { hrs, min, sec } = convertDegreeToHMS(degree)
   return `${Math.abs(hrs) < 10 ? `0${Math.abs(hrs)}` : hrs}ʰ ${
     min < 10 ? `0${Math.abs(min)}` : Math.abs(min)
