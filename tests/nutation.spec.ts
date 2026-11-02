@@ -72,6 +72,116 @@ describe('getCorrectionToEquatorialForNutation', () => {
     expect(dec).toBeCloseTo(7.409983972426182, 9)
   })
 
+  // The corrections of the rotation of the nutation matrix of the library, pinned to 12 decimal
+  // places, with the displacement in right ascension taken within [−180°, 180°) (in degrees):
+  it.each([
+    {
+      datetime: '1980-04-22T06:00:00.000Z',
+      name: 'Vega',
+      ra: 279.23473479,
+      dec: 38.78368896,
+      Δra: -0.0015144979749948106,
+      Δdec: 0.0018531576245948145
+    },
+    {
+      datetime: '1980-04-22T06:00:00.000Z',
+      name: 'σ Octantis',
+      ra: 317.19541667,
+      dec: -88.9565,
+      Δra: -0.12989567949409775,
+      Δdec: 0.0005447633827060372
+    },
+    {
+      datetime: '1980-04-22T06:00:00.000Z',
+      name: 'a target just west of the origin of right ascension',
+      ra: 359.99,
+      dec: -10,
+      Δra: -0.0030798181233535615,
+      Δdec: -0.0011767470180359396
+    },
+    {
+      datetime: '2050-03-20T12:00:00.000Z',
+      name: 'Vega',
+      ra: 279.23473479,
+      dec: 38.78368896,
+      Δra: 0.0025869415488841696,
+      Δdec: 0.0015658228129566965
+    },
+    {
+      datetime: '2050-03-20T12:00:00.000Z',
+      name: 'σ Octantis',
+      ra: 317.19541667,
+      dec: -88.9565,
+      Δra: 0.009736025596112086,
+      Δdec: 0.0020722286696184256
+    },
+    {
+      datetime: '2050-03-20T12:00:00.000Z',
+      name: 'a target just west of the origin of right ascension',
+      ra: 359.99,
+      dec: -10,
+      Δra: 0.003447337275474638,
+      Δdec: 0.0015956607609801665
+    }
+  ])('should return the pinned correction for $name at $datetime', reference => {
+    const { ra, dec } = getCorrectionToEquatorialForNutation(
+      new Date(reference.datetime),
+      reference
+    )
+
+    expect(ra).toBeCloseTo(reference.Δra, 12)
+    expect(dec).toBeCloseTo(reference.Δdec, 12)
+  })
+
+  it.each([
+    {
+      datetime: '1980-04-22T06:00:00.000Z',
+      pole: 'north',
+      ra: 123.4,
+      dec: 90,
+      Δra: -63.040831408715064,
+      Δdec: -0.00238031676875039
+    },
+    {
+      datetime: '1980-04-22T06:00:00.000Z',
+      pole: 'south',
+      ra: 123.4,
+      dec: -90,
+      Δra: 116.95916859113441,
+      Δdec: 0.00238031676875039
+    },
+    {
+      datetime: '2050-03-20T12:00:00.000Z',
+      pole: 'north',
+      ra: 123.4,
+      dec: 90,
+      Δra: 16.851573574783856,
+      Δdec: -0.0020751671135457173
+    },
+    {
+      datetime: '2050-03-20T12:00:00.000Z',
+      pole: 'south',
+      ra: 123.4,
+      dec: -90,
+      Δra: -163.14842642516004,
+      Δdec: 0.0020751671135457173
+    }
+  ])(
+    'should carry the $pole celestial pole onto the true pole of the date at $datetime',
+    reference => {
+      // N.B. The right ascension of a pole is degenerate, and so the displacement in right
+      // ascension is that of the right ascension given, 123.4°, to that of the mean pole of the
+      // date in the true frame of the date:
+      const { ra, dec } = getCorrectionToEquatorialForNutation(
+        new Date(reference.datetime),
+        reference
+      )
+
+      expect(ra).toBeCloseTo(reference.Δra, 8)
+      expect(dec).toBeCloseTo(reference.Δdec, 12)
+    }
+  )
+
   it.each([
     { ra: 10, dec: 89.9999 },
     { ra: 200, dec: -89.9999 }

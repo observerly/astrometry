@@ -259,22 +259,9 @@ export function getCorrectionToEquatorialForNutation(
 
   const dec = radians(target.dec)
 
-  // Get the nutation in longitude and obliquity (in degrees):
-  const { Δψ, Δε } = getNutation(datetime)
-
-  // Get the mean obliquity of the ecliptic, e.g., the mean obliquity of IAU 2006 (in degrees):
-  const ε0 = getObliquityOfTheEcliptic(datetime)
-
-  // The nutation matrix, e.g., the rotation from the mean equator and equinox of the date to the true equator and
-  // equinox of the date, as the product R1(−ε) · R3(−Δψ) · R1(ε0) of the passive rotations of the frame about the
-  // x axis by the mean obliquity, e.g., from the mean equator onto the ecliptic, about the z axis by the negative
-  // of the nutation in longitude, e.g., from the mean equinox to the true equinox of the date along the ecliptic,
-  // and about the x axis by the negative of the true obliquity, e.g., from the ecliptic onto the true equator of
-  // the date, as is defined by the iauNumat routine of the IAU SOFA library:
-  const N = getMatrixProduct(
-    getRotationMatrix('x', -(ε0 + Δε)),
-    getMatrixProduct(getRotationMatrix('z', -Δψ), getRotationMatrix('x', ε0))
-  )
+  // The nutation matrix, e.g., the rotation from the mean equator and equinox of the date to the
+  // true equator and equinox of the date:
+  const N = getNutationMatrix(datetime)
 
   // The unit vector of the target, taken as referred to the mean equator and equinox of the date:
   const v = {
@@ -283,13 +270,13 @@ export function getCorrectionToEquatorialForNutation(
     z: Math.sin(dec)
   }
 
-  // The unit vector of the target rotated by the nutation, e.g., referred to the true equator and equinox of the
-  // date:
+  // The unit vector of the target rotated by the nutation, e.g., referred to the true equator and
+  // equinox of the date:
   const apparent = getRotatedCartesianCoordinate(N, v)
 
-  // Recover the correction as the displacement of the rotated target from the target, from the rotated unit
-  // vector, and not expanded to the first order about the target, which would divide by cos δ and so degrade
-  // towards the celestial poles:
+  // Recover the correction as the displacement of the rotated target from the target, from the
+  // rotated unit vector, and not expanded to the first order about the target, which would divide
+  // by cos δ and so degrade towards the celestial poles:
   return {
     ra:
       getNormalizedAzimuthalDegree(degrees(Math.atan2(apparent.y, apparent.x)) - target.ra + 180) -
