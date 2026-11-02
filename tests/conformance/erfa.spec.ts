@@ -21,7 +21,11 @@ import {
 
 import { getObliquityOfTheEcliptic } from '../../src/ecliptic'
 
-import { getBiasPrecessionNutationMatrix, getEquatorialToEclipticMatrix } from '../../src/frames'
+import {
+  getBiasPrecessionNutationMatrix,
+  getEquatorialToEclipticMatrix,
+  getEquatorialToHorizontalMatrix
+} from '../../src/frames'
 import { getEquatorialToGalacticMatrix } from '../../src/galactic'
 import {
   getCorrectionToEquatorialForNutation,
@@ -43,6 +47,7 @@ import {
   ERFABiasPrecessionNutationMatrices,
   ERFAEquatorialToEclipticMatrices,
   ERFAEquatorialToGalacticMatrix,
+  ERFAEquatorialToHorizontalMatrices,
   ERFAFrameBiasMatrix,
   ERFANutationMatrices,
   ERFAPrecessionMatrices,
@@ -132,6 +137,13 @@ const BIAS_PRECESSION_NUTATION_MATRIX_TOLERANCE = 1e-8
 // and nut06a, e.g., to within ~1 milliarcsecond, which is the envelope of the true obliquity of
 // the library (in radians):
 const EQUATORIAL_TO_ECLIPTIC_MATRIX_TOLERANCE = 5e-9
+
+/*****************************************************************************************************************/
+
+// Each element of the equatorial to horizontal matrix, against hd2ae at the Local Apparent Sidereal
+// Time of gst06a, e.g., to within ~0.2 arcseconds, which is the envelope of the apparent sidereal
+// time of the library of ~0.015 seconds of time (in radians):
+const EQUATORIAL_TO_HORIZONTAL_MATRIX_TOLERANCE = 1e-6
 
 /*****************************************************************************************************************/
 
@@ -493,6 +505,25 @@ describe('conformance of the equatorial to galactic matrix to ERFA', () => {
       }
     }
   })
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the equatorial to horizontal matrix to ERFA', () => {
+  it.each(ERFAEquatorialToHorizontalMatrices)(
+    'should agree with each element of hd2ae at $datetime',
+    reference => {
+      const H = getEquatorialToHorizontalMatrix(new Date(reference.datetime), reference.observer)
+
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          expect(Math.abs(H[i][j] - reference.H[i][j])).toBeLessThan(
+            EQUATORIAL_TO_HORIZONTAL_MATRIX_TOLERANCE
+          )
+        }
+      }
+    }
+  )
 })
 
 /*****************************************************************************************************************/

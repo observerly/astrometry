@@ -280,7 +280,11 @@ export {
 
 /*****************************************************************************************************************/
 
-export { getBiasPrecessionNutationMatrix, getEquatorialToEclipticMatrix } from './frames'
+export {
+  getBiasPrecessionNutationMatrix,
+  getEquatorialToEclipticMatrix,
+  getEquatorialToHorizontalMatrix
+} from './frames'
 
 /*****************************************************************************************************************/
 
