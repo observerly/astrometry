@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import type { EquatorialCoordinate, Matrix3 } from './common'
+import type { EquatorialCoordinate } from './common'
 
 import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './coordinates'
 
@@ -35,10 +35,21 @@ import { getNormalizedAzimuthalDegree, convertDegreesToRadians as radians } from
 export function getCorrectionToEquatorialForFrameBias(
   target: EquatorialCoordinate
 ): EquatorialCoordinate {
+  // The frame bias matrix of IAU 2000, B = R1(−δε₀) · R2(δψ₀ sin ε₀) · R3(δα₀), for δα₀ of −14.6
+  // mas, δψ₀ of −41.775 mas, δε₀ of −6.8192 mas and ε₀ of 84381.448″, e.g., getFrameBiasMatrix() of
+  // the frames module, which is composed here as the frames module depends on this one:
+  const B = getMatrixProduct(
+    getRotationMatrix('x', 0.0068192 / 3600),
+    getMatrixProduct(
+      getRotationMatrix('y', (-0.041775 / 3600) * Math.sin(radians(84381.448 / 3600))),
+      getRotationMatrix('z', -0.0146 / 3600)
+    )
+  )
+
   // The unit vector of the target in the ICRS, carried to the mean equator and equinox of J2000.0
   // by the frame bias matrix:
   const mean = convertCartesianToEquatorial(
-    getRotatedCartesianCoordinate(getFrameBiasMatrix(), convertEquatorialToCartesian(target))
+    getRotatedCartesianCoordinate(B, convertEquatorialToCartesian(target))
   )
 
   // Recover the correction as the displacement of the rotated target from the target, e.g., as a
@@ -48,60 +59,6 @@ export function getCorrectionToEquatorialForFrameBias(
     ra: getNormalizedAzimuthalDegree(mean.ra - target.ra + 180) - 180,
     dec: mean.dec - target.dec
   }
-}
-
-/*****************************************************************************************************************/
-
-/**
- *
- * getFrameBiasMatrix()
- *
- * Resolves the frame bias matrix B of IAU 2000, e.g., the fixed rotation from the International
- * Celestial Reference System (ICRS), which a modern catalogue coordinate is referred to, to the
- * mean equator and equinox of J2000.0, which the precession of the equinoxes is referred from, as
- * is defined by the iauBi00 and iauBp00 routines of the IAU SOFA library:
- *
- * B = R1(−δε₀) · R2(δψ₀ sin ε₀) · R3(δα₀)
- *
- * where δα₀ is the offset of the ICRS origin of right ascension from the mean equinox of
- * J2000.0, and δψ₀ and δε₀ are the offsets of the ICRS pole from the mean pole of J2000.0 in
- * longitude and in obliquity, respectively, referred to the mean obliquity of the ecliptic at
- * J2000.0, ε₀.
- *
- * N.B. The frame bias is fixed, e.g., it is not a function of the date, and is of the order of
- * 20 mas, such that the matrix differs from the identity by less than 1e-7 in each element.
- *
- * N.B. The transpose of the matrix is its inverse, e.g., Bᵀ rotates the mean equator and equinox
- * of J2000.0 back into the ICRS.
- *
- * @returns The 3×3 frame bias matrix, in row-major order.
- *
- */
-export function getFrameBiasMatrix(): Matrix3 {
-  // The frame bias in right ascension of IAU 2000, e.g., the offset of the ICRS origin of right
-  // ascension from the mean equinox of J2000.0 (in degrees):
-  const δα0 = -0.0146 / 3600
-
-  // The frame bias in longitude of IAU 2000, e.g., the offset of the ICRS pole from the mean pole
-  // of J2000.0 in the direction of the mean equinox of J2000.0 (in degrees):
-  const δψ0 = -0.041775 / 3600
-
-  // The frame bias in obliquity of IAU 2000, e.g., the offset of the ICRS pole from the mean pole
-  // of J2000.0 at right angles to the mean equinox of J2000.0 (in degrees):
-  const δε0 = -0.0068192 / 3600
-
-  // The mean obliquity of the ecliptic at J2000.0 of IAU 1980, which the frame bias in longitude
-  // is referred to (in degrees):
-  const ε0 = 84381.448 / 3600
-
-  // The rotation about the z-axis is applied first, and the rotation about the x-axis last:
-  return getMatrixProduct(
-    getRotationMatrix('x', -δε0),
-    getMatrixProduct(
-      getRotationMatrix('y', δψ0 * Math.sin(radians(ε0))),
-      getRotationMatrix('z', δα0)
-    )
-  )
 }
 
 /*****************************************************************************************************************/
@@ -165,41 +122,6 @@ export function getPrecessionAngles(datetime: Date): { ζ: number; z: number; θ
 
 /**
  *
- * getPrecessionMatrix()
- *
- * Resolves the precession matrix P of IAU 2006, e.g., the rotation from the mean equator and
- * equinox of J2000.0 to the mean equator and equinox of the date, as the product of the passive
- * rotations of the frame through the equatorial precession angles ζ, z and θ of P03 (Capitaine
- * et al. 2003):
- *
- * P = R3(−z) · R2(θ) · R3(−ζ)
- *
- * N.B. The matrix is referred to the mean equator and equinox of J2000.0, and not to the ICRS,
- * e.g., a catalogue coordinate is carried by the frame bias matrix first, as P · B.
- *
- * N.B. The transpose of the matrix is its inverse, e.g., Pᵀ carries a coordinate from the mean
- * equator and equinox of the date back to the mean equator and equinox of J2000.0.
- *
- * @param datetime - The date to resolve the precession matrix for.
- * @returns The 3×3 precession matrix, in row-major order.
- *
- */
-export const getPrecessionMatrix = (datetime: Date): Matrix3 => {
-  // Get the equatorial precession angles of IAU 2006 (in degrees):
-  const { ζ, z, θ } = getPrecessionAngles(datetime)
-
-  // The rotation about the z-axis through −ζ is applied first, and the rotation about the z-axis
-  // through −z last:
-  return getMatrixProduct(
-    getRotationMatrix('z', -z),
-    getMatrixProduct(getRotationMatrix('y', θ), getRotationMatrix('z', -ζ))
-  )
-}
-
-/*****************************************************************************************************************/
-
-/**
- *
  * getCorrectionToEquatorialForPrecessionOfEquinoxes()
  *
  * Corrects the equatorial coordinates of a target for the precession of the equinoxes.
@@ -213,13 +135,20 @@ export function getCorrectionToEquatorialForPrecessionOfEquinoxes(
   datetime: Date,
   target: EquatorialCoordinate
 ): EquatorialCoordinate {
+  // Get the equatorial precession angles of IAU 2006 (in degrees):
+  const { ζ, z, θ } = getPrecessionAngles(datetime)
+
+  // The precession matrix of IAU 2006, P = R3(−z) · R2(θ) · R3(−ζ), e.g., getPrecessionMatrix() of
+  // the frames module, which is composed here as the frames module depends on this one:
+  const P = getMatrixProduct(
+    getRotationMatrix('z', -z),
+    getMatrixProduct(getRotationMatrix('y', θ), getRotationMatrix('z', -ζ))
+  )
+
   // The unit vector of the target in the mean frame of J2000.0, carried to the mean equator and
   // equinox of the date by the precession matrix:
   const mean = convertCartesianToEquatorial(
-    getRotatedCartesianCoordinate(
-      getPrecessionMatrix(datetime),
-      convertEquatorialToCartesian(target)
-    )
+    getRotatedCartesianCoordinate(P, convertEquatorialToCartesian(target))
   )
 
   // Recover the correction as the displacement of the rotated target from the target, with the

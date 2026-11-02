@@ -283,12 +283,16 @@ export {
 export {
   getBiasPrecessionNutationMatrix,
   getEquatorialToEclipticMatrix,
-  getEquatorialToHorizontalMatrix
+  getEquatorialToGalacticMatrix,
+  getEquatorialToHorizontalMatrix,
+  getFrameBiasMatrix,
+  getNutationMatrix,
+  getPrecessionMatrix
 } from './frames'
 
 /*****************************************************************************************************************/
 
-export { getEquatorialToGalacticMatrix } from './galactic'
+export {} from './galactic'
 
 /*****************************************************************************************************************/
 
@@ -380,7 +384,6 @@ export {
 export {
   getCorrectionToEquatorialForNutation,
   getNutation,
-  getNutationMatrix,
   getTrueObliquityOfTheEcliptic
 } from './nutation'
 
@@ -446,9 +449,7 @@ export {
 export {
   getCorrectionToEquatorialForFrameBias,
   getCorrectionToEquatorialForPrecessionOfEquinoxes,
-  getFrameBiasMatrix,
-  getPrecessionAngles,
-  getPrecessionMatrix
+  getPrecessionAngles
 } from './precession'
 
 /*****************************************************************************************************************/

@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-import type { EquatorialCoordinate, Matrix3 } from './common'
+import type { EquatorialCoordinate } from './common'
 
 import { getObliquityOfTheEcliptic } from './ecliptic'
 
@@ -191,48 +191,6 @@ export function getNutation(date: Date): { Δψ: number; Δε: number } {
 
 /**
  *
- * getNutationMatrix()
- *
- * Resolves the nutation matrix N, e.g., the rotation from the mean equator and equinox of the date
- * to the true equator and equinox of the date, as the product of the passive rotations of the
- * frame through the mean obliquity of the ecliptic, ε₀, and the nutation in longitude, Δψ, and in
- * obliquity, Δε, of the date, as is defined by the iauNumat routine of the IAU SOFA library:
- *
- * N = R1(−(ε₀ + Δε)) · R3(−Δψ) · R1(ε₀)
- *
- * where R1(ε₀) carries the mean equator of the date onto the ecliptic, R3(−Δψ) carries the mean
- * equinox of the date to the true equinox of the date along the ecliptic, and R1(−(ε₀ + Δε))
- * carries the ecliptic onto the true equator of the date.
- *
- * N.B. The matrix is referred to the mean equator and equinox of the date, e.g., a catalogue
- * coordinate is carried by the frame bias and precession matrices first, as N · P · B.
- *
- * N.B. The transpose of the matrix is its inverse, e.g., Nᵀ carries a coordinate from the true
- * equator and equinox of the date back to the mean equator and equinox of the date.
- *
- * @param datetime - The date to resolve the nutation matrix for.
- * @returns The 3×3 nutation matrix, in row-major order.
- *
- */
-export function getNutationMatrix(datetime: Date): Matrix3 {
-  // Get the nutation in longitude and obliquity (in degrees):
-  const { Δψ, Δε } = getNutation(datetime)
-
-  // Get the mean obliquity of the ecliptic, e.g., the mean obliquity of IAU 2006 (in degrees):
-  const ε0 = getObliquityOfTheEcliptic(datetime)
-
-  // The rotation about the x-axis through the mean obliquity is applied first, and the rotation
-  // about the x-axis through the negative of the true obliquity last:
-  return getMatrixProduct(
-    getRotationMatrix('x', -(ε0 + Δε)),
-    getMatrixProduct(getRotationMatrix('z', -Δψ), getRotationMatrix('x', ε0))
-  )
-}
-
-/*****************************************************************************************************************/
-
-/**
- *
  * getCorrectionToEquatorialForNutation()
  *
  * Calculates the correction terms (Δra, Δdec) to the equatorial coordinate of a target for
@@ -259,9 +217,18 @@ export function getCorrectionToEquatorialForNutation(
 
   const dec = radians(target.dec)
 
-  // The nutation matrix, e.g., the rotation from the mean equator and equinox of the date to the
-  // true equator and equinox of the date:
-  const N = getNutationMatrix(datetime)
+  // Get the nutation in longitude and obliquity (in degrees):
+  const { Δψ, Δε } = getNutation(datetime)
+
+  // Get the mean obliquity of the ecliptic, e.g., the mean obliquity of IAU 2006 (in degrees):
+  const ε0 = getObliquityOfTheEcliptic(datetime)
+
+  // The nutation matrix, N = R1(−(ε₀ + Δε)) · R3(−Δψ) · R1(ε₀), e.g., getNutationMatrix() of the
+  // frames module, which is composed here as the frames module depends on this one:
+  const N = getMatrixProduct(
+    getRotationMatrix('x', -(ε0 + Δε)),
+    getMatrixProduct(getRotationMatrix('z', -Δψ), getRotationMatrix('x', ε0))
+  )
 
   // The unit vector of the target, taken as referred to the mean equator and equinox of the date:
   const v = {
