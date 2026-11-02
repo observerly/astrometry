@@ -8,9 +8,11 @@
 
 import type { EquatorialCoordinate, Matrix3 } from './common'
 
+import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './coordinates'
+
 import { getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
 
-import { getMatrixProduct, getRotationMatrix } from './maths'
+import { getMatrixProduct, getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
 
 import {
   convertRadiansToDegrees as degrees,
@@ -37,60 +39,18 @@ import {
 export function getCorrectionToEquatorialForFrameBias(
   target: EquatorialCoordinate
 ): EquatorialCoordinate {
-  const ra = radians(target.ra)
+  // The unit vector of the target in the ICRS, carried to the mean equator and equinox of J2000.0
+  // by the frame bias matrix:
+  const mean = convertCartesianToEquatorial(
+    getRotatedCartesianCoordinate(getFrameBiasMatrix(), convertEquatorialToCartesian(target))
+  )
 
-  const dec = radians(target.dec)
-
-  // The frame bias of IAU 2000, e.g., the offset of the ICRS right ascension origin from the mean equinox of
-  // J2000.0 (in radians):
-  const δra = radians(-0.0146 / 3600)
-
-  // The frame bias in longitude, e.g., the offset of the ICRS pole from the mean pole of J2000.0 in the direction
-  // of the mean equinox of J2000.0 (in radians):
-  const δψ = radians(-0.041775 / 3600)
-
-  // The frame bias in obliquity, e.g., the offset of the ICRS pole from the mean pole of J2000.0 at right angles
-  // to the mean equinox of J2000.0 (in radians):
-  const δε = radians(-0.0068192 / 3600)
-
-  // The mean obliquity of the ecliptic at J2000.0 of IAU 1980, which the frame bias in longitude is referred to
-  // (in radians):
-  const ε0 = radians(84381.448 / 3600)
-
-  // The unit vector of the target in the ICRS:
-  const v = {
-    x: Math.cos(dec) * Math.cos(ra),
-    y: Math.cos(dec) * Math.sin(ra),
-    z: Math.sin(dec)
-  }
-
-  // Rotate the unit vector about the z axis by the bias of the right ascension origin:
-  const r = {
-    x: Math.cos(δra) * v.x + Math.sin(δra) * v.y,
-    y: -Math.sin(δra) * v.x + Math.cos(δra) * v.y,
-    z: v.z
-  }
-
-  // Rotate the unit vector about the y axis by the bias in longitude, projected onto the equator:
-  const q = {
-    x: Math.cos(δψ * Math.sin(ε0)) * r.x - Math.sin(δψ * Math.sin(ε0)) * r.z,
-    y: r.y,
-    z: Math.sin(δψ * Math.sin(ε0)) * r.x + Math.cos(δψ * Math.sin(ε0)) * r.z
-  }
-
-  // Rotate the unit vector about the x axis by the bias in obliquity, e.g., the unit vector of the target referred
-  // to the mean equator and equinox of J2000.0:
-  const mean = {
-    x: q.x,
-    y: Math.cos(-δε) * q.y + Math.sin(-δε) * q.z,
-    z: -Math.sin(-δε) * q.y + Math.cos(-δε) * q.z
-  }
-
-  // Recover the coordinate from the unit vector, e.g., as a rotated vector, and not expanded about the target,
-  // which would divide by cos δ and so degrade towards the celestial poles:
+  // Recover the correction as the displacement of the rotated target from the target, e.g., as a
+  // rotated vector, and not expanded about the target, which would divide by cos δ and so degrade
+  // towards the celestial poles:
   return {
-    ra: getNormalizedAzimuthalDegree(degrees(Math.atan2(mean.y, mean.x)) - target.ra + 180) - 180,
-    dec: degrees(Math.atan2(mean.z, Math.hypot(mean.x, mean.y))) - target.dec
+    ra: getNormalizedAzimuthalDegree(mean.ra - target.ra + 180) - 180,
+    dec: mean.dec - target.dec
   }
 }
 
