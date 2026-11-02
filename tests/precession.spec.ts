@@ -164,6 +164,80 @@ describe('getCorrectionToEquatorialForFrameBias', () => {
     expect(correction.dec).toBeCloseTo(Δdec, 9)
   })
 
+  // The displacements of the frame bias matrix of ERFA (bp00) applied to each coordinate, with the
+  // displacement in right ascension taken within (−180°, 180°] (in degrees):
+  it.each([
+    {
+      name: 'Vega',
+      ra: 279.23473479,
+      dec: 38.78368896,
+      Δra: 7.960843277032836e-6,
+      Δdec: 1.128917666903817e-6
+    },
+    {
+      name: 'σ Octantis',
+      ra: 317.19541667,
+      dec: -88.9565,
+      Δra: -0.00024444056407446624,
+      Δdec: -2.0994190492729103e-6
+    },
+    {
+      name: 'the origin of right ascension',
+      ra: 0,
+      dec: 0,
+      Δra: 4.055555393733812e-6,
+      Δdec: -4.615872547704916e-6
+    },
+    {
+      name: 'a target just west of the origin of right ascension',
+      ra: 359.99,
+      dec: -10,
+      Δra: 3.7214109056549205e-6,
+      Δdec: -4.615541865149453e-6
+    }
+  ])(
+    'should agree with the frame bias of ERFA to 12 decimal places for $name',
+    ({ ra, dec, Δra, Δdec }) => {
+      const correction = getCorrectionToEquatorialForFrameBias({ ra, dec })
+
+      expect(correction.ra).toBeCloseTo(Δra, 12)
+      expect(correction.dec).toBeCloseTo(Δdec, 12)
+    }
+  )
+
+  it.each([
+    { pole: 'north', dec: 90, Δra: -101.08815375555523, Δdec: -4.989424411405707e-6 },
+    { pole: 'south', dec: -90, Δra: 78.91184616537294, Δdec: 4.989424411405707e-6 }
+  ])(
+    'should carry the $pole celestial pole onto the pole of the mean frame of J2000.0',
+    ({ dec, Δra, Δdec }) => {
+      // N.B. The right ascension of a pole is degenerate, and so the displacement in right
+      // ascension is that of the right ascension given, 123.4°, to that of the ICRS pole in the
+      // mean frame of J2000.0, e.g., ~22.31° in the north and ~202.31° in the south:
+      const correction = getCorrectionToEquatorialForFrameBias({ ra: 123.4, dec })
+
+      expect(correction.ra).toBeCloseTo(Δra, 8)
+      expect(correction.dec).toBeCloseTo(Δdec, 12)
+    }
+  )
+
+  it('should displace no direction by more than the ~23.147 mas of the whole frame bias', () => {
+    for (let ra = 0; ra < 360; ra += 22.5) {
+      for (const dec of [-90, -89.9, -52.69566111, -10, 0, 7.4070639, 45, 89.26410897, 90]) {
+        const correction = getCorrectionToEquatorialForFrameBias({ ra, dec })
+
+        // N.B. The separation is taken, rather than the displacement in right ascension, which is
+        // stretched by 1 / cos δ towards the poles:
+        const separation = getAngularSeparation(
+          { θ: dec, φ: ra },
+          { θ: dec + correction.dec, φ: ra + correction.ra }
+        )
+
+        expect(separation * 3600 * 1000).toBeLessThan(23.148)
+      }
+    }
+  })
+
   it.each([{ ra: 0 }, { ra: 359.99 }])(
     'should return a small correction free of any ±360° branch-cut jump for a target at ra $ra',
     ({ ra }) => {
