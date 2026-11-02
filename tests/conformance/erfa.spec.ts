@@ -24,13 +24,16 @@ import { getObliquityOfTheEcliptic } from '../../src/ecliptic'
 import {
   getBiasPrecessionNutationMatrix,
   getEquatorialToEclipticMatrix,
-  getEquatorialToHorizontalMatrix
+  getEquatorialToGalacticMatrix,
+  getEquatorialToHorizontalMatrix,
+  getFrameBiasMatrix,
+  getNutationMatrix,
+  getPrecessionMatrix
 } from '../../src/frames'
-import { getEquatorialToGalacticMatrix } from '../../src/galactic'
+
 import {
   getCorrectionToEquatorialForNutation,
   getNutation,
-  getNutationMatrix,
   getTrueObliquityOfTheEcliptic
 } from '../../src/nutation'
 
@@ -38,9 +41,7 @@ import { getCorrectionToEquatorialForAnnualParallax } from '../../src/parallax'
 
 import {
   getCorrectionToEquatorialForFrameBias,
-  getCorrectionToEquatorialForPrecessionOfEquinoxes,
-  getFrameBiasMatrix,
-  getPrecessionMatrix
+  getCorrectionToEquatorialForPrecessionOfEquinoxes
 } from '../../src/precession'
 
 import {

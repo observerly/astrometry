@@ -9,12 +9,189 @@
 import { getLocalApparentSiderealTime } from './astrometry'
 
 import type { GeographicCoordinate, Matrix3 } from './common'
-
+import { getObliquityOfTheEcliptic } from './ecliptic'
 import { getMatrixProduct, getRotationMatrix } from './maths'
 
-import { getNutationMatrix, getTrueObliquityOfTheEcliptic } from './nutation'
+import { getNutation, getTrueObliquityOfTheEcliptic } from './nutation'
 
-import { getFrameBiasMatrix, getPrecessionMatrix } from './precession'
+import { getPrecessionAngles } from './precession'
+
+import { convertDegreesToRadians as radians } from './utilities'
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getFrameBiasMatrix()
+ *
+ * Resolves the frame bias matrix B of IAU 2000, e.g., the fixed rotation from the International
+ * Celestial Reference System (ICRS), which a modern catalogue coordinate is referred to, to the
+ * mean equator and equinox of J2000.0, which the precession of the equinoxes is referred from, as
+ * is defined by the iauBi00 and iauBp00 routines of the IAU SOFA library:
+ *
+ * B = R1(−δε₀) · R2(δψ₀ sin ε₀) · R3(δα₀)
+ *
+ * where δα₀ is the offset of the ICRS origin of right ascension from the mean equinox of
+ * J2000.0, and δψ₀ and δε₀ are the offsets of the ICRS pole from the mean pole of J2000.0 in
+ * longitude and in obliquity, respectively, referred to the mean obliquity of the ecliptic at
+ * J2000.0, ε₀.
+ *
+ * N.B. The frame bias is fixed, e.g., it is not a function of the date, and is of the order of
+ * 20 mas, such that the matrix differs from the identity by less than 1e-7 in each element.
+ *
+ * N.B. The transpose of the matrix is its inverse, e.g., Bᵀ rotates the mean equator and equinox
+ * of J2000.0 back into the ICRS.
+ *
+ * @returns The 3×3 frame bias matrix, in row-major order.
+ *
+ */
+export function getFrameBiasMatrix(): Matrix3 {
+  // The frame bias in right ascension of IAU 2000, e.g., the offset of the ICRS origin of right
+  // ascension from the mean equinox of J2000.0 (in degrees):
+  const δα0 = -0.0146 / 3600
+
+  // The frame bias in longitude of IAU 2000, e.g., the offset of the ICRS pole from the mean pole
+  // of J2000.0 in the direction of the mean equinox of J2000.0 (in degrees):
+  const δψ0 = -0.041775 / 3600
+
+  // The frame bias in obliquity of IAU 2000, e.g., the offset of the ICRS pole from the mean pole
+  // of J2000.0 at right angles to the mean equinox of J2000.0 (in degrees):
+  const δε0 = -0.0068192 / 3600
+
+  // The mean obliquity of the ecliptic at J2000.0 of IAU 1980, which the frame bias in longitude
+  // is referred to (in degrees):
+  const ε0 = 84381.448 / 3600
+
+  // The rotation about the z-axis is applied first, and the rotation about the x-axis last:
+  return getMatrixProduct(
+    getRotationMatrix('x', -δε0),
+    getMatrixProduct(
+      getRotationMatrix('y', δψ0 * Math.sin(radians(ε0))),
+      getRotationMatrix('z', δα0)
+    )
+  )
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getPrecessionMatrix()
+ *
+ * Resolves the precession matrix P of IAU 2006, e.g., the rotation from the mean equator and
+ * equinox of J2000.0 to the mean equator and equinox of the date, as the product of the passive
+ * rotations of the frame through the equatorial precession angles ζ, z and θ of P03 (Capitaine
+ * et al. 2003):
+ *
+ * P = R3(−z) · R2(θ) · R3(−ζ)
+ *
+ * N.B. The matrix is referred to the mean equator and equinox of J2000.0, and not to the ICRS,
+ * e.g., a catalogue coordinate is carried by the frame bias matrix first, as P · B.
+ *
+ * N.B. The transpose of the matrix is its inverse, e.g., Pᵀ carries a coordinate from the mean
+ * equator and equinox of the date back to the mean equator and equinox of J2000.0.
+ *
+ * @param datetime - The date to resolve the precession matrix for.
+ * @returns The 3×3 precession matrix, in row-major order.
+ *
+ */
+export function getPrecessionMatrix(datetime: Date): Matrix3 {
+  // Get the equatorial precession angles of IAU 2006 (in degrees):
+  const { ζ, z, θ } = getPrecessionAngles(datetime)
+
+  // The rotation about the z-axis through −ζ is applied first, and the rotation about the z-axis
+  // through −z last:
+  return getMatrixProduct(
+    getRotationMatrix('z', -z),
+    getMatrixProduct(getRotationMatrix('y', θ), getRotationMatrix('z', -ζ))
+  )
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getNutationMatrix()
+ *
+ * Resolves the nutation matrix N, e.g., the rotation from the mean equator and equinox of the date
+ * to the true equator and equinox of the date, as the product of the passive rotations of the
+ * frame through the mean obliquity of the ecliptic, ε₀, and the nutation in longitude, Δψ, and in
+ * obliquity, Δε, of the date, as is defined by the iauNumat routine of the IAU SOFA library:
+ *
+ * N = R1(−(ε₀ + Δε)) · R3(−Δψ) · R1(ε₀)
+ *
+ * where R1(ε₀) carries the mean equator of the date onto the ecliptic, R3(−Δψ) carries the mean
+ * equinox of the date to the true equinox of the date along the ecliptic, and R1(−(ε₀ + Δε))
+ * carries the ecliptic onto the true equator of the date.
+ *
+ * N.B. The matrix is referred to the mean equator and equinox of the date, e.g., a catalogue
+ * coordinate is carried by the frame bias and precession matrices first, as N · P · B.
+ *
+ * N.B. The transpose of the matrix is its inverse, e.g., Nᵀ carries a coordinate from the true
+ * equator and equinox of the date back to the mean equator and equinox of the date.
+ *
+ * @param datetime - The date to resolve the nutation matrix for.
+ * @returns The 3×3 nutation matrix, in row-major order.
+ *
+ */
+export function getNutationMatrix(datetime: Date): Matrix3 {
+  // Get the nutation in longitude and obliquity (in degrees):
+  const { Δψ, Δε } = getNutation(datetime)
+
+  // Get the mean obliquity of the ecliptic, e.g., the mean obliquity of IAU 2006 (in degrees):
+  const ε0 = getObliquityOfTheEcliptic(datetime)
+
+  // The rotation about the x-axis through the mean obliquity is applied first, and the rotation
+  // about the x-axis through the negative of the true obliquity last:
+  return getMatrixProduct(
+    getRotationMatrix('x', -(ε0 + Δε)),
+    getMatrixProduct(getRotationMatrix('z', -Δψ), getRotationMatrix('x', ε0))
+  )
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getEquatorialToGalacticMatrix()
+ *
+ * Resolves the equatorial to galactic matrix G, e.g., the fixed rotation from the International
+ * Celestial Reference System (ICRS) to the galactic frame, as is defined by the Hipparcos
+ * catalogue (ESA 1997, Vol. 1, §1.5.3) and resolved by the iauIcrs2g routine of the IAU SOFA
+ * library, as the product of the passive rotations of the frame:
+ *
+ * G = R3(90° − θ) · R1(90° − δP) · R3(αP + 90°)
+ *
+ * where αP and δP are the right ascension and declination of the north galactic pole, and θ is
+ * the galactic longitude of the north celestial pole.
+ *
+ * N.B. The galactic frame is fixed, e.g., it is not a function of the date, and is referred to the
+ * ICRS, e.g., a catalogue coordinate is carried into it directly.
+ *
+ * N.B. The transpose of the matrix is its inverse, e.g., Gᵀ carries a galactic coordinate back
+ * into the ICRS.
+ *
+ * @returns The 3×3 equatorial to galactic matrix, in row-major order.
+ *
+ */
+export function getEquatorialToGalacticMatrix(): Matrix3 {
+  // The right ascension of the north galactic pole, referred to the ICRS (in degrees):
+  const αP = 192.85948
+
+  // The declination of the north galactic pole, referred to the ICRS (in degrees):
+  const δP = 27.12825
+
+  // The galactic longitude of the north celestial pole of the ICRS (in degrees):
+  const θ = 122.93192
+
+  // The rotation about the z-axis to the ascending node of the galactic equator on the celestial
+  // equator is applied first, the rotation about the x-axis to the north galactic pole second, and
+  // the rotation about the z-axis from the node to the galactic centre last:
+  return getMatrixProduct(
+    getRotationMatrix('z', 90 - θ),
+    getMatrixProduct(getRotationMatrix('x', 90 - δP), getRotationMatrix('z', αP + 90))
+  )
+}
 
 /*****************************************************************************************************************/
 
@@ -44,7 +221,7 @@ import { getFrameBiasMatrix, getPrecessionMatrix } from './precession'
  * @returns The 3×3 bias-precession-nutation matrix, in row-major order.
  *
  */
-export const getBiasPrecessionNutationMatrix = (datetime: Date): Matrix3 => {
+export function getBiasPrecessionNutationMatrix(datetime: Date): Matrix3 {
   // The frame bias is applied first, the precession second, and the nutation last:
   return getMatrixProduct(
     getNutationMatrix(datetime),
@@ -78,7 +255,7 @@ export const getBiasPrecessionNutationMatrix = (datetime: Date): Matrix3 => {
  * @returns The 3×3 equatorial to ecliptic matrix, in row-major order.
  *
  */
-export const getEquatorialToEclipticMatrix = (datetime: Date): Matrix3 => {
+export function getEquatorialToEclipticMatrix(datetime: Date): Matrix3 {
   // The rotation about the x-axis through the true obliquity of the ecliptic of the date:
   return getRotationMatrix('x', getTrueObliquityOfTheEcliptic(datetime))
 }

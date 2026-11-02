@@ -6,29 +6,18 @@
 
 /*****************************************************************************************************************/
 
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
 import {
-  convertCartesianToEquatorial,
-  convertEquatorialToCartesian,
-  doDeterminant,
-  doTranspose,
   type EquatorialCoordinate,
   getAngularSeparation,
   getCorrectionToEquatorialForNutation,
   getCorrectionToEquatorialForPrecessionOfEquinoxes,
-  getMatrixProduct,
   getNutation,
-  getNutationMatrix,
   getObliquityOfTheEcliptic,
-  getRotatedCartesianCoordinate,
-  getRotationMatrix,
-  getTrueObliquityOfTheEcliptic,
-  IDENTITY_MATRIX,
-  type Matrix3,
-  convertDegreesToRadians as radians
+  getTrueObliquityOfTheEcliptic
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -259,172 +248,6 @@ describe('getTrueObliquityOfTheEcliptic', () => {
     const ε = getTrueObliquityOfTheEcliptic(new Date('1987-04-10T00:00:00.000+00:00'))
 
     expect(Math.abs(ε - 23.443569)).toBeLessThan(0.00002)
-  })
-})
-
-/*****************************************************************************************************************/
-
-describe('getNutationMatrix', () => {
-  // The dates across which the nutation matrix is resolved, about J2000.0:
-  const dates = [
-    '1980-04-22T06:00:00.000Z',
-    '2000-01-01T12:00:00.000Z',
-    '2013-09-22T04:00:00.000Z',
-    '2021-05-14T00:00:00.000Z',
-    '2026-09-06T00:00:00.000Z',
-    '2050-03-20T12:00:00.000Z'
-  ]
-
-  it('should be defined', () => {
-    expect(getNutationMatrix).toBeDefined()
-  })
-
-  it('should return a Matrix3', () => {
-    const N = getNutationMatrix(datetime)
-    expectTypeOf(N).toEqualTypeOf<Matrix3>()
-    expect(N).toHaveLength(3)
-    for (const row of N) {
-      expect(row).toHaveLength(3)
-      for (const element of row) {
-        expect(Number.isFinite(element)).toBe(true)
-      }
-    }
-  })
-
-  it.each(dates)('should have a determinant of 1 at %s, e.g., as it is a proper rotation', when => {
-    expect(doDeterminant(getNutationMatrix(new Date(when)))).toBeCloseTo(1, 15)
-  })
-
-  it.each(dates)('should be orthogonal at %s, e.g., N · Nᵀ = Nᵀ · N = I', when => {
-    const N = getNutationMatrix(new Date(when))
-
-    const NNᵀ = getMatrixProduct(N, doTranspose(N))
-
-    const NᵀN = getMatrixProduct(doTranspose(N), N)
-
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        expect(Math.abs(NNᵀ[i][j] - IDENTITY_MATRIX[i][j])).toBeLessThan(1e-15)
-        expect(Math.abs(NᵀN[i][j] - IDENTITY_MATRIX[i][j])).toBeLessThan(1e-15)
-      }
-    }
-  })
-
-  it.each(dates)('should be within ~1e-4 of the identity, but not equal to it, at %s', when => {
-    const N = getNutationMatrix(new Date(when))
-
-    // N.B. The nutation is of the order of 20″ at most, e.g., ~1e-4 radians:
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        const offset = Math.abs(N[i][j] - IDENTITY_MATRIX[i][j])
-        expect(offset).toBeGreaterThan(0)
-        expect(offset).toBeLessThan(1e-4)
-      }
-    }
-  })
-
-  it('should equal R1(−(ε₀ + Δε)) · R3(−Δψ) · R1(ε₀) of the nutation of the date', () => {
-    const ε0 = getObliquityOfTheEcliptic(datetime)
-
-    const { Δψ, Δε } = getNutation(datetime)
-
-    const R = getMatrixProduct(
-      getRotationMatrix('x', -(ε0 + Δε)),
-      getMatrixProduct(getRotationMatrix('z', -Δψ), getRotationMatrix('x', ε0))
-    )
-
-    expect(getNutationMatrix(datetime)).toEqual(R)
-  })
-
-  it.each(dates)(
-    'should rotate the frame by the whole of the nutation, √(Δψ² + Δε²), at %s',
-    when => {
-      const N = getNutationMatrix(new Date(when))
-
-      const { Δψ, Δε } = getNutation(new Date(when))
-
-      // The angle of the whole rotation, from the trace of the matrix, e.g., 1 + 2 cos φ (in
-      // arcseconds):
-      const φ = (Math.acos((N[0][0] + N[1][1] + N[2][2] - 1) / 2) * 180 * 3600) / Math.PI
-
-      // N.B. The rotation in longitude is about the pole of the ecliptic, and the rotation in
-      // obliquity is about the equinox, which lies in the ecliptic, and so the two are at right
-      // angles:
-      expect(φ).toBeCloseTo(Math.hypot(Δψ, Δε) * 3600, 5)
-    }
-  )
-
-  it.each(dates)(
-    'should displace the mean pole towards the mean equinox by sin ε sin Δψ at %s',
-    when => {
-      const ε = getTrueObliquityOfTheEcliptic(new Date(when))
-
-      const { Δψ } = getNutation(new Date(when))
-
-      // The true pole of the date, carried back into the mean frame of the date, e.g., the third
-      // row of the nutation matrix:
-      const pole = getRotatedCartesianCoordinate(doTranspose(getNutationMatrix(new Date(when))), {
-        x: 0,
-        y: 0,
-        z: 1
-      })
-
-      // N.B. The nutation in longitude, projected onto the equator by the sine of the true
-      // obliquity:
-      expect(pole.x).toBeCloseTo(Math.sin(radians(ε)) * Math.sin(radians(Δψ)), 15)
-    }
-  )
-
-  it.each([
-    { name: 'Betelgeuse', ra: 88.7929583, dec: 7.4070639 },
-    { name: 'Polaris', ra: 37.95456067, dec: 89.26410897 },
-    { name: 'Canopus', ra: 95.98787778, dec: -52.69566111 },
-    { name: 'Vega', ra: 279.23473479, dec: 38.78368896 },
-    { name: 'σ Octantis', ra: 317.19541667, dec: -88.9565 }
-  ])('should agree with getCorrectionToEquatorialForNutation for $name', ({ ra, dec }) => {
-    const correction = getCorrectionToEquatorialForNutation(datetime, { ra, dec })
-
-    const nutated = convertCartesianToEquatorial(
-      getRotatedCartesianCoordinate(
-        getNutationMatrix(datetime),
-        convertEquatorialToCartesian({ ra, dec })
-      )
-    )
-
-    // N.B. The separation is taken, rather than the difference in right ascension, which is
-    // stretched by 1 / cos δ towards the poles:
-    const separation = getAngularSeparation(
-      { θ: dec + correction.dec, φ: ra + correction.ra },
-      { θ: nutated.dec, φ: nutated.ra }
-    )
-
-    expect(separation).toBeLessThan(1e-10)
-  })
-
-  it('should be undone by its transpose, e.g., Nᵀ (N v) = v, back to the mean place', () => {
-    const vega = convertEquatorialToCartesian({ ra: 279.23473479, dec: 38.78368896 })
-
-    const N = getNutationMatrix(datetime)
-
-    const { x, y, z } = getRotatedCartesianCoordinate(
-      doTranspose(N),
-      getRotatedCartesianCoordinate(N, vega)
-    )
-
-    expect(x).toBeCloseTo(vega.x, 15)
-    expect(y).toBeCloseTo(vega.y, 15)
-    expect(z).toBeCloseTo(vega.z, 15)
-  })
-
-  it('should return the same matrix for the same date, and another for another date', () => {
-    expect(getNutationMatrix(datetime)).toEqual(getNutationMatrix(new Date(datetime)))
-    expect(getNutationMatrix(datetime)).not.toEqual(
-      getNutationMatrix(new Date('2050-03-20T12:00:00.000Z'))
-    )
-  })
-
-  it('should return a new matrix on each call, and not a shared reference', () => {
-    expect(getNutationMatrix(datetime)).not.toBe(getNutationMatrix(datetime))
   })
 })
 
