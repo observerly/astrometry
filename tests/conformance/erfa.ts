@@ -1184,3 +1184,14 @@ export const ERFAEquatorialToEclipticMatrices: ERFAEquatorialToEclipticMatrixRef
 ]
 
 /*****************************************************************************************************************/
+
+// The rotation from the ICRS to the galactic frame of the Hipparcos catalogue, e.g., as is defined
+// in ESA (1997), Vol. 1, §1.5.3, as resolved by icrs2g for each of the unit axes of the ICRS, in
+// row-major order:
+export const ERFAEquatorialToGalacticMatrix: Matrix3 = [
+  [-0.05487556041621537, -0.8734370902348852, -0.48383501554871305],
+  [0.4941094278755836, -0.44482962996001096, 0.746982244497219],
+  [-0.8676661490190047, -0.19807637343120157, 0.4559837761750669]
+]
+
+/*****************************************************************************************************************/

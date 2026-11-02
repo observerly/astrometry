@@ -284,7 +284,7 @@ export { getBiasPrecessionNutationMatrix, getEquatorialToEclipticMatrix } from '
 
 /*****************************************************************************************************************/
 
-export {} from './galactic'
+export { getEquatorialToGalacticMatrix } from './galactic'
 
 /*****************************************************************************************************************/
 
