@@ -14,11 +14,7 @@ import { getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
 
 import { getMatrixProduct, getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
 
-import {
-  convertRadiansToDegrees as degrees,
-  getNormalizedAzimuthalDegree,
-  convertDegreesToRadians as radians
-} from './utilities'
+import { getNormalizedAzimuthalDegree, convertDegreesToRadians as radians } from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -217,32 +213,21 @@ export function getCorrectionToEquatorialForPrecessionOfEquinoxes(
   datetime: Date,
   target: EquatorialCoordinate
 ): EquatorialCoordinate {
-  // Get the equatorial precession angles of IAU 2006 (in degrees):
-  const { ζ, z, θ } = getPrecessionAngles(datetime)
+  // The unit vector of the target in the mean frame of J2000.0, carried to the mean equator and
+  // equinox of the date by the precession matrix:
+  const mean = convertCartesianToEquatorial(
+    getRotatedCartesianCoordinate(
+      getPrecessionMatrix(datetime),
+      convertEquatorialToCartesian(target)
+    )
+  )
 
-  // Calculate the reduction coordinates of the target:
-  const A = Math.cos(radians(target.dec)) * Math.sin(radians(target.ra + ζ))
-
-  const B =
-    Math.cos(radians(θ)) * Math.cos(radians(target.dec)) * Math.cos(radians(target.ra + ζ)) -
-    Math.sin(radians(θ)) * Math.sin(radians(target.dec))
-
-  const C =
-    Math.sin(radians(θ)) * Math.cos(radians(target.dec)) * Math.cos(radians(target.ra + ζ)) +
-    Math.cos(radians(θ)) * Math.sin(radians(target.dec))
-
-  // Calculate the equatorial coordinates of the target:
-  const ra = degrees(Math.atan2(A, B)) + z
-
-  const dec = degrees(Math.asin(C))
-
-  // Normalise the right ascension difference into (-180°, 180°] to avoid a
-  // ±360° branch-cut jump from atan2 when the target lies near RA 0°/360°:
-  const dra = ra - target.ra
-
+  // Recover the correction as the displacement of the rotated target from the target, with the
+  // displacement in right ascension normalised into [−180°, 180°) to avoid a ±360° branch-cut jump
+  // when the target lies near a right ascension of 0°/360°:
   return {
-    ra: dra - 360 * Math.round(dra / 360),
-    dec: dec - target.dec
+    ra: getNormalizedAzimuthalDegree(mean.ra - target.ra + 180) - 180,
+    dec: mean.dec - target.dec
   }
 }
 
