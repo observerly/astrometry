@@ -335,6 +335,42 @@ describe('getGreenwichSiderealTime', () => {
     expect(GST).toBe(15.463990399019053)
   })
 
+  it('should return the Greenwich Sidereal Time (GST) at 0h UT on the 1st January 2000', () => {
+    const GST = getGreenwichSiderealTime(new Date('2000-01-01T00:00:00.000+00:00'))
+    expect(GST).toBe(6.664519645802879)
+  })
+
+  it('should return the Greenwich Sidereal Time (GST) at the J2000.0 epoch, e.g., 12h UT on the 1st January 2000', () => {
+    const GST = getGreenwichSiderealTime(new Date('2000-01-01T12:00:00.000+00:00'))
+    expect(GST).toBe(18.697374553802877)
+  })
+
+  it('should return the Greenwich Sidereal Time (GST) of 13h 10m 46.3668s at 0h UT on the 10th April 1987 (Meeus, Example 12.a)', () => {
+    const GST = getGreenwichSiderealTime(new Date('1987-04-10T00:00:00.000+00:00'))
+    expect(GST).toBe(13.179546456009518)
+    expect(GST).toBeCloseTo(13 + 10 / 60 + 46.3668 / 3600, 6)
+  })
+
+  it('should advance by 1.002737909 sidereal hours for every hour of UT on the same day', () => {
+    const GST0 = getGreenwichSiderealTime(new Date('2000-01-01T00:00:00.000+00:00'))
+    const GST12 = getGreenwichSiderealTime(new Date('2000-01-01T12:00:00.000+00:00'))
+    expect(GST12 - GST0).toBeCloseTo(12 * 1.002737909, 12)
+  })
+
+  it('should return a Greenwich Sidereal Time (GST) in the range [0, 24) hours', () => {
+    for (let hour = 0; hour < 24; hour++) {
+      const GST = getGreenwichSiderealTime(new Date(Date.UTC(2000, 0, 1, hour)))
+      expect(GST).toBeGreaterThanOrEqual(0)
+      expect(GST).toBeLessThan(24)
+    }
+  })
+
+  it('should not modify the datetime given by the caller', () => {
+    const when = new Date('2021-05-14T00:00:00.000+00:00')
+    getGreenwichSiderealTime(when)
+    expect(when).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
+  })
+
   it('should return a target that is directly overhead at for ', () => {
     const GAST = getGreenwichApparentSiderealTime(datetime)
 
