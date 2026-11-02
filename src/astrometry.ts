@@ -167,7 +167,7 @@ export const getGreenwichSiderealTime = (datetime: Date): number => {
   const JD_0 = Math.floor(JD - 0.5) + 0.5
 
   // Get the number of days since the previous midnight:
-  const S = JD_0 - 2451545.0
+  const S = JD_0 - J2000
 
   // Get the number of centuries since J2000.0:
   const T = S / 36525.0
