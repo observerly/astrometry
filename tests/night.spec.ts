@@ -67,6 +67,72 @@ describe('getGeneralizedSolarTransit', () => {
     expect(Number.isFinite(ha)).toBe(true)
   })
 
+  it('should return the sunrise, noon and sunset of the given date for the Isles of Scilly, Cornwall, UK', () => {
+    const { sunrise, noon, sunset, J, ha } = getGeneralizedSolarTransit(datetime, {
+      latitude,
+      longitude
+    })
+
+    expect(sunrise).toEqual(new Date('2021-05-14T04:40:58.540Z'))
+    expect(noon).toEqual(new Date('2021-05-14T12:21:40.985Z'))
+    expect(sunset).toEqual(new Date('2021-05-14T20:02:23.430Z'))
+    expect(J).toBe(7804.017542125)
+    expect(ha).toBe(115.17685519818016)
+  })
+
+  it('should return a mean solar time of zero at the J2000.0 epoch for an observer on the prime meridian', () => {
+    const { sunrise, noon, sunset, J, ha } = getGeneralizedSolarTransit(
+      new Date('2000-01-01T12:00:00.000+00:00'),
+      { latitude: 0, longitude: 0 }
+    )
+
+    expect(J).toBeCloseTo(0, 15)
+    expect(ha).toBe(90.90523746241098)
+    expect(sunrise).toEqual(new Date('2000-01-01T05:59:34.351Z'))
+    expect(noon).toEqual(new Date('2000-01-01T12:03:11.608Z'))
+    expect(sunset).toEqual(new Date('2000-01-01T18:06:48.865Z'))
+  })
+
+  it('should return a noon about three minutes after 12h UT at the J2000.0 epoch, e.g., the equation of time', () => {
+    const { noon } = getGeneralizedSolarTransit(new Date('2000-01-01T12:00:00.000+00:00'), {
+      latitude: 0,
+      longitude: 0
+    })
+
+    const minutes = ((noon?.getTime() ?? 0) - Date.UTC(2000, 0, 1, 12)) / 60000
+
+    expect(minutes).toBeGreaterThan(3)
+    expect(minutes).toBeLessThan(3.5)
+  })
+
+  it('should return a noon midway between the sunrise and the sunset', () => {
+    const { sunrise, noon, sunset } = getGeneralizedSolarTransit(datetime, {
+      latitude,
+      longitude
+    })
+
+    const midway = ((sunrise?.getTime() ?? 0) + (sunset?.getTime() ?? 0)) / 2
+
+    expect(Math.abs((noon?.getTime() ?? 0) - midway)).toBeLessThanOrEqual(1)
+  })
+
+  it('should return the noon and mean solar time of the given date for an observer in perpetual daylight', () => {
+    const { noon, J, ha } = getGeneralizedSolarTransit(
+      new Date('2021-06-21T00:00:00.000+00:00'),
+      alert
+    )
+
+    expect(noon).toEqual(new Date('2021-06-21T16:11:11.266Z'))
+    expect(J).toBe(7842.173189044444)
+    expect(Number.isNaN(ha)).toBe(true)
+  })
+
+  it('should not modify the datetime given by the caller', () => {
+    const when = new Date('2021-05-14T03:00:00.000+00:00')
+    getGeneralizedSolarTransit(when, { latitude, longitude })
+    expect(when).toEqual(new Date('2021-05-14T03:00:00.000+00:00'))
+  })
+
   it('should return no sunrise or sunset for an observer in perpetual daylight', () => {
     const { sunrise, noon, sunset } = getGeneralizedSolarTransit(
       new Date('2021-06-21T00:00:00.000+00:00'),
