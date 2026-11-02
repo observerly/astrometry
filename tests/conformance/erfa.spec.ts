@@ -24,6 +24,7 @@ import { getObliquityOfTheEcliptic } from '../../src/ecliptic'
 import {
   getCorrectionToEquatorialForNutation,
   getNutation,
+  getNutationMatrix,
   getTrueObliquityOfTheEcliptic
 } from '../../src/nutation'
 
@@ -38,6 +39,7 @@ import {
 
 import {
   ERFAFrameBiasMatrix,
+  ERFANutationMatrices,
   ERFAPrecessionMatrices,
   erfaCorrections,
   erfaInstants,
@@ -105,6 +107,12 @@ const LIGHT_DEFLECTION_TOLERANCE = 1 / 3600000
 // The rotation of the nutation, against eraNumat, e.g., to within 2 milliarcseconds over the whole of the sphere,
 // which is the envelope of the series of the nutation of the library (in degrees):
 const NUTATION_ROTATION_TOLERANCE = 2 / 3600000
+
+/*****************************************************************************************************************/
+
+// Each element of the nutation matrix, against the rmatn matrix of num06a, e.g., to within ~2
+// milliarcseconds, which is the envelope of the series of the nutation of the library (in radians):
+const NUTATION_MATRIX_TOLERANCE = 1e-8
 
 /*****************************************************************************************************************/
 
@@ -390,6 +398,23 @@ describe('conformance of the precession matrix to ERFA', () => {
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
           expect(Math.abs(P[i][j] - reference.P[i][j])).toBeLessThan(PRECESSION_MATRIX_TOLERANCE)
+        }
+      }
+    }
+  )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the nutation matrix to ERFA', () => {
+  it.each(ERFANutationMatrices)(
+    'should agree with each element of num06a at $datetime',
+    reference => {
+      const N = getNutationMatrix(new Date(reference.datetime))
+
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          expect(Math.abs(N[i][j] - reference.N[i][j])).toBeLessThan(NUTATION_MATRIX_TOLERANCE)
         }
       }
     }

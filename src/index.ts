@@ -372,6 +372,7 @@ export {
 export {
   getCorrectionToEquatorialForNutation,
   getNutation,
+  getNutationMatrix,
   getTrueObliquityOfTheEcliptic
 } from './nutation'
 
