@@ -10,6 +10,8 @@ import { getApparentHourAngle } from './astrometry'
 
 import type { GeographicCoordinate } from './common'
 
+import { J2000 } from './constants'
+
 import { getJulianDate } from './epoch'
 
 import { getLocalHorizon } from './observer'
@@ -87,7 +89,7 @@ export const getGeneralizedSolarTransit = (
   // Get the Julian Date:
   const JD = getJulianDate(datetime)
 
-  const n = Math.ceil(JD - (2451545.0 + 0.0009) + 69.184 / 86400.0)
+  const n = Math.ceil(JD - (J2000 + 0.0009) + 69.184 / 86400.0)
 
   // Calculate the mean solar time, J*:
   const J = n - longitude / 360
@@ -103,7 +105,7 @@ export const getGeneralizedSolarTransit = (
 
   const λ = (M + C + 180 + 102.9372) % 360
 
-  const Jt = 2451545.0 + J + 0.0053 * Math.sin(radians(M)) - 0.0069 * Math.sin(radians(2 * λ))
+  const Jt = J2000 + J + 0.0053 * Math.sin(radians(M)) - 0.0069 * Math.sin(radians(2 * λ))
 
   const dec = degrees(Math.asin(Math.sin(radians(λ)) * Math.sin(radians(23.45))))
 
