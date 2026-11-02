@@ -106,6 +106,111 @@ describe('getCorrectionToEquatorialForPrecessionOfEquinoxes', () => {
     expect(dec + polaris.dec).toBeCloseTo(89.35354192194684, 9)
   })
 
+  // The mean place of the date of each target, as the precession matrix of ERFA (bp06) resolves
+  // it, e.g., without the frame bias, for the Terrestrial Time of each instant (in degrees):
+  it.each([
+    {
+      datetime: '1980-04-22T06:00:00.000Z',
+      name: 'Vega',
+      ra: 279.23473479,
+      dec: 38.78368896,
+      mean: { ra: 279.06939511623375, dec: 38.76624791835364 }
+    },
+    {
+      datetime: '1980-04-22T06:00:00.000Z',
+      name: 'σ Octantis',
+      ra: 317.19541667,
+      dec: -88.9565,
+      mean: { ra: 312.510232615696, dec: -89.03389036819215 }
+    },
+    {
+      datetime: '1980-04-22T06:00:00.000Z',
+      name: 'the north celestial pole',
+      ra: 123.4,
+      dec: 90,
+      mean: { ra: 359.87311997106474, dec: 89.89035478752609 }
+    },
+    {
+      datetime: '1980-04-22T06:00:00.000Z',
+      name: 'the south celestial pole',
+      ra: 123.4,
+      dec: -90,
+      mean: { ra: 179.87311997106173, dec: -89.89035478752609 }
+    },
+    {
+      datetime: '1980-04-22T06:00:00.000Z',
+      name: 'a target near the north celestial pole',
+      ra: 0,
+      dec: 89.9999,
+      mean: { ra: 359.8730056914652, dec: 89.89025478776546 }
+    },
+    {
+      datetime: '2050-03-20T12:00:00.000Z',
+      name: 'Vega',
+      ra: 279.23473479,
+      dec: 38.78368896,
+      mean: { ra: 279.6564154951439, dec: 38.82956557221254 }
+    },
+    {
+      datetime: '2050-03-20T12:00:00.000Z',
+      name: 'σ Octantis',
+      ra: 317.19541667,
+      dec: -88.9565,
+      mean: { ra: 326.4283441993437, dec: -88.73617657837842 }
+    },
+    {
+      datetime: '2050-03-20T12:00:00.000Z',
+      name: 'the north celestial pole',
+      ra: 123.4,
+      dec: 90,
+      mean: { ra: 180.32100617852447, dec: 89.72047504555813 }
+    },
+    {
+      datetime: '2050-03-20T12:00:00.000Z',
+      name: 'the south celestial pole',
+      ra: 123.4,
+      dec: -90,
+      mean: { ra: 0.32100617852567104, dec: -89.72047504555815 }
+    },
+    {
+      datetime: '2050-03-20T12:00:00.000Z',
+      name: 'a target near the north celestial pole',
+      ra: 0,
+      dec: 89.9999,
+      mean: { ra: 180.32089079030519, dec: 89.72057504397422 }
+    }
+  ])('should agree with the mean place of ERFA for $name at $datetime', reference => {
+    const { ra, dec } = getCorrectionToEquatorialForPrecessionOfEquinoxes(
+      new Date(reference.datetime),
+      reference
+    )
+
+    // N.B. The separation is taken, rather than the difference in right ascension, which is
+    // stretched by 1 / cos δ towards the poles, and is degenerate at them:
+    const separation = getAngularSeparation(
+      { θ: reference.dec + dec, φ: reference.ra + ra },
+      { θ: reference.mean.dec, φ: reference.mean.ra }
+    )
+
+    // N.B. The precession angles of P03 and the Fukushima-Williams angles of bp06 agree to within
+    // ~1e-12 radians, e.g., ~0.2 µas, and so 1e-9° is ~3.6 µas:
+    expect(separation).toBeLessThan(1e-9)
+  })
+
+  it.each(['1980-04-22T06:00:00.000Z', '2021-05-14T00:00:00.000Z', '2050-03-20T12:00:00.000Z'])(
+    'should carry the north celestial pole of J2000.0 to a declination of 90° − |θ| at %s',
+    when => {
+      const { θ } = getPrecessionAngles(new Date(when))
+
+      const { dec } = getCorrectionToEquatorialForPrecessionOfEquinoxes(new Date(when), {
+        ra: 0,
+        dec: 90
+      })
+
+      expect(90 + dec).toBeCloseTo(90 - Math.abs(θ), 10)
+    }
+  )
+
   it.each([{ ra: 10 }, { ra: 200 }, { ra: 359.9 }])(
     'should return a small correction free of any ±360° branch-cut jump for a target at ra $ra',
     ({ ra: targetRA }) => {
