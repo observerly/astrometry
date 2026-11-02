@@ -33,6 +33,7 @@ const modules = [
   'eclipse',
   'ecliptic',
   'epoch',
+  'frames',
   'galactic',
   'gravity',
   'humanize',
