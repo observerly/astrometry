@@ -8,7 +8,7 @@
 
 import { getCorrectionToEquatorialForAnnualAberration } from './aberration'
 
-import { getAngularSeparation, getNormalisedSphericalCoordinate } from './astrometry'
+import { getAngularSeparation, getNormalizedSphericalCoordinate } from './astrometry'
 
 import type {
   EquatorialCoordinate,
@@ -82,7 +82,7 @@ const getConstraintContext = (
   // Normalise the corrected coordinate as a pair: a declination that crosses a pole is reflected
   // back over it, and its right ascension is rotated to the antipodal meridian, such that the
   // coordinate describes the same point on the celestial sphere:
-  const { θ: dec, φ: ra } = getNormalisedSphericalCoordinate({
+  const { θ: dec, φ: ra } = getNormalizedSphericalCoordinate({
     θ: mean.dec + nutation.dec,
     φ: mean.ra + nutation.ra
   })

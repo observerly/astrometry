@@ -8,7 +8,7 @@
 
 import { getCorrectionToEquatorialForAnnualAberration } from './aberration'
 
-import { getApparentHourAngle, getNormalisedSphericalCoordinate } from './astrometry'
+import { getApparentHourAngle, getNormalizedSphericalCoordinate } from './astrometry'
 
 import type { EquatorialCoordinate, HorizontalCoordinate, Observer } from './common'
 
@@ -163,7 +163,7 @@ export class Observation extends Object {
     // in declination. N.B. The two are normalised as a pair: a declination that crosses a pole is
     // reflected back over it, and its Right Ascension is rotated to the antipodal meridian, such
     // that the coordinate describes the same point on the celestial sphere:
-    const { θ, φ } = getNormalisedSphericalCoordinate({ θ: δ, φ: α })
+    const { θ, φ } = getNormalizedSphericalCoordinate({ θ: δ, φ: α })
 
     this.ra = φ
 

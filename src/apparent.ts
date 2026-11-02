@@ -13,7 +13,7 @@ import {
 
 import {
   getCorrectionToEquatorialForProperMotion,
-  getNormalisedSphericalCoordinate
+  getNormalizedSphericalCoordinate
 } from './astrometry'
 
 import type { CartesianCoordinate, EquatorialCoordinate, EquatorialProperMotion } from './common'
@@ -65,7 +65,7 @@ export const getApparentEquatorialCoordinate = (
   // Normalise the moved coordinate as a pair, e.g., a declination that is carried over a pole is
   // reflected back over it, and its right ascension is rotated to the antipodal meridian. The
   // parallax of the target is carried with it:
-  const { θ, φ } = getNormalisedSphericalCoordinate({
+  const { θ, φ } = getNormalizedSphericalCoordinate({
     θ: target.dec + motion.dec,
     φ: target.ra + motion.ra
   })
@@ -89,7 +89,7 @@ export const getApparentEquatorialCoordinate = (
 
   // The displacements are each a few arcseconds at their greatest, and so they are resolved about
   // the one coordinate and summed, e.g., the cross terms between them are below a microarcsecond:
-  const apparent = getNormalisedSphericalCoordinate({
+  const apparent = getNormalizedSphericalCoordinate({
     θ: moved.dec + parallax.dec + annual.dec + orbital.dec,
     φ: moved.ra + parallax.ra + annual.ra + orbital.ra
   })

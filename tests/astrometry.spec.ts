@@ -25,7 +25,7 @@ import {
   getJulianDate,
   getLocalApparentSiderealTime,
   getLocalSiderealTime,
-  getNormalisedSphericalCoordinate,
+  getNormalizedSphericalCoordinate,
   getNutation,
   getObliquityOfTheEcliptic,
   getParallacticAngle,
@@ -186,9 +186,9 @@ describe('getAntipodeCoordinate', () => {
 
 /*****************************************************************************************************************/
 
-describe('getNormalisedSphericalCoordinate', () => {
+describe('getNormalizedSphericalCoordinate', () => {
   it('should be defined', () => {
-    expect(getNormalisedSphericalCoordinate).toBeDefined()
+    expect(getNormalizedSphericalCoordinate).toBeDefined()
   })
 
   it('should return a coordinate that is already resolved unchanged', () => {
@@ -203,7 +203,7 @@ describe('getNormalisedSphericalCoordinate', () => {
       [-34.780465192013345, 154.00423043521494],
       [-49.99999998142572, 3.2185283771468676e-8]
     ]) {
-      const normalised = getNormalisedSphericalCoordinate({ θ, φ })
+      const normalised = getNormalizedSphericalCoordinate({ θ, φ })
 
       expect(normalised.θ).toBeCloseTo(θ, 12)
       expect(normalised.φ).toBeCloseTo(φ, 12)
@@ -218,7 +218,7 @@ describe('getNormalisedSphericalCoordinate', () => {
 
       const φ = (i / 20000) * 360
 
-      const normalised = getNormalisedSphericalCoordinate({ θ, φ })
+      const normalised = getNormalizedSphericalCoordinate({ θ, φ })
 
       expect(normalised.θ).toBeCloseTo(θ, 12)
       expect(normalised.φ).toBeCloseTo(φ, 12)
@@ -230,7 +230,7 @@ describe('getNormalisedSphericalCoordinate', () => {
     // are the same vector, whatever the coordinate, e.g., however far it lies beyond a pole:
     for (const θ of [-720, -270, -180, -120, -90, -45, 0, 45, 90, 120, 180, 270, 720]) {
       for (const φ of [-720, -180, -0.5, 0, 10, 190, 359.5, 720]) {
-        const normalised = getNormalisedSphericalCoordinate({ θ, φ })
+        const normalised = getNormalizedSphericalCoordinate({ θ, φ })
 
         expect(normalised.θ).toBeGreaterThanOrEqual(-90)
         expect(normalised.θ).toBeLessThanOrEqual(90)
@@ -255,7 +255,7 @@ describe('getNormalisedSphericalCoordinate', () => {
   })
 
   it('should return the normalised spherical coordinate when normalisation is not needed', () => {
-    const normalised = getNormalisedSphericalCoordinate({
+    const normalised = getNormalizedSphericalCoordinate({
       θ: 60,
       φ: 90
     })
@@ -265,7 +265,7 @@ describe('getNormalisedSphericalCoordinate', () => {
   })
 
   it('should return the normalised spherical coordinate when positive bounds are exceeded', () => {
-    const normalised = getNormalisedSphericalCoordinate({
+    const normalised = getNormalizedSphericalCoordinate({
       θ: 120,
       φ: 450
     })
@@ -277,7 +277,7 @@ describe('getNormalisedSphericalCoordinate', () => {
   })
 
   it('should return the normalised spherical coordinate when negative bounds are exceeded', () => {
-    const normalised = getNormalisedSphericalCoordinate({
+    const normalised = getNormalizedSphericalCoordinate({
       θ: -120,
       φ: -270
     })
@@ -290,7 +290,7 @@ describe('getNormalisedSphericalCoordinate', () => {
 
   it('should not rotate the azimuthal angle when the polar angle is within the bounds of the poles', () => {
     for (const θ of [-90, -45, 0, 45, 90]) {
-      expect(getNormalisedSphericalCoordinate({ θ, φ: 90 })).toEqual({ θ, φ: 90 })
+      expect(getNormalizedSphericalCoordinate({ θ, φ: 90 })).toEqual({ θ, φ: 90 })
     }
   })
 
@@ -305,14 +305,14 @@ describe('getNormalisedSphericalCoordinate', () => {
       { θ: 271, φ: -30 },
       { θ: 120, φ: 450 }
     ]) {
-      expect(getAngularSeparation(A, getNormalisedSphericalCoordinate(A))).toBeCloseTo(0, 9)
+      expect(getAngularSeparation(A, getNormalizedSphericalCoordinate(A))).toBeCloseTo(0, 9)
     }
   })
 
   it('should normalise the polar angle to the range [-90, 90] and the azimuthal angle to the range [0, 360)', () => {
     for (let θ = -720; θ <= 720; θ += 37) {
       for (let φ = -720; φ <= 720; φ += 13) {
-        const normalised = getNormalisedSphericalCoordinate({ θ, φ })
+        const normalised = getNormalizedSphericalCoordinate({ θ, φ })
 
         expect(normalised.θ).toBeGreaterThanOrEqual(-90)
         expect(normalised.θ).toBeLessThanOrEqual(90)

@@ -33,7 +33,7 @@ export {
   getHourAngle,
   getLocalApparentSiderealTime,
   getLocalSiderealTime,
-  getNormalisedSphericalCoordinate,
+  getNormalizedSphericalCoordinate,
   getParallacticAngle,
   LAST,
   LST
