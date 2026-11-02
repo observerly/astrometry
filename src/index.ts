@@ -274,6 +274,7 @@ export {
   getJulianDate,
   getModifiedJulianDate,
   getNumberOfCenturiesSinceJ2000,
+  getNumberOfMillenniaSinceJ2000,
   getTerrestrialTime
 } from './epoch'
 

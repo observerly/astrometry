@@ -23,7 +23,12 @@ import { B, getEccentricityOfOrbit, L, R } from './earth'
 
 import { getObliquityOfTheEcliptic } from './ecliptic'
 
-import { getJulianDate, getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
+import {
+  getJulianDate,
+  getNumberOfCenturiesSinceJ2000,
+  getNumberOfMillenniaSinceJ2000,
+  getTerrestrialTime
+} from './epoch'
 
 import { getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
 
@@ -422,7 +427,7 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
 
   // Get the Julian millenia since J2000.0, at the Terrestrial Time of the given date, as the
   // ephemeris of the Sun is:
-  const τ = (getJulianDate(getTerrestrialTime(datetime)) - 2451545.0) / 365250
+  const τ = getNumberOfMillenniaSinceJ2000(getTerrestrialTime(datetime))
 
   // Radial distance of the Sun from the Earth (in AU):
   const RO = r / AU_IN_METERS

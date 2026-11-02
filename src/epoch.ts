@@ -66,6 +66,25 @@ export const getNumberOfCenturiesSinceJ2000 = (datetime: Date): number => {
 
 /**
  *
+ * getNumberOfMillenniaSinceJ2000()
+ *
+ * @param datetime - The date for which to calculate the number of millennia since J2000.0.
+ * @returns number - the number of millennia since J2000.0.
+ *
+ */
+export const getNumberOfMillenniaSinceJ2000 = (datetime: Date): number => {
+  // Get the Julian Date (JD) of the given date, e.g., in the time scale the date is given in, such as the
+  // Terrestrial Time of a date resolved by getTerrestrialTime():
+  const JD = getJulianDate(datetime)
+
+  // Calculate the number of millennia since J2000.0:
+  return (JD - 2451545.0) / 365250
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * getInternationalAtomicTime()
  *
  * The International Atomic Time (TAI) is the continuous time scale of the highly precise atomic

@@ -15,6 +15,7 @@ import {
   getJulianDate,
   getModifiedJulianDate,
   getNumberOfCenturiesSinceJ2000,
+  getNumberOfMillenniaSinceJ2000,
   getTerrestrialTime
 } from '../src'
 
@@ -58,6 +59,63 @@ describe('getNumberOfCenturiesSinceJ2000', () => {
   it('should return the number of centuries since J2000.0', () => {
     const T = getNumberOfCenturiesSinceJ2000(datetime)
     expect(T).toBe(0.21364818617385353)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getNumberOfMillenniaSinceJ2000', () => {
+  it('should be defined', () => {
+    expect(getNumberOfMillenniaSinceJ2000).toBeDefined()
+  })
+
+  it('should return the number of millennia since J2000.0', () => {
+    const τ = getNumberOfMillenniaSinceJ2000(datetime)
+    expect(τ).toBe(0.021364818617385352)
+  })
+
+  it('should return a tenth of the number of centuries since J2000.0', () => {
+    const τ = getNumberOfMillenniaSinceJ2000(datetime)
+    expect(τ).toBeCloseTo(getNumberOfCenturiesSinceJ2000(datetime) / 10, 15)
+  })
+
+  it('should return zero at J2000.0, e.g., the Julian Date 2451545.0', () => {
+    const when = new Date('2000-01-01T12:00:00.000+00:00')
+    expect(getJulianDate(when)).toBe(2451545.0)
+    expect(getNumberOfMillenniaSinceJ2000(when)).toBe(0)
+  })
+
+  it('should return one millennium at the Julian Date 2816795.0', () => {
+    const when = new Date((2816795.0 - 2440587.5) * 86400000)
+    expect(getNumberOfMillenniaSinceJ2000(when)).toBe(1)
+  })
+
+  it('should return minus one millennium at the Julian Date 2086295.0', () => {
+    const when = new Date((2086295.0 - 2440587.5) * 86400000)
+    expect(getNumberOfMillenniaSinceJ2000(when)).toBe(-1)
+  })
+
+  it('should return a negative number of millennia for a date before J2000.0', () => {
+    const when = new Date('1987-04-10T00:00:00.000+00:00')
+    expect(getNumberOfMillenniaSinceJ2000(when)).toBeLessThan(0)
+  })
+
+  it('should return the number of millennia since J2000.0 at the Terrestrial Time of the given date', () => {
+    const τ = getNumberOfMillenniaSinceJ2000(getTerrestrialTime(datetime))
+    expect(τ).toBe(0.02136482080969447)
+  })
+
+  it('should be ahead by the 69.184 seconds of TT - UTC at the Terrestrial Time of the given date', () => {
+    const Δτ =
+      getNumberOfMillenniaSinceJ2000(getTerrestrialTime(datetime)) -
+      getNumberOfMillenniaSinceJ2000(datetime)
+    expect(Δτ).toBeCloseTo(69.184 / 86400 / 365250, 15)
+  })
+
+  it('should not modify the datetime given by the caller', () => {
+    const when = new Date('2021-05-14T00:00:00.000+00:00')
+    getNumberOfMillenniaSinceJ2000(when)
+    expect(when).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
   })
 })
 
