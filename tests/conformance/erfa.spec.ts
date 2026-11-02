@@ -21,6 +21,8 @@ import {
 
 import { getObliquityOfTheEcliptic } from '../../src/ecliptic'
 
+import { getBiasPrecessionNutationMatrix } from '../../src/frames'
+
 import {
   getCorrectionToEquatorialForNutation,
   getNutation,
@@ -38,6 +40,7 @@ import {
 } from '../../src/precession'
 
 import {
+  ERFABiasPrecessionNutationMatrices,
   ERFAFrameBiasMatrix,
   ERFANutationMatrices,
   ERFAPrecessionMatrices,
@@ -113,6 +116,13 @@ const NUTATION_ROTATION_TOLERANCE = 2 / 3600000
 // Each element of the nutation matrix, against the rmatn matrix of num06a, e.g., to within ~2
 // milliarcseconds, which is the envelope of the series of the nutation of the library (in radians):
 const NUTATION_MATRIX_TOLERANCE = 1e-8
+
+/*****************************************************************************************************************/
+
+// Each element of the bias-precession-nutation matrix, against the rbpn matrix of pnm06a, e.g., to
+// within ~2 milliarcseconds, which is the envelope of the nutation matrix of the library, as the
+// frame bias and precession matrices agree to within ~1 µas (in radians):
+const BIAS_PRECESSION_NUTATION_MATRIX_TOLERANCE = 1e-8
 
 /*****************************************************************************************************************/
 
@@ -415,6 +425,25 @@ describe('conformance of the nutation matrix to ERFA', () => {
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
           expect(Math.abs(N[i][j] - reference.N[i][j])).toBeLessThan(NUTATION_MATRIX_TOLERANCE)
+        }
+      }
+    }
+  )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the bias-precession-nutation matrix to ERFA', () => {
+  it.each(ERFABiasPrecessionNutationMatrices)(
+    'should agree with each element of pnm06a at $datetime',
+    reference => {
+      const NPB = getBiasPrecessionNutationMatrix(new Date(reference.datetime))
+
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          expect(Math.abs(NPB[i][j] - reference.NPB[i][j])).toBeLessThan(
+            BIAS_PRECESSION_NUTATION_MATRIX_TOLERANCE
+          )
         }
       }
     }
