@@ -1123,3 +1123,64 @@ export const ERFABiasPrecessionNutationMatrices: ERFABiasPrecessionNutationMatri
 ]
 
 /*****************************************************************************************************************/
+
+export interface ERFAEquatorialToEclipticMatrixReference {
+  // The instant the reference is resolved at (in UTC):
+  datetime: string
+  // The equatorial to ecliptic matrix of the instant, in row-major order:
+  E: Matrix3
+}
+
+/*****************************************************************************************************************/
+
+// The rotation from the true equator and equinox of the date to the true ecliptic and equinox of
+// the date, e.g., R1(ε) of the true obliquity of the ecliptic, as resolved by rx for the mean
+// obliquity of obl06 corrected for the nutation in obliquity of nut06a, at the Terrestrial Time of
+// each instant, in row-major order.
+//
+// N.B. ERFA has no routine for the true ecliptic of the date. The rotation of the mean obliquity
+// alone agrees with that of ecm06, e.g., the ecliptic of IAU 2006, to within 1e-15:
+export const ERFAEquatorialToEclipticMatrices: ERFAEquatorialToEclipticMatrixReference[] = [
+  {
+    datetime: '1980-04-22T06:00:00.000Z',
+    E: [
+      [1, 0, 0],
+      [0, 0.9174787176315696, 0.3977848698645167],
+      [0, -0.3977848698645167, 0.9174787176315696]
+    ]
+  },
+  {
+    datetime: '2000-01-01T12:00:00.000Z',
+    E: [
+      [1, 0, 0],
+      [0, 0.9174932688900481, 0.39775130614676046],
+      [0, -0.39775130614676046, 0.9174932688900481]
+    ]
+  },
+  {
+    datetime: '2013-09-22T04:00:00.000Z',
+    E: [
+      [1, 0, 0],
+      [0, 0.9175071010950469, 0.39771939786759647],
+      [0, -0.39771939786759647, 0.9175071010950469]
+    ]
+  },
+  {
+    datetime: '2026-09-06T00:00:00.000Z',
+    E: [
+      [1, 0, 0],
+      [0, 0.9174904235538546, 0.3977578694217986],
+      [0, -0.3977578694217986, 0.9174904235538546]
+    ]
+  },
+  {
+    datetime: '2050-03-20T12:00:00.000Z',
+    E: [
+      [1, 0, 0],
+      [0, 0.9175367018550039, 0.3976511042975257],
+      [0, -0.3976511042975257, 0.9175367018550039]
+    ]
+  }
+]
+
+/*****************************************************************************************************************/
