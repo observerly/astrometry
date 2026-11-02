@@ -1195,3 +1195,73 @@ export const ERFAEquatorialToGalacticMatrix: Matrix3 = [
 ]
 
 /*****************************************************************************************************************/
+
+export interface ERFAEquatorialToHorizontalMatrixReference {
+  // The instant the reference is resolved at (in UTC):
+  datetime: string
+  // The geographic coordinate of the observer (in degrees):
+  observer: { latitude: number; longitude: number }
+  // The equatorial to horizontal matrix of the instant, in row-major order:
+  H: Matrix3
+}
+
+/*****************************************************************************************************************/
+
+// The rotation from the true equator and equinox of the date to the horizontal frame of the
+// observer, e.g., of (north, east, zenith), as resolved by hd2ae for each of the unit axes, at the
+// hour angle of the Local Apparent Sidereal Time of gst06a, for UT1 taken as UTC, in row-major
+// order:
+export const ERFAEquatorialToHorizontalMatrices: ERFAEquatorialToHorizontalMatrixReference[] = [
+  {
+    datetime: '1980-04-22T06:00:00.000Z',
+    // Mauna Kea:
+    observer: { latitude: 19.8207, longitude: -155.4681 },
+    H: [
+      [0.27769490833841604, -0.19457468385381974, 0.9407583272478139],
+      [-0.573834886684925, -0.8189710146417267, -2.304193348470507e-16],
+      [-0.7704538017987959, 0.5398399481141487, 0.33907782250376534]
+    ]
+  },
+  {
+    datetime: '2000-01-01T12:00:00.000Z',
+    // Greenwich:
+    observer: { latitude: 51.4769, longitude: 0 },
+    H: [
+      [-0.14199687072864642, 0.7693630752405171, 0.6228301109931396],
+      [0.9833911676558018, 0.18149879166693825, 6.021534228897279e-17],
+      [0.11304291255903982, -0.6124856301007362, 0.7823571133697663]
+    ]
+  },
+  {
+    datetime: '2013-09-22T04:00:00.000Z',
+    // Siding Spring:
+    observer: { latitude: -31.2733, longitude: 149.0644 },
+    H: [
+      [-0.44843733121438895, -0.2615156649694338, 0.8547008347655404],
+      [0.5037664202524825, -0.8638399121515508, 3.0846796704006155e-17],
+      [-0.7383246940197217, -0.43056957991664485, -0.5191208751833125]
+    ]
+  },
+  {
+    datetime: '2026-09-06T00:00:00.000Z',
+    // La Silla:
+    observer: { latitude: -29.2567, longitude: -70.7346 },
+    H: [
+      [0.03723211211461844, -0.48730298567456865, 0.8724388631761745],
+      [0.9970938981216405, 0.07618240169876388, 6.10543925392012e-17],
+      [0.06646448793210018, -0.8699034669571443, -0.4887232652737788]
+    ]
+  },
+  {
+    datetime: '2050-03-20T12:00:00.000Z',
+    // Svalbard:
+    observer: { latitude: 78.2232, longitude: 15.6267 },
+    H: [
+      [-0.9504902971027419, -0.2343320667689257, 0.20409967564242984],
+      [-0.23937079512116013, 0.9709282272357023, -4.9990002896502944e-17],
+      [0.19816613625088628, 0.04885550164249935, 0.9789501123155637]
+    ]
+  }
+]
+
+/*****************************************************************************************************************/
