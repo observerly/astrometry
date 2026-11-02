@@ -22,7 +22,7 @@ import {
 import { getObliquityOfTheEcliptic } from '../../src/ecliptic'
 
 import { getBiasPrecessionNutationMatrix, getEquatorialToEclipticMatrix } from '../../src/frames'
-
+import { getEquatorialToGalacticMatrix } from '../../src/galactic'
 import {
   getCorrectionToEquatorialForNutation,
   getNutation,
@@ -42,6 +42,7 @@ import {
 import {
   ERFABiasPrecessionNutationMatrices,
   ERFAEquatorialToEclipticMatrices,
+  ERFAEquatorialToGalacticMatrix,
   ERFAFrameBiasMatrix,
   ERFANutationMatrices,
   ERFAPrecessionMatrices,
@@ -475,6 +476,23 @@ describe('conformance of the equatorial to ecliptic matrix to ERFA', () => {
       }
     }
   )
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the equatorial to galactic matrix to ERFA', () => {
+  it('should agree with each element of the galactic matrix of icrs2g', () => {
+    const G = getEquatorialToGalacticMatrix()
+
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        // N.B. The matrix is resolved from the angles that define it, e.g., the north galactic
+        // pole and the galactic longitude of the north celestial pole, and so it agrees with the
+        // matrix of the Hipparcos catalogue to the precision of the arithmetic, e.g., ~1e-15:
+        expect(Math.abs(G[i][j] - ERFAEquatorialToGalacticMatrix[i][j])).toBeLessThan(2e-15)
+      }
+    }
+  })
 })
 
 /*****************************************************************************************************************/
