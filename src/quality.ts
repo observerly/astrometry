@@ -218,7 +218,7 @@ export type ObservationalQuality = {
  * @returns The observational quality of the observation, e.g., the quality index, whether the
  * observation is observable, the evaluation of each constraint, and the resolved context.
  */
-export const getObservationalQuality = (
+export function getObservationalQuality(
   datetime: Date,
   observer: GeographicCoordinate | GeographicCoordinateAtEpoch,
   target: EquatorialCoordinate,
@@ -227,7 +227,7 @@ export const getObservationalQuality = (
     new SunAltitudeConstraint(),
     new MoonSeparationConstraint()
   ]
-): ObservationalQuality => {
+): ObservationalQuality {
   // Resolve the context once for this datetime, then score every constraint against it exactly once:
   const context = getConstraintContext(datetime, observer, target)
 
@@ -327,7 +327,7 @@ export type ObservationalQualityWindow = {
  * interval is sampled.
  * @returns The observable windows within the interval, in chronological order.
  */
-export const getObservationalQualityWindows = (
+export function getObservationalQualityWindows(
   interval: Interval,
   observer: GeographicCoordinate | GeographicCoordinateAtEpoch,
   target: EquatorialCoordinate,
@@ -339,7 +339,7 @@ export const getObservationalQualityWindows = (
   params: { stepSeconds?: number } = {
     stepSeconds: 60
   }
-): ObservationalQualityWindow[] => {
+): ObservationalQualityWindow[] {
   const { stepSeconds = 60 } = params
 
   // A step that is not a positive number of seconds does not advance the sampling:
@@ -447,7 +447,7 @@ export type ObservationalQualityRank<T extends EquatorialCoordinate> = Observati
  * @returns The targets, each together with its observational quality, ordered from the best to
  * the worst.
  */
-export const getObservationalQualityRanking = <T extends EquatorialCoordinate>(
+export function getObservationalQualityRanking<T extends EquatorialCoordinate>(
   datetime: Date,
   observer: GeographicCoordinate | GeographicCoordinateAtEpoch,
   targets: T[],
@@ -456,7 +456,7 @@ export const getObservationalQualityRanking = <T extends EquatorialCoordinate>(
     new SunAltitudeConstraint(),
     new MoonSeparationConstraint()
   ]
-): ObservationalQualityRank<T>[] => {
+): ObservationalQualityRank<T>[] {
   // The ranking scores every target at the one datetime, and so an observer given as a coordinate
   // at an epoch is resolved once for the whole of it, and not once per target, e.g., the
   // resolution may be expensive, and every target must be scored from the one coordinate either

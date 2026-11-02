@@ -48,10 +48,10 @@ import {
  * @returns The equatorial coordinates of the target
  *
  */
-export const convertEclipticToEquatorial = (
+export function convertEclipticToEquatorial(
   datetime: Date,
   target: EclipticCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   // Get the true obliquity of the ecliptic for the given datetime:
   const ε = radians(getTrueObliquityOfTheEcliptic(datetime))
 
@@ -79,7 +79,7 @@ export const convertEclipticToEquatorial = (
  * @returns The equatorial coordinates of the target in J2000.0
  *
  */
-export const convertGalacticToEquatorial = (target: GalacticCoordinate): EquatorialCoordinate => {
+export function convertGalacticToEquatorial(target: GalacticCoordinate): EquatorialCoordinate {
   let { ra, dec } = { ra: 0, dec: 0 }
 
   // Define the Right Ascenation equatorial coordinate of the galactic north pole, at J2000.0
@@ -136,11 +136,11 @@ export const convertGalacticToEquatorial = (target: GalacticCoordinate): Equator
  * @returns The horizontal coordinates of the target
  *
  */
-export const convertEquatorialToHorizontal = (
+export function convertEquatorialToHorizontal(
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate & { distance?: number }
-): HorizontalCoordinate => {
+): HorizontalCoordinate {
   const { latitude, longitude, elevation = 0 } = observer
 
   const declination = radians(target.dec)
@@ -218,11 +218,11 @@ export const convertEquatorialToHorizontal = (
  * @param target - The horizontal coordinate of the observed object.
  * @returns The equatorial coordinates of the target
  */
-export const convertHorizontalToEquatorial = (
+export function convertHorizontalToEquatorial(
   datetime: Date,
   observer: GeographicCoordinate,
   target: HorizontalCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   const { latitude, longitude } = observer
 
   const altitude = radians(target.alt)
@@ -291,11 +291,11 @@ export const convertHorizontalToEquatorial = (
  * @returns The geographic coordinate of the observer, e.g., { latitude, longitude, elevation }.
  *
  */
-export const convertGeocentricToGeographic = (
+export function convertGeocentricToGeographic(
   datetime: Date,
   position: Required<CartesianCoordinate>,
   radius: number = EARTH_RADIUS
-): GeographicCoordinate => {
+): GeographicCoordinate {
   const { x, y, z } = position
 
   // A position with a component that is not finite has no direction to resolve a coordinate from:
@@ -365,9 +365,9 @@ export const convertGeocentricToGeographic = (
  * @returns The unit direction vector of the target, e.g., { x, y, z }.
  *
  */
-export const convertEquatorialToCartesian = (
+export function convertEquatorialToCartesian(
   target: EquatorialCoordinate
-): Required<CartesianCoordinate> => {
+): Required<CartesianCoordinate> {
   const α = radians(target.ra)
 
   const δ = radians(target.dec)
@@ -399,9 +399,9 @@ export const convertEquatorialToCartesian = (
  * @returns The equatorial coordinate of the direction, e.g., { ra, dec } (in degrees), with the right ascension in [0, 360).
  *
  */
-export const convertCartesianToEquatorial = (
+export function convertCartesianToEquatorial(
   vector: Required<CartesianCoordinate>
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   const { x, y, z } = vector
 
   // The zero vector has no direction, e.g., atan2(0, 0) would otherwise resolve it to (0°, 0°):

@@ -159,7 +159,7 @@ function snap(datetime: Date, q: number): number {
  * @param observer - The geographic coordinates of the observer.
  * @returns - The lunar eclipse at the given date and time for the observer.
  */
-export const getLunarEclipse = (
+export function getLunarEclipse(
   datetime: Date,
   observer: GeographicCoordinate
 ):
@@ -174,7 +174,7 @@ export const getLunarEclipse = (
         ρ: number
         σ: number
       })
-  | false => {
+  | false {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(datetime)
@@ -348,13 +348,13 @@ export const getLunarEclipse = (
  * @param observer - The geographic coordinates of the observer.
  * @returns The solar eclipse at the given date and time for the observer.
  */
-export const getSolarEclipse = (
+export function getSolarEclipse(
   datetime: Date,
   observer: GeographicCoordinate
 ):
   | (Eclipse &
       EquatorialCoordinate & { k: number; JD: number; F: number; Ω: number; γ: number; u: number })
-  | false => {
+  | false {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(datetime)
@@ -547,7 +547,7 @@ export const getSolarEclipse = (
  * @returns The lunar eclipse at the given date and time for the observer or false if no eclipse occurs.
  *
  */
-export const isLunarEclipse = (
+export function isLunarEclipse(
   datetime: Date,
   observer: GeographicCoordinate
 ):
@@ -559,7 +559,7 @@ export const isLunarEclipse = (
         γ: number
         u: number
       })
-  | false => {
+  | false {
   // The threshold for a lunar eclipse to occur:
   // Anything greater than this value means that the Moon is not within the
   // threshold of the ascending node and a lunar eclipse cannot occur.
@@ -595,7 +595,7 @@ export const isLunarEclipse = (
  * @returns The solar eclipse at the given date and time for the observer or false if no eclipse occurs.
  *
  */
-export const isSolarEclipse = (
+export function isSolarEclipse(
   datetime: Date,
   observer: GeographicCoordinate
 ):
@@ -607,7 +607,7 @@ export const isSolarEclipse = (
         γ: number
         u: number
       })
-  | false => {
+  | false {
   // The threshold for a solar eclipse to occur:
   // Anything greater than this value means that the Moon is not within the
   // threshold of the ascending node and a solar eclipse cannot occur.

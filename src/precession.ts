@@ -34,9 +34,9 @@ import {
  * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
  *
  */
-export const getCorrectionToEquatorialForFrameBias = (
+export function getCorrectionToEquatorialForFrameBias(
   target: EquatorialCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   const ra = radians(target.ra)
 
   const dec = radians(target.dec)
@@ -121,7 +121,7 @@ export const getCorrectionToEquatorialForFrameBias = (
  * @returns The 3×3 frame bias matrix, in row-major order.
  *
  */
-export const getFrameBiasMatrix = (): Matrix3 => {
+export function getFrameBiasMatrix(): Matrix3 {
   // The frame bias in right ascension of IAU 2000, e.g., the offset of the ICRS origin of right
   // ascension from the mean equinox of J2000.0 (in degrees):
   const δα0 = -0.0146 / 3600
@@ -165,7 +165,7 @@ export const getFrameBiasMatrix = (): Matrix3 => {
  * @returns The precession angles ζ, z and θ (in degrees).
  *
  */
-export const getPrecessionAngles = (datetime: Date): { ζ: number; z: number; θ: number } => {
+export function getPrecessionAngles(datetime: Date): { ζ: number; z: number; θ: number } {
   // The precession angles are referred to Terrestrial Time, and so they are resolved at the Terrestrial Time of
   // the given date:
   const tt = getTerrestrialTime(datetime)
@@ -218,10 +218,10 @@ export const getPrecessionAngles = (datetime: Date): { ζ: number; z: number; θ
  * @returns The corrected equatorial coordinates of the target.
  *
  */
-export const getCorrectionToEquatorialForPrecessionOfEquinoxes = (
+export function getCorrectionToEquatorialForPrecessionOfEquinoxes(
   datetime: Date,
   target: EquatorialCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   // Get the equatorial precession angles of IAU 2006 (in degrees):
   const { ζ, z, θ } = getPrecessionAngles(datetime)
 

@@ -43,11 +43,11 @@ import { convertRadiansToDegrees } from './utilities'
  * @returns The angular radius of the Earth for the observer (in degrees).
  *
  */
-export const getEarthLimbAngularRadius = (
+export function getEarthLimbAngularRadius(
   elevation: number,
   grazing = 0,
   radius: number = EARTH_RADIUS
-): number => {
+): number {
   // The distance of the observer from the center of the Earth, and the radius of the shell they
   // are to clear (in SI metres):
   const distance = radius + elevation
@@ -89,13 +89,13 @@ export const getEarthLimbAngularRadius = (
  * @returns a boolean indicating whether the target is occulted by the Earth for the observer.
  *
  */
-export const isBodyOccultedByEarth = (
+export function isBodyOccultedByEarth(
   datetime: Date,
   observer: GeographicCoordinate,
   target: EquatorialCoordinate | HorizontalCoordinate,
   grazing = 0,
   radius: number = EARTH_RADIUS
-): boolean => {
+): boolean {
   let alt = Number.NaN
 
   // Is the target an equatorial coordinate?

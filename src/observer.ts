@@ -32,7 +32,7 @@ import { convertRadiansToDegrees, convertDegreesToRadians as radians } from './u
  * @param k - The observer's atmospheric refraction (unitless)
  * @returns The local horizon depression (in degrees).
  */
-export const getLocalHorizon = (h: number | Observer, k = 0.167): number => {
+export function getLocalHorizon(h: number | Observer, k = 0.167): number {
   let elevation = 0
 
   // If the observer is an object, extract the elevation:
@@ -75,10 +75,10 @@ export const getLocalHorizon = (h: number | Observer, k = 0.167): number => {
  * @returns The geocentric equatorial velocity of the observer (in SI metres per second).
  *
  */
-export const getGeocentricRotationalVelocity = (
+export function getGeocentricRotationalVelocity(
   datetime: Date,
   observer: GeographicCoordinate
-): Required<CartesianCoordinate> => {
+): Required<CartesianCoordinate> {
   const { latitude, longitude, elevation = 0 } = observer
 
   // The distance of the observer from the axis of rotation, e.g., the radius of the parallel the
@@ -121,10 +121,10 @@ export const getGeocentricRotationalVelocity = (
  * @returns The geographic coordinate of the observer at the epoch of the observation.
  *
  */
-export const getGeographicCoordinate = (
+export function getGeographicCoordinate(
   datetime: Date,
   observer: GeographicCoordinate | GeographicCoordinateAtEpoch
-): GeographicCoordinate => {
+): GeographicCoordinate {
   return typeof observer === 'function' ? observer(new Date(datetime.getTime())) : observer
 }
 

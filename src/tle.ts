@@ -171,7 +171,7 @@ export type TwoLineElement = {
  * @returns The satellite catalogue number it encodes, e.g., 25544 or 100001.
  *
  */
-export const convertAlpha5ToSatelliteNumber = (alpha5: string): number => {
+export function convertAlpha5ToSatelliteNumber(alpha5: string): number {
   // The columns of the format are fixed, and so a catalogue number of fewer than five digits may
   // be padded with spaces, rather than with zeros, e.g., " 4632":
   const value = alpha5.trim()
@@ -218,7 +218,7 @@ export const convertAlpha5ToSatelliteNumber = (alpha5: string): number => {
  * @returns The checksum of the line, in the range [0, 9].
  *
  */
-export const getTwoLineElementChecksum = (line: string): number => {
+export function getTwoLineElementChecksum(line: string): number {
   let sum = 0
 
   for (const character of line.slice(0, 68)) {
@@ -505,7 +505,7 @@ const parseTwoLineElementExponentialField = (
  * @returns The two-line element set, e.g., the mean orbital elements of the object at its epoch.
  *
  */
-export const parseTwoLineElement = (line1: string, line2: string): TwoLineElement => {
+export function parseTwoLineElement(line1: string, line2: string): TwoLineElement {
   // A line may be given with the line terminator of the file it was read from, e.g., a carriage
   // return or a line feed, which is not of the format, and is stripped.
   //

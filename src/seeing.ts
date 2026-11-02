@@ -25,7 +25,7 @@ import { convertDegreesToRadians as radians } from './utilities'
  * @returns The airmass of the object.
  *
  */
-export const getAirmassPickering = (target: HorizontalCoordinate): number => {
+export function getAirmassPickering(target: HorizontalCoordinate): number {
   const { alt } = target
 
   // Below the horizon the light path is not defined, so the airmass is infinite:

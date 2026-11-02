@@ -89,11 +89,11 @@ export const DEFAULT_SURFACE_HUMIDITY = 0
  * @returns The refraction correction to the observed object (in degrees).
  *
  */
-export const getRefraction = (
+export function getRefraction(
   target: HorizontalCoordinate,
   temperature = DEFAULT_SURFACE_TEMPERATURE,
   pressure = DEFAULT_SURFACE_PRESSURE
-): number => {
+): number {
   const { alt } = target
 
   // Below the floor of the approximation the refraction is not defined, and so the object is left
@@ -132,11 +132,11 @@ export const getRefraction = (
  * @returns The horizontal coordinate of the observed object corrected for atmospheric refraction.
  *
  */
-export const getCorrectionToHorizontalForRefraction = (
+export function getCorrectionToHorizontalForRefraction(
   target: HorizontalCoordinate,
   temperature = DEFAULT_SURFACE_TEMPERATURE,
   pressure = DEFAULT_SURFACE_PRESSURE
-): HorizontalCoordinate => {
+): HorizontalCoordinate {
   const { alt, az } = target
 
   // Below the floor of the approximation the refraction is not defined, and so the object is left
@@ -171,7 +171,7 @@ export const getCorrectionToHorizontalForRefraction = (
  * @returns the airmass of the observed object.
  *
  */
-export const getAirmass = (target: HorizontalCoordinate): number => {
+export function getAirmass(target: HorizontalCoordinate): number {
   const { alt } = target
 
   // Below the horizon the light path is not defined, so the airmass is infinite:
@@ -208,12 +208,12 @@ export const getAirmass = (target: HorizontalCoordinate): number => {
  * @returns The refractive index of the air for the observed wavelength.
  *
  */
-export const getAirRefractiveIndex = (
+export function getAirRefractiveIndex(
   wavelength = 550,
   temperature = DEFAULT_SURFACE_TEMPERATURE,
   pressure = DEFAULT_SURFACE_PRESSURE,
   humidity = DEFAULT_SURFACE_HUMIDITY
-): number => {
+): number {
   // Outside of the bounds of the equation the dispersion terms are singular, and the
   // refractive index is no longer physical:
   if (!Number.isFinite(wavelength) || wavelength < 300 || wavelength > 1700) {

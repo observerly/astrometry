@@ -49,12 +49,12 @@ import { getCorrectionToEquatorialForAnnualParallax } from './parallax'
  * @returns The apparent equatorial coordinate of the target (in degrees).
  *
  */
-export const getApparentEquatorialCoordinate = (
+export function getApparentEquatorialCoordinate(
   datetime: Date,
   target: EquatorialCoordinate,
   properMotion?: EquatorialProperMotion,
   velocity?: CartesianCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   // The proper motion of the target carries it from the epoch of the catalogue to the datetime of
   // the observation, and so it is applied first, and the displacements of the observer are then
   // resolved about the target as it lies at the datetime:

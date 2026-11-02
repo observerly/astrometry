@@ -15,7 +15,7 @@ export interface NancyRomanRecord {
 
 /*****************************************************************************************************************/
 
-export const isNancyRomanRecord = (record: unknown): record is NancyRomanRecord => {
+export function isNancyRomanRecord(record: unknown): record is NancyRomanRecord {
   return (
     !!record &&
     record !== null &&

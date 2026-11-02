@@ -22,7 +22,7 @@ import { convertDegreesToRadians as radians } from './utilities'
  * @returns {number[][]} - The interpolated coordinates.
  *
  */
-export const interpolate = (start: number[], end: number[], precision: number): number[][] => {
+export function interpolate(start: number[], end: number[], precision: number): number[][] {
   const points: number[][] = []
   const [startX, startY] = start
   const [endX, endY] = end
@@ -55,11 +55,7 @@ export const interpolate = (start: number[], end: number[], precision: number): 
  * @returns {number[][]} - The interpolated coordinates.
  *
  */
-export const interpolateGeodesic = (
-  start: number[],
-  end: number[],
-  precision: number
-): number[][] => {
+export function interpolateGeodesic(start: number[], end: number[], precision: number): number[][] {
   const points: number[][] = []
   const [startX, startY] = start
   const [endX, endY] = end
@@ -169,7 +165,7 @@ export function interpolateRank2DGeodesicCoordinateArray(
  * @returns The 3×3 rotation matrix, in row-major order.
  *
  */
-export const getRotationMatrix = (axis: 'x' | 'y' | 'z', angle: number): Matrix3 => {
+export function getRotationMatrix(axis: 'x' | 'y' | 'z', angle: number): Matrix3 {
   const cos = Math.cos(radians(angle))
 
   const sin = Math.sin(radians(angle))
@@ -214,7 +210,7 @@ export const getRotationMatrix = (axis: 'x' | 'y' | 'z', angle: number): Matrix3
  * @returns The 3×3 matrix product a · b, in row-major order.
  *
  */
-export const getMatrixProduct = (a: Matrix3, b: Matrix3): Matrix3 => {
+export function getMatrixProduct(a: Matrix3, b: Matrix3): Matrix3 {
   // The element of the i-th row and the j-th column of the product:
   const element = (i: number, j: number): number =>
     a[i][0] * b[0][j] + a[i][1] * b[1][j] + a[i][2] * b[2][j]
@@ -245,10 +241,10 @@ export const getMatrixProduct = (a: Matrix3, b: Matrix3): Matrix3 => {
  * @returns The cartesian coordinate of the matrix applied to the vector, e.g., { x, y, z }.
  *
  */
-export const getRotatedCartesianCoordinate = (
+export function getRotatedCartesianCoordinate(
   matrix: Matrix3,
   vector: Required<CartesianCoordinate>
-): Required<CartesianCoordinate> => {
+): Required<CartesianCoordinate> {
   const { x, y, z } = vector
 
   return {
@@ -276,10 +272,10 @@ export const getRotatedCartesianCoordinate = (
  * @returns The dot product a · b of the two vectors.
  *
  */
-export const doDotProduct = (
+export function doDotProduct(
   a: Required<CartesianCoordinate>,
   b: Required<CartesianCoordinate>
-): number => {
+): number {
   return a.x * b.x + a.y * b.y + a.z * b.z
 }
 
@@ -305,10 +301,10 @@ export const doDotProduct = (
  * @returns The cross product a × b of the two vectors, e.g., { x, y, z }.
  *
  */
-export const doCrossProduct = (
+export function doCrossProduct(
   a: Required<CartesianCoordinate>,
   b: Required<CartesianCoordinate>
-): Required<CartesianCoordinate> => {
+): Required<CartesianCoordinate> {
   return {
     x: a.y * b.z - a.z * b.y,
     y: a.z * b.x - a.x * b.z,
@@ -337,7 +333,7 @@ export const doCrossProduct = (
  * @returns The 3×3 transpose of the matrix, in row-major order.
  *
  */
-export const doTranspose = (m: Matrix3): Matrix3 => {
+export function doTranspose(m: Matrix3): Matrix3 {
   return [
     [m[0][0], m[1][0], m[2][0]],
     [m[0][1], m[1][1], m[2][1]],
@@ -367,7 +363,7 @@ export const doTranspose = (m: Matrix3): Matrix3 => {
  * @returns The determinant of the matrix.
  *
  */
-export const doDeterminant = (m: Matrix3): number => {
+export function doDeterminant(m: Matrix3): number {
   const [[a, b, c], [d, e, f], [g, h, i]] = m
 
   return a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g)

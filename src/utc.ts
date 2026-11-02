@@ -6,7 +6,7 @@
 
 /*****************************************************************************************************************/
 
-export const utc = (datetime: Date): Date => {
+export function utc(datetime: Date): Date {
   return new Date(datetime.toISOString())
 }
 

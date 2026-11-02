@@ -25,7 +25,7 @@ export type SIP2DParameters = {
 /*****************************************************************************************************************/
 
 // Helper function to parse SIP terms like "A_0_1" and extract i, j values
-export const parseSIPTerm = (term: string, prefix: 'A' | 'B'): [number, number] | null => {
+export function parseSIPTerm(term: string, prefix: 'A' | 'B'): [number, number] | null {
   const match = term.match(`^${prefix}_(\\d+)_(\\d+)$`)
   return match ? [Number.parseInt(match[1], 10), Number.parseInt(match[2], 10)] : null
 }
@@ -121,10 +121,10 @@ export type WCS = {
  * @param pixel the pixel to convert to an equatorial coordinate, e.g., { x: 0, y: 0 }
  * @returns the equatorial coordinate of a given pixel in the prescribed WCS
  */
-export const convertPixelToWorldCoordinateSystem = (
+export function convertPixelToWorldCoordinateSystem(
   wcs: WCS,
   pixel: CartesianCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   // Calculate the pixel delta in the X dimension relative to central reference pixel:
   let deltaX = pixel.x - wcs.crpix.x
 

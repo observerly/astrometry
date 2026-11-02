@@ -16,7 +16,7 @@
  * @returns The angle in radians.
  *
  */
-export const convertDegreesToRadians = (degrees: number): number => {
+export function convertDegreesToRadians(degrees: number): number {
   return (degrees * Math.PI) / 180
 }
 
@@ -32,7 +32,7 @@ export const convertDegreesToRadians = (degrees: number): number => {
  * @returns The angle in degrees.
  *
  */
-export const convertRadiansToDegrees = (degrees: number): number => {
+export function convertRadiansToDegrees(degrees: number): number {
   return (degrees * 180) / Math.PI
 }
 
@@ -48,7 +48,7 @@ export const convertRadiansToDegrees = (degrees: number): number => {
  * @returns The normalized angle in degrees.
  *
  */
-export const getNormalizedAzimuthalDegree = (degrees: number): number => {
+export function getNormalizedAzimuthalDegree(degrees: number): number {
   // Correct for large angles (+ive or -ive):
   let d = degrees % 360
 
@@ -72,7 +72,7 @@ export const getNormalizedAzimuthalDegree = (degrees: number): number => {
  * @returns The normalized angle in degrees.
  *
  */
-export const getNormalizedInclinationDegree = (degrees: number): number => {
+export function getNormalizedInclinationDegree(degrees: number): number {
   // Correct for angles greater than 90° or less than -90°, e.g., reflect the angle back over the
   // pole that it lies beyond:
   return Math.abs(degrees) > 90 ? Math.sign(degrees) * 180 - degrees : degrees
@@ -88,7 +88,7 @@ export const getNormalizedInclinationDegree = (degrees: number): number => {
  * @returns the degrees, minutes and seconds components of a degree value.
  *
  */
-export const convertDegreeToDMS = (degree: number): { deg: number; min: number; sec: number } => {
+export function convertDegreeToDMS(degree: number): { deg: number; min: number; sec: number } {
   // Round the angle to the nearest milliarcsecond before resolving its components, so that a
   // rounded value carries into the minutes and the degrees, and does not resolve as 60 seconds:
   const arcseconds = Math.round(Math.abs(degree) * 3600 * 1000) / 1000
@@ -116,7 +116,7 @@ export const convertDegreeToDMS = (degree: number): { deg: number; min: number; 
  * @returns the hours, minutes and seconds components of a degree value.
  *
  */
-export const convertDegreeToHMS = (degree: number): { hrs: number; min: number; sec: number } => {
+export function convertDegreeToHMS(degree: number): { hrs: number; min: number; sec: number } {
   degree = degree % 360
 
   if (degree < 0) {

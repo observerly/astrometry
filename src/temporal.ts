@@ -22,7 +22,7 @@ import { getJulianDate } from './epoch'
  * @returns Date - the UTC date from the Julian Date
  *
  */
-export const convertJulianDateToUTC = (JD: number): Date => {
+export function convertJulianDateToUTC(JD: number): Date {
   // Return the UTC date from the Julian Date:
   return new Date((JD - J1970) * 86400000)
 }
@@ -40,10 +40,10 @@ export const convertJulianDateToUTC = (JD: number): Date => {
  * @returns GST - the Greenwich Sidereal Time for the given Local Sidereal Times
  *
  */
-export const convertLocalSiderealTimeToGreenwichSiderealTime = (
+export function convertLocalSiderealTimeToGreenwichSiderealTime(
   LST: number,
   observer: GeographicCoordinate
-): number => {
+): number {
   const { longitude } = observer
 
   let GST = LST - longitude / 15.0
@@ -72,7 +72,7 @@ export const convertLocalSiderealTimeToGreenwichSiderealTime = (
  * @returns UTC - The Universal Coordinated Time (UTC) of the given date normalised to UTC.
  *
  */
-export const convertGreenwichSiderealTimeToUniversalTime = (GST: number, date: Date): Date => {
+export function convertGreenwichSiderealTimeToUniversalTime(GST: number, date: Date): Date {
   // Get the Julian Date at 0h UTC:
   const JD = getJulianDate(
     new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0))

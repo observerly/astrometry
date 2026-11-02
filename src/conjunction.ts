@@ -66,10 +66,10 @@ const ANGULAR_SEPARATION_THRESHOLD = 3 // in degrees
  * @returns The equatorial coordinate of the midpoint between the two targets.
  *
  */
-export const getMidpointEquatorialCoordinate = (
+export function getMidpointEquatorialCoordinate(
   A: EquatorialCoordinate,
   B: EquatorialCoordinate
-): EquatorialCoordinate => {
+): EquatorialCoordinate {
   // Convert both coordinates to unit vectors, and sum them component-wise:
   const x =
     Math.cos(radians(A.dec)) * Math.cos(radians(A.ra)) +
@@ -104,7 +104,7 @@ export const getMidpointEquatorialCoordinate = (
  * @returns The conjunction of the two planets if they are in conjunction, otherwise false.
  *
  */
-export const isPlanetaryConjunction = (
+export function isPlanetaryConjunction(
   datetime: Date,
   observer: GeographicCoordinate,
   planets: [Planet, Planet],
@@ -115,7 +115,7 @@ export const isPlanetaryConjunction = (
     horizon: 6,
     angularSeparationThreshold: ANGULAR_SEPARATION_THRESHOLD
   }
-): Conjunction | false => {
+): Conjunction | false {
   const [from, to] = planets
 
   const { horizon = 6, angularSeparationThreshold = ANGULAR_SEPARATION_THRESHOLD } = params
@@ -198,7 +198,7 @@ export const isPlanetaryConjunction = (
  * @returns The conjunction of the two targets if they are in conjunction, otherwise false.
  *
  */
-export const isConjunction = (
+export function isConjunction(
   datetime: Date,
   targets: [Target, Target],
   params: {
@@ -208,7 +208,7 @@ export const isConjunction = (
     horizon: 6,
     angularSeparationThreshold: ANGULAR_SEPARATION_THRESHOLD
   }
-): Conjunction | false => {
+): Conjunction | false {
   const { horizon = 6, angularSeparationThreshold = ANGULAR_SEPARATION_THRESHOLD } = params
 
   const [hither, tither] = targets
@@ -258,7 +258,7 @@ export const isConjunction = (
  * @param stepMinutes - The step size in minutes for checking conjunction.
  * @returns The conjunction of the two planets if they are in conjunction, otherwise null.
  */
-export const findPlanetaryConjunction = (
+export function findPlanetaryConjunction(
   interval: Interval,
   observer: GeographicCoordinate,
   planets: [Planet, Planet],
@@ -271,7 +271,7 @@ export const findPlanetaryConjunction = (
     angularSeparationThreshold: 3,
     stepMinutes: 20
   }
-): Conjunction | undefined => {
+): Conjunction | undefined {
   /*eslint prefer-const: ["error", {"destructuring": "all"}]*/
   let { from, to } = interval
 
@@ -308,7 +308,7 @@ export const findPlanetaryConjunction = (
  * @param params - The parameters for the conjunction test.
  * @returns The conjunction of the two targets if they are in conjunction, otherwise false.
  */
-export const findConjunction = (
+export function findConjunction(
   interval: Interval,
   targets: [Target, Target],
   params: {
@@ -320,7 +320,7 @@ export const findConjunction = (
     angularSeparationThreshold: ANGULAR_SEPARATION_THRESHOLD,
     stepMinutes: 20
   }
-): Conjunction | false => {
+): Conjunction | false {
   /*eslint prefer-const: ["error", {"destructuring": "all"}]*/
   let { from, to } = interval
 
@@ -362,7 +362,7 @@ export const findConjunction = (
  * @returns An array of conjunctions found.
  *
  */
-export const findPlanetaryConjunctions = (
+export function findPlanetaryConjunctions(
   interval: Interval,
   observer: GeographicCoordinate,
   params: {
@@ -374,7 +374,7 @@ export const findPlanetaryConjunctions = (
     angularSeparationThreshold: ANGULAR_SEPARATION_THRESHOLD,
     stepMinutes: 20
   }
-): Map<string, Conjunction> => {
+): Map<string, Conjunction> {
   // A conjunction is a close apparent approach of two celestial objects in the sky.
   const conjunctions = new Map<string, Conjunction>()
 
@@ -478,7 +478,7 @@ const REGULUS: EquatorialCoordinate = { ra: 152.093, dec: 11.9672 }
  * @returns The closest conjunction found for each pair of targets, keyed by their names.
  *
  */
-export const findConjunctions = (
+export function findConjunctions(
   interval: Interval,
   observer: GeographicCoordinate,
   params: {
@@ -490,7 +490,7 @@ export const findConjunctions = (
     angularSeparationThreshold: ANGULAR_SEPARATION_THRESHOLD,
     stepMinutes: 20
   }
-): Map<string, Conjunction> => {
+): Map<string, Conjunction> {
   // A conjunction is a close apparent approach of two celestial objects in the sky.
   const conjunctions = new Map<string, Conjunction>()
 

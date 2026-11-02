@@ -133,7 +133,7 @@ export type Phase = (typeof Phases)[keyof typeof Phases]
 
 /*****************************************************************************************************************/
 
-export const getLunarAnnualEquationCorrection = (datetime: Date): number => {
+export function getLunarAnnualEquationCorrection(datetime: Date): number {
   // Correct for the Sun's mean anomaly:
   const M = radians(getSolarMeanAnomaly(datetime))
 
@@ -153,7 +153,7 @@ export const getLunarAnnualEquationCorrection = (datetime: Date): number => {
  * @returns The Moon's mean anomaly at the given date.
  *
  */
-export const getLunarMeanAnomaly = (datetime: Date): number => {
+export function getLunarMeanAnomaly(datetime: Date): number {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(datetime)
@@ -187,7 +187,7 @@ export const getLunarMeanAnomaly = (datetime: Date): number => {
  * @returns The Moon's mean geometric longitude at the given date.
  *
  */
-export const getLunarMeanGeometricLongitude = (datetime: Date): number => {
+export function getLunarMeanGeometricLongitude(datetime: Date): number {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(datetime)
@@ -220,7 +220,7 @@ export const getLunarMeanGeometricLongitude = (datetime: Date): number => {
  * @returns The Moon's argument of latitude at the given date.
  *
  */
-export const getLunarArgumentOfLatitude = (datetime: Date): number => {
+export function getLunarArgumentOfLatitude(datetime: Date): number {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(datetime)
@@ -260,7 +260,7 @@ export const getLunarArgumentOfLatitude = (datetime: Date): number => {
  * @returns The Moon's mean ecliptic longitude at the given date.
  *
  */
-export const getLunarMeanEclipticLongitude = (datetime: Date): number => {
+export function getLunarMeanEclipticLongitude(datetime: Date): number {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(datetime)
@@ -284,7 +284,7 @@ export const getLunarMeanEclipticLongitude = (datetime: Date): number => {
 
 /*****************************************************************************************************************/
 
-export const getLunarEvectionCorrection = (datetime: Date): number => {
+export function getLunarEvectionCorrection(datetime: Date): number {
   // Get the Moon's mean anomaly at the current epoch relative to J2000:
   const M = radians(getLunarMeanAnomaly(datetime))
 
@@ -311,7 +311,7 @@ export const getLunarEvectionCorrection = (datetime: Date): number => {
  * @returns The Moon's mean ecliptic longitude of the ascending node at the given date.
  *
  */
-export const getLunarMeanEclipticLongitudeOfTheAscendingNode = (datetime: Date): number => {
+export function getLunarMeanEclipticLongitudeOfTheAscendingNode(datetime: Date): number {
   // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
   // the Terrestrial Time of the given date:
   const tt = getTerrestrialTime(datetime)
@@ -332,7 +332,7 @@ export const getLunarMeanEclipticLongitudeOfTheAscendingNode = (datetime: Date):
 
 /*****************************************************************************************************************/
 
-export const getLunarMeanAnomalyCorrection = (datetime: Date): number => {
+export function getLunarMeanAnomalyCorrection(datetime: Date): number {
   // Get the annual equation correction:
   const Ae = getLunarAnnualEquationCorrection(datetime)
 
@@ -368,7 +368,7 @@ export const getLunarMeanAnomalyCorrection = (datetime: Date): number => {
  * @param datetime - The date to calculate the Moon's true anomaly for.
  * @returns The Moon's true anomaly in degrees.
  */
-export const getLunarTrueAnomaly = (datetime: Date): number => {
+export function getLunarTrueAnomaly(datetime: Date): number {
   // Get the mean anomaly correction:
   const Ca = getLunarMeanAnomalyCorrection(datetime)
 
@@ -396,7 +396,7 @@ export const getLunarTrueAnomaly = (datetime: Date): number => {
  * @returns The Moon's true ecliptic longitude in degrees.
  *
  */
-export const getLunarTrueEclipticLongitude = (datetime: Date): number => {
+export function getLunarTrueEclipticLongitude(datetime: Date): number {
   // Get the mean ecliptic longitude:
   let λ = getLunarMeanEclipticLongitude(datetime)
 
@@ -447,7 +447,7 @@ export const getLunarTrueEclipticLongitude = (datetime: Date): number => {
  * @returns The Moon's corrected ecliptic latitude in degrees.
  *
  */
-export const getLunarCorrectedEclipticLongitudeOfTheAscendingNode = (datetime: Date): number => {
+export function getLunarCorrectedEclipticLongitudeOfTheAscendingNode(datetime: Date): number {
   // Get the ecliptic longitude of the ascending node:
   const Ω = getLunarMeanEclipticLongitudeOfTheAscendingNode(datetime)
 
@@ -472,7 +472,7 @@ export const getLunarCorrectedEclipticLongitudeOfTheAscendingNode = (datetime: D
  * @returns The Moon's ecliptic longitude in degrees.
  *
  */
-export const getLunarEclipticLongitude = (datetime: Date): number => {
+export function getLunarEclipticLongitude(datetime: Date): number {
   // Get the true ecliptic longitude:
   const λt = getLunarTrueEclipticLongitude(datetime)
 
@@ -513,7 +513,7 @@ export const getLunarEclipticLongitude = (datetime: Date): number => {
  * @returns The Moon's ecliptic latitude in degrees.
  *
  */
-export const getLunarEclipticLatitude = (datetime: Date): number => {
+export function getLunarEclipticLatitude(datetime: Date): number {
   // Get the true ecliptic longitude:
   const λt = getLunarTrueEclipticLongitude(datetime)
 
@@ -544,7 +544,7 @@ export const getLunarEclipticLatitude = (datetime: Date): number => {
  * @returns The Moon's ecliptic coordinates in degrees.
  *
  */
-export const getLunarEclipticCoordinate = (datetime: Date): EclipticCoordinate => {
+export function getLunarEclipticCoordinate(datetime: Date): EclipticCoordinate {
   // Get the true ecliptic longitude:
   const λt = getLunarTrueEclipticLongitude(datetime)
 
@@ -588,7 +588,7 @@ export const getLunarEclipticCoordinate = (datetime: Date): EclipticCoordinate =
  * @returns The Moon's equatorial coordinates in degrees.
  *
  */
-export const getLunarEquatorialCoordinate = (datetime: Date): EquatorialCoordinate => {
+export function getLunarEquatorialCoordinate(datetime: Date): EquatorialCoordinate {
   // Get the ecliptic coordinates for the Moon:
   const { λ, β } = getLunarEclipticCoordinate(datetime)
 
@@ -629,7 +629,7 @@ export const getLunarEquatorialCoordinate = (datetime: Date): EquatorialCoordina
  * @returns The Moon's elongation in degrees.
  *
  */
-export const getLunarElongation = (datetime: Date): number => {
+export function getLunarElongation(datetime: Date): number {
   // Get the ecliptic coordinate:
   const { λ, β } = getLunarEclipticCoordinate(datetime)
 
@@ -658,10 +658,10 @@ export const getLunarElongation = (datetime: Date): number => {
  * @returns The Moon's angular diameter in degrees
  *
  */
-export const getLunarAngularDiameter = (
+export function getLunarAngularDiameter(
   datetime: Date,
   observer?: GeographicCoordinate & { elevation: number }
-): number => {
+): number {
   if (!observer) {
     // Get the true anomaly:
     const ν = getLunarTrueAnomaly(datetime)
@@ -726,7 +726,7 @@ export const getLunarAngularDiameter = (
  * @returns The distance to the Moon in metres.
  *
  */
-export const getLunarDistance = (datetime: Date): number => {
+export function getLunarDistance(datetime: Date): number {
   // Get the true anomaly:
   const ν = getLunarTrueAnomaly(datetime)
 
@@ -751,7 +751,7 @@ export const getLunarDistance = (datetime: Date): number => {
  * @returns The Moon's age in both degrees and days.
  *
  */
-export const getLunarAge = (date: Date): { A: number; age: number } => {
+export function getLunarAge(date: Date): { A: number; age: number } {
   // Get the true ecliptic longitude:
   const λt = getLunarTrueEclipticLongitude(date)
 
@@ -790,7 +790,7 @@ export const getLunarAge = (date: Date): { A: number; age: number } => {
  * @returns The Moon's phase angle in degrees.
  *
  */
-export const getLunarPhaseAngle = (datetime: Date): number => {
+export function getLunarPhaseAngle(datetime: Date): number {
   // Get the mean anomaly:
   const M = radians(getLunarMeanAnomaly(datetime))
 
@@ -820,7 +820,7 @@ export const getLunarPhaseAngle = (datetime: Date): number => {
  * @returns The Moon's illumination as a percentage of the visible portion of the Moon as seen from Earth.
  *
  */
-export const getLunarIllumination = (datetime: Date): number => {
+export function getLunarIllumination(datetime: Date): number {
   // Get the phase angle:
   const PA = getLunarPhaseAngle(datetime)
 
@@ -841,7 +841,7 @@ export const getLunarIllumination = (datetime: Date): number => {
  * @returns The phase of the Moon.
  *
  */
-export const getLunarPhase = (datetime: Date): Phase => {
+export function getLunarPhase(datetime: Date): Phase {
   // Get the elongation of the Moon from the Sun, in degrees, in the range
   // [0, 360). This is 0° at New Moon, 90° at First Quarter, 180° at Full Moon
   // and 270° at Last Quarter:
@@ -896,7 +896,7 @@ export const getLunarPhase = (datetime: Date): Phase => {
  * Represents the number of Lunar synodic months since Lunation 1st.
  *
  */
-export const getLunarBrownLunationNumber = (datetime: Date): number => {
+export function getLunarBrownLunationNumber(datetime: Date): number {
   // Get the Julian date:
   const JD = getJulianDate(datetime)
 
@@ -917,7 +917,9 @@ export const getLunarBrownLunationNumber = (datetime: Date): number => {
  * @returns true if the Moon is new, false otherwise.
  *
  */
-export const isNewMoon = (datetime: Date): boolean => getLunarPhase(datetime) === 'New'
+export function isNewMoon(datetime: Date): boolean {
+  return getLunarPhase(datetime) === 'New'
+}
 
 /*****************************************************************************************************************/
 
@@ -928,7 +930,7 @@ export const isNewMoon = (datetime: Date): boolean => getLunarPhase(datetime) ==
  * @param datetime - The date to determine the next new Moon for.
  * @returns The date of the next new Moon.
  */
-export const getNextNewMoon = (datetime: Date): Date => {
+export function getNextNewMoon(datetime: Date): Date {
   // The search begins at the datetime given, and not at the midnight before it: the midnight of
   // the host system is not the midnight of UTC, and so the search would begin at an instant that
   // depends on where the host is, and it would resolve a new Moon that has already passed earlier
@@ -1006,7 +1008,9 @@ export const getNextNewMoon = (datetime: Date): Date => {
  * @returns true if the Moon is full, false otherwise.
  *
  */
-export const isFullMoon = (datetime: Date): boolean => getLunarPhase(datetime) === 'Full'
+export function isFullMoon(datetime: Date): boolean {
+  return getLunarPhase(datetime) === 'Full'
+}
 
 /*****************************************************************************************************************/
 
@@ -1017,7 +1021,7 @@ export const isFullMoon = (datetime: Date): boolean => getLunarPhase(datetime) =
  * @param datetime - The date to determine the next full Moon for.
  * @returns The date of the next full Moon.
  */
-export const getNextFullMoon = (datetime: Date): Date => {
+export function getNextFullMoon(datetime: Date): Date {
   // The search begins at the datetime given, and not at the midnight before it: the midnight of
   // the host system is not the midnight of UTC, and so the search would begin at an instant that
   // depends on where the host is, and it would resolve a full Moon that has already passed earlier
@@ -1097,7 +1101,7 @@ export const getNextFullMoon = (datetime: Date): Date => {
  * @param datetime - The date to determine if the Moon is a Blue Moon for.
  * @returns true if the Moon is a Blue Moon, false otherwise.
  */
-export const isBlueMoon = (datetime: Date): boolean => {
+export function isBlueMoon(datetime: Date): boolean {
   // If the Moon is full and it is the second full Moon in a calendar month,
   // then it is considered a Blue Moon. However, it is impossible to have a
   // Blue Moon on any other days except the 29th, 30th, or 31st of a given month,

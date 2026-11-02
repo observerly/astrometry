@@ -21,14 +21,14 @@ import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians 
  * @param height
  * @returns the Cartesian Coordinate { x, y } conversion to the stereographic projection
  */
-export const convertHorizontalToStereo = (
+export function convertHorizontalToStereo(
   target: HorizontalCoordinate,
   extent: {
     width: number
     height: number
   },
   focus = 0.42
-): CartesianCoordinate => {
+): CartesianCoordinate {
   const { az, alt } = target
 
   const { width, height } = extent
@@ -70,11 +70,11 @@ export const convertHorizontalToStereo = (
  * @param height (of type number) representing the height of the projected "canvas"
  * @returns the Horizontal Coordinate { alt, az } conversion from the stereographic projection
  */
-export const convertStereoToHorizontal = (
+export function convertStereoToHorizontal(
   cartesianCoordinate: CartesianCoordinate,
   extent: { width: number; height: number },
   focus = 0.42
-): HorizontalCoordinate => {
+): HorizontalCoordinate {
   const { x, y } = cartesianCoordinate
 
   const sinalt1 = 0
@@ -130,14 +130,14 @@ export const convertStereoToHorizontal = (
  * @param focus a scaling factor for the radial extent of the projection.
  * @returns the Cartesian Coordinate { x, y } conversion to the polar projection
  */
-export const convertHorizontalToPolar = (
+export function convertHorizontalToPolar(
   target: HorizontalCoordinate,
   extent: {
     width: number
     height: number
   },
   focus = 0.42
-): CartesianCoordinate => {
+): CartesianCoordinate {
   const { az, alt } = target
 
   const { width, height } = extent
@@ -183,11 +183,11 @@ export const convertHorizontalToPolar = (
  * @param focus a scaling factor for the radial extent of the projection.
  * @returns the Horizontal Coordinate { alt, az } conversion from the polar projection
  */
-export const convertPolarToHorizontal = (
+export function convertPolarToHorizontal(
   cartesianCoordinate: CartesianCoordinate,
   extent: { width: number; height: number },
   focus = 0.42
-): HorizontalCoordinate => {
+): HorizontalCoordinate {
   const { x, y } = cartesianCoordinate
 
   const { width, height } = extent
