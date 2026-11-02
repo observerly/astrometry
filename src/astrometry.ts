@@ -101,7 +101,7 @@ export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordina
 
 /**
  *
- * getNormalisedSphericalCoordinate()
+ * getNormalizedSphericalCoordinate()
  *
  * Normalises a Spherical coordinate to a value between -90 and 90 degrees in the
  * polar angle and 0 to 360 degrees in the azimuthal angle.
@@ -114,7 +114,7 @@ export const getAntipodeCoordinate = (A: SphericalCoordinate): SphericalCoordina
  * @returns The normalised Spherical coordinate.
  *
  */
-export const getNormalisedSphericalCoordinate = (A: SphericalCoordinate): SphericalCoordinate => {
+export const getNormalizedSphericalCoordinate = (A: SphericalCoordinate): SphericalCoordinate => {
   const { θ, φ } = A
 
   // Wrap the polar angle onto the range [-90, 270), e.g., a single meridian of the sphere,

@@ -21,7 +21,7 @@ import {
   getCorrectionToEquatorialForNutation,
   getCorrectionToEquatorialForPrecessionOfEquinoxes,
   getCorrectionToHorizontalForRefraction,
-  getNormalisedSphericalCoordinate,
+  getNormalizedSphericalCoordinate,
   getObservationalQuality,
   getObservationalQualityRanking,
   getObservationalQualityWindows,
@@ -230,7 +230,7 @@ describe('getObservationalQuality for a target near the celestial pole', () => {
 
     const nutation = getCorrectionToEquatorialForNutation(when, mean)
 
-    const { θ: dec, φ: ra } = getNormalisedSphericalCoordinate({
+    const { θ: dec, φ: ra } = getNormalizedSphericalCoordinate({
       θ: mean.dec + nutation.dec,
       φ: mean.ra + nutation.ra
     })
