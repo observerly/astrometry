@@ -32,10 +32,17 @@ import { getCorrectionToEquatorialForAnnualParallax } from '../../src/parallax'
 import {
   getCorrectionToEquatorialForFrameBias,
   getCorrectionToEquatorialForPrecessionOfEquinoxes,
-  getFrameBiasMatrix
+  getFrameBiasMatrix,
+  getPrecessionMatrix
 } from '../../src/precession'
 
-import { ERFAFrameBiasMatrix, erfaCorrections, erfaInstants, erfaLightDeflections } from './erfa'
+import {
+  ERFAFrameBiasMatrix,
+  ERFAPrecessionMatrices,
+  erfaCorrections,
+  erfaInstants,
+  erfaLightDeflections
+} from './erfa'
 
 /*****************************************************************************************************************/
 
@@ -79,6 +86,13 @@ const APPARENT_SIDEREAL_TIME_TOLERANCE = 0.015
 // IAU 2006 (in degrees). The reference is the precession without the frame bias, which the library likewise leaves
 // out:
 const PRECESSION_TOLERANCE = 0.0000001
+
+/*****************************************************************************************************************/
+
+// Each element of the precession matrix of the equatorial precession angles ζ, z and θ of IAU
+// 2006, against the rp matrix of bp06, which is resolved through the Fukushima-Williams angles,
+// e.g., to within ~0.4 µas:
+const PRECESSION_MATRIX_TOLERANCE = 2e-12
 
 /*****************************************************************************************************************/
 
@@ -363,6 +377,23 @@ describe('conformance of the frame bias matrix to ERFA', () => {
       }
     }
   })
+})
+
+/*****************************************************************************************************************/
+
+describe('conformance of the precession matrix to ERFA', () => {
+  it.each(ERFAPrecessionMatrices)(
+    'should agree with each element of the rp matrix of bp06 at $datetime',
+    reference => {
+      const P = getPrecessionMatrix(new Date(reference.datetime))
+
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          expect(Math.abs(P[i][j] - reference.P[i][j])).toBeLessThan(PRECESSION_MATRIX_TOLERANCE)
+        }
+      }
+    }
+  )
 })
 
 /*****************************************************************************************************************/

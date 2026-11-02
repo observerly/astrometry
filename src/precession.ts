@@ -209,6 +209,41 @@ export function getPrecessionAngles(datetime: Date): { ζ: number; z: number; θ
 
 /**
  *
+ * getPrecessionMatrix()
+ *
+ * Resolves the precession matrix P of IAU 2006, e.g., the rotation from the mean equator and
+ * equinox of J2000.0 to the mean equator and equinox of the date, as the product of the passive
+ * rotations of the frame through the equatorial precession angles ζ, z and θ of P03 (Capitaine
+ * et al. 2003):
+ *
+ * P = R3(−z) · R2(θ) · R3(−ζ)
+ *
+ * N.B. The matrix is referred to the mean equator and equinox of J2000.0, and not to the ICRS,
+ * e.g., a catalogue coordinate is carried by the frame bias matrix first, as P · B.
+ *
+ * N.B. The transpose of the matrix is its inverse, e.g., Pᵀ carries a coordinate from the mean
+ * equator and equinox of the date back to the mean equator and equinox of J2000.0.
+ *
+ * @param datetime - The date to resolve the precession matrix for.
+ * @returns The 3×3 precession matrix, in row-major order.
+ *
+ */
+export const getPrecessionMatrix = (datetime: Date): Matrix3 => {
+  // Get the equatorial precession angles of IAU 2006 (in degrees):
+  const { ζ, z, θ } = getPrecessionAngles(datetime)
+
+  // The rotation about the z-axis through −ζ is applied first, and the rotation about the z-axis
+  // through −z last:
+  return getMatrixProduct(
+    getRotationMatrix('z', -z),
+    getMatrixProduct(getRotationMatrix('y', θ), getRotationMatrix('z', -ζ))
+  )
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * getCorrectionToEquatorialForPrecessionOfEquinoxes()
  *
  * Corrects the equatorial coordinates of a target for the precession of the equinoxes.
