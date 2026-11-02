@@ -269,7 +269,7 @@ type PlanetOrbitalParameters = Omit<Planet, 'uid' | 'name' | 'symbol'>
  *
  * A planet's mean anomaly is the angle between perigee and the Sun's current position.
  *
- * @param date - The date to calculate the Planet's mean anomaly for.
+ * @param datetime - The date to calculate the Planet's mean anomaly for.
  * @param planet - The planet to calculate the mean anomaly for.
  * @returns a planet's mean anomaly at a given datetime
  */
@@ -304,7 +304,7 @@ export const getPlanetaryMeanAnomaly = (
  *
  * getPlanetaryEquationOfCenter()
  *
- * @param date - The date to calculate the Planet's equation of center for.
+ * @param datetime - The date to calculate the Planet's equation of center for.
  * @param planet - The planet to calculate the equation of center for.
  * @returns a planet's equation of center at a given datetime
  *
@@ -329,7 +329,7 @@ export const getPlanetaryEquationOfCenter = (
  * A planet's true anomaly is the angle between perigee and the planet's
  * current position, corrected for the planet's eccentricity.
  *
- * @param date - The date to calculate the Planet's true anomaly for.
+ * @param datetime - The date to calculate the Planet's true anomaly for.
  * @param planet - The planet to calculate the true anomaly for.
  * @returns a planet's true anomaly at a given datetime
  *
@@ -351,7 +351,7 @@ export const getPlanetaryTrueAnomaly = (
  *
  * getPlanetaryHeliocentricEclipticLongitude()
  *
- * @param date - The date to calculate the Planet's heliocentric ecliptic longitude for.
+ * @param datetime - The date to calculate the Planet's heliocentric ecliptic longitude for.
  * @param planet - The planet to calculate the heliocentric ecliptic longitude for.
  * @returns a planet's heliocentric ecliptic longitude at a given datetime
  *
@@ -371,7 +371,7 @@ export const getPlanetaryHeliocentricEclipticLongitude = (
  *
  * getPlanetaryHeliocentricEclipticLatitude()
  *
- * @param date - The date to calculate the Planet's heliocentric ecliptic latitude for.
+ * @param datetime - The date to calculate the Planet's heliocentric ecliptic latitude for.
  * @param planet - The planet to calculate the heliocentric ecliptic latitude for.
  * @returns a planet's heliocentric ecliptic latitude at a given datetime
  *
@@ -393,7 +393,7 @@ export const getPlanetaryHeliocentricEclipticLatitude = (
  *
  * getPlanetaryHeliocentricDistance()
  *
- * @param date - The date to calculate the Planet's heliocentric distance for.
+ * @param datetime - The date to calculate the Planet's heliocentric distance for.
  * @param planet - The planet to calculate the heliocentric distance for.
  * @returns a planet's heliocentric distance at a given datetime (in AUs)
  *

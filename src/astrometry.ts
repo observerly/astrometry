@@ -155,7 +155,7 @@ export const getNormalizedSphericalCoordinate = (A: SphericalCoordinate): Spheri
  * The Greenwich Sidereal Time (GST) is the hour angle of the vernal
  * equinox, the ascending node of the ecliptic on the celestial equator.
  *
- * @param date - The date for which to calculate the Greenwich Sidereal Time (GST).
+ * @param datetime - The date for which to calculate the Greenwich Sidereal Time (GST).
  * @returns Greenwich Sidereal Time as number - the Greenwich Sidereal Time (GST) of the given date normalised to UTC.
  *
  */
@@ -259,7 +259,7 @@ export const GAST = getGreenwichApparentSiderealTime
  * The Local Sidereal Time (LST) is the hour angle of the vernal
  * equinox, the ascending node of the ecliptic on the celestial equator.
  *
- * @param date - The date for which to calculate the Local Sidereal Time (LST).
+ * @param datetime - The date for which to calculate the Local Sidereal Time (LST).
  * @param longitude - The longitude of the observer in degrees.
  * @returs Local Sidereal Time as number - the Local Sidereal Time (LST) of the given date normalised to UTC.
  *
@@ -298,7 +298,7 @@ export const LST = getLocalSiderealTime
  * the observer's meridian, that is, the Greenwich Apparent Sidereal Time (GAST) corrected
  * for the longitude of the observer.
  *
- * @param date - The date for which to calculate the Local Apparent Sidereal Time (LAST).
+ * @param datetime - The date for which to calculate the Local Apparent Sidereal Time (LAST).
  * @param longitude - The longitude of the observer in degrees.
  * @returns Local Apparent Sidereal Time as number - the Local Apparent Sidereal Time (LAST) of the given date normalised to UTC.
  *
@@ -337,7 +337,7 @@ export const LAST = getLocalApparentSiderealTime
  * The Hour Angle (HA) is the angular distance along the celestial equator
  * from the observer's meridian to the hour circle of a celestial body.
  *
- * @param date - The date for which to calculate the hour angle.
+ * @param datetime - The date for which to calculate the hour angle.
  * @param ra - Right Ascension of the target in degrees.
  * @param longitude - The longitude of the observer in degrees.
  * @returns The Hour Angle (HA) of the given date.
@@ -374,7 +374,7 @@ export const getHourAngle = (datetime: Date, longitude: number, ra: number): num
  * nutation of the right ascension unbalanced, and so is displaced by the equation of the
  * equinoxes.
  *
- * @param date - The date for which to calculate the apparent hour angle.
+ * @param datetime - The date for which to calculate the apparent hour angle.
  * @param ra - Apparent Right Ascension of the target in degrees.
  * @param longitude - The longitude of the observer in degrees.
  * @returns The apparent Hour Angle (HA) of the given date.
@@ -404,7 +404,7 @@ export const getApparentHourAngle = (datetime: Date, longitude: number, ra: numb
  * the celestial object and the zenith, and the great circle that passes through
  * the celestial object and the celestial pole.
  *
- * @param date - The date for which to calculate the parallactic angle for.
+ * @param datetime - The date for which to calculate the parallactic angle for.
  * @param observer - The geographic coordinate of the observer.
  * @param target - The equatorial coordinate of the observed object.
  * @return The parallactic angle of the observed object in degrees.

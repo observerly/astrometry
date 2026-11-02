@@ -149,7 +149,7 @@ export const getLunarAnnualEquationCorrection = (datetime: Date): number => {
  *
  * The Moon's mean anomaly is the angle between perigee and the Moon's current position.
  *
- * @param date - The date to calculate the Moon's mean anomaly for.
+ * @param datetime - The date to calculate the Moon's mean anomaly for.
  * @returns The Moon's mean anomaly at the given date.
  *
  */
@@ -183,7 +183,7 @@ export const getLunarMeanAnomaly = (datetime: Date): number => {
  * The Moon's mean geometric longitude is the angle between the Moon's current
  * position and the vernal equinox.
  *
- * @param date - The date to calculate the Moon's mean geometric longitude for.
+ * @param datetime - The date to calculate the Moon's mean geometric longitude for.
  * @returns The Moon's mean geometric longitude at the given date.
  *
  */
@@ -256,7 +256,7 @@ export const getLunarArgumentOfLatitude = (datetime: Date): number => {
  * The mean lunar ecliptic longitude is the ecliptic longitude of the Moon
  * if the Moon's orbit where free of perturbations
  *
- * @param date - The date to calculate the Moon's mean ecliptic longitude for.
+ * @param datetime - The date to calculate the Moon's mean ecliptic longitude for.
  * @returns The Moon's mean ecliptic longitude at the given date.
  *
  */
@@ -307,7 +307,7 @@ export const getLunarEvectionCorrection = (datetime: Date): number => {
  * The mean lunar ecliptic longitude of the ascending node is the angle where
  * the Moon's orbit crosses the ecliptic at the current epoch relative to J2000.
  *
- * @param date - The date to calculate the Moon's mean ecliptic longitude of the ascending node for.
+ * @param datetime - The date to calculate the Moon's mean ecliptic longitude of the ascending node for.
  * @returns The Moon's mean ecliptic longitude of the ascending node at the given date.
  *
  */
@@ -365,7 +365,7 @@ export const getLunarMeanAnomalyCorrection = (datetime: Date): number => {
  * The true anomaly of the Moon is the angle between the perihelion and the
  * current position of the Moon, as seen from the Earth.
  *
- * @param date - The date to calculate the Moon's true anomaly for.
+ * @param datetime - The date to calculate the Moon's true anomaly for.
  * @returns The Moon's true anomaly in degrees.
  */
 export const getLunarTrueAnomaly = (datetime: Date): number => {
@@ -392,7 +392,7 @@ export const getLunarTrueAnomaly = (datetime: Date): number => {
  * The corrected lunar ecliptic longitude is the ecliptic longitude of the Moon
  * if the Moon's orbit where free of perturbations.
  *
- * @param date - The date to calculate the Moon's true ecliptic longitude for.
+ * @param datetime - The date to calculate the Moon's true ecliptic longitude for.
  * @returns The Moon's true ecliptic longitude in degrees.
  *
  */
@@ -443,7 +443,7 @@ export const getLunarTrueEclipticLongitude = (datetime: Date): number => {
  * the Moon's orbit crosses the ecliptic corrected for perturbations in the
  * Moon's orbit due to the Sun.
  *
- * @param date - The date to calculate the Moon's corrected ecliptic latitude for.
+ * @param datetime - The date to calculate the Moon's corrected ecliptic latitude for.
  * @returns The Moon's corrected ecliptic latitude in degrees.
  *
  */
@@ -468,7 +468,7 @@ export const getLunarCorrectedEclipticLongitudeOfTheAscendingNode = (datetime: D
  * corrected for the equation of center and the Moon's ecliptic longitude at
  * perigee at the epoch.
  *
- * @param date - The date to calculate the Moon's ecliptic longitude for.
+ * @param datetime - The date to calculate the Moon's ecliptic longitude for.
  * @returns The Moon's ecliptic longitude in degrees.
  *
  */
@@ -509,7 +509,7 @@ export const getLunarEclipticLongitude = (datetime: Date): number => {
  * corrected for the equation of center and the Moon's ecliptic longitude at
  * perigee at the epoch.
  *
- * @param date - The date to calculate the Moon's ecliptic latitude for.
+ * @param datetime - The date to calculate the Moon's ecliptic latitude for.
  * @returns The Moon's ecliptic latitude in degrees.
  *
  */
@@ -540,7 +540,7 @@ export const getLunarEclipticLatitude = (datetime: Date): number => {
  * corrected for the equation of center and the Moon's ecliptic longitude at
  * perigee at the epoch.
  *
- * @param date - The date to calculate the Moon's ecliptic coordinates for.
+ * @param datetime - The date to calculate the Moon's ecliptic coordinates for.
  * @returns The Moon's ecliptic coordinates in degrees.
  *
  */
@@ -584,7 +584,7 @@ export const getLunarEclipticCoordinate = (datetime: Date): EclipticCoordinate =
  * corrected for the equation of center and the Moon's ecliptic longitude at
  * perigee at the epoch.
  *
- * @param date - The date to calculate the Moon's equatorial coordinates for.
+ * @param datetime - The date to calculate the Moon's equatorial coordinates for.
  * @returns The Moon's equatorial coordinates in degrees.
  *
  */
@@ -625,7 +625,7 @@ export const getLunarEquatorialCoordinate = (datetime: Date): EquatorialCoordina
  * The elongation of the Moon is the angle between the Sun and the Moon, as
  * seen from the reference observer Earth.
  *
- * @param date - The date to calculate the Moon's elongation for.
+ * @param datetime - The date to calculate the Moon's elongation for.
  * @returns The Moon's elongation in degrees.
  *
  */
@@ -654,7 +654,7 @@ export const getLunarElongation = (datetime: Date): number => {
  *
  * The Moon's angular diameter is the distance between the Moon's centre and the Moon's limb.
  *
- * @param date - The date to calculate the Moon's angular diameter for.
+ * @param datetime - The date to calculate the Moon's angular diameter for.
  * @returns The Moon's angular diameter in degrees
  *
  */
@@ -722,7 +722,7 @@ export const getLunarAngularDiameter = (
  * and the centre of the Moon, corrected for the equation of center and the
  * Moon's ecliptic longitude at perigee at the epoch.
  *
- * @param date - The date to calculate the distance to the Moon for.
+ * @param datetime - The date to calculate the distance to the Moon for.
  * @returns The distance to the Moon in metres.
  *
  */
@@ -786,7 +786,7 @@ export const getLunarAge = (date: Date): { A: number; age: number } => {
  * The phase angle of the Moon is the angle subtended by the incident
  * light from the Sun as seen from the Earth's line of sight.
  *
- * @param date - The date to calculate the Moon's phase angle for.
+ * @param datetime - The date to calculate the Moon's phase angle for.
  * @returns The Moon's phase angle in degrees.
  *
  */
@@ -816,7 +816,7 @@ export const getLunarPhaseAngle = (datetime: Date): number => {
  * (i.e., the visible portion of the Moon), not to be confused with
  * the total illumination of the Moon by the Sun which is always 50%.
  *
- * @param date - The date to calculate the Moon's phase angle for.
+ * @param datetime - The date to calculate the Moon's phase angle for.
  * @returns The Moon's illumination as a percentage of the visible portion of the Moon as seen from Earth.
  *
  */
@@ -837,7 +837,7 @@ export const getLunarIllumination = (datetime: Date): number => {
  * The phase of the Moon is the shape of the Moon's illuminated portion
  * as seen from the Earth.
  *
- * @param date - The date to calculate the Moon's phase for.
+ * @param datetime - The date to calculate the Moon's phase for.
  * @returns The phase of the Moon.
  *
  */

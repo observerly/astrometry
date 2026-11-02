@@ -17,7 +17,7 @@ import { getNumberOfCenturiesSinceJ2000, getTerrestrialTime } from './epoch'
  * The obliquity of the ecliptic is the angle between the ecliptic and the celestial
  * equator, and is used to convert between ecliptic and equatorial coordinates.
  *
- * @param date - The date for which to calculate the obliquity of the ecliptic for.
+ * @param datetime - The date for which to calculate the obliquity of the ecliptic for.
  * @returns The obliquity of the ecliptic in degrees.
  *
  */
