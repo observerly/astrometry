@@ -66,7 +66,7 @@ export const SOLAR_TROPICAL_YEAR = 365.242189 as const
  *
  * The Sun's mean anomaly is the angle between perigee and the Sun's current position.
  *
- * @param date - The date to calculate the Sun's mean anomaly for.
+ * @param datetime - The date to calculate the Sun's mean anomaly for.
  * @returns The Sun's mean anomaly at the given date.
  *
  */
@@ -98,7 +98,7 @@ export const getSolarMeanAnomaly = (datetime: Date): number => {
  * The equation of center is the difference between the mean geometric longitude
  * and the mean anomaly.
  *
- * @param date - The date to calculate the Sun's equation of center for.
+ * @param datetime - The date to calculate the Sun's equation of center for.
  * @returns The Sun's equation of center at the given date.
  */
 export const getSolarEquationOfCenter = (datetime: Date): number => {
@@ -130,7 +130,7 @@ export const getSolarEquationOfCenter = (datetime: Date): number => {
  * The mean geometric longitude for the Sun is the angle between the perihelion
  * and the current position of the Sun, as seen from the centre of the Earth.
  *
- * @param date - The date to calculate the Sun's true geometric longitude for.
+ * @param datetime - The date to calculate the Sun's true geometric longitude for.
  * @returns The Sun's true geometric longitude at the given date.
  *
  */
@@ -163,7 +163,7 @@ export const getSolarMeanGeometricLongitude = (datetime: Date): number => {
  * current position of the Sun, as seen from the centre of the Earth, corrected
  * for the equation of center.
  *
- * @param date - The date to calculate the Sun's true anomaly for.
+ * @param datetime - The date to calculate the Sun's true anomaly for.
  * @returns The Sun's true anomaly at the given date.
  *
  */
@@ -188,7 +188,7 @@ export const getSolarTrueAnomaly = (datetime: Date): number => {
  * and the current position of the Sun, as seen from the centre of the Earth,
  * corrected for the equation of center.
  *
- * @param date - The date to calculate the Sun's true geometric longitude for.
+ * @param datetime - The date to calculate the Sun's true geometric longitude for.
  * @returns The Sun's true geometric longitude at the given date.
  *
  */
@@ -214,7 +214,7 @@ export const getSolarTrueGeometricLongitude = (datetime: Date): number => {
  * corrected for the equation of center and the Sun's ecliptic longitude at
  * perigee at the epoch.
  *
- * @param date - The date to calculate the Sun's ecliptic longitude for.
+ * @param datetime - The date to calculate the Sun's ecliptic longitude for.
  * @returns The Sun's ecliptic longitude at the given date.
  *
  */
@@ -491,7 +491,7 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
  * of the Sun, as seen from the centre of the Earth, corrected for the equation
  * of center and the Sun's ecliptic longitude at perigee at the epoch.
  *
- * @param date - The date to calculate the Sun's equatorial coordinate for.
+ * @param datetime - The date to calculate the Sun's equatorial coordinate for.
  * @returns The Sun's equatorial coordinate at the given date.
  *
  */
@@ -540,7 +540,7 @@ export const getEclipticPlane = (date: Date): EquatorialCoordinate[] => {
  *
  * The Sun's angular diameter is the distance between the Sun's centre and the Sun's limb.
  *
- * @param date - The date to calculate the Sun's angular diameter for.
+ * @param datetime - The date to calculate the Sun's angular diameter for.
  * @returns The Sun's angular diameter in degrees
  *
  */

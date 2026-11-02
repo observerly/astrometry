@@ -17,7 +17,7 @@ import { utc } from './utc'
  * getJulianDate()
  *
  *
- * @param date - The date for which to calculate the Julian Date (JD).
+ * @param datetime - The date for which to calculate the Julian Date (JD).
  * @returns Julian Date as number - the Julian Date (JD) of the given date normalised to UTC.
  *
  */
@@ -35,7 +35,7 @@ export const getJulianDate = (datetime: Date): number => {
  * getModifiedJulianDate()
  *
  *
- * @param date - The date for which to calculate the Modified Julian Date (MJD).
+ * @param datetime - The date for which to calculate the Modified Julian Date (MJD).
  * @returns Modified Julian Date as number - the Modified Julian Date (MJD) of the given date normalised to UTC.
  *
  */

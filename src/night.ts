@@ -309,7 +309,7 @@ export const getSolarTransit = (
  *
  * Calculates the start and end of the next night for the observer at the given date.
  *
- * @param date - The date to calculate the extent of the next night for.
+ * @param datetime - The date to calculate the extent of the next night for.
  * @param observer - The geographic coordinates of the observer.
  * @param horizon - The horizon altitude to use for the calculation.
  * @param temperature - The temperature to use for the calculation.

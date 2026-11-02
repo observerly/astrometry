@@ -267,7 +267,7 @@ export const getCorrectionToEquatorialForNutation = (
  * equator of the date, about which a coordinate referred to the true equator and equinox of the
  * date is converted.
  *
- * @param date - The date for which to calculate the true obliquity of the ecliptic for.
+ * @param datetime - The date for which to calculate the true obliquity of the ecliptic for.
  * @returns The true obliquity of the ecliptic in degrees.
  *
  */

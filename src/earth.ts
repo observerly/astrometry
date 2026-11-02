@@ -53,7 +53,7 @@ export const R = [R0, R1, R2, R3, R4]
  * orbit is. The eccentricity of the Earth's orbit is not constant, but varies over
  * time. This function returns the eccentricity of the Earth's orbit for a given date.
  *
- * @param date - The date to get the eccentricity of the Earth's orbit for
+ * @param datetime - The date to get the eccentricity of the Earth's orbit for
  * @returns The eccentricity of the Earth's orbit in degrees
  *
  */

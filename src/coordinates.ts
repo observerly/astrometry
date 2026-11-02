@@ -43,7 +43,7 @@ import {
  * the date corrected for the nutation in obliquity, and so an ecliptic coordinate of the date is
  * referred to the true equator and equinox of the date.
  *
- * @param date - The date and time of the observation for which to calculate the Horizontal coordinate
+ * @param datetime - The date and time of the observation for which to calculate the Horizontal coordinate
  * @param target - The ecliptical coordinate of the observed object.
  * @returns The equatorial coordinates of the target
  *
@@ -130,7 +130,7 @@ export const convertGalacticToEquatorial = (target: GalacticCoordinate): Equator
  * Performs the conversion from Equatorial to Horizontal coordinates for a given
  * datetime, observer, and target.
  *
- * @param date - The date and time of the observation for which to calculate the Horizontal coordinate
+ * @param datetime - The date and time of the observation for which to calculate the Horizontal coordinate
  * @param observer - The geographic coordinate of the observer.
  * @param target - The equatorial coordinate of the observed object.
  * @returns The horizontal coordinates of the target

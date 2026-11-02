@@ -154,7 +154,7 @@ export const getCorrectionToEquatorialForAnnualAberration = (
  * Corrects the equatorial coordinate of a target for aberration in
  * longitude and obliquity due to the apparent motion of the Earth.
  *
- * @param date - The date to correct the equatorial coordinate for.
+ * @param datetime - The date to correct the equatorial coordinate for.
  * @param target - The equatorial J2000 coordinate of the target.
  * @returns The corrected equatorial coordinate of the target.
  *
@@ -202,7 +202,7 @@ export const getCorrectionToEquatorialForDiurnalAberration = (
  * Corrects the equatorial coordinate of a target for aberration in
  * longitude and obliquity due to the apparent motion of the Earth.
  *
- * @param date - The date to correct the equatorial coordinate for.
+ * @param datetime - The date to correct the equatorial coordinate for.
  * @param target - The equatorial J2000 coordinate of the target.
  * @returns The corrected equatorial coordinate of the target.
  *

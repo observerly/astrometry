@@ -213,7 +213,7 @@ export const getPrecessionAngles = (datetime: Date): { ζ: number; z: number; θ
  *
  * Corrects the equatorial coordinates of a target for the precession of the equinoxes.
  *
- * @param date - The date to correct the equatorial coordinates for.
+ * @param datetime - The date to correct the equatorial coordinates for.
  * @param target - The equatorial J2000 coordinates of the target.
  * @returns The corrected equatorial coordinates of the target.
  *

@@ -378,7 +378,7 @@ export const getBodyTransit = (
  *
  * Determines the next rise time for an object, if at all.
  *
- * @param date - The date to start searching for the next rise.
+ * @param datetime - The date to start searching for the next rise.
  * @param observer - The geographic coordinate of the observer.
  * @param target - The equatorial coordinate of the observed object.
  * @param horizon - The observer's horizon (in degrees).
@@ -451,7 +451,7 @@ export const getBodyNextRise = (
  *
  * Determines the next set time for an object, if at all.
  *
- * @param date - The date to start searching for the next set.
+ * @param datetime - The date to start searching for the next set.
  * @param observer - The geographic coordinate of the observer.
  * @param target - The equatorial coordinate of the observed object.
  * @param horizon - The observer's horizon (in degrees).
@@ -531,7 +531,7 @@ export const getBodyNextSet = (
  *
  * Determines whether an object is visible at some point during the night.
  *
- * @param date - The date to start searching for the next set.
+ * @param datetime - The date to start searching for the next set.
  * @param observer - The geographic coordinate of the observer.
  * @param target - The equatorial coordinate of the observed object.
  * @param horizon - The observer's horizon (in degrees).
