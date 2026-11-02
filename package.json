@@ -114,6 +114,11 @@
       "require": "./dist/epoch.cjs",
       "types": "./dist/epoch.d.ts"
     },
+    "./frames": {
+      "import": "./dist/frames.js",
+      "require": "./dist/frames.cjs",
+      "types": "./dist/frames.d.ts"
+    },
     "./galactic": {
       "import": "./dist/galactic.js",
       "require": "./dist/galactic.cjs",
