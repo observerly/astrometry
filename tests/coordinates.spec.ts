@@ -16,6 +16,7 @@ import {
   convertEclipticToEquatorial,
   convertEquatorialToCartesian,
   convertEquatorialToEcliptic,
+  convertEquatorialToGalactic,
   convertEquatorialToHorizontal,
   convertGalacticToEquatorial,
   convertGeocentricToGeographic,
@@ -24,8 +25,10 @@ import {
   EARTH_RADIUS,
   type EclipticCoordinate,
   type EquatorialCoordinate,
+  type GalacticCoordinate,
   getAngularSeparation,
   getEquatorialToEclipticMatrix,
+  getEquatorialToGalacticMatrix,
   getGreenwichApparentSiderealTime,
   getGreenwichSiderealTime,
   getRotatedCartesianCoordinate,
@@ -558,6 +561,215 @@ describe('convertGalacticToEquatorial', () => {
     })
     expect(ra).toBe(153.92856024361822)
     expect(dec).toBe(40.55960513183074)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertEquatorialToGalactic', () => {
+  it('should be defined', () => {
+    expect(convertEquatorialToGalactic).toBeDefined()
+  })
+
+  it('should return a GalacticCoordinate', () => {
+    const galactic = convertEquatorialToGalactic(betelgeuse)
+    expectTypeOf(galactic).toEqualTypeOf<GalacticCoordinate>()
+    expect(Number.isFinite(galactic.l)).toBe(true)
+    expect(Number.isFinite(galactic.b)).toBe(true)
+  })
+
+  // The galactic coordinate of each star, as the icrs2g routine of ERFA resolves it (in degrees):
+  it.each([
+    {
+      name: 'Betelgeuse',
+      ra: 88.7929583,
+      dec: 7.4070639,
+      l: 199.78723977963807,
+      b: -8.958588971279083
+    },
+    {
+      name: 'Polaris',
+      ra: 37.95456067,
+      dec: 89.26410897,
+      l: 123.28054437658928,
+      b: 26.46139355081295
+    },
+    {
+      name: 'Canopus',
+      ra: 95.98787778,
+      dec: -52.69566111,
+      l: 261.21208561578067,
+      b: -25.292252241924412
+    },
+    {
+      name: 'Vega',
+      ra: 279.23473479,
+      dec: 38.78368896,
+      l: 67.44820298814159,
+      b: 19.23725244509086
+    },
+    {
+      name: 'σ Octantis',
+      ra: 317.19541667,
+      dec: -88.9565,
+      l: 303.9052326043725,
+      b: -27.713470498059788
+    },
+    {
+      name: 'Sirius',
+      ra: 101.28715533,
+      dec: -16.71611586,
+      l: 227.23028548110472,
+      b: -8.890282427779283
+    },
+    {
+      name: 'Deneb',
+      ra: 310.35797975,
+      dec: 45.28033881,
+      l: 84.2847305311689,
+      b: 1.997545400239554
+    }
+  ])('should agree with ERFA for $name', ({ ra, dec, l, b }) => {
+    const galactic = convertEquatorialToGalactic({ ra, dec })
+
+    // N.B. The galactic pole and node of the library are those of ERFA, and so the two agree to the
+    // rounding of the matrix elements of icrs2g, e.g., well within 1e-10°:
+    const separation = getAngularSeparation({ θ: galactic.b, φ: galactic.l }, { θ: b, φ: l })
+
+    expect(separation).toBeLessThan(1e-10)
+  })
+
+  it('should carry the galactic centre, at (266.40499°, −28.93617°), to (0°, 0°)', () => {
+    const { l, b } = convertEquatorialToGalactic({ ra: 266.40499, dec: -28.93617 })
+
+    // N.B. The galactic centre is given to 1e-5° in the Hipparcos catalogue, and so the separation
+    // from the origin of the galactic frame is of that order:
+    const separation = getAngularSeparation({ θ: b, φ: l }, { θ: 0, φ: 0 })
+
+    expect(separation).toBeLessThan(1e-5)
+  })
+
+  it('should carry the north galactic pole, at (192.85948°, 27.12825°), to b = 90°', () => {
+    const { b } = convertEquatorialToGalactic({ ra: 192.85948, dec: 27.12825 })
+
+    expect(b).toBeCloseTo(90, 6)
+  })
+
+  it('should carry the south galactic pole, at (12.85948°, −27.12825°), to b = −90°', () => {
+    const { b } = convertEquatorialToGalactic({ ra: 12.85948, dec: -27.12825 })
+
+    expect(b).toBeCloseTo(-90, 6)
+  })
+
+  it('should carry the north celestial pole to (122.93192°, 27.12825°)', () => {
+    const { l, b } = convertEquatorialToGalactic({ ra: 0, dec: 90 })
+
+    expect(l).toBeCloseTo(122.93192, 10)
+    expect(b).toBeCloseTo(27.12825, 10)
+  })
+
+  it('should carry the south celestial pole to (302.93192°, −27.12825°)', () => {
+    const { l, b } = convertEquatorialToGalactic({ ra: 0, dec: -90 })
+
+    expect(l).toBeCloseTo(302.93192, 10)
+    expect(b).toBeCloseTo(-27.12825, 10)
+  })
+
+  it('should not depend on the right ascension at either celestial pole', () => {
+    for (let ra = 0; ra < 360; ra += 30) {
+      const north = convertEquatorialToGalactic({ ra, dec: 90 })
+
+      expect(north.l).toBeCloseTo(122.93192, 10)
+      expect(north.b).toBeCloseTo(27.12825, 10)
+
+      const south = convertEquatorialToGalactic({ ra, dec: -90 })
+
+      expect(south.l).toBeCloseTo(302.93192, 10)
+      expect(south.b).toBeCloseTo(-27.12825, 10)
+    }
+  })
+
+  it('should return a galactic longitude within [0°, 360°)', () => {
+    for (let ra = 0; ra <= 360; ra += 15) {
+      for (const dec of [-90, -89, -45, -28.93617, 0, 27.12825, 45, 89, 90]) {
+        const { l } = convertEquatorialToGalactic({ ra, dec })
+
+        expect(l).toBeGreaterThanOrEqual(0)
+        expect(l).toBeLessThan(360)
+      }
+    }
+  })
+
+  it('should return a galactic latitude within [−90°, 90°]', () => {
+    for (let ra = 0; ra < 360; ra += 15) {
+      for (const dec of [-90, -89, -45, -28.93617, 0, 27.12825, 45, 89, 90]) {
+        const { b } = convertEquatorialToGalactic({ ra, dec })
+
+        expect(b).toBeGreaterThanOrEqual(-90)
+        expect(b).toBeLessThanOrEqual(90)
+      }
+    }
+  })
+
+  it('should agree with the rotation of getEquatorialToGalacticMatrix', () => {
+    for (let ra = 0; ra < 360; ra += 22.5) {
+      for (const dec of [-89, -52.69566111, -28.93617, 0, 7.4070639, 45, 89]) {
+        const { l, b } = convertEquatorialToGalactic({ ra, dec })
+
+        // N.B. The galactic coordinate is resolved from the unit vector in the galactic frame as an
+        // equatorial coordinate would be, e.g., l in place of the right ascension, and b in place
+        // of the declination:
+        const rotated = convertCartesianToEquatorial(
+          getRotatedCartesianCoordinate(
+            getEquatorialToGalacticMatrix(),
+            convertEquatorialToCartesian({ ra, dec })
+          )
+        )
+
+        expect(l).toBeCloseTo(rotated.ra, 12)
+        expect(b).toBeCloseTo(rotated.dec, 12)
+      }
+    }
+  })
+
+  it('should be undone by the transpose of getEquatorialToGalacticMatrix across the sphere', () => {
+    const Gᵀ = doTranspose(getEquatorialToGalacticMatrix())
+
+    for (let ra = 0; ra < 360; ra += 22.5) {
+      for (const dec of [-89, -60, -28.93617, 0, 27.12825, 45, 89]) {
+        const { l, b } = convertEquatorialToGalactic({ ra, dec })
+
+        const equatorial = convertCartesianToEquatorial(
+          getRotatedCartesianCoordinate(Gᵀ, convertEquatorialToCartesian({ ra: l, dec: b }))
+        )
+
+        const separation = getAngularSeparation(
+          { θ: dec, φ: ra },
+          { θ: equatorial.dec, φ: equatorial.ra }
+        )
+
+        expect(separation).toBeLessThan(1e-10)
+      }
+    }
+  })
+
+  it('should agree with convertGalacticToEquatorial to within ~1.5″ across the sphere', () => {
+    for (let ra = 0; ra < 360; ra += 22.5) {
+      for (const dec of [-89, -60, -28.93617, 0, 27.12825, 45, 89]) {
+        const { l, b } = convertEquatorialToGalactic({ ra, dec })
+
+        const equatorial = convertGalacticToEquatorial({ l, b })
+
+        // N.B. The pole and node of convertGalacticToEquatorial are rounded from those of the
+        // Hipparcos catalogue, and so the two differ by up to ~1.43″:
+        const separation = getAngularSeparation(
+          { θ: dec, φ: ra },
+          { θ: equatorial.dec, φ: equatorial.ra }
+        )
+
+        expect(separation * 3600).toBeLessThan(1.5)
+      }
+    }
   })
 })
 
