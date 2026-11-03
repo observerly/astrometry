@@ -15,14 +15,20 @@ import {
   convertCartesianToEquatorial,
   convertEclipticToEquatorial,
   convertEquatorialToCartesian,
+  convertEquatorialToEcliptic,
   convertEquatorialToHorizontal,
   convertGalacticToEquatorial,
   convertGeocentricToGeographic,
   convertHorizontalToEquatorial,
   EARTH_RADIUS,
+  type EclipticCoordinate,
   type EquatorialCoordinate,
+  getAngularSeparation,
+  getEquatorialToEclipticMatrix,
   getGreenwichApparentSiderealTime,
-  getGreenwichSiderealTime
+  getGreenwichSiderealTime,
+  getRotatedCartesianCoordinate,
+  getTrueObliquityOfTheEcliptic
 } from '../src'
 
 import {
@@ -61,6 +67,151 @@ describe('convertEclipticToEquatorial', () => {
     const { ra, dec } = convertEclipticToEquatorial(new Date('2016-01-04T03:00:00+00:00'), venus)
     expect(ra).toBe(244.248410736812)
     expect(dec).toBe(-19.4032236885202)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertEquatorialToEcliptic', () => {
+  it('should be defined', () => {
+    expect(convertEquatorialToEcliptic).toBeDefined()
+  })
+
+  it('should return an EclipticCoordinate', () => {
+    const ecliptic = convertEquatorialToEcliptic(datetime, { ra: 88.7929583, dec: 7.4070639 })
+    expectTypeOf(ecliptic).toEqualTypeOf<EclipticCoordinate>()
+    expect(Number.isFinite(ecliptic.λ)).toBe(true)
+    expect(Number.isFinite(ecliptic.β)).toBe(true)
+  })
+
+  // The ecliptic coordinate of each star, referred to the true ecliptic and equinox of the date, as
+  // R1(ε) of the true obliquity of obl06 and nut06a of ERFA resolves it (in degrees):
+  it.each([
+    {
+      name: 'Betelgeuse',
+      ra: 88.7929583,
+      dec: 7.4070639,
+      λ: 88.75463188003741,
+      β: -16.024965884145512
+    },
+    {
+      name: 'Polaris',
+      ra: 37.95456067,
+      dec: 89.26410897,
+      λ: 88.56747909128318,
+      β: 66.10350510263201
+    },
+    {
+      name: 'Canopus',
+      ra: 95.98787778,
+      dec: -52.69566111,
+      λ: 104.9582461828288,
+      β: -75.82191669443161
+    },
+    {
+      name: 'Vega',
+      ra: 279.23473479,
+      dec: 38.78368896,
+      λ: 285.31538380903453,
+      β: 61.73089339236144
+    },
+    {
+      name: 'σ Octantis',
+      ra: 317.19541667,
+      dec: -88.9565,
+      λ: 271.8709429630775,
+      β: -65.84224577931604
+    }
+  ])('should agree with ERFA for $name', ({ ra, dec, λ, β }) => {
+    const ecliptic = convertEquatorialToEcliptic(datetime, { ra, dec })
+
+    // N.B. The true obliquity of the library agrees with that of ERFA to ~0.07 mas at the date, and
+    // so 1e-7° is ~0.36 mas:
+    const separation = getAngularSeparation({ θ: ecliptic.β, φ: ecliptic.λ }, { θ: β, φ: λ })
+
+    expect(separation).toBeLessThan(1e-7)
+  })
+
+  it('should leave the true equinox of the date fixed, at (0°, 0°)', () => {
+    const { λ, β } = convertEquatorialToEcliptic(datetime, { ra: 0, dec: 0 })
+
+    expect(λ).toBeCloseTo(0, 12)
+    expect(β).toBeCloseTo(0, 12)
+  })
+
+  it('should carry the celestial pole to (90°, 90° − ε)', () => {
+    const ε = getTrueObliquityOfTheEcliptic(datetime)
+
+    const { λ, β } = convertEquatorialToEcliptic(datetime, { ra: 0, dec: 90 })
+
+    expect(λ).toBeCloseTo(90, 10)
+    expect(β).toBeCloseTo(90 - ε, 10)
+  })
+
+  it('should carry the ecliptic pole, at (270°, 90° − ε), to an ecliptic latitude of 90°', () => {
+    const ε = getTrueObliquityOfTheEcliptic(datetime)
+
+    const { β } = convertEquatorialToEcliptic(datetime, { ra: 270, dec: 90 - ε })
+
+    expect(β).toBeCloseTo(90, 6)
+  })
+
+  it('should carry the solstice, at (90°, ε), onto the ecliptic at a longitude of 90°', () => {
+    const ε = getTrueObliquityOfTheEcliptic(datetime)
+
+    const { λ, β } = convertEquatorialToEcliptic(datetime, { ra: 90, dec: ε })
+
+    expect(λ).toBeCloseTo(90, 10)
+    expect(β).toBeCloseTo(0, 10)
+  })
+
+  it('should return an ecliptic longitude within [0°, 360°)', () => {
+    for (let ra = 0; ra < 360; ra += 15) {
+      for (const dec of [-89, -45, -10, 0, 10, 45, 89]) {
+        const { λ } = convertEquatorialToEcliptic(datetime, { ra, dec })
+
+        expect(λ).toBeGreaterThanOrEqual(0)
+        expect(λ).toBeLessThan(360)
+      }
+    }
+  })
+
+  it('should agree with the rotation of getEquatorialToEclipticMatrix', () => {
+    for (let ra = 0; ra < 360; ra += 22.5) {
+      for (const dec of [-89, -52.69566111, 0, 7.4070639, 45, 89]) {
+        const { λ, β } = convertEquatorialToEcliptic(datetime, { ra, dec })
+
+        // N.B. The ecliptic coordinate is resolved from the unit vector in the ecliptic frame as an
+        // equatorial coordinate would be, e.g., λ in place of the right ascension, and β in place
+        // of the declination:
+        const rotated = convertCartesianToEquatorial(
+          getRotatedCartesianCoordinate(
+            getEquatorialToEclipticMatrix(datetime),
+            convertEquatorialToCartesian({ ra, dec })
+          )
+        )
+
+        expect(λ).toBeCloseTo(rotated.ra, 12)
+        expect(β).toBeCloseTo(rotated.dec, 12)
+      }
+    }
+  })
+
+  it('should be undone by convertEclipticToEquatorial across the sphere', () => {
+    for (let ra = 0; ra < 360; ra += 22.5) {
+      for (const dec of [-89, -60, -23.4, 0, 5.15, 45, 89]) {
+        const ecliptic = convertEquatorialToEcliptic(datetime, { ra, dec })
+
+        const equatorial = convertEclipticToEquatorial(datetime, ecliptic)
+
+        const separation = getAngularSeparation(
+          { θ: dec, φ: ra },
+          { θ: equatorial.dec, φ: equatorial.ra }
+        )
+
+        expect(separation).toBeLessThan(1e-10)
+      }
+    }
   })
 })
 
