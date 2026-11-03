@@ -20,6 +20,8 @@ import {
 
 import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './coordinates'
 
+import { doDotProduct, doNormalize, doScale, doVectorDifference, doVectorSum } from './maths'
+
 import { getBarycentricSolarVector, getGeometricSolarVector } from './sun'
 
 import {
@@ -105,12 +107,10 @@ export function getCorrectionToEquatorialForAnnualAberration(
   const velocity = getBarycentricEarthVelocity(datetime)
 
   // The barycentric velocity of the Earth as a fraction of the speed of light:
-  const k = AU_IN_METERS / 86400 / c
-
-  const v = { x: velocity.x * k, y: velocity.y * k, z: velocity.z * k }
+  const v = doScale(velocity, AU_IN_METERS / 86400 / c)
 
   // The reciprocal of the Lorentz factor of the velocity of the Earth, e.g., √(1 − v²):
-  const bm1 = Math.sqrt(1 - (v.x ** 2 + v.y ** 2 + v.z ** 2))
+  const bm1 = Math.sqrt(1 - doDotProduct(v, v))
 
   // The distance of the Sun from the Earth (in astronomical units):
   const s = getGeometricSolarVector(datetime)
@@ -121,20 +121,22 @@ export function getCorrectionToEquatorialForAnnualAberration(
   const p = convertEquatorialToCartesian(target)
 
   // The component of the velocity of the Earth along the direction of the target:
-  const pdv = p.x * v.x + p.y * v.y + p.z * v.z
+  const pdv = doDotProduct(p, v)
 
   const w1 = 1 + pdv / (1 + bm1)
 
   const w2 = SCHWARZSCHILD_RADIUS_OF_THE_SUN / d
 
   // The unit vector of the target, displaced by the velocity of the Earth, e.g., the apparent direction of the
-  // target, which is resolved as a displaced vector, and not expanded about the target, which would divide by
-  // cos δ and so degrade towards the celestial poles:
-  const apparent = {
-    x: p.x * bm1 + w1 * v.x + w2 * (v.x - pdv * p.x),
-    y: p.y * bm1 + w1 * v.y + w2 * (v.y - pdv * p.y),
-    z: p.z * bm1 + w1 * v.z + w2 * (v.z - pdv * p.z)
-  }
+  // target, as p √(1 − v²) + w1 v + w2 (v − (p · v) p), normalised as eraAb resolves it, which is
+  // resolved as a displaced vector, and not expanded about the target, which would divide by cos δ
+  // and so degrade towards the celestial poles:
+  const apparent = doNormalize(
+    doVectorSum(
+      doVectorSum(doScale(p, bm1), doScale(v, w1)),
+      doScale(doVectorDifference(v, doScale(p, pdv)), w2)
+    )
+  )
 
   const { ra, dec } = convertCartesianToEquatorial(apparent)
 
