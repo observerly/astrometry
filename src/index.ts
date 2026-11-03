@@ -289,6 +289,7 @@ export {
   getEquatorialToGalacticMatrix,
   getEquatorialToHorizontalMatrix,
   getFrameBiasMatrix,
+  getFrameTransformationMatrix,
   getNutationMatrix,
   getPrecessionMatrix
 } from './frames'
