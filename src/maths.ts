@@ -381,6 +381,38 @@ export function doVectorDifference(
 
 /**
  *
+ * doScale()
+ *
+ * Resolves the scalar multiple k a of a cartesian vector, e.g., the vector taken component by
+ * component, such that k a = (k a.x, k a.y, k a.z), as is the vector along the same line with its
+ * length scaled by |k|.
+ *
+ * N.B. The scalar multiple keeps the direction of the vector for a positive scalar, and reverses
+ * it for a negative scalar, e.g., (−1) a = −a, and is the zero vector for a scalar of zero.
+ *
+ * N.B. The scalar multiple distributes over the sum of two vectors, e.g., k (a + b) = k a + k b,
+ * and over the sum of two scalars, e.g., (k + m) a = k a + m a.
+ *
+ * @param a - The cartesian vector, e.g., { x, y, z }.
+ * @param k - The scalar to multiply the vector by.
+ * @returns The scalar multiple k a of the vector, e.g., { x, y, z }.
+ *
+ */
+export function doScale(
+  a: Required<CartesianCoordinate>,
+  k: number
+): Required<CartesianCoordinate> {
+  return {
+    x: k * a.x,
+    y: k * a.y,
+    z: k * a.z
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * doTranspose()
  *
  * Resolves the transpose Mᵀ of a 3×3 matrix, e.g., the matrix reflected about its leading diagonal,
