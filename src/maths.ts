@@ -413,6 +413,41 @@ export function doScale(
 
 /**
  *
+ * doNormalize()
+ *
+ * Resolves the unit vector a / |a| of a cartesian vector, e.g., the vector along the same direction
+ * with a length of one, such that a / |a| = (a.x / |a|, a.y / |a|, a.z / |a|).
+ *
+ * N.B. The length is taken as the hypotenuse of the three components, and so neither overflows
+ * nor underflows for a vector of extreme length, e.g., of 1e200 or 1e-200.
+ *
+ * N.B. The zero vector has no direction, and so its unit vector is not a number, e.g., as the
+ * spherical coordinate of convertCartesianToEquatorial() is for it.
+ *
+ * @param a - The cartesian vector, e.g., { x, y, z }.
+ * @returns The unit vector a / |a| of the vector, e.g., { x, y, z }.
+ *
+ */
+export function doNormalize(a: Required<CartesianCoordinate>): Required<CartesianCoordinate> {
+  // The length of the vector, e.g., |a|:
+  const r = Math.hypot(a.x, a.y, a.z)
+
+  // The zero vector has no direction, e.g., 0 / 0 would otherwise resolve it as such implicitly:
+  if (r === 0) {
+    return { x: Number.NaN, y: Number.NaN, z: Number.NaN }
+  }
+
+  return {
+    x: a.x / r,
+    y: a.y / r,
+    z: a.z / r
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * doTranspose()
  *
  * Resolves the transpose Mᵀ of a 3×3 matrix, e.g., the matrix reflected about its leading diagonal,

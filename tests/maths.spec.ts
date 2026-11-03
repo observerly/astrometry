@@ -20,6 +20,7 @@ import {
   doCrossProduct,
   doDeterminant,
   doDotProduct,
+  doNormalize,
   doScale,
   doTranspose,
   doVectorDifference,
@@ -1778,6 +1779,163 @@ describe('doScale', () => {
       expect(left.x).toBeCloseTo(right.x, 13)
       expect(left.y).toBeCloseTo(right.y, 13)
       expect(left.z).toBeCloseTo(right.z, 13)
+    }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('doNormalize', () => {
+  it('should be defined', () => {
+    expect(doNormalize).toBeDefined()
+  })
+
+  it('should return a Required<CartesianCoordinate>', () => {
+    expectTypeOf(doNormalize({ x: 1, y: 0, z: 0 })).toEqualTypeOf<Required<CartesianCoordinate>>()
+  })
+
+  it('should return the literal unit vector of an arbitrary vector', () => {
+    // (3, 0, 4) / 5 = (0.6, 0, 0.8):
+    expect(doNormalize({ x: 3, y: 0, z: 4 })).toEqual({ x: 0.6, y: 0, z: 0.8 })
+
+    // (2, −3, 6) / 7 = (2 / 7, −3 / 7, 6 / 7):
+    expect(doNormalize({ x: 2, y: -3, z: 6 })).toEqual({ x: 2 / 7, y: -3 / 7, z: 6 / 7 })
+  })
+
+  it('should leave the unit axes unchanged', () => {
+    for (const axis of [
+      { x: 1, y: 0, z: 0 },
+      { x: 0, y: 1, z: 0 },
+      { x: 0, y: 0, z: 1 },
+      { x: -1, y: 0, z: 0 },
+      { x: 0, y: -1, z: 0 },
+      { x: 0, y: 0, z: -1 }
+    ]) {
+      expect(doNormalize(axis)).toEqual(axis)
+    }
+  })
+
+  it('should resolve a vector along an axis to its unit axis, e.g., (0, −5, 0)', () => {
+    expect(doNormalize({ x: 0, y: -5, z: 0 })).toEqual({ x: 0, y: -1, z: 0 })
+  })
+
+  it('should return a vector of unit length for any non-zero vector', () => {
+    for (const a of [
+      { x: 0.3, y: -1.2, z: 2.5 },
+      { x: -4.1, y: 0.07, z: 9.9 },
+      { x: 1.5, y: 2.25, z: -0.75 },
+      { x: 1e-9, y: -2e-9, z: 3e-9 },
+      { x: 1e9, y: 2e9, z: -3e9 }
+    ]) {
+      const n = doNormalize(a)
+
+      expect(Math.sqrt(doDotProduct(n, n))).toBeCloseTo(1, 15)
+    }
+  })
+
+  it('should neither overflow nor underflow for a vector of extreme length', () => {
+    for (const k of [1e-200, 1e200]) {
+      const { x, y, z } = doNormalize(doScale({ x: 2, y: -3, z: 6 }, k))
+
+      expect(x).toBeCloseTo(2 / 7, 15)
+      expect(y).toBeCloseTo(-3 / 7, 15)
+      expect(z).toBeCloseTo(6 / 7, 15)
+    }
+  })
+
+  it('should return a vector of NaN for the zero vector, e.g., it has no direction', () => {
+    const { x, y, z } = doNormalize({ x: 0, y: 0, z: 0 })
+
+    expect(x).toBeNaN()
+    expect(y).toBeNaN()
+    expect(z).toBeNaN()
+  })
+
+  it('should be idempotent, e.g., the unit vector of a unit vector is itself', () => {
+    const n = doNormalize({ x: 0.3, y: -1.2, z: 2.5 })
+
+    const { x, y, z } = doNormalize(n)
+
+    expect(x).toBeCloseTo(n.x, 15)
+    expect(y).toBeCloseTo(n.y, 15)
+    expect(z).toBeCloseTo(n.z, 15)
+  })
+
+  it('should not depend on a positive scalar multiple, e.g., (k a) / |k a| = a / |a|', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const n = doNormalize(a)
+
+    for (const k of [0.25, 1, 3.5, 1e6]) {
+      const { x, y, z } = doNormalize(doScale(a, k))
+
+      expect(x).toBeCloseTo(n.x, 15)
+      expect(y).toBeCloseTo(n.y, 15)
+      expect(z).toBeCloseTo(n.z, 15)
+    }
+  })
+
+  it('should reverse for a negative scalar multiple, e.g., (−k a) / |k a| = −a / |a|', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const n = doNormalize(a)
+
+    for (const k of [-0.25, -1, -3.5, -1e6]) {
+      const { x, y, z } = doNormalize(doScale(a, k))
+
+      expect(x).toBeCloseTo(-n.x, 15)
+      expect(y).toBeCloseTo(-n.y, 15)
+      expect(z).toBeCloseTo(-n.z, 15)
+    }
+  })
+
+  it('should resolve the unit vector of the direction of a scaled equatorial coordinate', () => {
+    for (let ra = 0; ra < 360; ra += 30) {
+      for (const dec of [-89, -45, 0, 7.4070639, 45, 89]) {
+        const u = convertEquatorialToCartesian({ ra, dec })
+
+        const { x, y, z } = doNormalize(doScale(u, 42.195))
+
+        expect(x).toBeCloseTo(u.x, 15)
+        expect(y).toBeCloseTo(u.y, 15)
+        expect(z).toBeCloseTo(u.z, 15)
+      }
+    }
+  })
+
+  it('should keep the direction of the vector', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const A = convertCartesianToEquatorial(a)
+
+    const N = convertCartesianToEquatorial(doNormalize(a))
+
+    expect(getAngularSeparation({ θ: N.dec, φ: N.ra }, { θ: A.dec, φ: A.ra })).toBeCloseTo(0, 12)
+  })
+
+  it('should not mutate the vector, and should return a new vector', () => {
+    const a = { x: 1, y: 0, z: 0 }
+
+    const n = doNormalize(a)
+
+    expect(a).toEqual({ x: 1, y: 0, z: 0 })
+
+    expect(n).not.toBe(a)
+  })
+
+  it('should commute with a rotation, e.g., R (a / |a|) = (R a) / |R a|', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    for (const axis of axes) {
+      const R = getRotationMatrix(axis, 23.4392911)
+
+      const left = getRotatedCartesianCoordinate(R, doNormalize(a))
+
+      const right = doNormalize(getRotatedCartesianCoordinate(R, a))
+
+      expect(left.x).toBeCloseTo(right.x, 15)
+      expect(left.y).toBeCloseTo(right.y, 15)
+      expect(left.z).toBeCloseTo(right.z, 15)
     }
   })
 })
