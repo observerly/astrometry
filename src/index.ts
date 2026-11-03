@@ -235,6 +235,7 @@ export {
   convertCartesianToEquatorial,
   convertEclipticToEquatorial,
   convertEquatorialToCartesian,
+  convertEquatorialToEcliptic,
   convertEquatorialToHorizontal,
   convertGalacticToEquatorial,
   convertGeocentricToGeographic,

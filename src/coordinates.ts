@@ -22,6 +22,8 @@ import type {
 } from './common'
 import { EARTH_RADIUS } from './constants'
 
+import { getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
+
 import { getTrueObliquityOfTheEcliptic } from './nutation'
 
 import {
@@ -66,6 +68,46 @@ export function convertEclipticToEquatorial(
   return {
     ra: degrees(α) < 0 ? degrees(α) + 360 : degrees(α),
     dec: degrees(δ)
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * convertEquatorialToEcliptic()
+ *
+ * Performs the conversion from Equatorial to Ecliptic coordinates for a given datetime and target
+ * (observer agnostic), as the rotation of the unit vector of the target about the x-axis, e.g., the
+ * direction of the true equinox of the date, through the true obliquity of the ecliptic, R1(ε).
+ *
+ * N.B. The conversion is about the true obliquity of the ecliptic, e.g., the mean obliquity of
+ * the date corrected for the nutation in obliquity, and so the equatorial coordinate is taken as
+ * referred to the true equator and equinox of the date, as convertEclipticToEquatorial() returns.
+ *
+ * @param datetime - The date to convert the equatorial coordinate for.
+ * @param target - The equatorial coordinate of the target.
+ * @returns The ecliptic coordinate of the target, with the longitude within [0°, 360°).
+ *
+ */
+export function convertEquatorialToEcliptic(
+  datetime: Date,
+  target: EquatorialCoordinate
+): EclipticCoordinate {
+  // The rotation from the true equator and equinox of the date to the true ecliptic and equinox of
+  // the date, R1(ε), e.g., getEquatorialToEclipticMatrix() of the frames module, which is composed
+  // here as the frames module depends on this one:
+  const E = getRotationMatrix('x', getTrueObliquityOfTheEcliptic(datetime))
+
+  // The unit vector of the target, rotated into the ecliptic frame, and resolved as the longitude
+  // and latitude of the ecliptic in place of the right ascension and declination:
+  const { ra, dec } = convertCartesianToEquatorial(
+    getRotatedCartesianCoordinate(E, convertEquatorialToCartesian(target))
+  )
+
+  return {
+    λ: ra,
+    β: dec
   }
 }
 
