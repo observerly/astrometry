@@ -22,7 +22,12 @@ import type {
 } from './common'
 import { EARTH_RADIUS } from './constants'
 
-import { doTranspose, getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
+import {
+  doTranspose,
+  getMatrixProduct,
+  getRotatedCartesianCoordinate,
+  getRotationMatrix
+} from './maths'
 
 import { getTrueObliquityOfTheEcliptic } from './nutation'
 
@@ -159,6 +164,53 @@ export function convertGalacticToEquatorial(target: GalacticCoordinate): Equator
   return {
     ra,
     dec
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * convertEquatorialToGalactic()
+ *
+ * Performs the conversion from Equatorial to Galactic coordinates for a given target (observer and
+ * datetime agnostic), as the rotation of the unit vector of the target from the International
+ * Celestial Reference System (ICRS) to the galactic frame, as is defined by the Hipparcos catalogue
+ * (ESA 1997, Vol. 1, §1.5.3), e.g., G = R3(90° − θ) · R1(90° − δP) · R3(αP + 90°).
+ *
+ * N.B. The galactic frame is fixed, e.g., it is not a function of the date, and is referred to the
+ * ICRS, and so the equatorial coordinate is taken as a catalogue coordinate referred to the ICRS.
+ *
+ * @param target - The equatorial coordinate of the target, referred to the ICRS.
+ * @returns The galactic coordinate of the target, with the longitude within [0°, 360°).
+ *
+ */
+export function convertEquatorialToGalactic(target: EquatorialCoordinate): GalacticCoordinate {
+  // The right ascension of the north galactic pole, referred to the ICRS (in degrees):
+  const αP = 192.85948
+
+  // The declination of the north galactic pole, referred to the ICRS (in degrees):
+  const δP = 27.12825
+
+  // The galactic longitude of the north celestial pole of the ICRS (in degrees):
+  const θ = 122.93192
+
+  // The rotation from the ICRS to the galactic frame, G, e.g., getEquatorialToGalacticMatrix() of
+  // the frames module, which is composed here as the frames module depends on this one:
+  const G = getMatrixProduct(
+    getRotationMatrix('z', 90 - θ),
+    getMatrixProduct(getRotationMatrix('x', 90 - δP), getRotationMatrix('z', αP + 90))
+  )
+
+  // The unit vector of the target, rotated into the galactic frame, and resolved as the galactic
+  // longitude and latitude in place of the right ascension and declination:
+  const { ra, dec } = convertCartesianToEquatorial(
+    getRotatedCartesianCoordinate(G, convertEquatorialToCartesian(target))
+  )
+
+  return {
+    l: ra,
+    b: dec
   }
 }
 
