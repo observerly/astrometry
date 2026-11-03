@@ -320,6 +320,7 @@ export {
   doCrossProduct,
   doDeterminant,
   doDotProduct,
+  doScale,
   doTranspose,
   doVectorDifference,
   doVectorSum,

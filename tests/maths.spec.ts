@@ -20,6 +20,7 @@ import {
   doCrossProduct,
   doDeterminant,
   doDotProduct,
+  doScale,
   doTranspose,
   doVectorDifference,
   doVectorSum,
@@ -867,14 +868,8 @@ describe('doDotProduct', () => {
 
     const k = -3.5
 
-    expect(doDotProduct({ x: k * a.x, y: k * a.y, z: k * a.z }, b)).toBeCloseTo(
-      k * doDotProduct(a, b),
-      13
-    )
-    expect(doDotProduct(a, { x: k * b.x, y: k * b.y, z: k * b.z })).toBeCloseTo(
-      k * doDotProduct(a, b),
-      13
-    )
+    expect(doDotProduct(doScale(a, k), b)).toBeCloseTo(k * doDotProduct(a, b), 13)
+    expect(doDotProduct(a, doScale(b, k))).toBeCloseTo(k * doDotProduct(a, b), 13)
   })
 
   it('should return the element of a matrix for its row and the unit axis of its column', () => {
@@ -1111,10 +1106,7 @@ describe('doCrossProduct', () => {
 
     const ab = doCrossProduct(a, b)
 
-    for (const scaled of [
-      doCrossProduct({ x: k * a.x, y: k * a.y, z: k * a.z }, b),
-      doCrossProduct(a, { x: k * b.x, y: k * b.y, z: k * b.z })
-    ]) {
+    for (const scaled of [doCrossProduct(doScale(a, k), b), doCrossProduct(a, doScale(b, k))]) {
       expect(scaled.x).toBeCloseTo(k * ab.x, 13)
       expect(scaled.y).toBeCloseTo(k * ab.y, 13)
       expect(scaled.z).toBeCloseTo(k * ab.z, 13)
@@ -1510,7 +1502,7 @@ describe('doVectorDifference', () => {
 
     const b = { x: -4.1, y: 0.07, z: 9.9 }
 
-    expect(doVectorDifference(a, b)).toEqual(doVectorSum(a, { x: -b.x, y: -b.y, z: -b.z }))
+    expect(doVectorDifference(a, b)).toEqual(doVectorSum(a, doScale(b, -1)))
   })
 
   it('should undo the sum, e.g., (a + b) − b = a', () => {
@@ -1630,6 +1622,158 @@ describe('doVectorDifference', () => {
         getRotatedCartesianCoordinate(R, a),
         getRotatedCartesianCoordinate(R, b)
       )
+
+      expect(left.x).toBeCloseTo(right.x, 13)
+      expect(left.y).toBeCloseTo(right.y, 13)
+      expect(left.z).toBeCloseTo(right.z, 13)
+    }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('doScale', () => {
+  it('should be defined', () => {
+    expect(doScale).toBeDefined()
+  })
+
+  it('should return a Required<CartesianCoordinate>', () => {
+    expectTypeOf(doScale({ x: 1, y: 0, z: 0 }, 2)).toEqualTypeOf<Required<CartesianCoordinate>>()
+  })
+
+  it('should return the literal scalar multiple of an arbitrary vector', () => {
+    // −2 · (1, 2, −3) = (−2, −4, 6):
+    expect(doScale({ x: 1, y: 2, z: -3 }, -2)).toEqual({ x: -2, y: -4, z: 6 })
+  })
+
+  it('should leave a vector unchanged for a scalar of one, e.g., 1a = a', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    expect(doScale(a, 1)).toEqual(a)
+  })
+
+  it('should return the zero vector for a scalar of zero, e.g., 0a = 0', () => {
+    const { x, y, z } = doScale({ x: 0.3, y: -1.2, z: 2.5 }, 0)
+
+    expect(Math.hypot(x, y, z)).toBe(0)
+  })
+
+  it('should return the zero vector for the zero vector, e.g., k0 = 0', () => {
+    for (const k of [-3.5, -1, 0.5, 2, 1e6]) {
+      const { x, y, z } = doScale({ x: 0, y: 0, z: 0 }, k)
+
+      expect(Math.hypot(x, y, z)).toBe(0)
+    }
+  })
+
+  it('should negate a vector for a scalar of minus one, e.g., (−1)a = −a', () => {
+    expect(doScale({ x: 0.3, y: -1.2, z: 2.5 }, -1)).toEqual({ x: -0.3, y: 1.2, z: -2.5 })
+  })
+
+  it('should be the vector added to itself for a scalar of two, e.g., 2a = a + a', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    expect(doScale(a, 2)).toEqual(doVectorSum(a, a))
+  })
+
+  it('should be the zero vector less the vector for a scalar of −1, e.g., (−1)a = 0 − a', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    expect(doScale(a, -1)).toEqual(doVectorDifference({ x: 0, y: 0, z: 0 }, a))
+  })
+
+  it('should be compatible with the product of two scalars, e.g., k (m a) = (k m) a', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const left = doScale(doScale(a, -3.5), 0.25)
+
+    const right = doScale(a, -3.5 * 0.25)
+
+    expect(left.x).toBeCloseTo(right.x, 14)
+    expect(left.y).toBeCloseTo(right.y, 14)
+    expect(left.z).toBeCloseTo(right.z, 14)
+  })
+
+  it('should distribute over the sum of two vectors, e.g., k (a + b) = k a + k b', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const left = doScale(doVectorSum(a, b), -3.5)
+
+    const right = doVectorSum(doScale(a, -3.5), doScale(b, -3.5))
+
+    expect(left.x).toBeCloseTo(right.x, 13)
+    expect(left.y).toBeCloseTo(right.y, 13)
+    expect(left.z).toBeCloseTo(right.z, 13)
+  })
+
+  it('should distribute over the sum of two scalars, e.g., (k + m) a = k a + m a', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const left = doScale(a, -3.5 + 0.25)
+
+    const right = doVectorSum(doScale(a, -3.5), doScale(a, 0.25))
+
+    expect(left.x).toBeCloseTo(right.x, 14)
+    expect(left.y).toBeCloseTo(right.y, 14)
+    expect(left.z).toBeCloseTo(right.z, 14)
+  })
+
+  it('should scale the length by the magnitude of the scalar, e.g., |k a| = |k| |a|', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    for (const k of [-3.5, -1, -0.25, 0, 0.25, 1, 3.5, 1e6]) {
+      const scaled = doScale(a, k)
+
+      expect(Math.sqrt(doDotProduct(scaled, scaled))).toBeCloseTo(
+        Math.abs(k) * Math.sqrt(doDotProduct(a, a)),
+        8
+      )
+    }
+  })
+
+  it('should keep the direction for a positive scalar, and reverse it for a negative one', () => {
+    const a = convertEquatorialToCartesian({ ra: 88.7929583, dec: 7.4070639 })
+
+    for (const k of [0.25, 1, 3.5, 1e6]) {
+      const { ra, dec } = convertCartesianToEquatorial(doScale(a, k))
+
+      expect(getAngularSeparation({ θ: dec, φ: ra }, { θ: 7.4070639, φ: 88.7929583 })).toBeCloseTo(
+        0,
+        10
+      )
+    }
+
+    for (const k of [-0.25, -1, -3.5, -1e6]) {
+      const { ra, dec } = convertCartesianToEquatorial(doScale(a, k))
+
+      expect(getAngularSeparation({ θ: dec, φ: ra }, { θ: 7.4070639, φ: 88.7929583 })).toBeCloseTo(
+        180,
+        10
+      )
+    }
+  })
+
+  it('should not mutate the vector, and should return a new vector', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const scaled = doScale(a, 1)
+
+    expect(a).toEqual({ x: 0.3, y: -1.2, z: 2.5 })
+
+    expect(scaled).not.toBe(a)
+  })
+
+  it('should commute with a rotation, e.g., R (k a) = k (R a)', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    for (const axis of axes) {
+      const R = getRotationMatrix(axis, 23.4392911)
+
+      const left = getRotatedCartesianCoordinate(R, doScale(a, -3.5))
+
+      const right = doScale(getRotatedCartesianCoordinate(R, a), -3.5)
 
       expect(left.x).toBeCloseTo(right.x, 13)
       expect(left.y).toBeCloseTo(right.y, 13)
