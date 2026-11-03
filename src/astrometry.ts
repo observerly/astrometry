@@ -19,6 +19,8 @@ import { getObliquityOfTheEcliptic } from './ecliptic'
 
 import { getJulianDate } from './epoch'
 
+import { doCrossProduct, doDotProduct } from './maths'
+
 import { getNutation } from './nutation'
 
 /***************************************************************************************************************/
@@ -63,6 +65,10 @@ export function getAngularSeparation(A: SphericalCoordinate, B: SphericalCoordin
     z: Math.sin(radians(B.θ))
   }
 
+  // The cross product of the two unit vectors, e.g., the pole of the great circle through them,
+  // with a length of the sine of the separation:
+  const { x, y, z } = doCrossProduct(a, b)
+
   // The separation is taken from the magnitude of the cross product of the two unit vectors, e.g.,
   // its sine, against their dot product, e.g., its cosine, and not as the arc cosine of the dot
   // product alone, which is out of domain for two coincident coordinates, e.g., the rounding of
@@ -71,12 +77,7 @@ export function getAngularSeparation(A: SphericalCoordinate, B: SphericalCoordin
   //
   // N.B. The separation is the angle between two directions, and so it is bounded to [0°, 180°]
   // by construction, and is not normalised against a whole turn:
-  return degrees(
-    Math.atan2(
-      Math.hypot(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x),
-      a.x * b.x + a.y * b.y + a.z * b.z
-    )
-  )
+  return degrees(Math.atan2(Math.hypot(x, y, z), doDotProduct(a, b)))
 }
 
 /*****************************************************************************************************************/

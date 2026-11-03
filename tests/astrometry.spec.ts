@@ -11,8 +11,11 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  convertEquatorialToCartesian,
   convertEquatorialToHorizontal,
   convertJulianDateToUTC,
+  doCrossProduct,
+  doDotProduct,
   type EquatorialCoordinate,
   type EquatorialProperMotion,
   getAngularSeparation,
@@ -32,7 +35,10 @@ import {
   J2000
 } from '../src'
 
-import { convertDegreesToRadians as radians } from '../src/utilities'
+import {
+  convertRadiansToDegrees as degrees,
+  convertDegreesToRadians as radians
+} from '../src/utilities'
 
 /*****************************************************************************************************************/
 
@@ -129,6 +135,135 @@ describe('getAngularSeparation', () => {
       const separation = getAngularSeparation(target, { ...target, θ: target.θ + arcsec / 3600 })
 
       expect(separation * 3600).toBeCloseTo(arcsec, 9)
+    }
+  })
+  // The angular separation of each pair of stars, as the seps routine of ERFA resolves it (in
+  // degrees):
+  it.each([
+    {
+      name: 'Betelgeuse and Rigel',
+      A: { θ: 7.4070639, φ: 88.7929583 },
+      B: { θ: -8.20163837, φ: 78.63446707 },
+      separation: 18.605971003866014
+    },
+    {
+      name: 'Sirius and Procyon',
+      A: { θ: -16.71611586, φ: 101.28715533 },
+      B: { θ: 5.22498756, φ: 114.82549791 },
+      separation: 25.7013622358978
+    },
+    {
+      name: 'Vega and Altair',
+      A: { θ: 38.78368896, φ: 279.23473479 },
+      B: { θ: 8.8683212, φ: 297.6958273 },
+      separation: 34.19518431050962
+    },
+    {
+      name: 'Polaris and σ Octantis',
+      A: { θ: 89.26410897, φ: 37.95456067 },
+      B: { θ: -88.9565, φ: 317.19541667 },
+      separation: 178.6299646816473
+    },
+    {
+      name: 'Dubhe and Merak',
+      A: { θ: 61.75103469, φ: 165.93195264 },
+      B: { θ: 56.38242679, φ: 165.46033229 },
+      separation: 5.374041409635064
+    },
+    {
+      name: 'Spica and Arcturus',
+      A: { θ: -11.16131949, φ: 201.29824736 },
+      B: { θ: 19.18240916, φ: 213.91530029 },
+      separation: 32.792851379806876
+    }
+  ])('should agree with ERFA for $name', ({ A, B, separation }) => {
+    expect(getAngularSeparation(A, B)).toBeCloseTo(separation, 12)
+  })
+
+  it('should be the arc tangent of the length of the cross product against the dot product', () => {
+    for (let θ = -90; θ <= 90; θ += 15) {
+      for (let φ = 0; φ < 360; φ += 22.5) {
+        const A = { θ, φ }
+
+        const B = { θ: 7.4070639, φ: 88.7929583 }
+
+        const a = convertEquatorialToCartesian({ ra: A.φ, dec: A.θ })
+
+        const b = convertEquatorialToCartesian({ ra: B.φ, dec: B.θ })
+
+        const { x, y, z } = doCrossProduct(a, b)
+
+        expect(getAngularSeparation(A, B)).toBeCloseTo(
+          degrees(Math.atan2(Math.hypot(x, y, z), doDotProduct(a, b))),
+          12
+        )
+      }
+    }
+  })
+
+  it('should be symmetric in its two coordinates', () => {
+    for (let θ = -90; θ <= 90; θ += 15) {
+      for (let φ = 0; φ < 360; φ += 22.5) {
+        const A = { θ, φ }
+
+        const B = { θ: -52.69566111, φ: 95.98787778 }
+
+        expect(getAngularSeparation(A, B)).toBe(getAngularSeparation(B, A))
+      }
+    }
+  })
+
+  it('should return a separation of 90° for a pole against any coordinate on the equator', () => {
+    for (let φ = 0; φ < 360; φ += 15) {
+      expect(getAngularSeparation({ θ: 90, φ: 0 }, { θ: 0, φ })).toBeCloseTo(90, 12)
+      expect(getAngularSeparation({ θ: -90, φ: 0 }, { θ: 0, φ })).toBeCloseTo(90, 12)
+    }
+  })
+
+  it('should return the difference in azimuthal angle for two coordinates on the equator', () => {
+    for (let φ = 0; φ <= 180; φ += 15) {
+      expect(getAngularSeparation({ θ: 0, φ: 0 }, { θ: 0, φ })).toBeCloseTo(φ, 12)
+    }
+  })
+
+  it('should return the difference in the polar angle for two coordinates on a meridian', () => {
+    for (let θ = -90; θ <= 90; θ += 15) {
+      expect(getAngularSeparation({ θ: -90, φ: 133 }, { θ, φ: 133 })).toBeCloseTo(θ + 90, 12)
+    }
+  })
+
+  it('should not depend on the azimuthal angle of a coordinate at either pole', () => {
+    const B = { θ: 38.78368896, φ: 279.23473479 }
+
+    for (let φ = 0; φ < 360; φ += 15) {
+      expect(getAngularSeparation({ θ: 90, φ }, B)).toBeCloseTo(90 - B.θ, 12)
+      expect(getAngularSeparation({ θ: -90, φ }, B)).toBeCloseTo(90 + B.θ, 12)
+    }
+  })
+
+  it('should not change under a common rotation of the two coordinates about the pole', () => {
+    const A = { θ: 7.4070639, φ: 88.7929583 }
+
+    const B = { θ: -8.20163837, φ: 78.63446707 }
+
+    const separation = getAngularSeparation(A, B)
+
+    for (let Δφ = -360; Δφ <= 720; Δφ += 30) {
+      expect(getAngularSeparation({ ...A, φ: A.φ + Δφ }, { ...B, φ: B.φ + Δφ })).toBeCloseTo(
+        separation,
+        12
+      )
+    }
+  })
+
+  it('should return a separation within [0°, 180°]', () => {
+    for (let θ = -90; θ <= 90; θ += 10) {
+      for (let φ = 0; φ < 360; φ += 20) {
+        const separation = getAngularSeparation({ θ, φ }, { θ: -45.5, φ: 201.25 })
+
+        expect(separation).toBeGreaterThanOrEqual(0)
+        expect(separation).toBeLessThanOrEqual(180)
+      }
     }
   })
 })
