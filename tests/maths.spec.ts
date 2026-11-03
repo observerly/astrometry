@@ -21,6 +21,7 @@ import {
   doDeterminant,
   doDotProduct,
   doTranspose,
+  doVectorDifference,
   doVectorSum,
   getMatrixProduct,
   getRotatedCartesianCoordinate,
@@ -1435,6 +1436,197 @@ describe('doVectorSum', () => {
       const left = getRotatedCartesianCoordinate(R, doVectorSum(a, b))
 
       const right = doVectorSum(
+        getRotatedCartesianCoordinate(R, a),
+        getRotatedCartesianCoordinate(R, b)
+      )
+
+      expect(left.x).toBeCloseTo(right.x, 13)
+      expect(left.y).toBeCloseTo(right.y, 13)
+      expect(left.z).toBeCloseTo(right.z, 13)
+    }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('doVectorDifference', () => {
+  it('should be defined', () => {
+    expect(doVectorDifference).toBeDefined()
+  })
+
+  it('should return a Required<CartesianCoordinate>', () => {
+    expectTypeOf(doVectorDifference({ x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 })).toEqualTypeOf<
+      Required<CartesianCoordinate>
+    >()
+  })
+
+  it('should return the literal difference of two arbitrary vectors', () => {
+    // (1 − 4, 2 − (−5), 3 − 6) = (−3, 7, −3):
+    expect(doVectorDifference({ x: 1, y: 2, z: 3 }, { x: 4, y: -5, z: 6 })).toEqual({
+      x: -3,
+      y: 7,
+      z: -3
+    })
+  })
+
+  it('should return the zero vector for a vector less itself, e.g., a − a = 0', () => {
+    expect(doVectorDifference({ x: 0.3, y: -1.2, z: 2.5 }, { x: 0.3, y: -1.2, z: 2.5 })).toEqual({
+      x: 0,
+      y: 0,
+      z: 0
+    })
+  })
+
+  it('should leave a vector unchanged less the zero vector, e.g., a − 0 = a', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    expect(doVectorDifference(a, { x: 0, y: 0, z: 0 })).toEqual(a)
+  })
+
+  it('should negate a vector taken from the zero vector, e.g., 0 − a = −a', () => {
+    expect(doVectorDifference({ x: 0, y: 0, z: 0 }, { x: 0.3, y: -1.2, z: 2.5 })).toEqual({
+      x: -0.3,
+      y: 1.2,
+      z: -2.5
+    })
+  })
+
+  it('should be anticommutative, e.g., a − b = −(b − a)', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const ab = doVectorDifference(a, b)
+
+    const ba = doVectorDifference(b, a)
+
+    expect(ab.x).toBe(-ba.x)
+    expect(ab.y).toBe(-ba.y)
+    expect(ab.z).toBe(-ba.z)
+  })
+
+  it('should be the sum with the negation of the second vector, e.g., a − b = a + (−b)', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    expect(doVectorDifference(a, b)).toEqual(doVectorSum(a, { x: -b.x, y: -b.y, z: -b.z }))
+  })
+
+  it('should undo the sum, e.g., (a + b) − b = a', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const { x, y, z } = doVectorDifference(doVectorSum(a, b), b)
+
+    expect(x).toBeCloseTo(a.x, 14)
+    expect(y).toBeCloseTo(a.y, 14)
+    expect(z).toBeCloseTo(a.z, 14)
+  })
+
+  it('should not be associative, e.g., (a − b) − c ≠ a − (b − c)', () => {
+    const a = { x: 1, y: 2, z: 3 }
+
+    const b = { x: 4, y: -5, z: 6 }
+
+    const c = { x: -7, y: 8, z: 9 }
+
+    // (a − b) − c = (−3, 7, −3) − (−7, 8, 9) = (4, −1, −12):
+    expect(doVectorDifference(doVectorDifference(a, b), c)).toEqual({ x: 4, y: -1, z: -12 })
+
+    // a − (b − c) = (1, 2, 3) − (11, −13, −3) = (−10, 15, 6):
+    expect(doVectorDifference(a, doVectorDifference(b, c))).toEqual({ x: -10, y: 15, z: 6 })
+  })
+
+  it('should not mutate either vector, and should return a new vector', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const difference = doVectorDifference(a, b)
+
+    expect(a).toEqual({ x: 0.3, y: -1.2, z: 2.5 })
+    expect(b).toEqual({ x: -4.1, y: 0.07, z: 9.9 })
+
+    expect(difference).not.toBe(a)
+    expect(difference).not.toBe(b)
+  })
+
+  it('should have the length 2 sin(θ / 2) for two unit vectors θ apart, e.g., 1 for 60°', () => {
+    for (const θ of [0, 30, 60, 90, 120, 150, 180]) {
+      const { x, y, z } = doVectorDifference(
+        convertEquatorialToCartesian({ ra: θ, dec: 0 }),
+        convertEquatorialToCartesian({ ra: 0, dec: 0 })
+      )
+
+      expect(Math.hypot(x, y, z)).toBeCloseTo(2 * Math.sin((θ * Math.PI) / 360), 14)
+    }
+  })
+
+  it('should be orthogonal to the sum for two vectors of the same length', () => {
+    const a = convertEquatorialToCartesian({ ra: 10, dec: 20 })
+
+    const b = convertEquatorialToCartesian({ ra: 70, dec: -15 })
+
+    expect(doDotProduct(doVectorDifference(a, b), doVectorSum(a, b))).toBeCloseTo(0, 15)
+  })
+
+  it('should satisfy the parallelogram law, e.g., |a + b|² + |a − b|² = 2|a|² + 2|b|²', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const sum = doVectorSum(a, b)
+
+    const difference = doVectorDifference(a, b)
+
+    expect(doDotProduct(sum, sum) + doDotProduct(difference, difference)).toBeCloseTo(
+      2 * doDotProduct(a, a) + 2 * doDotProduct(b, b),
+      12
+    )
+  })
+
+  it('should satisfy the polarisation identity, e.g., a · b = (|a + b|² − |a − b|²) / 4', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const sum = doVectorSum(a, b)
+
+    const difference = doVectorDifference(a, b)
+
+    expect((doDotProduct(sum, sum) - doDotProduct(difference, difference)) / 4).toBeCloseTo(
+      doDotProduct(a, b),
+      12
+    )
+  })
+
+  it('should resolve (a − b) × (a + b) as twice the cross product, e.g., 2 (a × b)', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const left = doCrossProduct(doVectorDifference(a, b), doVectorSum(a, b))
+
+    const right = doCrossProduct(a, b)
+
+    expect(left.x).toBeCloseTo(2 * right.x, 12)
+    expect(left.y).toBeCloseTo(2 * right.y, 12)
+    expect(left.z).toBeCloseTo(2 * right.z, 12)
+  })
+
+  it('should commute with a rotation, e.g., R (a − b) = R a − R b', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    for (const axis of axes) {
+      const R = getRotationMatrix(axis, 23.4392911)
+
+      const left = getRotatedCartesianCoordinate(R, doVectorDifference(a, b))
+
+      const right = doVectorDifference(
         getRotatedCartesianCoordinate(R, a),
         getRotatedCartesianCoordinate(R, b)
       )
