@@ -62,6 +62,7 @@ export {
   type Matrix3,
   type Maybe,
   type Observer,
+  type ReferenceFrame,
   type SphericalCoordinate,
   type StateVector
 } from './common'

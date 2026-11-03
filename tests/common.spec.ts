@@ -10,6 +10,8 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
+import type { ReferenceFrame as ReferenceFrameFromRoot } from '../src'
+
 import {
   type EquatorialCoordinate,
   type EquatorialProperMotion,
@@ -18,6 +20,7 @@ import {
   isEquatorialProperMotion,
   isHorizontalCoordinate,
   type Matrix3,
+  type ReferenceFrame,
   type StateVector
 } from '../src/common'
 
@@ -235,6 +238,95 @@ describe('Matrix3', () => {
     expect(m[1][0]).toBe(1)
     expect(m[2][2]).toBe(1)
     expect(m[0]).toEqual([0, -1, 0])
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('ReferenceFrame', () => {
+  it('should be the union of the frames the frames module resolves matrices between', () => {
+    expectTypeOf<ReferenceFrame>().toEqualTypeOf<
+      'ICRS' | 'MOD' | 'TOD' | 'ecliptic' | 'galactic' | 'horizontal'
+    >()
+  })
+
+  it('should type each literal reference frame', () => {
+    const frames: ReferenceFrame[] = ['ICRS', 'MOD', 'TOD', 'ecliptic', 'galactic', 'horizontal']
+
+    expectTypeOf(frames).toEqualTypeOf<ReferenceFrame[]>()
+    expect(frames).toHaveLength(6)
+    expect(new Set(frames).size).toBe(6)
+  })
+
+  it('should not type a reference frame that the frames module does not resolve', () => {
+    // @ts-expect-error: the FK5 frame is not one of the reference frames:
+    const fk5: ReferenceFrame = 'FK5'
+
+    // @ts-expect-error: the reference frames are case sensitive, e.g., the ICRS is in capitals:
+    const icrs: ReferenceFrame = 'icrs'
+
+    // @ts-expect-error: the reference frames are case sensitive, e.g., galactic is in lowercase:
+    const galactic: ReferenceFrame = 'Galactic'
+
+    expect([fk5, icrs, galactic]).toEqual(['FK5', 'icrs', 'Galactic'])
+  })
+
+  it('should key a record of every reference frame exhaustively', () => {
+    // The equator and the origin of the longitude of each frame:
+    const descriptions: Record<ReferenceFrame, string> = {
+      ICRS: 'the equator and the origin of the ICRS',
+      MOD: 'the mean equator and equinox of the date',
+      TOD: 'the true equator and equinox of the date',
+      ecliptic: 'the true ecliptic and equinox of the date',
+      galactic: 'the galactic equator and centre',
+      horizontal: 'the horizon and north point of the observer'
+    }
+
+    expect(Object.keys(descriptions)).toEqual([
+      'ICRS',
+      'MOD',
+      'TOD',
+      'ecliptic',
+      'galactic',
+      'horizontal'
+    ])
+
+    // @ts-expect-error: a record of every reference frame must key each of them:
+    const partial: Record<ReferenceFrame, string> = {
+      ICRS: 'the equator and the origin of the ICRS'
+    }
+
+    expect(Object.keys(partial)).toEqual(['ICRS'])
+  })
+
+  it('should narrow exhaustively in a switch over every reference frame', () => {
+    const isOfTheDate = (frame: ReferenceFrame): boolean => {
+      switch (frame) {
+        case 'ICRS':
+        case 'galactic':
+          return false
+        case 'MOD':
+        case 'TOD':
+        case 'ecliptic':
+        case 'horizontal':
+          return true
+        default: {
+          const unreachable: never = frame
+          return unreachable
+        }
+      }
+    }
+
+    expect(isOfTheDate('ICRS')).toBe(false)
+    expect(isOfTheDate('galactic')).toBe(false)
+    expect(isOfTheDate('MOD')).toBe(true)
+    expect(isOfTheDate('TOD')).toBe(true)
+    expect(isOfTheDate('ecliptic')).toBe(true)
+    expect(isOfTheDate('horizontal')).toBe(true)
+  })
+
+  it('should be exported from the package root', () => {
+    expectTypeOf<ReferenceFrameFromRoot>().toEqualTypeOf<ReferenceFrame>()
   })
 })
 
