@@ -10,12 +10,19 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { type EquatorialCoordinate, getCorrectionToEquatorialForAnnualParallax } from '../src'
-
 import {
-  convertRadiansToDegrees as degrees,
-  convertDegreesToRadians as radians
-} from '../src/utilities'
+  convertCartesianToEquatorial,
+  doDotProduct,
+  doVectorDifference,
+  type EquatorialCoordinate,
+  getAngularSeparation,
+  getAntipodeCoordinate,
+  getBarycentricSolarVector,
+  getCorrectionToEquatorialForAnnualParallax,
+  getGeometricSolarVector
+} from '../src'
+
+import { convertDegreesToRadians as radians } from '../src/utilities'
 
 /*****************************************************************************************************************/
 
@@ -28,13 +35,6 @@ const datetime = new Date('2021-05-14T00:00:00.000+00:00')
 describe('getCorrectionToEquatorialForAnnualParallax', () => {
   // Proxima Centauri subtends the largest annual parallax of any star, at ~0.7686 arcseconds:
   const proxima: EquatorialCoordinate = { ra: 217.42895, dec: -62.67948, parallax: 0.7686 }
-
-  // The unit vector of an equatorial coordinate, in the equatorial frame:
-  const getUnitVector = (ra: number, dec: number): [number, number, number] => [
-    Math.cos(radians(dec)) * Math.cos(radians(ra)),
-    Math.cos(radians(dec)) * Math.sin(radians(ra)),
-    Math.sin(radians(dec))
-  ]
 
   // The great circle displacement of a target, in arcseconds, e.g., the displacement in right
   // ascension is taken along the parallel of the target, which shortens as cos δ:
@@ -157,19 +157,9 @@ describe('getCorrectionToEquatorialForAnnualParallax', () => {
             expect(Number.isFinite(correction.dec)).toBe(true)
 
             // The great circle angle between the target and its apparent position:
-            const a = getUnitVector(ra, dec)
-
-            const b = getUnitVector(ra + correction.ra, dec + correction.dec)
-
-            const separation = degrees(
-              Math.atan2(
-                Math.hypot(
-                  a[1] * b[2] - a[2] * b[1],
-                  a[2] * b[0] - a[0] * b[2],
-                  a[0] * b[1] - a[1] * b[0]
-                ),
-                a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
-              )
+            const separation = getAngularSeparation(
+              { θ: dec, φ: ra },
+              { θ: dec + correction.dec, φ: ra + correction.ra }
             )
 
             expect(separation * 3600).toBeLessThanOrEqual(parallax * 1.017)
@@ -177,6 +167,114 @@ describe('getCorrectionToEquatorialForAnnualParallax', () => {
         }
       }
     }
+  })
+
+  it('should not displace a target of a parallax of zero', () => {
+    expect(
+      getCorrectionToEquatorialForAnnualParallax(datetime, { ra: 10, dec: 20, parallax: 0 })
+    ).toEqual({ ra: 0, dec: 0 })
+  })
+
+  it('should not displace a target along the line through the barycentre from the observer', () => {
+    // The position of the barycentre of the Solar System from the observer, e.g., the direction the
+    // target is displaced towards:
+    const barycentre = convertCartesianToEquatorial(
+      doVectorDifference(getGeometricSolarVector(datetime), getBarycentricSolarVector(datetime))
+    )
+
+    const anti = getAntipodeCoordinate({ θ: barycentre.dec, φ: barycentre.ra })
+
+    for (const target of [barycentre, { ra: anti.φ, dec: anti.θ }]) {
+      const correction = getCorrectionToEquatorialForAnnualParallax(datetime, {
+        ...target,
+        parallax: 1
+      })
+
+      const separation = getAngularSeparation(
+        { θ: target.dec + correction.dec, φ: target.ra + correction.ra },
+        { θ: target.dec, φ: target.ra }
+      )
+
+      expect(separation * 3600).toBeLessThan(1e-9)
+    }
+  })
+
+  it('should displace a target towards the barycentre of the Solar System', () => {
+    const barycentre = convertCartesianToEquatorial(
+      doVectorDifference(getGeometricSolarVector(datetime), getBarycentricSolarVector(datetime))
+    )
+
+    for (let ra = 0; ra < 360; ra += 30) {
+      for (const dec of [-60, -30, 0, 30, 60]) {
+        const correction = getCorrectionToEquatorialForAnnualParallax(datetime, {
+          ra,
+          dec,
+          parallax: 1
+        })
+
+        const before = getAngularSeparation(
+          { θ: dec, φ: ra },
+          { θ: barycentre.dec, φ: barycentre.ra }
+        )
+
+        const after = getAngularSeparation(
+          { θ: dec + correction.dec, φ: ra + correction.ra },
+          { θ: barycentre.dec, φ: barycentre.ra }
+        )
+
+        // N.B. A target within an arcminute of the line through the barycentre is barely displaced:
+        if (before > 1 / 60 && before < 180 - 1 / 60) {
+          expect(after).toBeLessThan(before)
+        }
+      }
+    }
+  })
+
+  it('should displace a target by π d sin θ, e.g., d the distance of the barycentre', () => {
+    const X = doVectorDifference(
+      getGeometricSolarVector(datetime),
+      getBarycentricSolarVector(datetime)
+    )
+
+    // The distance of the barycentre of the Solar System from the observer (in astronomical units):
+    const d = Math.sqrt(doDotProduct(X, X))
+
+    const barycentre = convertCartesianToEquatorial(X)
+
+    for (let ra = 0; ra < 360; ra += 30) {
+      for (const dec of [-89, -60, -30, 0, 30, 60, 89]) {
+        const correction = getCorrectionToEquatorialForAnnualParallax(datetime, {
+          ra,
+          dec,
+          parallax: 1
+        })
+
+        const θ = radians(
+          getAngularSeparation({ θ: dec, φ: ra }, { θ: barycentre.dec, φ: barycentre.ra })
+        )
+
+        const separation = getAngularSeparation(
+          { θ: dec + correction.dec, φ: ra + correction.ra },
+          { θ: dec, φ: ra }
+        )
+
+        // N.B. The displacement is π d sin θ to the first order, and the second order is ~π² d², or
+        // ~5 microarcseconds for a parallax of one arcsecond:
+        expect(Math.abs(separation * 3600 - d * Math.sin(θ))).toBeLessThan(1e-4)
+      }
+    }
+  })
+
+  it('should return the same correction for a right ascension a whole turn apart', () => {
+    const a = getCorrectionToEquatorialForAnnualParallax(datetime, proxima)
+
+    const b = getCorrectionToEquatorialForAnnualParallax(datetime, {
+      ...proxima,
+      ra: proxima.ra + 360
+    })
+
+    expect(b.ra).toBeCloseTo(a.ra, 12)
+    expect(b.dec).toBeCloseTo(a.dec, 12)
   })
 })
 
