@@ -356,6 +356,32 @@ export type Matrix3 = readonly [
 
 /**
  *
+ * A reference frame is one of the frames the frames module resolves the rotation matrices between,
+ * e.g., the frame a cartesian coordinate is referred to, as given by its equator (or fundamental
+ * plane) and the origin of its longitude:
+ *
+ * - ICRS: the International Celestial Reference System, e.g., the frame of a catalogue coordinate.
+ * - MOD: the mean equator and equinox of the date, e.g., the ICRS carried by the frame bias and the
+ *   precession of IAU 2006, as P · B.
+ * - TOD: the true equator and equinox of the date, e.g., the MOD carried by the nutation of IAU
+ *   2000A, as N · P · B.
+ * - ecliptic: the true ecliptic and equinox of the date, e.g., the TOD rotated about the equinox
+ *   through the true obliquity of the ecliptic, as R1(ε).
+ * - galactic: the galactic frame of the Hipparcos catalogue, e.g., fixed to the ICRS, as G.
+ * - horizontal: the horizon of the observer, e.g., the TOD rotated through the local apparent
+ *   sidereal time and the latitude of the observer, as the (north, east, zenith) frame H.
+ *
+ * N.B. The ICRS and the galactic frame are fixed, whereas the MOD, the TOD, the ecliptic and the
+ * horizontal frame are of the date, e.g., they each take the datetime to resolve, and the
+ * horizontal frame takes the observer as well.
+ *
+ */
+export type ReferenceFrame = 'ICRS' | 'MOD' | 'TOD' | 'ecliptic' | 'galactic' | 'horizontal'
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * A spherical coordinate follows the ISO 80000-2 convention, in which the polar angle is denoted θ
  * and the azimuthal angle is denoted φ, and not the mathematical convention, in which the two are
  * transposed.
