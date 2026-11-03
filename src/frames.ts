@@ -8,9 +8,11 @@
 
 import { getLocalApparentSiderealTime } from './astrometry'
 
-import type { GeographicCoordinate, Matrix3 } from './common'
+import type { GeographicCoordinate, Matrix3, ReferenceFrame } from './common'
+
 import { getObliquityOfTheEcliptic } from './ecliptic'
-import { getMatrixProduct, getRotationMatrix } from './maths'
+
+import { doTranspose, getMatrixProduct, getRotationMatrix, IDENTITY_MATRIX } from './maths'
 
 import { getNutation, getTrueObliquityOfTheEcliptic } from './nutation'
 
@@ -316,6 +318,81 @@ export function getEquatorialToHorizontalMatrix(
     F,
     getMatrixProduct(getRotationMatrix('y', 90 - latitude), getRotationMatrix('z', LAST))
   )
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getFrameTransformationMatrix()
+ *
+ * Resolves the transformation matrix M from one reference frame to another, e.g., the matrix that
+ * carries the cartesian coordinate of a target referred to the first frame into the second, as is
+ * routed through the International Celestial Reference System (ICRS):
+ *
+ * M = M(to) · M(from)ᵀ
+ *
+ * where M(frame) is the matrix from the ICRS to the frame, e.g., I for the ICRS, P · B for the
+ * mean equator and equinox of the date (MOD), N · P · B for the true equator and equinox of the
+ * date (TOD), E · N · P · B for the true ecliptic and equinox of the date, G for the galactic
+ * frame, and H · N · P · B for the horizontal frame of the observer.
+ *
+ * N.B. The transformation between a reference frame and itself is the identity, e.g., it is not
+ * routed through the ICRS, and so it takes neither the datetime nor the observer to resolve.
+ *
+ * N.B. The horizontal frame of (north, east, zenith) is left-handed, and so a transformation to or
+ * from it is a reflection, with a determinant of −1, whereas every other is a rotation.
+ *
+ * @param from - The reference frame to transform from.
+ * @param to - The reference frame to transform to.
+ * @param datetime - The date to resolve the transformation matrix for.
+ * @param observer - The geographic coordinate of the observer, for the horizontal frame.
+ * @returns The 3×3 transformation matrix from the one frame to the other, in row-major order.
+ *
+ */
+export function getFrameTransformationMatrix(
+  from: ReferenceFrame,
+  to: ReferenceFrame,
+  datetime: Date,
+  observer?: GeographicCoordinate
+): Matrix3 {
+  // The transformation between a reference frame and itself is the identity:
+  if (from === to) {
+    return IDENTITY_MATRIX
+  }
+
+  // The matrix from the ICRS to the given reference frame:
+  const getMatrixFromICRS = (frame: ReferenceFrame): Matrix3 => {
+    switch (frame) {
+      case 'ICRS':
+        return IDENTITY_MATRIX
+      case 'MOD':
+        return getMatrixProduct(getPrecessionMatrix(datetime), getFrameBiasMatrix())
+      case 'TOD':
+        return getBiasPrecessionNutationMatrix(datetime)
+      case 'ecliptic':
+        return getMatrixProduct(
+          getEquatorialToEclipticMatrix(datetime),
+          getBiasPrecessionNutationMatrix(datetime)
+        )
+      case 'galactic':
+        return getEquatorialToGalacticMatrix()
+      case 'horizontal':
+        // The horizontal frame is that of the observer, and so it is not resolved without one:
+        if (!observer) {
+          throw new Error('Invalid observer: the horizontal frame requires an observer')
+        }
+
+        return getMatrixProduct(
+          getEquatorialToHorizontalMatrix(datetime, observer),
+          getBiasPrecessionNutationMatrix(datetime)
+        )
+    }
+  }
+
+  // The transformation is carried from the given frame back to the ICRS by the transpose of its
+  // matrix, e.g., its inverse, and from the ICRS on to the target frame:
+  return getMatrixProduct(getMatrixFromICRS(to), doTranspose(getMatrixFromICRS(from)))
 }
 
 /*****************************************************************************************************************/

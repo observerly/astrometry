@@ -14,6 +14,8 @@ import {
   convertCartesianToEquatorial,
   convertEclipticToEquatorial,
   convertEquatorialToCartesian,
+  convertEquatorialToEcliptic,
+  convertEquatorialToGalactic,
   convertEquatorialToHorizontal,
   convertGalacticToEquatorial,
   convertHorizontalToEquatorial,
@@ -29,6 +31,7 @@ import {
   getEquatorialToGalacticMatrix,
   getEquatorialToHorizontalMatrix,
   getFrameBiasMatrix,
+  getFrameTransformationMatrix,
   getLocalApparentSiderealTime,
   getMatrixProduct,
   getNutation,
@@ -41,6 +44,7 @@ import {
   getTrueObliquityOfTheEcliptic,
   IDENTITY_MATRIX,
   type Matrix3,
+  type ReferenceFrame,
   convertDegreesToRadians as radians
 } from '../src'
 
@@ -1312,6 +1316,294 @@ describe('getEquatorialToHorizontalMatrix', () => {
     expect(getEquatorialToHorizontalMatrix(datetime, observer)).not.toBe(
       getEquatorialToHorizontalMatrix(datetime, observer)
     )
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getFrameTransformationMatrix', () => {
+  // Every reference frame the frames module resolves matrices between:
+  const referenceFrames: ReferenceFrame[] = [
+    'ICRS',
+    'MOD',
+    'TOD',
+    'ecliptic',
+    'galactic',
+    'horizontal'
+  ]
+
+  // For testing
+  const observer: GeographicCoordinate = { latitude: 19.8207, longitude: -155.4681 }
+
+  it('should be defined', () => {
+    expect(getFrameTransformationMatrix).toBeDefined()
+  })
+
+  it('should return a Matrix3', () => {
+    const M = getFrameTransformationMatrix('ICRS', 'TOD', datetime)
+
+    expectTypeOf(M).toEqualTypeOf<Matrix3>()
+    expect(M).toHaveLength(3)
+
+    for (const row of M) {
+      expect(row).toHaveLength(3)
+    }
+  })
+
+  it('should return the identity matrix between a reference frame and itself', () => {
+    for (const frame of referenceFrames) {
+      expect(getFrameTransformationMatrix(frame, frame, datetime, observer)).toEqual(
+        IDENTITY_MATRIX
+      )
+    }
+  })
+
+  it('should return the identity matrix for the horizontal frame without an observer', () => {
+    expect(getFrameTransformationMatrix('horizontal', 'horizontal', datetime)).toEqual(
+      IDENTITY_MATRIX
+    )
+  })
+
+  it.each([
+    {
+      from: 'ICRS',
+      to: 'MOD',
+      name: 'P · B',
+      expected: () => getMatrixProduct(getPrecessionMatrix(datetime), getFrameBiasMatrix())
+    },
+    {
+      from: 'ICRS',
+      to: 'TOD',
+      name: 'N · P · B',
+      expected: () => getBiasPrecessionNutationMatrix(datetime)
+    },
+    {
+      from: 'MOD',
+      to: 'TOD',
+      name: 'N',
+      expected: () => getNutationMatrix(datetime)
+    },
+    {
+      from: 'TOD',
+      to: 'ecliptic',
+      name: 'E',
+      expected: () => getEquatorialToEclipticMatrix(datetime)
+    },
+    {
+      from: 'ICRS',
+      to: 'ecliptic',
+      name: 'E · N · P · B',
+      expected: () =>
+        getMatrixProduct(
+          getEquatorialToEclipticMatrix(datetime),
+          getBiasPrecessionNutationMatrix(datetime)
+        )
+    },
+    {
+      from: 'ICRS',
+      to: 'galactic',
+      name: 'G',
+      expected: () => getEquatorialToGalacticMatrix()
+    },
+    {
+      from: 'TOD',
+      to: 'horizontal',
+      name: 'H',
+      expected: () => getEquatorialToHorizontalMatrix(datetime, observer)
+    },
+    {
+      from: 'ICRS',
+      to: 'horizontal',
+      name: 'H · N · P · B',
+      expected: () =>
+        getMatrixProduct(
+          getEquatorialToHorizontalMatrix(datetime, observer),
+          getBiasPrecessionNutationMatrix(datetime)
+        )
+    }
+  ] as { from: ReferenceFrame; to: ReferenceFrame; name: string; expected: () => Matrix3 }[])(
+    'should resolve the $from to $to matrix as $name',
+    ({ from, to, expected }) => {
+      const M = getFrameTransformationMatrix(from, to, datetime, observer)
+
+      const E = expected()
+
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          expect(M[i][j]).toBeCloseTo(E[i][j], 15)
+        }
+      }
+    }
+  )
+
+  it('should resolve the reverse transformation as the transpose, e.g., M(b, a) = M(a, b)ᵀ', () => {
+    for (const from of referenceFrames) {
+      for (const to of referenceFrames) {
+        const forward = doTranspose(getFrameTransformationMatrix(from, to, datetime, observer))
+
+        const reverse = getFrameTransformationMatrix(to, from, datetime, observer)
+
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            expect(reverse[i][j]).toBeCloseTo(forward[i][j], 15)
+          }
+        }
+      }
+    }
+  })
+
+  it('should compose through any frame, e.g., M(a, c) = M(b, c) · M(a, b)', () => {
+    for (const a of referenceFrames) {
+      for (const b of referenceFrames) {
+        for (const c of referenceFrames) {
+          const direct = getFrameTransformationMatrix(a, c, datetime, observer)
+
+          const composed = getMatrixProduct(
+            getFrameTransformationMatrix(b, c, datetime, observer),
+            getFrameTransformationMatrix(a, b, datetime, observer)
+          )
+
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+              expect(composed[i][j]).toBeCloseTo(direct[i][j], 14)
+            }
+          }
+        }
+      }
+    }
+  })
+
+  it('should be orthogonal for every pair of reference frames, e.g., M · Mᵀ = I', () => {
+    for (const from of referenceFrames) {
+      for (const to of referenceFrames) {
+        const M = getFrameTransformationMatrix(from, to, datetime, observer)
+
+        const I = getMatrixProduct(M, doTranspose(M))
+
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            expect(I[i][j]).toBeCloseTo(IDENTITY_MATRIX[i][j], 14)
+          }
+        }
+      }
+    }
+  })
+
+  it('should be a reflection to or from the horizontal frame, and a rotation otherwise', () => {
+    for (const from of referenceFrames) {
+      for (const to of referenceFrames) {
+        const M = getFrameTransformationMatrix(from, to, datetime, observer)
+
+        // N.B. The horizontal frame of (north, east, zenith) is left-handed, and so a matrix that
+        // carries a frame into it, or out of it, is a reflection, with a determinant of −1:
+        const isReflection = (from === 'horizontal') !== (to === 'horizontal')
+
+        expect(doDeterminant(M)).toBeCloseTo(isReflection ? -1 : 1, 14)
+      }
+    }
+  })
+
+  it('should not depend on the datetime between the ICRS and the galactic frame', () => {
+    const M = getFrameTransformationMatrix('ICRS', 'galactic', datetime)
+
+    for (const when of [
+      new Date('1900-01-01T00:00:00.000+00:00'),
+      new Date('2000-01-01T12:00:00.000+00:00'),
+      new Date('2100-01-01T00:00:00.000+00:00')
+    ]) {
+      expect(getFrameTransformationMatrix('ICRS', 'galactic', when)).toEqual(M)
+    }
+  })
+
+  it('should not depend on the observer between frames other than the horizontal frame', () => {
+    for (const from of referenceFrames) {
+      for (const to of referenceFrames) {
+        if (from === 'horizontal' || to === 'horizontal') continue
+
+        expect(getFrameTransformationMatrix(from, to, datetime, observer)).toEqual(
+          getFrameTransformationMatrix(from, to, datetime)
+        )
+      }
+    }
+  })
+
+  it('should throw to or from the horizontal frame without an observer', () => {
+    for (const frame of referenceFrames) {
+      if (frame === 'horizontal') continue
+
+      expect(() => getFrameTransformationMatrix(frame, 'horizontal', datetime)).toThrowError(
+        'Invalid observer: the horizontal frame requires an observer'
+      )
+
+      expect(() => getFrameTransformationMatrix('horizontal', frame, datetime)).toThrowError(
+        'Invalid observer: the horizontal frame requires an observer'
+      )
+    }
+  })
+
+  it('should agree with convertEquatorialToGalactic from the ICRS to the galactic frame', () => {
+    const M = getFrameTransformationMatrix('ICRS', 'galactic', datetime)
+
+    for (let ra = 0; ra < 360; ra += 30) {
+      for (const dec of [-89, -45, 0, 7.4070639, 45, 89]) {
+        const { ra: l, dec: b } = convertCartesianToEquatorial(
+          getRotatedCartesianCoordinate(M, convertEquatorialToCartesian({ ra, dec }))
+        )
+
+        const galactic = convertEquatorialToGalactic({ ra, dec })
+
+        expect(getAngularSeparation({ θ: b, φ: l }, { θ: galactic.b, φ: galactic.l })).toBeLessThan(
+          1e-12
+        )
+      }
+    }
+  })
+
+  it('should agree with convertEquatorialToEcliptic from the TOD to the ecliptic', () => {
+    const M = getFrameTransformationMatrix('TOD', 'ecliptic', datetime)
+
+    for (let ra = 0; ra < 360; ra += 30) {
+      for (const dec of [-89, -45, 0, 7.4070639, 45, 89]) {
+        const { ra: λ, dec: β } = convertCartesianToEquatorial(
+          getRotatedCartesianCoordinate(M, convertEquatorialToCartesian({ ra, dec }))
+        )
+
+        const ecliptic = convertEquatorialToEcliptic(datetime, { ra, dec })
+
+        expect(getAngularSeparation({ θ: β, φ: λ }, { θ: ecliptic.β, φ: ecliptic.λ })).toBeLessThan(
+          1e-12
+        )
+      }
+    }
+  })
+
+  it('should carry a galactic coordinate into the ecliptic of the date through the ICRS', () => {
+    const M = getFrameTransformationMatrix('galactic', 'ecliptic', datetime)
+
+    for (let l = 0; l < 360; l += 30) {
+      for (const b of [-89, -45, 0, 27.12825, 45, 89]) {
+        const { ra: λ, dec: β } = convertCartesianToEquatorial(
+          getRotatedCartesianCoordinate(M, convertEquatorialToCartesian({ ra: l, dec: b }))
+        )
+
+        // The galactic coordinate is carried to the ICRS, to the true equator and equinox of the
+        // date by the bias-precession-nutation matrix, and on to the ecliptic of the date:
+        const icrs = convertGalacticToEquatorial({ l, b })
+
+        const { ra, dec } = convertCartesianToEquatorial(
+          getRotatedCartesianCoordinate(
+            getBiasPrecessionNutationMatrix(datetime),
+            convertEquatorialToCartesian(icrs)
+          )
+        )
+
+        const ecliptic = convertEquatorialToEcliptic(datetime, { ra, dec })
+
+        expect(getAngularSeparation({ θ: β, φ: λ }, { θ: ecliptic.β, φ: ecliptic.λ })).toBeLessThan(
+          1e-10
+        )
+      }
+    }
   })
 })
 
