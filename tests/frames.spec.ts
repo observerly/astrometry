@@ -693,7 +693,7 @@ describe('getEquatorialToGalacticMatrix', () => {
     expect(galactic.dec).toBeCloseTo(b, 12)
   })
 
-  it('should agree with convertGalacticToEquatorial for its transpose to within ~1.5″', () => {
+  it('should agree with convertGalacticToEquatorial for its transpose across the sphere', () => {
     const Gᵀ = doTranspose(getEquatorialToGalacticMatrix())
 
     for (let l = 0; l < 360; l += 15) {
@@ -707,14 +707,12 @@ describe('getEquatorialToGalacticMatrix', () => {
           getRotatedCartesianCoordinate(Gᵀ, convertEquatorialToCartesian({ ra: l, dec: b }))
         )
 
-        // N.B. The conversion takes the north galactic pole at (192.8598°, 27.128027°), rounded
-        // from that of the Hipparcos catalogue, which displaces it by up to ~1.43″:
         const separation = getAngularSeparation(
           { θ: dec, φ: ra },
           { θ: rotated.dec, φ: rotated.ra }
         )
 
-        expect(separation * 3600).toBeLessThan(1.5)
+        expect(separation).toBeLessThan(1e-10)
       }
     }
   })
