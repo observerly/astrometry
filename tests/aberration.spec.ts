@@ -11,11 +11,16 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  AU_IN_METERS,
   type CartesianCoordinate,
   convertCartesianToEquatorial,
+  doDotProduct,
+  doNormalize,
   EARTH_ANGULAR_VELOCITY,
   EARTH_RADIUS,
   type EquatorialCoordinate,
+  getAngularSeparation,
+  getAntipodeCoordinate,
   getBarycentricEarthVelocity,
   getCorrectionToEquatorialForAberration,
   getCorrectionToEquatorialForAnnualAberration,
@@ -64,6 +69,113 @@ describe('getCorrectionToEquatorialForAnnualAberration', () => {
     const { ra, dec } = getCorrectionToEquatorialForAnnualAberration(datetime, betelgeuse)
     expect(ra + betelgeuse.ra).toBeCloseTo(88.788391902834, 9)
     expect(dec + betelgeuse.dec).toBeCloseTo(7.406101846632362, 9)
+  })
+
+  it('should not displace a target at the apex or the antapex of the motion of the Earth', () => {
+    const apex = convertCartesianToEquatorial(doNormalize(getBarycentricEarthVelocity(datetime)))
+
+    const antapex = getAntipodeCoordinate({ θ: apex.dec, φ: apex.ra })
+
+    for (const target of [apex, { ra: antapex.φ, dec: antapex.θ }]) {
+      const { ra, dec } = getCorrectionToEquatorialForAnnualAberration(datetime, target)
+
+      const separation = getAngularSeparation(
+        { θ: target.dec + dec, φ: target.ra + ra },
+        { θ: target.dec, φ: target.ra }
+      )
+
+      expect(separation * 3600).toBeLessThan(1e-6)
+    }
+  })
+
+  it('should displace a target towards the apex of the motion of the Earth', () => {
+    const apex = convertCartesianToEquatorial(doNormalize(getBarycentricEarthVelocity(datetime)))
+
+    for (let ra = 0; ra < 360; ra += 30) {
+      for (const dec of [-60, -30, 0, 30, 60]) {
+        const correction = getCorrectionToEquatorialForAnnualAberration(datetime, { ra, dec })
+
+        const before = getAngularSeparation({ θ: dec, φ: ra }, { θ: apex.dec, φ: apex.ra })
+
+        const after = getAngularSeparation(
+          { θ: dec + correction.dec, φ: ra + correction.ra },
+          { θ: apex.dec, φ: apex.ra }
+        )
+
+        // N.B. A target within an arcminute of the apex or the antapex is barely displaced at all:
+        if (before > 1 / 60 && before < 180 - 1 / 60) {
+          expect(after).toBeLessThan(before)
+        }
+      }
+    }
+  })
+
+  it('should displace a target by v sin θ / c, e.g., ~20.5″ at right angles to the apex', () => {
+    const velocity = getBarycentricEarthVelocity(datetime)
+
+    // The speed of the Earth as a fraction of the speed of light, e.g., ~1e-4:
+    const β = (Math.sqrt(doDotProduct(velocity, velocity)) * AU_IN_METERS) / 86400 / SPEED_OF_LIGHT
+
+    const apex = convertCartesianToEquatorial(doNormalize(velocity))
+
+    for (let ra = 0; ra < 360; ra += 30) {
+      for (const dec of [-89, -60, -30, 0, 30, 60, 89]) {
+        const correction = getCorrectionToEquatorialForAnnualAberration(datetime, { ra, dec })
+
+        const θ = radians(getAngularSeparation({ θ: dec, φ: ra }, { θ: apex.dec, φ: apex.ra }))
+
+        const separation = getAngularSeparation(
+          { θ: dec + correction.dec, φ: ra + correction.ra },
+          { θ: dec, φ: ra }
+        )
+
+        // N.B. The displacement is v sin θ / c to the first order, and the terms of the second
+        // order and of the gravitational potential of the Sun are each within ~10 mas:
+        expect(Math.abs(separation * 3600 - (β * Math.sin(θ) * 180 * 3600) / Math.PI)).toBeLessThan(
+          0.01
+        )
+      }
+    }
+  })
+
+  it('should never exceed ~20.7″ anywhere on the sphere', () => {
+    for (let ra = 0; ra < 360; ra += 15) {
+      for (const dec of [-90, -89, -60, -30, 0, 30, 60, 89, 90]) {
+        const correction = getCorrectionToEquatorialForAnnualAberration(datetime, { ra, dec })
+
+        const separation = getAngularSeparation(
+          { θ: dec + correction.dec, φ: ra + correction.ra },
+          { θ: dec, φ: ra }
+        )
+
+        expect(Number.isFinite(correction.ra)).toBe(true)
+        expect(Number.isFinite(correction.dec)).toBe(true)
+        expect(separation * 3600).toBeLessThan(20.7)
+      }
+    }
+  })
+
+  it('should resolve the displacement in right ascension the shorter way about the sphere', () => {
+    for (let ra = 0; ra < 360; ra += 15) {
+      for (const dec of [-89, -45, 0, 45, 89]) {
+        const correction = getCorrectionToEquatorialForAnnualAberration(datetime, { ra, dec })
+
+        expect(correction.ra).toBeGreaterThanOrEqual(-180)
+        expect(correction.ra).toBeLessThan(180)
+      }
+    }
+  })
+
+  it('should return the same correction for a right ascension a whole turn apart', () => {
+    const a = getCorrectionToEquatorialForAnnualAberration(datetime, betelgeuse)
+
+    const b = getCorrectionToEquatorialForAnnualAberration(datetime, {
+      ra: betelgeuse.ra + 360,
+      dec: betelgeuse.dec
+    })
+
+    expect(b.ra).toBeCloseTo(a.ra, 12)
+    expect(b.dec).toBeCloseTo(a.dec, 12)
   })
 })
 
