@@ -316,6 +316,38 @@ export function doCrossProduct(
 
 /**
  *
+ * doVectorSum()
+ *
+ * Resolves the sum a + b of two cartesian vectors, e.g., the vector taken component by component,
+ * such that (a + b) = (a.x + b.x, a.y + b.y, a.z + b.z), as is the diagonal of the parallelogram
+ * spanned by the two vectors.
+ *
+ * N.B. The sum is commutative, e.g., a + b = b + a, and associative, e.g., (a + b) + c =
+ * a + (b + c), and the zero vector is its identity, e.g., a + 0 = a.
+ *
+ * N.B. The sum of two unit vectors bisects the angle between them, with a length of 2 cos(θ / 2),
+ * where θ is the angle between them, e.g., it is the zero vector for two antipodal directions.
+ *
+ * @param a - The first cartesian vector, e.g., { x, y, z }.
+ * @param b - The second cartesian vector, e.g., { x, y, z }.
+ * @returns The sum a + b of the two vectors, e.g., { x, y, z }.
+ *
+ */
+export function doVectorSum(
+  a: Required<CartesianCoordinate>,
+  b: Required<CartesianCoordinate>
+): Required<CartesianCoordinate> {
+  return {
+    x: a.x + b.x,
+    y: a.y + b.y,
+    z: a.z + b.z
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * doTranspose()
  *
  * Resolves the transpose Mᵀ of a 3×3 matrix, e.g., the matrix reflected about its leading diagonal,
