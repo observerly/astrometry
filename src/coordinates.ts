@@ -22,7 +22,7 @@ import type {
 } from './common'
 import { EARTH_RADIUS } from './constants'
 
-import { getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
+import { doTranspose, getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
 
 import { getTrueObliquityOfTheEcliptic } from './nutation'
 
@@ -45,30 +45,29 @@ import {
  * the date corrected for the nutation in obliquity, and so an ecliptic coordinate of the date is
  * referred to the true equator and equinox of the date.
  *
+ * N.B. The conversion is the rotation of the unit vector of the target about the x-axis, e.g., the
+ * direction of the true equinox of the date, through the transpose of R1(ε), e.g., the inverse of
+ * the rotation of convertEquatorialToEcliptic().
+ *
  * @param datetime - The date and time of the observation for which to calculate the Horizontal coordinate
  * @param target - The ecliptical coordinate of the observed object.
- * @returns The equatorial coordinates of the target
+ * @returns The equatorial coordinates of the target, with the right ascension within [0°, 360°).
  *
  */
 export function convertEclipticToEquatorial(
   datetime: Date,
   target: EclipticCoordinate
 ): EquatorialCoordinate {
-  // Get the true obliquity of the ecliptic for the given datetime:
-  const ε = radians(getTrueObliquityOfTheEcliptic(datetime))
+  // The rotation from the true ecliptic and equinox of the date to the true equator and equinox of
+  // the date, the transpose of R1(ε), e.g., of getEquatorialToEclipticMatrix() of the frames
+  // module, which is composed here as the frames module depends on this one:
+  const Eᵀ = doTranspose(getRotationMatrix('x', getTrueObliquityOfTheEcliptic(datetime)))
 
-  const λ = radians(target.λ)
-
-  const β = radians(target.β)
-
-  const α = Math.atan2(Math.sin(λ) * Math.cos(ε) - Math.tan(β) * Math.sin(ε), Math.cos(λ))
-
-  const δ = Math.asin(Math.sin(β) * Math.cos(ε) + Math.cos(β) * Math.sin(ε) * Math.sin(λ))
-
-  return {
-    ra: degrees(α) < 0 ? degrees(α) + 360 : degrees(α),
-    dec: degrees(δ)
-  }
+  // The unit vector of the target in the ecliptic frame, resolved from the longitude and latitude
+  // of the ecliptic in place of the right ascension and declination, and rotated onto the equator:
+  return convertCartesianToEquatorial(
+    getRotatedCartesianCoordinate(Eᵀ, convertEquatorialToCartesian({ ra: target.λ, dec: target.β }))
+  )
 }
 
 /*****************************************************************************************************************/

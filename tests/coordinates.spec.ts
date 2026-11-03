@@ -20,6 +20,7 @@ import {
   convertGalacticToEquatorial,
   convertGeocentricToGeographic,
   convertHorizontalToEquatorial,
+  doTranspose,
   EARTH_RADIUS,
   type EclipticCoordinate,
   type EquatorialCoordinate,
@@ -67,6 +68,180 @@ describe('convertEclipticToEquatorial', () => {
     const { ra, dec } = convertEclipticToEquatorial(new Date('2016-01-04T03:00:00+00:00'), venus)
     expect(ra).toBe(244.248410736812)
     expect(dec).toBe(-19.4032236885202)
+  })
+
+  it('should return an EquatorialCoordinate', () => {
+    const equatorial = convertEclipticToEquatorial(datetime, {
+      λ: 88.75463188003741,
+      β: -16.024965884145512
+    })
+    expectTypeOf(equatorial).toEqualTypeOf<EquatorialCoordinate>()
+    expect(Number.isFinite(equatorial.ra)).toBe(true)
+    expect(Number.isFinite(equatorial.dec)).toBe(true)
+  })
+
+  // The equatorial coordinate of each star, referred to the true equator and equinox of the date,
+  // as the transpose of R1(ε) of the true obliquity of obl06 and nut06a of ERFA resolves it (in
+  // degrees):
+  it.each([
+    {
+      name: 'Betelgeuse',
+      λ: 88.75463188003741,
+      β: -16.024965884145512,
+      ra: 88.7929583,
+      dec: 7.4070639
+    },
+    {
+      name: 'Polaris',
+      λ: 88.56747909128318,
+      β: 66.10350510263201,
+      ra: 37.95456067,
+      dec: 89.26410897
+    },
+    {
+      name: 'Canopus',
+      λ: 104.9582461828288,
+      β: -75.82191669443161,
+      ra: 95.98787778,
+      dec: -52.69566111
+    },
+    {
+      name: 'Regulus',
+      λ: 149.8296,
+      β: 0.4648,
+      ra: 152.09301156098815,
+      dec: 11.966052022467238
+    },
+    {
+      name: 'Spica',
+      λ: 204.0717,
+      β: -2.0548,
+      ra: 201.51646700899585,
+      dec: -11.246162665943382
+    },
+    {
+      name: 'Fomalhaut',
+      λ: 334.1167,
+      β: -21.1356,
+      ra: 344.6622855816683,
+      dec: -29.52336642319395
+    }
+  ])('should agree with ERFA for $name', ({ λ, β, ra, dec }) => {
+    const equatorial = convertEclipticToEquatorial(datetime, { λ, β })
+
+    // N.B. The true obliquity of the library agrees with that of ERFA to ~0.07 mas at the date, and
+    // so 1e-7° is ~0.36 mas:
+    const separation = getAngularSeparation(
+      { θ: equatorial.dec, φ: equatorial.ra },
+      { θ: dec, φ: ra }
+    )
+
+    expect(separation).toBeLessThan(1e-7)
+  })
+
+  it('should leave the true equinox of the date fixed, at (0°, 0°)', () => {
+    const { ra, dec } = convertEclipticToEquatorial(datetime, { λ: 0, β: 0 })
+
+    expect(ra).toBeCloseTo(0, 12)
+    expect(dec).toBeCloseTo(0, 12)
+  })
+
+  it('should carry the north ecliptic pole to (270°, 90° − ε)', () => {
+    const ε = getTrueObliquityOfTheEcliptic(datetime)
+
+    const { ra, dec } = convertEclipticToEquatorial(datetime, { λ: 0, β: 90 })
+
+    expect(ra).toBeCloseTo(270, 10)
+    expect(dec).toBeCloseTo(90 - ε, 10)
+  })
+
+  it('should carry the south ecliptic pole to (90°, ε − 90°)', () => {
+    const ε = getTrueObliquityOfTheEcliptic(datetime)
+
+    const { ra, dec } = convertEclipticToEquatorial(datetime, { λ: 0, β: -90 })
+
+    expect(ra).toBeCloseTo(90, 10)
+    expect(dec).toBeCloseTo(ε - 90, 10)
+  })
+
+  it('should carry the celestial pole, at (90°, 90° − ε), to a declination of 90°', () => {
+    const ε = getTrueObliquityOfTheEcliptic(datetime)
+
+    const { dec } = convertEclipticToEquatorial(datetime, { λ: 90, β: 90 - ε })
+
+    expect(dec).toBeCloseTo(90, 6)
+  })
+
+  it('should carry the solstice, at (90°, 0°), to (90°, ε)', () => {
+    const ε = getTrueObliquityOfTheEcliptic(datetime)
+
+    const { ra, dec } = convertEclipticToEquatorial(datetime, { λ: 90, β: 0 })
+
+    expect(ra).toBeCloseTo(90, 10)
+    expect(dec).toBeCloseTo(ε, 10)
+  })
+
+  it('should carry the autumnal equinox, at (180°, 0°), to (180°, 0°)', () => {
+    const { ra, dec } = convertEclipticToEquatorial(datetime, { λ: 180, β: 0 })
+
+    expect(ra).toBeCloseTo(180, 10)
+    expect(dec).toBeCloseTo(0, 10)
+  })
+
+  it('should return a right ascension within [0°, 360°)', () => {
+    for (let λ = 0; λ <= 360; λ += 15) {
+      for (const β of [-90, -89, -45, -10, 0, 10, 45, 89, 90]) {
+        const { ra } = convertEclipticToEquatorial(datetime, { λ, β })
+
+        expect(ra).toBeGreaterThanOrEqual(0)
+        expect(ra).toBeLessThan(360)
+      }
+    }
+  })
+
+  it('should return a declination within [-90°, 90°]', () => {
+    for (let λ = 0; λ < 360; λ += 15) {
+      for (const β of [-90, -89, -45, -10, 0, 10, 45, 89, 90]) {
+        const { dec } = convertEclipticToEquatorial(datetime, { λ, β })
+
+        expect(dec).toBeGreaterThanOrEqual(-90)
+        expect(dec).toBeLessThanOrEqual(90)
+      }
+    }
+  })
+
+  it('should agree with the rotation of the transpose of getEquatorialToEclipticMatrix', () => {
+    const Eᵀ = doTranspose(getEquatorialToEclipticMatrix(datetime))
+
+    for (let λ = 0; λ < 360; λ += 22.5) {
+      for (const β of [-89, -75.82191669443161, 0, 1.8937944394473665, 45, 89]) {
+        const { ra, dec } = convertEclipticToEquatorial(datetime, { λ, β })
+
+        // N.B. The ecliptic coordinate is resolved to a unit vector in the ecliptic frame as an
+        // equatorial coordinate would be, e.g., λ in place of the right ascension, and β in place
+        // of the declination:
+        const rotated = convertCartesianToEquatorial(
+          getRotatedCartesianCoordinate(Eᵀ, convertEquatorialToCartesian({ ra: λ, dec: β }))
+        )
+
+        expect(ra).toBeCloseTo(rotated.ra, 12)
+        expect(dec).toBeCloseTo(rotated.dec, 12)
+      }
+    }
+  })
+
+  it('should be undone by convertEquatorialToEcliptic across the sphere', () => {
+    for (let λ = 0; λ < 360; λ += 22.5) {
+      for (const β of [-89, -60, -23.4, 0, 5.15, 45, 89]) {
+        const equatorial = convertEclipticToEquatorial(datetime, { λ, β })
+
+        const ecliptic = convertEquatorialToEcliptic(datetime, equatorial)
+
+        const separation = getAngularSeparation({ θ: β, φ: λ }, { θ: ecliptic.β, φ: ecliptic.λ })
+
+        expect(separation).toBeLessThan(1e-10)
+      }
+    }
   })
 })
 

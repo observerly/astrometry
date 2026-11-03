@@ -291,10 +291,10 @@ describe('getPlanetaryPositions', () => {
       symbol: '♀',
       λ: 245.79499387030154,
       β: 1.8937687210761236,
-      ra: 244.24940775385573,
-      dec: -19.403414860199373,
-      alt: -23.173421327788937,
-      az: 256.71187684275975
+      ra: expect.closeTo(244.24940775385573, 12),
+      dec: expect.closeTo(-19.403414860199373, 12),
+      alt: expect.closeTo(-23.173421327788937, 12),
+      az: expect.closeTo(256.71187684275975, 12)
     })
 
     expect(venus).toHaveProperty('ra')
