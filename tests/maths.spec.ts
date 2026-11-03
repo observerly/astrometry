@@ -21,6 +21,7 @@ import {
   doDeterminant,
   doDotProduct,
   doTranspose,
+  doVectorSum,
   getMatrixProduct,
   getRotatedCartesianCoordinate,
   getRotationMatrix,
@@ -1089,7 +1090,7 @@ describe('doCrossProduct', () => {
 
     const c = { x: 1.5, y: 2.25, z: -0.75 }
 
-    const sum = doCrossProduct(a, { x: b.x + c.x, y: b.y + c.y, z: b.z + c.z })
+    const sum = doCrossProduct(a, doVectorSum(b, c))
 
     const ab = doCrossProduct(a, b)
 
@@ -1268,6 +1269,180 @@ describe('doCrossProduct', () => {
     expect(x).toBe(0)
     expect(y).toBeNaN()
     expect(z).toBe(Number.POSITIVE_INFINITY)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('doVectorSum', () => {
+  it('should be defined', () => {
+    expect(doVectorSum).toBeDefined()
+  })
+
+  it('should return a Required<CartesianCoordinate>', () => {
+    expectTypeOf(doVectorSum({ x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 })).toEqualTypeOf<
+      Required<CartesianCoordinate>
+    >()
+  })
+
+  it('should return the literal sum of two arbitrary vectors', () => {
+    // (1 + 4, 2 + (−5), 3 + 6) = (5, −3, 9):
+    expect(doVectorSum({ x: 1, y: 2, z: 3 }, { x: 4, y: -5, z: 6 })).toEqual({
+      x: 5,
+      y: -3,
+      z: 9
+    })
+  })
+
+  it('should return the sum of the unit axes, e.g., x + y + z = (1, 1, 1)', () => {
+    const x = { x: 1, y: 0, z: 0 }
+
+    const y = { x: 0, y: 1, z: 0 }
+
+    const z = { x: 0, y: 0, z: 1 }
+
+    expect(doVectorSum(doVectorSum(x, y), z)).toEqual({ x: 1, y: 1, z: 1 })
+  })
+
+  it('should be commutative, e.g., a + b = b + a', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    expect(doVectorSum(a, b)).toEqual(doVectorSum(b, a))
+  })
+
+  it('should be associative, e.g., (a + b) + c = a + (b + c)', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const c = { x: 1.5, y: 2.25, z: -0.75 }
+
+    const left = doVectorSum(doVectorSum(a, b), c)
+
+    const right = doVectorSum(a, doVectorSum(b, c))
+
+    expect(left.x).toBeCloseTo(right.x, 14)
+    expect(left.y).toBeCloseTo(right.y, 14)
+    expect(left.z).toBeCloseTo(right.z, 14)
+  })
+
+  it('should leave a vector unchanged with the zero vector, e.g., a + 0 = a', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    expect(doVectorSum(a, { x: 0, y: 0, z: 0 })).toEqual(a)
+
+    expect(doVectorSum({ x: 0, y: 0, z: 0 }, a)).toEqual(a)
+  })
+
+  it('should return the zero vector for a vector with its negation, e.g., a + (−a) = 0', () => {
+    const { x, y, z } = doVectorSum({ x: 0.3, y: -1.2, z: 2.5 }, { x: -0.3, y: 1.2, z: -2.5 })
+
+    expect(Math.hypot(x, y, z)).toBe(0)
+  })
+
+  it('should double a vector added to itself, e.g., a + a = 2a', () => {
+    expect(doVectorSum({ x: 0.3, y: -1.2, z: 2.5 }, { x: 0.3, y: -1.2, z: 2.5 })).toEqual({
+      x: 0.6,
+      y: -2.4,
+      z: 5
+    })
+  })
+
+  it('should not mutate either vector, and should return a new vector', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const sum = doVectorSum(a, b)
+
+    expect(a).toEqual({ x: 0.3, y: -1.2, z: 2.5 })
+    expect(b).toEqual({ x: -4.1, y: 0.07, z: 9.9 })
+
+    expect(sum).not.toBe(a)
+    expect(sum).not.toBe(b)
+  })
+
+  it('should have the length 2 cos(θ / 2) for two unit vectors θ apart, e.g., √3 for 60°', () => {
+    for (const θ of [0, 30, 60, 90, 120, 150, 180]) {
+      const { x, y, z } = doVectorSum(
+        convertEquatorialToCartesian({ ra: 0, dec: 0 }),
+        convertEquatorialToCartesian({ ra: θ, dec: 0 })
+      )
+
+      expect(Math.hypot(x, y, z)).toBeCloseTo(2 * Math.cos((θ * Math.PI) / 360), 14)
+    }
+  })
+
+  it('should bisect the angle between two unit vectors of the same length', () => {
+    const a = convertEquatorialToCartesian({ ra: 10, dec: 20 })
+
+    const b = convertEquatorialToCartesian({ ra: 70, dec: -15 })
+
+    const bisector = convertCartesianToEquatorial(doVectorSum(a, b))
+
+    const A = convertCartesianToEquatorial(a)
+
+    const B = convertCartesianToEquatorial(b)
+
+    expect(
+      getAngularSeparation({ θ: bisector.dec, φ: bisector.ra }, { θ: A.dec, φ: A.ra })
+    ).toBeCloseTo(
+      getAngularSeparation({ θ: bisector.dec, φ: bisector.ra }, { θ: B.dec, φ: B.ra }),
+      12
+    )
+  })
+
+  it('should satisfy the triangle inequality, e.g., |a + b| ≤ |a| + |b|', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    for (const b of [
+      { x: -4.1, y: 0.07, z: 9.9 },
+      { x: 1.5, y: 2.25, z: -0.75 },
+      { x: 0.6, y: -2.4, z: 5 },
+      { x: -0.3, y: 1.2, z: -2.5 }
+    ]) {
+      const sum = doVectorSum(a, b)
+
+      expect(Math.sqrt(doDotProduct(sum, sum))).toBeLessThanOrEqual(
+        Math.sqrt(doDotProduct(a, a)) + Math.sqrt(doDotProduct(b, b)) + 1e-15
+      )
+    }
+  })
+
+  it('should distribute the dot product, e.g., (a + b) · c = a · c + b · c', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    const c = { x: 1.5, y: 2.25, z: -0.75 }
+
+    expect(doDotProduct(doVectorSum(a, b), c)).toBeCloseTo(
+      doDotProduct(a, c) + doDotProduct(b, c),
+      13
+    )
+  })
+
+  it('should commute with a rotation, e.g., R (a + b) = R a + R b', () => {
+    const a = { x: 0.3, y: -1.2, z: 2.5 }
+
+    const b = { x: -4.1, y: 0.07, z: 9.9 }
+
+    for (const axis of axes) {
+      const R = getRotationMatrix(axis, 23.4392911)
+
+      const left = getRotatedCartesianCoordinate(R, doVectorSum(a, b))
+
+      const right = doVectorSum(
+        getRotatedCartesianCoordinate(R, a),
+        getRotatedCartesianCoordinate(R, b)
+      )
+
+      expect(left.x).toBeCloseTo(right.x, 13)
+      expect(left.y).toBeCloseTo(right.y, 13)
+      expect(left.z).toBeCloseTo(right.z, 13)
+    }
   })
 })
 
