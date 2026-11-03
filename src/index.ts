@@ -321,6 +321,7 @@ export {
   doDeterminant,
   doDotProduct,
   doTranspose,
+  doVectorDifference,
   doVectorSum,
   getMatrixProduct,
   getRotatedCartesianCoordinate,
