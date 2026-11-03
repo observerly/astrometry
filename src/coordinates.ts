@@ -121,50 +121,45 @@ export function convertEquatorialToEcliptic(
  *
  * convertGalacticToEquatorial()
  *
+ * Performs the conversion from Galactic to Equatorial coordinates for a given target (observer and
+ * datetime agnostic), as the rotation of the unit vector of the target from the galactic frame to
+ * the International Celestial Reference System (ICRS), as is defined by the Hipparcos catalogue
+ * (ESA 1997, Vol. 1, §1.5.3), through the transpose of G = R3(90° − θ) · R1(90° − δP) ·
+ * R3(αP + 90°), e.g., the inverse of the rotation of convertEquatorialToGalactic().
+ *
+ * N.B. The galactic frame is fixed, e.g., it is not a function of the date, and is referred to the
+ * ICRS, and so the equatorial coordinate is returned as a catalogue coordinate of the ICRS.
+ *
  * @param target - The galactic coordinate of the observed object.
- * @returns The equatorial coordinates of the target in J2000.0
+ * @returns The equatorial coordinate of the target, referred to the ICRS, with the right ascension
+ * within [0°, 360°).
  *
  */
 export function convertGalacticToEquatorial(target: GalacticCoordinate): EquatorialCoordinate {
-  let { ra, dec } = { ra: 0, dec: 0 }
+  // The right ascension of the north galactic pole, referred to the ICRS (in degrees):
+  const αP = 192.85948
 
-  // Define the Right Ascenation equatorial coordinate of the galactic north pole, at J2000.0
-  const α0 = radians(192.8598)
+  // The declination of the north galactic pole, referred to the ICRS (in degrees):
+  const δP = 27.12825
 
-  // Define Declination the equatorial coordinate of the galactic north pole, at J2000.0
-  const δ0 = radians(27.128027)
+  // The galactic longitude of the north celestial pole of the ICRS (in degrees):
+  const θ = 122.93192
 
-  // Define the galactic longitude of the ascending node of the galactic equator on the ecliptic, at J2000.0
-  const N0 = radians(32.9319)
-
-  // Convert the galactic coordinate, b,, to radians:
-  const b = radians(target.b)
-
-  // Convert the galactic coordinate, l, to radians:
-  const l = radians(target.l)
-
-  // Calculate the declination of the target:
-  dec = degrees(
-    Math.asin(Math.cos(b) * Math.cos(δ0) * Math.sin(l - N0) + Math.sin(b) * Math.sin(δ0))
+  // The rotation from the galactic frame to the ICRS, the transpose of G, e.g., of
+  // getEquatorialToGalacticMatrix() of the frames module, which is composed here as the frames
+  // module depends on this one:
+  const Gᵀ = doTranspose(
+    getMatrixProduct(
+      getRotationMatrix('z', 90 - θ),
+      getMatrixProduct(getRotationMatrix('x', 90 - δP), getRotationMatrix('z', αP + 90))
+    )
   )
 
-  // Calculate the denominator of the right ascension of the target:
-  const y = Math.cos(b) * Math.cos(l - N0)
-
-  // Calculate the numerator of the right ascension of the target:
-  const x = Math.sin(b) * Math.cos(δ0) - Math.cos(b) * Math.sin(δ0) * Math.sin(l - N0)
-
-  // Calculate the right ascension of the target, adjusting for the quadrant:
-  ra = degrees(Math.atan2(y, x) + α0) % 360
-
-  if (ra < 0) {
-    ra += 360
-  }
-
-  return {
-    ra,
-    dec
-  }
+  // The unit vector of the target in the galactic frame, resolved from the galactic longitude and
+  // latitude in place of the right ascension and declination, and rotated into the ICRS:
+  return convertCartesianToEquatorial(
+    getRotatedCartesianCoordinate(Gᵀ, convertEquatorialToCartesian({ ra: target.l, dec: target.b }))
+  )
 }
 
 /*****************************************************************************************************************/
