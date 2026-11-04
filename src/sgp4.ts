@@ -362,6 +362,1035 @@ type SGP4PropagationConstants = {
   threeθ2MinusOne: number
   oneMinusθ2: number
   sevenθ2MinusOne: number
+  // The propagation constants of the deep-space theory, for an orbit of a period of 225 minutes or more:
+  deepSpace: SGP4DeepSpacePropagationConstants | undefined
+}
+
+/*****************************************************************************************************************/
+
+// The Julian date of the epoch the SGP4 theory counts its days from, e.g., 1950 January 0.0 UT, or 1949 December
+// 31 at 00:00 UT:
+const SGP4_EPOCH = 2433281.5
+
+// The rate of rotation of the Earth of the deep-space theory (in radians per minute), e.g., the reference
+// implementation's 4.37526908801129966e-3, written as the nearest double it resolves to.
+//
+// N.B. It is that of the theory, and not EARTH_ANGULAR_VELOCITY, from which it differs in its seventh digit, so that
+// a propagation conforms to the reference implementation:
+const SGP4_EARTH_ROTATION_RATE = 0.0043752690880113
+
+// The mean motion (in radians per minute) and the eccentricity of the orbit of the Sun about the Earth, and of the
+// Moon about the Earth, of the deep-space theory:
+const SGP4_SUN = { n: 1.19459e-5, e: 0.01675 }
+
+const SGP4_MOON = { n: 1.5835218e-4, e: 0.0549 }
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * The coefficients of the long-period perturbations of the gravity of the Sun or of the Moon of the
+ * deep-space theory, e.g., of the eccentricity (e), the inclination (i), and the Delaunay variables
+ * of the mean anomaly (l), the argument of perigee and the longitude of the ascending node together
+ * (gh), and the longitude of the ascending node (h), as functions of the position of the body in its
+ * orbit, together with the mean anomaly of the body at the epoch (M0).
+ *
+ * N.B. The name of each coefficient in the reference implementation is given alongside it, of the
+ * Sun and of the Moon in turn, e.g., (se2, ee2), so that each may be traced to it.
+ *
+ */
+type SGP4LunisolarCoefficients = {
+  // (se2, ee2), (se3, e3):
+  e2: number
+  e3: number
+  // (si2, xi2), (si3, xi3):
+  i2: number
+  i3: number
+  // (sl2, xl2), (sl3, xl3), (sl4, xl4):
+  l2: number
+  l3: number
+  l4: number
+  // (sgh2, xgh2), (sgh3, xgh3), (sgh4, xgh4):
+  gh2: number
+  gh3: number
+  gh4: number
+  // (sh2, xh2), (sh3, xh3):
+  h2: number
+  h3: number
+  // The mean anomaly of the body at the epoch (in radians) (zmos, zmol):
+  M0: number
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * The resonance of an orbit with the tesseral harmonics of the gravity of the Earth, e.g., of a
+ * geosynchronous orbit of a period of ~24 hours, or of a 12-hour orbit of an eccentricity of 0.5 or
+ * more, together with the coefficients of its integration (irez).
+ *
+ */
+type SGP4Resonance =
+  | {
+      // The resonance of a geosynchronous orbit, e.g., of the 22, 31 and 33 tesseral harmonics (irez = 1):
+      kind: 'synchronous'
+      // The coefficients of the resonance (del1, del2, del3):
+      δ1: number
+      δ2: number
+      δ3: number
+      // The resonance angle at the epoch (in radians) (xlamo):
+      λ0: number
+      // The rate of the resonance angle less the mean motion (in radians per minute) (xfact):
+      λDotMinusN: number
+    }
+  | {
+      // The resonance of a 12-hour orbit of an eccentricity of 0.5 or more (irez = 2):
+      kind: 'half-day'
+      // The coefficients of the resonance (d2201, d2211, d3210, d3222, d4410, d4422, d5220, d5232,
+      // d5421, d5433):
+      D2201: number
+      D2211: number
+      D3210: number
+      D3222: number
+      D4410: number
+      D4422: number
+      D5220: number
+      D5232: number
+      D5421: number
+      D5433: number
+      // The resonance angle at the epoch (in radians) (xlamo):
+      λ0: number
+      // The rate of the resonance angle less the mean motion (in radians per minute) (xfact):
+      λDotMinusN: number
+    }
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * The propagation constants of the deep-space theory of SGP4, for an orbit of a period of 225
+ * minutes or more, e.g., the coefficients of the long-period perturbations of the Sun and of the
+ * Moon, the secular rates of their gravity, and any resonance of the orbit.
+ *
+ */
+type SGP4DeepSpacePropagationConstants = {
+  // The mode of operation of the theory:
+  mode: 'improved' | 'afspc'
+  // The Greenwich sidereal angle at the epoch (in radians) (gsto):
+  θ0: number
+  // The coefficients of the long-period perturbations of the Sun and of the Moon:
+  sun: SGP4LunisolarCoefficients
+  moon: SGP4LunisolarCoefficients
+  // The secular rates of the gravity of the Sun and of the Moon on the eccentricity, the inclination,
+  // the mean anomaly, the argument of perigee and the longitude of the ascending node (in radians per
+  // minute) (dedt, didt, dmdt, domdt, dnodt):
+  eDot: number
+  iDot: number
+  MDot: number
+  ωDot: number
+  ΩDot: number
+  // The resonance of the orbit, if any:
+  resonance: SGP4Resonance | undefined
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * Resolves the Greenwich sidereal angle (in radians) at the epoch of an element set, as the reference
+ * implementation of the SGP4 theory resolves it, e.g., by the sidereal time of IAU 1982 in the improved
+ * mode of operation, and by that of the operational implementation of the Air Force Space Command in
+ * its mode of operation.
+ *
+ * N.B. It is resolved from the days since the epoch of the theory, rather than from a Date, as a Date
+ * resolves the epoch of an element set to the millisecond alone, and so that a propagation conforms
+ * to the reference implementation.
+ *
+ * @param days - The days since the epoch of the theory, e.g., 1950 January 0.0 UT.
+ * @param mode - The mode of operation of the theory.
+ * @returns The Greenwich sidereal angle (in radians), in the range [0, 2π).
+ *
+ */
+const getSGP4GreenwichSiderealAngle = (days: number, mode: 'improved' | 'afspc'): number => {
+  if (mode === 'afspc') {
+    // The days since 1970 January 0.0 UT (ts70), and the whole days (ds70) and the fraction of a day
+    // (tfrac) of them:
+    const daysSince1970 = days - 7305.0
+
+    const wholeDaysSince1970 = Math.floor(daysSince1970 + 1.0e-8)
+
+    const fractionOfDay = daysSince1970 - wholeDaysSince1970
+
+    // N.B. The constants are those of the reference implementation, e.g., 1.72027916940703639e-2,
+    // 1.7321343856509374 and 5.07551419432269442e-15, written as the nearest double each resolves to:
+
+    // The rate of the sidereal angle beyond a whole turn (in radians per day) (c1):
+    const siderealRate = 0.017202791694070362
+
+    // The Greenwich sidereal angle at 1970 January 0.0 UT (in radians) (thgr70):
+    const θ1970 = 1.7321343856509375
+
+    // The correction of the sidereal angle of the FK5 catalogue (in radians per day squared) (fk5r):
+    const fk5Correction = 5.075514194322695e-15
+
+    // The rate of the sidereal angle, including a whole turn (in radians per day) (c1p2p):
+    const siderealRatePlusTwoPi = siderealRate + TWO_PI
+
+    let θ =
+      (θ1970 +
+        siderealRate * wholeDaysSince1970 +
+        siderealRatePlusTwoPi * fractionOfDay +
+        daysSince1970 * daysSince1970 * fk5Correction) %
+      TWO_PI
+
+    if (θ < 0.0) {
+      θ += TWO_PI
+    }
+
+    return θ
+  }
+
+  // The Julian centuries of UT1 since J2000 (tut1):
+  const T = (days + SGP4_EPOCH - 2451545.0) / 36525.0
+
+  // The Greenwich mean sidereal time of IAU 1982 (in seconds of time):
+  const seconds =
+    -6.2e-6 * T * T * T + 0.093104 * T * T + (876600.0 * 3600 + 8640184.812866) * T + 67310.54841
+
+  // 360° / 86400 s = 1 / 240, from seconds of time to degrees, and then to radians:
+  const θ = ((seconds * Math.PI) / 180 / 240.0) % TWO_PI
+
+  return θ < 0 ? θ + TWO_PI : θ
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * Resolves the lunar or solar terms of the deep-space theory for an element set at its epoch, e.g.,
+ * the terms Z1 to Z33 and S1 to S7 of Hoots & Roehrich (1980) of the geometry of the body, as each
+ * pass of the dscom() routine of the reference implementation does.
+ *
+ * @param body - The geometry of the orbit of the body, e.g., the cosines and sines of its argument of perigee (g), inclination (i) and node (h), and its coefficient (C).
+ * @param orbit - The mean elements of the orbit at the epoch.
+ * @returns The terms of the body.
+ *
+ */
+const getSGP4LunisolarTerms = (
+  body: {
+    cosG: number
+    sinG: number
+    cosI: number
+    sinI: number
+    cosH: number
+    sinH: number
+    C: number
+  },
+  orbit: {
+    e0: number
+    e02: number
+    β02: number
+    β0: number
+    n0: number
+    sinI0: number
+    cosI0: number
+    sinω0: number
+    cosω0: number
+  }
+) => {
+  const { cosG, sinG, cosI, sinI, cosH, sinH, C } = body
+
+  const { e0, e02, β02, β0, n0, sinI0, cosI0, sinω0, cosω0 } = orbit
+
+  // The direction cosines of the orbit of the body in the frame of the orbit of the object, e.g., the
+  // terms a1 to a10 of Hoots & Roehrich (1980), of its node and inclination:
+  const a1 = cosG * cosH + sinG * cosI * sinH
+
+  const a3 = -sinG * cosH + cosG * cosI * sinH
+
+  const a7 = -cosG * sinH + sinG * cosI * cosH
+
+  const a8 = sinG * sinI
+
+  const a9 = sinG * sinH + cosG * cosI * cosH
+
+  const a10 = cosG * sinI
+
+  const a2 = cosI0 * a7 + sinI0 * a8
+
+  const a4 = cosI0 * a9 + sinI0 * a10
+
+  const a5 = -sinI0 * a7 + cosI0 * a8
+
+  const a6 = -sinI0 * a9 + cosI0 * a10
+
+  // The direction cosines carried to the argument of perigee of the object, e.g., the terms x1 to x8:
+  const x1 = a1 * cosω0 + a2 * sinω0
+
+  const x2 = a3 * cosω0 + a4 * sinω0
+
+  const x3 = -a1 * sinω0 + a2 * cosω0
+
+  const x4 = -a3 * sinω0 + a4 * cosω0
+
+  const x5 = a5 * sinω0
+
+  const x6 = a6 * sinω0
+
+  const x7 = a5 * cosω0
+
+  const x8 = a6 * cosω0
+
+  const Z31 = 12.0 * x1 * x1 - 3.0 * x3 * x3
+
+  const Z32 = 24.0 * x1 * x2 - 6.0 * x3 * x4
+
+  const Z33 = 12.0 * x2 * x2 - 3.0 * x4 * x4
+
+  let Z1 = 3.0 * (a1 * a1 + a2 * a2) + Z31 * e02
+
+  let Z2 = 6.0 * (a1 * a3 + a2 * a4) + Z32 * e02
+
+  let Z3 = 3.0 * (a3 * a3 + a4 * a4) + Z33 * e02
+
+  const Z11 = -6.0 * a1 * a5 + e02 * (-24.0 * x1 * x7 - 6.0 * x3 * x5)
+
+  const Z12 =
+    -6.0 * (a1 * a6 + a3 * a5) + e02 * (-24.0 * (x2 * x7 + x1 * x8) - 6.0 * (x3 * x6 + x4 * x5))
+
+  const Z13 = -6.0 * a3 * a6 + e02 * (-24.0 * x2 * x8 - 6.0 * x4 * x6)
+
+  const Z21 = 6.0 * a2 * a5 + e02 * (24.0 * x1 * x5 - 6.0 * x3 * x7)
+
+  const Z22 =
+    6.0 * (a4 * a5 + a2 * a6) + e02 * (24.0 * (x2 * x5 + x1 * x6) - 6.0 * (x4 * x7 + x3 * x8))
+
+  const Z23 = 6.0 * a4 * a6 + e02 * (24.0 * x2 * x6 - 6.0 * x4 * x8)
+
+  Z1 = Z1 + Z1 + β02 * Z31
+
+  Z2 = Z2 + Z2 + β02 * Z32
+
+  Z3 = Z3 + Z3 + β02 * Z33
+
+  const S3 = C * (1.0 / n0)
+
+  const S2 = (-0.5 * S3) / β0
+
+  const S4 = S3 * β0
+
+  const S1 = -15.0 * e0 * S4
+
+  const S5 = x1 * x3 + x2 * x4
+
+  const S6 = x2 * x3 + x1 * x4
+
+  const S7 = x2 * x4 - x1 * x3
+
+  return { S1, S2, S3, S4, S5, S6, S7, Z1, Z2, Z3, Z11, Z12, Z13, Z21, Z22, Z23, Z31, Z32, Z33 }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * Initialises the deep-space theory for an element set, e.g., resolves the coefficients of the
+ * long-period perturbations of the Sun and of the Moon, the secular rates of their gravity, and the
+ * coefficients of any resonance of the orbit, as the dscom() and dsinit() routines of the reference
+ * implementation do.
+ *
+ * @param days - The days since the epoch of the theory, e.g., 1950 January 0.0 UT, of the epoch of the element set.
+ * @param mode - The mode of operation of the theory.
+ * @param orbit - The mean elements and the propagation constants of the near-Earth theory at the epoch.
+ * @returns The propagation constants of the deep-space theory for the element set.
+ *
+ */
+const initialiseSGP4DeepSpace = (
+  days: number,
+  mode: 'improved' | 'afspc',
+  orbit: {
+    xke: number
+    e0: number
+    ω0: number
+    i0: number
+    M0: number
+    Ω0: number
+    n0: number
+    MDot: number
+    ωDot: number
+    ΩDot: number
+  }
+): SGP4DeepSpacePropagationConstants => {
+  const { xke, e0, ω0, i0, M0, Ω0, n0, MDot, ωDot, ΩDot } = orbit
+
+  // The Greenwich sidereal angle at the epoch (in radians) (gsto):
+  const θ0 = getSGP4GreenwichSiderealAngle(days, mode)
+
+  // dscom(): the lunar and solar terms at the epoch:
+  const sinΩ0 = Math.sin(Ω0)
+
+  const cosΩ0 = Math.cos(Ω0)
+
+  const sinω0 = Math.sin(ω0)
+
+  const cosω0 = Math.cos(ω0)
+
+  const sinI0 = Math.sin(i0)
+
+  const cosI0 = Math.cos(i0)
+
+  // e0² (emsq), β0² = 1 - e0² (betasq), and β0 (rtemsq):
+  const e02 = e0 * e0
+
+  const β02 = 1.0 - e02
+
+  const β0 = Math.sqrt(β02)
+
+  // The days since 1900 January 0.5, e.g., of the epoch of the lunar and solar ephemerides (day):
+  const daysSince1900 = days + 18261.5
+
+  // The longitude of the ascending node of the orbit of the Moon (in radians) (xnodce):
+  const ΩMoon = (4.523602 - 9.2422029e-4 * daysSince1900) % TWO_PI
+
+  const sinΩMoon = Math.sin(ΩMoon)
+
+  const cosΩMoon = Math.cos(ΩMoon)
+
+  // The inclination of the orbit of the Moon to the equator (zcosil, zsinil):
+  const cosIMoon = 0.91375164 - 0.03568096 * cosΩMoon
+
+  const sinIMoon = Math.sqrt(1.0 - cosIMoon * cosIMoon)
+
+  // The node of the orbit of the Moon on the equator (zsinhl, zcoshl):
+  const sinHMoon = (0.089683511 * sinΩMoon) / sinIMoon
+
+  const cosHMoon = Math.sqrt(1.0 - sinHMoon * sinHMoon)
+
+  // The longitude of the perigee of the orbit of the Moon (in radians) (gam):
+  const ΓMoon = 5.8351514 + 0.001944368 * daysSince1900
+
+  // The argument of perigee of the orbit of the Moon from its node on the equator (in radians) (zx):
+  const gMoon =
+    ΓMoon +
+    Math.atan2(
+      (0.39785416 * sinΩMoon) / sinIMoon,
+      cosHMoon * cosΩMoon + 0.91744867 * sinHMoon * sinΩMoon
+    ) -
+    ΩMoon
+
+  // The mean elements of the orbit at the epoch, from which the terms of each body are resolved:
+  const elements = { e0, e02, β02, β0, n0, sinI0, cosI0, sinω0, cosω0 }
+
+  // The terms of the Sun, e.g., of its geometry (zcosgs, zsings, zcosis, zsinis) and of its
+  // coefficient (c1ss):
+  const sun = getSGP4LunisolarTerms(
+    {
+      cosG: 0.1945905,
+      sinG: -0.98088458,
+      cosI: 0.91744867,
+      sinI: 0.39785416,
+      cosH: cosΩ0,
+      sinH: sinΩ0,
+      C: 2.9864797e-6
+    },
+    elements
+  )
+
+  // The terms of the Moon, e.g., of its geometry and of its coefficient (c1l):
+  const moon = getSGP4LunisolarTerms(
+    {
+      cosG: Math.cos(gMoon),
+      sinG: Math.sin(gMoon),
+      cosI: cosIMoon,
+      sinI: sinIMoon,
+      cosH: cosHMoon * cosΩ0 + sinHMoon * sinΩ0,
+      sinH: sinΩ0 * cosHMoon - cosΩ0 * sinHMoon,
+      C: 4.7968065e-7
+    },
+    elements
+  )
+
+  // The coefficients of the long-period perturbations of a body, from its terms and the eccentricity
+  // of its orbit:
+  const getCoefficients = (
+    { S1, S2, S3, S4, S6, S7, Z1, Z2, Z3, Z11, Z12, Z13, Z21, Z22, Z23, Z31, Z32, Z33 }: typeof sun,
+    e: number,
+    M0: number
+  ): SGP4LunisolarCoefficients => ({
+    e2: 2.0 * S1 * S6,
+    e3: 2.0 * S1 * S7,
+    i2: 2.0 * S2 * Z12,
+    i3: 2.0 * S2 * (Z13 - Z11),
+    l2: -2.0 * S3 * Z2,
+    l3: -2.0 * S3 * (Z3 - Z1),
+    l4: -2.0 * S3 * (-21.0 - 9.0 * e02) * e,
+    gh2: 2.0 * S4 * Z32,
+    gh3: 2.0 * S4 * (Z33 - Z31),
+    gh4: -18.0 * S4 * e,
+    h2: -2.0 * S2 * Z22,
+    h3: -2.0 * S2 * (Z23 - Z21),
+    M0
+  })
+
+  // The mean anomalies of the Moon (zmol) and of the Sun (zmos) at the epoch (in radians):
+  const MMoon = (4.7199672 + 0.2299715 * daysSince1900 - ΓMoon) % TWO_PI
+
+  const MSun = (6.2565837 + 0.017201977 * daysSince1900) % TWO_PI
+
+  // dsinit(): the secular rates of the gravity of the Sun and of the Moon, and any resonance:
+
+  // The node of an orbit of an inclination within 3° of the equator is not resolved:
+  const isEquatorial = i0 < 5.2359877e-2 || i0 > Math.PI - 5.2359877e-2
+
+  // The secular rates of the gravity of a body, from its terms and its mean motion, e.g., on the
+  // eccentricity (ses), the inclination (sis), the mean anomaly (sls), the argument of perigee and
+  // the node together (sghs) and the node (shs):
+  const getSecularRates = (
+    { S1, S2, S3, S4, S5, Z1, Z3, Z11, Z13, Z21, Z23, Z31, Z33 }: typeof sun,
+    n: number
+  ) => ({
+    eDot: S1 * n * S5,
+    iDot: S2 * n * (Z11 + Z13),
+    lDot: -n * S3 * (Z1 + Z3 - 14.0 - 6.0 * e02),
+    ghDot: S4 * n * (Z31 + Z33 - 6.0),
+    hDot: isEquatorial ? 0.0 : -n * S2 * (Z21 + Z23)
+  })
+
+  const sunRates = getSecularRates(sun, SGP4_SUN.n)
+
+  const moonRates = getSecularRates(moon, SGP4_MOON.n)
+
+  let hDotSun = sunRates.hDot
+
+  if (sinI0 !== 0.0) {
+    hDotSun = hDotSun / sinI0
+  }
+
+  const eDot = sunRates.eDot + moonRates.eDot
+
+  const iDot = sunRates.iDot + moonRates.iDot
+
+  const MDotLunisolar = sunRates.lDot + moonRates.lDot
+
+  let ωDotLunisolar = sunRates.ghDot - cosI0 * hDotSun + moonRates.ghDot
+
+  let ΩDotLunisolar = hDotSun
+
+  if (sinI0 !== 0.0) {
+    ωDotLunisolar = ωDotLunisolar - (cosI0 / sinI0) * moonRates.hDot
+
+    ΩDotLunisolar = ΩDotLunisolar + moonRates.hDot / sinI0
+  }
+
+  // A geosynchronous orbit, e.g., of a period of ~24 hours, or a 12-hour orbit of an eccentricity of
+  // 0.5 or more, is resonant with the tesseral harmonics of the gravity of the Earth:
+  let resonance: SGP4Resonance | undefined
+
+  // The Greenwich sidereal angle at the epoch, reduced to a whole turn (theta):
+  const θ = θ0 % TWO_PI
+
+  // The inverse of the semi-major axis of the orbit (in inverse Earth radii) (aonv):
+  const inverseA = (n0 / xke) ** TWO_THIRDS
+
+  if (0.0034906585 < n0 && n0 < 0.0052359877) {
+    // The resonance of a geosynchronous orbit, e.g., of the 22, 31 and 33 tesseral harmonics:
+    const G200 = 1.0 + e02 * (-2.5 + 0.8125 * e02)
+
+    const G310 = 1.0 + 2.0 * e02
+
+    const G300 = 1.0 + e02 * (-6.0 + 6.60937 * e02)
+
+    const F220 = 0.75 * (1.0 + cosI0) * (1.0 + cosI0)
+
+    const F311 = 0.9375 * sinI0 * sinI0 * (1.0 + 3.0 * cosI0) - 0.75 * (1.0 + cosI0)
+
+    const onePlusCosI0 = 1.0 + cosI0
+
+    const F330 = 1.875 * onePlusCosI0 * onePlusCosI0 * onePlusCosI0
+
+    // The coefficients of the 22, 31 and 33 tesseral harmonics (q22, q31, q33):
+    const Q22 = 1.7891679e-6
+
+    const Q31 = 2.1460748e-6
+
+    const Q33 = 2.2123015e-7
+
+    const δ = 3.0 * n0 * n0 * inverseA * inverseA
+
+    resonance = {
+      kind: 'synchronous',
+      δ1: δ * F311 * G310 * Q31 * inverseA,
+      δ2: 2.0 * δ * F220 * G200 * Q22,
+      δ3: 3.0 * δ * F330 * G300 * Q33 * inverseA,
+      λ0: (M0 + Ω0 + ω0 - θ) % TWO_PI,
+      λDotMinusN:
+        MDot +
+        (ωDot + ΩDot) -
+        SGP4_EARTH_ROTATION_RATE +
+        MDotLunisolar +
+        ωDotLunisolar +
+        ΩDotLunisolar -
+        n0
+    }
+  }
+
+  if (8.26e-3 <= n0 && n0 <= 9.24e-3 && e0 >= 0.5) {
+    // The resonance of a 12-hour orbit, e.g., of the second and the higher tesseral harmonics:
+    const cosI02 = cosI0 * cosI0
+
+    const e03 = e0 * e02
+
+    const G201 = -0.306 - (e0 - 0.64) * 0.44
+
+    let G211: number
+
+    let G310: number
+
+    let G322: number
+
+    let G410: number
+
+    let G422: number
+
+    let G520: number
+
+    let G521: number
+
+    let G532: number
+
+    let G533: number
+
+    if (e0 <= 0.65) {
+      G211 = 3.616 - 13.247 * e0 + 16.29 * e02
+
+      G310 = -19.302 + 117.39 * e0 - 228.419 * e02 + 156.591 * e03
+
+      G322 = -18.9068 + 109.7927 * e0 - 214.6334 * e02 + 146.5816 * e03
+
+      G410 = -41.122 + 242.694 * e0 - 471.094 * e02 + 313.953 * e03
+
+      G422 = -146.407 + 841.88 * e0 - 1629.014 * e02 + 1083.435 * e03
+
+      G520 = -532.114 + 3017.977 * e0 - 5740.032 * e02 + 3708.276 * e03
+    } else {
+      G211 = -72.099 + 331.819 * e0 - 508.738 * e02 + 266.724 * e03
+
+      G310 = -346.844 + 1582.851 * e0 - 2415.925 * e02 + 1246.113 * e03
+
+      G322 = -342.585 + 1554.908 * e0 - 2366.899 * e02 + 1215.972 * e03
+
+      G410 = -1052.797 + 4758.686 * e0 - 7193.992 * e02 + 3651.957 * e03
+
+      G422 = -3581.69 + 16178.11 * e0 - 24462.77 * e02 + 12422.52 * e03
+
+      G520 =
+        e0 > 0.715
+          ? -5149.66 + 29936.92 * e0 - 54087.36 * e02 + 31324.56 * e03
+          : 1464.74 - 4664.75 * e0 + 3763.64 * e02
+    }
+
+    if (e0 < 0.7) {
+      G533 = -919.2277 + 4988.61 * e0 - 9064.77 * e02 + 5542.21 * e03
+
+      G521 = -822.71072 + 4568.6173 * e0 - 8491.4146 * e02 + 5337.524 * e03
+
+      G532 = -853.666 + 4690.25 * e0 - 8624.77 * e02 + 5341.4 * e03
+    } else {
+      G533 = -37995.78 + 161616.52 * e0 - 229838.2 * e02 + 109377.94 * e03
+
+      G521 = -51752.104 + 218913.95 * e0 - 309468.16 * e02 + 146349.42 * e03
+
+      G532 = -40023.88 + 170470.89 * e0 - 242699.48 * e02 + 115605.82 * e03
+    }
+
+    const sinI02 = sinI0 * sinI0
+
+    const F220 = 0.75 * (1.0 + 2.0 * cosI0 + cosI02)
+
+    const F221 = 1.5 * sinI02
+
+    const F321 = 1.875 * sinI0 * (1.0 - 2.0 * cosI0 - 3.0 * cosI02)
+
+    const F322 = -1.875 * sinI0 * (1.0 + 2.0 * cosI0 - 3.0 * cosI02)
+
+    const F441 = 35.0 * sinI02 * F220
+
+    const F442 = 39.375 * sinI02 * sinI02
+
+    const F522 =
+      9.84375 *
+      sinI0 *
+      (sinI02 * (1.0 - 2.0 * cosI0 - 5.0 * cosI02) +
+        0.33333333 * (-2.0 + 4.0 * cosI0 + 6.0 * cosI02))
+
+    const F523 =
+      sinI0 *
+      (4.92187512 * sinI02 * (-2.0 - 4.0 * cosI0 + 10.0 * cosI02) +
+        6.56250012 * (1.0 + 2.0 * cosI0 - 3.0 * cosI02))
+
+    const F542 =
+      29.53125 * sinI0 * (2.0 - 8.0 * cosI0 + cosI02 * (-12.0 + 8.0 * cosI0 + 10.0 * cosI02))
+
+    const F543 =
+      29.53125 * sinI0 * (-2.0 - 8.0 * cosI0 + cosI02 * (12.0 + 8.0 * cosI0 - 10.0 * cosI02))
+
+    // The coefficients of the tesseral harmonics (root22, root32, root44, root52, root54):
+    const ROOT22 = 1.7891679e-6
+
+    const ROOT32 = 3.7393792e-7
+
+    const ROOT44 = 7.3636953e-9
+
+    const ROOT52 = 1.1428639e-7
+
+    const ROOT54 = 2.1765803e-9
+
+    // The scale of the coefficients of each harmonic, e.g., 3n²/a² carried by a further 1/a for each
+    // degree of the harmonic (temp1), and that of each harmonic itself (temp):
+    let scale = 3.0 * (n0 * n0) * (inverseA * inverseA)
+
+    const D22 = scale * ROOT22
+
+    scale = scale * inverseA
+
+    const D32 = scale * ROOT32
+
+    scale = scale * inverseA
+
+    const D44 = 2.0 * scale * ROOT44
+
+    scale = scale * inverseA
+
+    const D52 = scale * ROOT52
+
+    const D54 = 2.0 * scale * ROOT54
+
+    resonance = {
+      kind: 'half-day',
+      D2201: D22 * F220 * G201,
+      D2211: D22 * F221 * G211,
+      D3210: D32 * F321 * G310,
+      D3222: D32 * F322 * G322,
+      D4410: D44 * F441 * G410,
+      D4422: D44 * F442 * G422,
+      D5220: D52 * F522 * G520,
+      D5232: D52 * F523 * G532,
+      D5421: D54 * F542 * G521,
+      D5433: D54 * F543 * G533,
+      λ0: (M0 + Ω0 + Ω0 - θ - θ) % TWO_PI,
+      λDotMinusN:
+        MDot + MDotLunisolar + 2.0 * (ΩDot + ΩDotLunisolar - SGP4_EARTH_ROTATION_RATE) - n0
+    }
+  }
+
+  return {
+    mode,
+    θ0,
+    sun: getCoefficients(sun, SGP4_SUN.e, MSun),
+    moon: getCoefficients(moon, SGP4_MOON.e, MMoon),
+    eDot,
+    iDot,
+    MDot: MDotLunisolar,
+    ωDot: ωDotLunisolar,
+    ΩDot: ΩDotLunisolar,
+    resonance
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * Resolves the secular effects of the gravity of the Sun and of the Moon, and the integration of any
+ * resonance of the orbit, on the mean elements at a time since the epoch, as the dspace() routine of
+ * the reference implementation does.
+ *
+ * N.B. The resonance is integrated from the epoch at each propagation, in steps of 720 minutes, as
+ * the reference implementation integrates it, e.g., the integration is deterministic, and so the
+ * state of a propagation does not depend on the propagations that came before it.
+ *
+ * @param deepSpace - The propagation constants of the deep-space theory for the element set.
+ * @param propagationConstants - The propagation constants of the near-Earth theory for the element set.
+ * @param t - The time since the epoch of the element set (in minutes).
+ * @param elements - The mean elements carried by the secular effects of the near-Earth theory.
+ * @returns The mean elements carried by the secular effects of the deep-space theory.
+ *
+ */
+const getSGP4DeepSpaceSecularEffects = (
+  deepSpace: SGP4DeepSpacePropagationConstants,
+  propagationConstants: { n0: number; ω0: number; ωDot: number },
+  t: number,
+  elements: { e: number; i: number; ω: number; Ω: number; M: number; n: number }
+): { e: number; i: number; ω: number; Ω: number; M: number; n: number } => {
+  let { M, Ω, n } = elements
+
+  // The Greenwich sidereal angle at the time (in radians) (theta):
+  const θ = (deepSpace.θ0 + t * SGP4_EARTH_ROTATION_RATE) % TWO_PI
+
+  const e = elements.e + deepSpace.eDot * t
+
+  const i = elements.i + deepSpace.iDot * t
+
+  const ω = elements.ω + deepSpace.ωDot * t
+
+  Ω = Ω + deepSpace.ΩDot * t
+
+  M = M + deepSpace.MDot * t
+
+  const { resonance } = deepSpace
+
+  if (resonance) {
+    // The step of the integration (in minutes) (stepp, stepn), and half of its square (step2):
+    const STEP = 720.0
+
+    const HALF_STEP_SQUARED = 259200.0
+
+    // The phases of the resonance terms (in radians) (fasx2, fasx4, fasx6, g22, g32, g44, g52, g54):
+    const FASX2 = 0.13130908
+
+    const FASX4 = 2.8843198
+
+    const FASX6 = 0.37448087
+
+    const G22 = 5.7686396
+
+    const G32 = 0.95240898
+
+    const G44 = 1.8014998
+
+    const G52 = 1.050833
+
+    const G54 = 4.4108898
+
+    // The integration begins at the epoch, from the mean motion and the resonance angle of it (atime,
+    // xni, xli):
+    let time = 0.0
+
+    let nIntegrated = propagationConstants.n0
+
+    let λ = resonance.λ0
+
+    const step = t > 0.0 ? STEP : -STEP
+
+    // The rates of the mean motion (xndt) and of the resonance angle (xldot), and the second rate of
+    // the mean motion (xnddt), and the remainder of the time beyond the last step (ft):
+    let nDot = 0.0
+
+    let λDot = 0.0
+
+    let nDoubleDot = 0.0
+
+    let Δt = 0.0
+
+    for (;;) {
+      if (resonance.kind === 'synchronous') {
+        const { δ1, δ2, δ3 } = resonance
+
+        nDot =
+          δ1 * Math.sin(λ - FASX2) +
+          δ2 * Math.sin(2.0 * (λ - FASX4)) +
+          δ3 * Math.sin(3.0 * (λ - FASX6))
+
+        λDot = nIntegrated + resonance.λDotMinusN
+
+        nDoubleDot =
+          δ1 * Math.cos(λ - FASX2) +
+          2.0 * δ2 * Math.cos(2.0 * (λ - FASX4)) +
+          3.0 * δ3 * Math.cos(3.0 * (λ - FASX6))
+
+        nDoubleDot = nDoubleDot * λDot
+      } else {
+        const { D2201, D2211, D3210, D3222, D4410, D4422, D5220, D5232, D5421, D5433 } = resonance
+
+        // The argument of perigee at the time of the step (xomi), and twice it (x2omi), and twice the
+        // resonance angle (x2li):
+        const ωi = propagationConstants.ω0 + propagationConstants.ωDot * time
+
+        const twoωi = ωi + ωi
+
+        const twoλ = λ + λ
+
+        nDot =
+          D2201 * Math.sin(twoωi + λ - G22) +
+          D2211 * Math.sin(λ - G22) +
+          D3210 * Math.sin(ωi + λ - G32) +
+          D3222 * Math.sin(-ωi + λ - G32) +
+          D4410 * Math.sin(twoωi + twoλ - G44) +
+          D4422 * Math.sin(twoλ - G44) +
+          D5220 * Math.sin(ωi + λ - G52) +
+          D5232 * Math.sin(-ωi + λ - G52) +
+          D5421 * Math.sin(ωi + twoλ - G54) +
+          D5433 * Math.sin(-ωi + twoλ - G54)
+
+        λDot = nIntegrated + resonance.λDotMinusN
+
+        nDoubleDot =
+          D2201 * Math.cos(twoωi + λ - G22) +
+          D2211 * Math.cos(λ - G22) +
+          D3210 * Math.cos(ωi + λ - G32) +
+          D3222 * Math.cos(-ωi + λ - G32) +
+          D5220 * Math.cos(ωi + λ - G52) +
+          D5232 * Math.cos(-ωi + λ - G52) +
+          2.0 *
+            (D4410 * Math.cos(twoωi + twoλ - G44) +
+              D4422 * Math.cos(twoλ - G44) +
+              D5421 * Math.cos(ωi + twoλ - G54) +
+              D5433 * Math.cos(-ωi + twoλ - G54))
+
+        nDoubleDot = nDoubleDot * λDot
+      }
+
+      // The integration steps until it is within a step of the time, from which it is then
+      // extrapolated to the time itself:
+      if (Math.abs(t - time) < STEP) {
+        Δt = t - time
+
+        break
+      }
+
+      λ = λ + λDot * step + nDot * HALF_STEP_SQUARED
+
+      nIntegrated = nIntegrated + nDot * step + nDoubleDot * HALF_STEP_SQUARED
+
+      time = time + step
+    }
+
+    n = nIntegrated + nDot * Δt + nDoubleDot * Δt * Δt * 0.5
+
+    // The resonance angle at the time (xl):
+    const λt = λ + λDot * Δt + nDot * Δt * Δt * 0.5
+
+    M = resonance.kind === 'synchronous' ? λt - Ω - ω + θ : λt - 2.0 * Ω + 2.0 * θ
+
+    // N.B. The mean motion is resolved through its rate from that at the epoch, e.g., n0 + (n - n0),
+    // rather than taken as it is, as the reference implementation resolves it, which may differ from
+    // it in the last bit:
+    n = propagationConstants.n0 + (n - propagationConstants.n0)
+  }
+
+  return { e, i, ω, Ω, M, n }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * Resolves the long-period perturbations of the gravity of the Sun and of the Moon of the deep-space
+ * theory at a time since the epoch, and applies them to the mean elements, as the dpper() routine of
+ * the reference implementation does.
+ *
+ * @param deepSpace - The propagation constants of the deep-space theory for the element set.
+ * @param t - The time since the epoch of the element set (in minutes).
+ * @param elements - The mean elements to perturb.
+ * @returns The perturbed elements.
+ *
+ */
+const getSGP4LunisolarPerturbations = (
+  deepSpace: SGP4DeepSpacePropagationConstants,
+  t: number,
+  elements: { e: number; i: number; Ω: number; ω: number; M: number }
+): { e: number; i: number; Ω: number; ω: number; M: number } => {
+  let { e, i, Ω, ω, M } = elements
+
+  // The perturbations of a body at the time, from the position of the body in its orbit, e.g., its
+  // mean anomaly (zm) and its true anomaly to the first order of its eccentricity (zf):
+  const getPerturbations = (
+    coefficients: SGP4LunisolarCoefficients,
+    body: { n: number; e: number }
+  ) => {
+    const MBody = coefficients.M0 + body.n * t
+
+    const fBody = MBody + 2.0 * body.e * Math.sin(MBody)
+
+    const sinFBody = Math.sin(fBody)
+
+    const F2 = 0.5 * sinFBody * sinFBody - 0.25
+
+    const F3 = -0.5 * sinFBody * Math.cos(fBody)
+
+    return {
+      δe: coefficients.e2 * F2 + coefficients.e3 * F3,
+      δi: coefficients.i2 * F2 + coefficients.i3 * F3,
+      δl: coefficients.l2 * F2 + coefficients.l3 * F3 + coefficients.l4 * sinFBody,
+      δgh: coefficients.gh2 * F2 + coefficients.gh3 * F3 + coefficients.gh4 * sinFBody,
+      δh: coefficients.h2 * F2 + coefficients.h3 * F3
+    }
+  }
+
+  const sun = getPerturbations(deepSpace.sun, SGP4_SUN)
+
+  const moon = getPerturbations(deepSpace.moon, SGP4_MOON)
+
+  // The perturbations of the Sun and of the Moon together (pe, pinc, pl, pgh, ph):
+  const δe = sun.δe + moon.δe
+
+  const δi = sun.δi + moon.δi
+
+  const δl = sun.δl + moon.δl
+
+  let δgh = sun.δgh + moon.δgh
+
+  let δh = sun.δh + moon.δh
+
+  i = i + δi
+
+  e = e + δe
+
+  const sinI = Math.sin(i)
+
+  const cosI = Math.cos(i)
+
+  // The perturbations are applied directly for an inclination of 0.2 radians or more, and by the
+  // method of Lyddane otherwise, which is not singular for an orbit of a small inclination:
+  if (i >= 0.2) {
+    δh = δh / sinI
+
+    δgh = δgh - cosI * δh
+
+    ω = ω + δgh
+
+    Ω = Ω + δh
+
+    M = M + δl
+  } else {
+    const sinΩ = Math.sin(Ω)
+
+    const cosΩ = Math.cos(Ω)
+
+    // The components of the unit vector of the node, e.g., sin(i) sin(Ω) (alfdp) and sin(i) cos(Ω)
+    // (betdp), each displaced by its perturbation (dalf, dbet):
+    const α = sinI * sinΩ + (δh * cosΩ + δi * cosI * sinΩ)
+
+    const β = sinI * cosΩ + (-δh * sinΩ + δi * cosI * cosΩ)
+
+    Ω = Ω % TWO_PI
+
+    // The operational implementation of the Air Force Space Command keeps the node within [0, 2π):
+    if (Ω < 0.0 && deepSpace.mode === 'afspc') {
+      Ω = Ω + TWO_PI
+    }
+
+    // The mean longitude (xls), and the node before it is perturbed (xnoh):
+    const L = M + ω + δl + δgh + (cosI - δi * sinI) * Ω
+
+    const ΩBefore = Ω
+
+    Ω = Math.atan2(α, β)
+
+    if (Ω < 0.0 && deepSpace.mode === 'afspc') {
+      Ω = Ω + TWO_PI
+    }
+
+    if (Math.abs(ΩBefore - Ω) > Math.PI) {
+      Ω = Ω < ΩBefore ? Ω + TWO_PI : Ω - TWO_PI
+    }
+
+    M = M + δl
+
+    ω = L - M - cosI * Ω
+  }
+
+  return { e, i, Ω, ω, M }
 }
 
 /*****************************************************************************************************************/
@@ -374,11 +1403,15 @@ type SGP4PropagationConstants = {
  *
  * @param tle - The two-line element set to initialise.
  * @param gravity - The gravity model to initialise it with.
- * @throws An SGP4Error if the orbit is of the deep-space theory, which is not yet resolved.
+ * @param mode - The mode of operation of the theory.
  * @returns The propagation constants of the theory for the element set.
  *
  */
-const initialiseSGP4 = (tle: TwoLineElement, gravity: GravityModel): SGP4PropagationConstants => {
+const initialiseSGP4 = (
+  tle: TwoLineElement,
+  gravity: GravityModel,
+  mode: 'improved' | 'afspc'
+): SGP4PropagationConstants => {
   const { radius, xke, J2, J4 } = gravity
 
   const J3OverJ2 = gravity.J3 / gravity.J2
@@ -462,15 +1495,6 @@ const initialiseSGP4 = (tle: TwoLineElement, gravity: GravityModel): SGP4Propaga
   // The radius of perigee (in Earth radii) (rp):
   const rPerigee = a0 * (1.0 - e0)
 
-  // An orbit of a period of 225 minutes or more is resolved by the deep-space terms of the theory,
-  // e.g., the lunar and solar perturbations and the resonances of a geosynchronous or a 12-hour orbit,
-  // which are not yet resolved, and so it is not propagated rather than propagated without them:
-  if (TWO_PI / n0 >= SGP4_DEEP_SPACE_PERIOD) {
-    throw new SGP4Error(
-      `The orbit of a period of ${TWO_PI / n0} minutes is of the deep-space theory, which is not yet resolved`
-    )
-  }
-
   // sgp4init(): resolve the coefficients of the theory:
   let isSimplified = false
 
@@ -519,6 +1543,8 @@ const initialiseSGP4 = (tle: TwoLineElement, gravity: GravityModel): SGP4Propaga
   let oneMinusθ2 = 0
 
   let sevenθ2MinusOne = 0
+
+  let deepSpace: SGP4DeepSpacePropagationConstants | undefined
 
   if (β02 >= 0.0 || n0 >= 0.0) {
     // An orbit of a perigee below 220 km is propagated by the simplified drag terms of the theory:
@@ -658,6 +1684,26 @@ const initialiseSGP4 = (tle: TwoLineElement, gravity: GravityModel): SGP4Propaga
 
     sevenθ2MinusOne = 7.0 * θ2 - 1.0
 
+    // An orbit of a period of 225 minutes or more is resolved by the deep-space terms of the theory,
+    // e.g., the perturbations of the Sun and of the Moon and the resonances of a geosynchronous or a
+    // 12-hour orbit, and is propagated by the simplified drag terms:
+    if (TWO_PI / n0 >= SGP4_DEEP_SPACE_PERIOD) {
+      isSimplified = true
+
+      deepSpace = initialiseSGP4DeepSpace(tle.epoch - SGP4_EPOCH, mode, {
+        xke,
+        e0,
+        ω0,
+        i0,
+        M0,
+        Ω0,
+        n0,
+        MDot,
+        ωDot,
+        ΩDot
+      })
+    }
+
     if (!isSimplified) {
       // C1² (cc1sq):
       const C12 = C1 * C1
@@ -717,7 +1763,8 @@ const initialiseSGP4 = (tle: TwoLineElement, gravity: GravityModel): SGP4Propaga
     LCoefficient,
     threeθ2MinusOne,
     oneMinusθ2,
-    sevenθ2MinusOne
+    sevenθ2MinusOne,
+    deepSpace
   }
 }
 
@@ -732,12 +1779,12 @@ const initialiseSGP4 = (tle: TwoLineElement, gravity: GravityModel): SGP4Propaga
  *
  * @param propagationConstants - The propagation constants of the theory for the element set.
  * @param t - The time since the epoch of the element set (in minutes).
- * @throws An SGP4MeanMotionError, an SGP4MeanEccentricityError, an SGP4SemiLatusRectumError or an SGP4DecayedError where the theory fails.
+ * @throws An SGP4MeanMotionError, an SGP4MeanEccentricityError, an SGP4PerturbedEccentricityError, an SGP4SemiLatusRectumError or an SGP4DecayedError where the theory fails.
  * @returns The state vector of the object, in the True Equator, Mean Equinox (TEME) frame of the epoch (in kilometres and kilometres per second).
  *
  */
 const propagateSGP4 = (propagationConstants: SGP4PropagationConstants, t: number): StateVector => {
-  const { xke, J2, isSimplified } = propagationConstants
+  const { xke, J2, isSimplified, deepSpace } = propagationConstants
 
   // The secular effects of the gravity of the Earth on the mean anomaly, the argument of perigee and
   // the longitude of the ascending node (xmdf, argpdf, nodedf):
@@ -808,7 +1855,20 @@ const propagateSGP4 = (propagationConstants: SGP4PropagationConstants, t: number
 
   let e = propagationConstants.e0
 
-  const i = propagationConstants.i0
+  let i = propagationConstants.i0
+
+  // The secular effects of the gravity of the Sun and of the Moon, and of any resonance of the orbit,
+  // of the deep-space theory:
+  if (deepSpace) {
+    ;({ e, i, ω, Ω, M, n } = getSGP4DeepSpaceSecularEffects(deepSpace, propagationConstants, t, {
+      e,
+      i,
+      ω,
+      Ω,
+      M,
+      n
+    }))
+  }
 
   if (n <= 0.0) {
     throw new SGP4MeanMotionError(n)
@@ -845,9 +1905,41 @@ const propagateSGP4 = (propagationConstants: SGP4PropagationConstants, t: number
 
   M = (L - ω - Ω) % TWO_PI
 
-  const sinI = Math.sin(i)
+  let sinI = Math.sin(i)
 
-  const cosI = Math.cos(i)
+  let cosI = Math.cos(i)
+
+  let { ayNCoefficient, LCoefficient } = propagationConstants
+
+  // The long-period perturbations of the gravity of the Sun and of the Moon of the deep-space theory:
+  if (deepSpace) {
+    ;({ e, i, Ω, ω, M } = getSGP4LunisolarPerturbations(deepSpace, t, { e, i, Ω, ω, M }))
+
+    // A perturbed inclination that is negative is reflected, together with its node and perigee:
+    if (i < 0.0) {
+      i = -i
+
+      Ω = Ω + Math.PI
+
+      ω = ω - Math.PI
+    }
+
+    if (e < 0.0 || e > 1.0) {
+      throw new SGP4PerturbedEccentricityError(e)
+    }
+
+    // The long-period coefficients are resolved from the perturbed inclination:
+    sinI = Math.sin(i)
+
+    cosI = Math.cos(i)
+
+    ayNCoefficient = -0.5 * propagationConstants.J3OverJ2 * sinI
+
+    LCoefficient =
+      Math.abs(cosI + 1.0) > 1.5e-12
+        ? (-0.25 * propagationConstants.J3OverJ2 * sinI * (3.0 + 5.0 * cosI)) / (1.0 + cosI)
+        : (-0.25 * propagationConstants.J3OverJ2 * sinI * (3.0 + 5.0 * cosI)) / 1.5e-12
+  }
 
   // The long-period periodic effects of the third zonal harmonic, e.g., on the components of the
   // eccentricity vector (axnl, aynl) and on the mean longitude (xl):
@@ -856,9 +1948,9 @@ const propagateSGP4 = (propagationConstants: SGP4PropagationConstants, t: number
   // 1 / a(1 - e²) (temp):
   const inverseAβ2 = 1.0 / (a * (1.0 - e * e))
 
-  const ayN = e * Math.sin(ω) + inverseAβ2 * propagationConstants.ayNCoefficient
+  const ayN = e * Math.sin(ω) + inverseAβ2 * ayNCoefficient
 
-  const LT = M + ω + Ω + inverseAβ2 * propagationConstants.LCoefficient * axN
+  const LT = M + ω + Ω + inverseAβ2 * LCoefficient * axN
 
   // Solve Kepler's equation for the eccentric longitude E + ω, e.g., by Newton's method, with each
   // step limited to 0.95 radians, as the reference implementation solves it (u, eo1, tem5):
@@ -933,27 +2025,35 @@ const propagateSGP4 = (propagationConstants: SGP4PropagationConstants, t: number
 
   const J2OverTwoPL2 = J2OverTwoPL * inversePL
 
+  // The functions of the inclination of the short-period periodic effects, which the deep-space
+  // theory resolves from the perturbed inclination:
+  let { threeθ2MinusOne, oneMinusθ2, sevenθ2MinusOne } = propagationConstants
+
+  if (deepSpace) {
+    const θ2 = cosI * cosI
+
+    threeθ2MinusOne = 3.0 * θ2 - 1.0
+
+    oneMinusθ2 = 1.0 - θ2
+
+    sevenθ2MinusOne = 7.0 * θ2 - 1.0
+  }
+
   // The short-period periodic effects, e.g., the osculating radius (mrt), argument of latitude (su),
   // longitude of the ascending node (xnode) and inclination (xinc), and the radial (mvt) and
   // transverse (rvdot) rates:
   const rk =
-    r * (1.0 - 1.5 * J2OverTwoPL2 * βL * propagationConstants.threeθ2MinusOne) +
-    0.5 * J2OverTwoPL * propagationConstants.oneMinusθ2 * cos2u
+    r * (1.0 - 1.5 * J2OverTwoPL2 * βL * threeθ2MinusOne) + 0.5 * J2OverTwoPL * oneMinusθ2 * cos2u
 
-  u = u - 0.25 * J2OverTwoPL2 * propagationConstants.sevenθ2MinusOne * sin2u
+  u = u - 0.25 * J2OverTwoPL2 * sevenθ2MinusOne * sin2u
 
   const Ωk = Ω + 1.5 * J2OverTwoPL2 * cosI * sin2u
 
   const ik = i + 1.5 * J2OverTwoPL2 * cosI * sinI * cos2u
 
-  const rDotk = rDot - (n * J2OverTwoPL * propagationConstants.oneMinusθ2 * sin2u) / xke
+  const rDotk = rDot - (n * J2OverTwoPL * oneMinusθ2 * sin2u) / xke
 
-  const rfDotk =
-    rfDot +
-    (n *
-      J2OverTwoPL *
-      (propagationConstants.oneMinusθ2 * cos2u + 1.5 * propagationConstants.threeθ2MinusOne)) /
-      xke
+  const rfDotk = rfDot + (n * J2OverTwoPL * (oneMinusθ2 * cos2u + 1.5 * threeθ2MinusOne)) / xke
 
   // The orientation vectors of the orbit, e.g., the unit vectors along the radius (U) and along the
   // direction of motion (V), in the TEME frame:
@@ -1029,9 +2129,9 @@ const propagateSGP4 = (propagationConstants: SGP4PropagationConstants, t: number
  * Space Force, SGP4-XP, and not to SGP4, and so it is rejected, rather than recorded for a
  * propagation to a position that is not that of the object.
  *
- * N.B. An orbit of a period of 225 minutes or more is of the deep-space theory, e.g., the lunar and
- * solar perturbations and the resonances of a geosynchronous or a 12-hour orbit, which is not yet
- * resolved, and so it is rejected, rather than propagated without those terms.
+ * N.B. An orbit of a period of 225 minutes or more is propagated by the deep-space terms of the
+ * theory, e.g., the long-period perturbations of the Sun and of the Moon, and the resonances of a
+ * geosynchronous or a 12-hour orbit with the tesseral harmonics of the gravity of the Earth.
  *
  * @see Hoots, F. R., & Roehrich, R. L. (1980), "Spacetrack Report No. 3: Models for Propagation of NORAD Element Sets".
  * @see Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006), "Revisiting Spacetrack Report #3", AIAA 2006-6753.
@@ -1063,7 +2163,6 @@ export class SatelliteRecord {
    * @param options - The gravity model and the mode of operation of the theory.
    * @throws An SGP4EphemerisTypeError if the element set is of ephemeris type 4, e.g., of SGP4-XP.
    * @throws An error if the mode of operation is not one of "improved" or "afspc".
-   * @throws An SGP4Error if the orbit is of the deep-space theory, which is not yet resolved.
    * @throws An SGP4Error of the failure, where the theory fails for the element set at its epoch.
    *
    */
@@ -1087,7 +2186,7 @@ export class SatelliteRecord {
 
     this.mode = mode
 
-    this.#propagationConstants = initialiseSGP4(this.tle, gravity)
+    this.#propagationConstants = initialiseSGP4(this.tle, gravity, mode)
 
     // Propagate to the epoch, as the reference implementation does as it initialises, so that an
     // element set the theory fails for at its epoch is rejected as it is initialised:
