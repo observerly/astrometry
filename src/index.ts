@@ -367,6 +367,7 @@ export {
   getLunarPhaseAngle,
   getLunarTrueAnomaly,
   getLunarTrueEclipticLongitude,
+  getLunarVariationCorrectionToDistance,
   getNextFullMoon,
   getNextNewMoon,
   isBlueMoon,
