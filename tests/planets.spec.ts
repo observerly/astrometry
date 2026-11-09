@@ -9,6 +9,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  convertDegreesToRadians as radians,
+  convertRadiansToDegrees as degrees,
   convertEclipticToEquatorial,
   getPlanetaryEquationOfCenter,
   getPlanetaryGeocentricEclipticCoordinate,
@@ -216,9 +218,76 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       saturn
     )
-    expect(λ).toBe(251.5018263629497)
-    expect(β).toBe(1.6685864468959957)
+    expect(λ).toBe(251.43163340163272)
+    expect(β).toBe(1.6299734753402197)
   })
+
+  it('should return the correct value for Mars (an exterior planet) at the datetime prescribed', () => {
+    const mars = planets.find(planet => planet.name === 'Mars')
+    expect(mars).toBeDefined()
+
+    if (!mars) {
+      throw new Error('Mars is not defined')
+    }
+
+    // On the 8th of November 2026 Mars lies ~68° from the Earth in heliocentric longitude, e.g., where the
+    // elongation is far from conjunction or opposition, and so the Earth's displacement along the line to the
+    // planet, R cos(l' − L), is ~0.37 AU. The geocentric ecliptic coordinate is λ ≈ 142.0633°, β ≈ 1.7509°
+    // (DE440, true ecliptic and equinox of date):
+    const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(
+      new Date('2026-11-08T00:00:00Z'),
+      mars
+    )
+
+    expect(λ).toBeCloseTo(142.2317240749898, 10)
+    expect(β).toBeCloseTo(1.7526700348933917, 10)
+  })
+
+  it.each(['Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'])(
+    'should return the geocentric ecliptic coordinate of %s as the difference of the heliocentric vectors of the planet and the Earth',
+    name => {
+      const planet = planets.find(planet => planet.name === name)
+      const earth = planets.find(planet => planet.name === 'Earth')
+
+      if (!planet || !earth) {
+        throw new Error(`${name} or Earth is not defined`)
+      }
+
+      for (let day = 0; day < 3650; day += 73) {
+        const datetime = new Date(Date.UTC(2020, 0, 1) + day * 86400000)
+
+        const L = getPlanetaryHeliocentricEclipticLongitude(datetime, planet)
+        const Λ = getPlanetaryHeliocentricEclipticLatitude(datetime, planet)
+        const R = getPlanetaryHeliocentricDistance(datetime, planet)
+
+        const Ω = planet.Ω || 0
+
+        // The planet's heliocentric longitude projected onto the ecliptic:
+        const l =
+          Ω +
+          degrees(
+            Math.atan2(
+              Math.sin(radians(L - Ω)) * Math.cos(radians(planet.i)),
+              Math.cos(radians(L - Ω))
+            )
+          )
+
+        const Le = getPlanetaryHeliocentricEclipticLongitude(datetime, earth)
+        const Re = getPlanetaryHeliocentricDistance(datetime, earth)
+
+        // The geocentric vector of the planet is the heliocentric vector of the planet less that of the Earth:
+        const x = R * Math.cos(radians(Λ)) * Math.cos(radians(l)) - Re * Math.cos(radians(Le))
+        const y = R * Math.cos(radians(Λ)) * Math.sin(radians(l)) - Re * Math.sin(radians(Le))
+        const z = R * Math.sin(radians(Λ))
+
+        const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(datetime, planet)
+
+        expect(Math.cos(radians(λ))).toBeCloseTo(x / Math.hypot(x, y), 10)
+        expect(Math.sin(radians(λ))).toBeCloseTo(y / Math.hypot(x, y), 10)
+        expect(β).toBeCloseTo(degrees(Math.atan2(z, Math.hypot(x, y))), 8)
+      }
+    }
+  )
 
   it('should return the correct value for Mercury (an inferior planet) at the datetime prescribed', () => {
     const mercury = planets.find(planet => planet.name === 'Mercury')
@@ -260,8 +329,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       β
     })
 
-    expect(ra).toBeCloseTo(38.041925844118374)
-    expect(dec).toBeCloseTo(13.764471149937803)
+    expect(ra).toBeCloseTo(38.19251254563533)
+    expect(dec).toBeCloseTo(13.510000622097355)
   })
 })
 

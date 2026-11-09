@@ -458,12 +458,15 @@ export function getPlanetaryGeocentricEclipticCoordinate(
         )
       )
   } else {
+    // The position of the planet as seen from the Earth is resolved in the frame rotated to the
+    // planet's projected heliocentric longitude, e.g., the Earth lies at R cos(l' − L) along it and
+    // R sin(l' − L) across it, and so the planet lies at r' − R cos(l' − L) along it:
     λp =
       Lp_corr +
       degrees(
         Math.atan2(
           Re * Math.sin(radians(Lp_corr - Le)),
-          Rp * Math.cos(radians(Λp)) - Re * Math.sin(radians(Le - Lp_corr))
+          Rp * Math.cos(radians(Λp)) - Re * Math.cos(radians(Lp_corr - Le))
         )
       )
   }
