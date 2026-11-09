@@ -362,7 +362,7 @@ export function getLunarMeanAnomalyCorrection(datetime: Date): number {
  *
  * getLunarTrueAnomaly()
  *
- * The true anomaly of the Moon is the angle between the perihelion and the
+ * The true anomaly of the Moon is the angle between the perigee and the
  * current position of the Moon, as seen from the Earth.
  *
  * @param datetime - The date to calculate the Moon's true anomaly for.
@@ -372,8 +372,12 @@ export function getLunarTrueAnomaly(datetime: Date): number {
   // Get the mean anomaly correction:
   const Ca = getLunarMeanAnomalyCorrection(datetime)
 
-  // Get the true anomaly:
-  let ν = 6.2886 * Math.sin(radians(Ca)) + ((0.214 * Math.sin(radians(2 * Ca))) % 360)
+  // Get the equation of the centre, e.g., the displacement of the Moon from its mean position in
+  // its orbit due to the eccentricity of the orbit, to the second order in the eccentricity:
+  const Ec = 6.2886 * Math.sin(radians(Ca)) + 0.214 * Math.sin(radians(2 * Ca))
+
+  // The true anomaly is the corrected mean anomaly displaced by the equation of the centre:
+  let ν = (Ca + Ec) % 360
 
   // Correct for negative angles
   if (ν < 0) {
@@ -406,11 +410,14 @@ export function getLunarTrueEclipticLongitude(datetime: Date): number {
   // Get the evection correction:
   const Ev = getLunarEvectionCorrection(datetime)
 
-  // Get the true anomaly:
-  const ν = getLunarTrueAnomaly(datetime)
+  // Get the mean anomaly correction:
+  const Ca = getLunarMeanAnomalyCorrection(datetime)
+
+  // Get the equation of the centre, e.g., the true anomaly less the corrected mean anomaly:
+  const Ec = 6.2886 * Math.sin(radians(Ca)) + 0.214 * Math.sin(radians(2 * Ca))
 
   // Get the corrected ecliptic longitude:
-  λ = (λ + Ev + ν - Ae) % 360
+  λ = (λ + Ev + Ec - Ae) % 360
 
   // Correct for negative angles
   if (λ < 0) {
