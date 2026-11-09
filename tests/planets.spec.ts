@@ -230,10 +230,10 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       throw new Error('Mars is not defined')
     }
 
-    // On the 8th of November 2026 Mars lies ~68° from the Earth in heliocentric longitude, e.g., where the
+    // On the 8th of November 2026 Mars lies ~59° from the Earth in heliocentric longitude, e.g., where the
     // elongation is far from conjunction or opposition, and so the Earth's displacement along the line to the
-    // planet, R cos(l' − L), is ~0.37 AU. The geocentric ecliptic coordinate is λ ≈ 142.0633°, β ≈ 1.7509°
-    // (DE440, true ecliptic and equinox of date):
+    // planet, R cos(l' − L), is ~0.51 AU. The geocentric ecliptic coordinate is λ ≈ 142.0633°, β ≈ 1.7509°
+    // (ERFA plan94 and epv00, true ecliptic and equinox of date):
     const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(
       new Date('2026-11-08T00:00:00Z'),
       mars
