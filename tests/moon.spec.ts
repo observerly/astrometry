@@ -213,8 +213,9 @@ describe('getLunarTrueAnomaly', () => {
   })
 
   it('should return the correct Lunar true anomaly for the given date', () => {
+    // The corrected mean anomaly of 206.6545434109266° displaced by the equation of the centre of ~−2.6495°:
     const ν = getLunarTrueAnomaly(datetime)
-    expect(ν).toBe(357.3504708833052)
+    expect(ν).toBe(204.0050142942318)
   })
 })
 
@@ -321,9 +322,23 @@ describe('getLunarAngularDiameter', () => {
   })
 
   it('should return the correct Lunar angular diameter for the given date', () => {
+    // The geocentric angular diameter is ~0.5141° (ERFA moon98), e.g., at a distance of ~387,394 km:
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const δ = getLunarAngularDiameter(datetime)
-    expect(δ).toBe(0.5480234984778626)
+    expect(δ).toBe(0.5185145653764769)
+  })
+
+  it('should return a smaller Lunar angular diameter at apogee than at perigee', () => {
+    // The Moon is at perigee on the 1st of January 2026 at ~22:00 UTC, at a distance of ~360,363 km and with
+    // an angular diameter of ~0.5526° (ERFA moon98):
+    const perigee = getLunarAngularDiameter(new Date('2026-01-01T22:00:00Z'))
+
+    // The Moon is at apogee on the 13th of January 2026 at ~21:00 UTC, at a distance of ~405,403 km and with
+    // an angular diameter of ~0.4912° (ERFA moon98):
+    const apogee = getLunarAngularDiameter(new Date('2026-01-13T21:00:00Z'))
+
+    expect(perigee).toBeCloseTo(0.5465476822961997, 10)
+    expect(apogee).toBeCloseTo(0.4911922743344358, 10)
   })
 
   it('should return the correct Lunar angular diameter for the given date in 1977 from Meeus', () => {
@@ -333,9 +348,10 @@ describe('getLunarAngularDiameter', () => {
       elevation: 1706
     }
 
+    // The topocentric angular diameter is ~0.5306° (ERFA moon98), e.g., at a topocentric distance of ~375,327 km:
     const datetime = new Date('1977-02-13T00:00:00Z')
     const δ = getLunarAngularDiameter(datetime, palomer)
-    expect(δ).toBeCloseTo(0.5417666941070021)
+    expect(δ).toBeCloseTo(0.538938425053904, 10)
   })
 })
 
@@ -347,9 +363,25 @@ describe('getLunarDistance', () => {
   })
 
   it('should return the correct Lunar distance for the given date', () => {
+    // The geocentric distance is ~387,394 km (ERFA moon98):
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const Δ = getLunarDistance(datetime)
-    expect(Δ).toBe(363410767.15352744)
+    expect(Δ).toBe(384092662.57621515)
+  })
+
+  it('should return the correct Lunar distance at perigee and apogee', () => {
+    // The Moon is at perigee on the 1st of January 2026 at ~22:00 UTC, at a distance of ~360,363 km (ERFA moon98):
+    const perigee = getLunarDistance(new Date('2026-01-01T22:00:00Z'))
+
+    // The Moon is at apogee on the 13th of January 2026 at ~21:00 UTC, at a distance of ~405,403 km (ERFA moon98):
+    const apogee = getLunarDistance(new Date('2026-01-13T21:00:00Z'))
+
+    expect(perigee).toBeCloseTo(364392067.6111608, 4)
+    expect(apogee).toBeCloseTo(405457598.5948844, 4)
+
+    // The distance at apogee exceeds the semi-major axis of the Moon's orbit, e.g., ~384,400 km:
+    expect(apogee).toBeGreaterThan(3.844e8)
+    expect(perigee).toBeLessThan(3.844e8)
   })
 })
 
