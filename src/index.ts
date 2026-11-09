@@ -356,6 +356,7 @@ export {
   getLunarElongation,
   getLunarEquatorialCoordinate,
   getLunarEvectionCorrection,
+  getLunarEvectionCorrectionToDistance,
   getLunarIllumination,
   getLunarMeanAnomaly,
   getLunarMeanAnomalyCorrection,
