@@ -35,6 +35,7 @@ import {
   getLunarPhaseAngle,
   getLunarTrueAnomaly,
   getLunarTrueEclipticLongitude,
+  getLunarVariationCorrectionToDistance,
   getNextFullMoon,
   getNextNewMoon,
   isBlueMoon,
@@ -211,6 +212,44 @@ describe('getLunarEvectionCorrectionToDistance', () => {
       const datetime = new Date(Date.UTC(2026, 0, 1) + day * 86400000)
 
       expect(Math.abs(getLunarEvectionCorrectionToDistance(datetime))).toBeLessThanOrEqual(3699111)
+    }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('getLunarVariationCorrectionToDistance', () => {
+  it('should be defined', () => {
+    expect(getLunarVariationCorrectionToDistance).toBeDefined()
+  })
+
+  it('should return the correct Lunar variation correction to the distance for the given date', () => {
+    const V = getLunarVariationCorrectionToDistance(datetime)
+    expect(V).toBe(-1746178.6925718188)
+  })
+
+  it('should bring the Moon nearer at the new and full Moon and further at the quarters', () => {
+    // The full Moon is on the 26th of May 2021 at ~11:14 UTC (ERFA moon98 and epv00):
+    expect(getLunarVariationCorrectionToDistance(new Date('2021-05-26T11:14:00Z'))).toBeLessThan(
+      -2900000
+    )
+
+    // The last quarter is on the 2nd of June 2021 at ~07:24 UTC (ERFA moon98 and epv00):
+    expect(getLunarVariationCorrectionToDistance(new Date('2021-06-02T07:24:00Z'))).toBeGreaterThan(
+      2800000
+    )
+
+    // The new Moon is on the 10th of June 2021 at ~10:53 UTC (ERFA moon98 and epv00):
+    expect(getLunarVariationCorrectionToDistance(new Date('2021-06-10T10:53:00Z'))).toBeLessThan(
+      -2900000
+    )
+  })
+
+  it('should never exceed the amplitude of the variation in distance', () => {
+    for (let day = 0; day < 365; day += 1) {
+      const datetime = new Date(Date.UTC(2026, 0, 1) + day * 86400000)
+
+      expect(Math.abs(getLunarVariationCorrectionToDistance(datetime))).toBeLessThanOrEqual(2955968)
     }
   })
 })

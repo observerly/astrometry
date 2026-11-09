@@ -332,6 +332,33 @@ export function getLunarEvectionCorrectionToDistance(datetime: Date): number {
 
 /**
  *
+ * getLunarVariationCorrectionToDistance()
+ *
+ * The variation is the perturbation of the Moon's orbit by the Sun with the elongation of the Moon
+ * from the Sun, which displaces the Moon in its distance from the Earth as well as in its longitude,
+ * e.g., by up to ~2,956 km either side of the distance of the unperturbed orbit, nearer at the new
+ * and full Moon and further at the quarters.
+ *
+ * @param datetime - The date to calculate the variation correction to the Moon's distance for.
+ * @returns The correction to the Moon's distance due to the variation (in metres).
+ *
+ */
+export function getLunarVariationCorrectionToDistance(datetime: Date): number {
+  // Get the Moon's mean ecliptic longitude:
+  const λ = radians(getLunarMeanEclipticLongitude(datetime))
+
+  // Get the Sun's ecliptic longitude:
+  const l = radians(getSolarEclipticLongitude(datetime))
+
+  // Get the variation correction to the distance, e.g., the argument is twice the elongation of the Moon from
+  // the Sun, and the amplitude is that of the term in 2D of the distance of the Moon (Meeus, Table 47.A):
+  return -2955968 * Math.cos(2 * (λ - l))
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * getLunarMeanEclipticLongitudeOfTheAscendingNode()
  *
  * The mean lunar ecliptic longitude of the ascending node is the angle where
