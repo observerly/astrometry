@@ -130,10 +130,31 @@ describe('getSolarEclipticLongitude', () => {
   })
 
   it('should return the correct Solar ecliptic longitude for the given date', () => {
+    // The geometric ecliptic longitude is ~316.3569°, referred to the mean equinox of the date (ERFA epv00 and ecm06):
     const datetime = new Date('2015-02-05T12:00:00.000+00:00')
     const λ = getSolarEclipticLongitude(datetime)
-    expect(λ).toBe(316.1043289481397)
+    expect(λ).toBe(316.36292999704807)
   })
+
+  it.each([
+    ['1900-01-01T00:00:00Z', 280.1549596198215, 280.15471],
+    ['2026-11-08T00:00:00Z', 225.59539034120212, 225.59464],
+    ['2099-12-31T00:00:00Z', 279.5923685239677, 279.59017]
+  ])(
+    'should not drift from the geometric Solar ecliptic longitude of the date for %s',
+    (iso, expected, reference) => {
+      // The Sun's ecliptic longitude at perigee advances by ~1.72° per century, and so the reference is the
+      // geometric ecliptic longitude, referred to the mean equinox of the date (ERFA epv00 and ecm06):
+      const λ = getSolarEclipticLongitude(new Date(iso))
+
+      expect(λ).toBeCloseTo(expected, 10)
+      expect(Math.abs(λ - reference)).toBeLessThan(0.01)
+
+      // The longitude is in the range [0, 360):
+      expect(λ).toBeGreaterThanOrEqual(0)
+      expect(λ).toBeLessThan(360)
+    }
+  )
 })
 
 /*****************************************************************************************************************/

@@ -271,8 +271,9 @@ export function getLunarMeanEclipticLongitude(datetime: Date): number {
   // Get the number of days since the standard epoch J2000:
   const De = JD - J2000
 
-  // Get the uncorrected mean eclptic longitude:
-  let λ = (13.176339686 * De + 218.31643388) % 360
+  // Get the uncorrected mean ecliptic longitude, e.g., which advances by 481267.88123421° per Julian century of
+  // 36525 days (Meeus, Equation 47.1):
+  let λ = (13.1763964746 * De + 218.31643388) % 360
 
   // Correct for negative angles
   if (λ < 0) {
@@ -296,6 +297,35 @@ export function getLunarEvectionCorrection(datetime: Date): number {
 
   // Get the avection correction:
   return 1.2739 * Math.sin(2 * (λ - l) - M)
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * getLunarEvectionCorrectionToDistance()
+ *
+ * The evection is the perturbation of the eccentricity of the Moon's orbit by the Sun, which
+ * displaces the Moon in its distance from the Earth as well as in its longitude, e.g., by up to
+ * ~3,699 km either side of the distance of the unperturbed orbit.
+ *
+ * @param datetime - The date to calculate the evection correction to the Moon's distance for.
+ * @returns The correction to the Moon's distance due to the evection (in metres).
+ *
+ */
+export function getLunarEvectionCorrectionToDistance(datetime: Date): number {
+  // Get the Moon's mean anomaly at the current epoch relative to J2000:
+  const M = radians(getLunarMeanAnomaly(datetime))
+
+  // Get the Moon's mean ecliptic longitude:
+  const λ = radians(getLunarMeanEclipticLongitude(datetime))
+
+  // Get the Sun's ecliptic longitude:
+  const l = radians(getSolarEclipticLongitude(datetime))
+
+  // Get the evection correction to the distance, e.g., the argument is that of the evection in longitude, and
+  // the amplitude is that of the term in 2D − M′ of the distance of the Moon (Meeus, Table 47.A):
+  return -3699111 * Math.cos(2 * (λ - l) - M)
 }
 
 /*****************************************************************************************************************/

@@ -209,22 +209,32 @@ export function getSolarTrueGeometricLongitude(datetime: Date): number {
  *
  * getSolarEclipticLongitude()
  *
- * The ecliptic longitude for the Sun is the angle between the perihelion and
+ * The ecliptic longitude for the Sun is the angle between the perigee and
  * the current position of the Sun, as seen from the centre of the Earth,
  * corrected for the equation of center and the Sun's ecliptic longitude at
- * perigee at the epoch.
+ * perigee at the date.
  *
  * @param datetime - The date to calculate the Sun's ecliptic longitude for.
  * @returns The Sun's ecliptic longitude at the given date.
  *
  */
 export function getSolarEclipticLongitude(datetime: Date): number {
+  // The series is referred to Terrestrial Time, e.g., the Julian Ephemeris Day of Meeus, and so it is resolved at
+  // the Terrestrial Time of the given date:
+  const tt = getTerrestrialTime(datetime)
+
+  // Calculate the number of centuries since J2000.0:
+  const T = getNumberOfCenturiesSinceJ2000(tt)
+
   // Get the true anomaly:
   const ν = getSolarTrueAnomaly(datetime)
 
-  // Correct the true anomaly with the Sun's ecliptic longitude
-  // at perigee at the epoch:
-  let λ = ν + (282.938346 % 360)
+  // Get the Sun's ecliptic longitude at perigee, referred to the mean equinox of the date, e.g., the Earth's
+  // longitude of perihelion plus 180°, which advances by ~1.72° per century (Meeus, Table 31.A):
+  const ϖ = 282.937348 + 1.7195269 * T + 0.00045962 * T ** 2
+
+  // Correct the true anomaly with the Sun's ecliptic longitude at perigee at the date:
+  let λ = (ν + ϖ) % 360
 
   // Correct for negative angles
   if (λ < 0) {
