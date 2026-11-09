@@ -415,7 +415,7 @@ describe('getLunarAngularDiameter', () => {
     // The geocentric angular diameter is ~0.5141° (ERFA moon98), e.g., at a distance of ~387,394 km:
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const δ = getLunarAngularDiameter(datetime)
-    expect(δ).toBe(0.5185157426350441)
+    expect(δ).toBe(0.5141592786997399)
   })
 
   it('should return a smaller Lunar angular diameter at apogee than at perigee', () => {
@@ -427,8 +427,8 @@ describe('getLunarAngularDiameter', () => {
     // an angular diameter of ~0.4912° (ERFA moon98):
     const apogee = getLunarAngularDiameter(new Date('2026-01-13T21:00:00Z'))
 
-    expect(perigee).toBeCloseTo(0.5465473178001063, 10)
-    expect(apogee).toBeCloseTo(0.49119224021604435, 10)
+    expect(perigee).toBeCloseTo(0.5525006104225229, 10)
+    expect(apogee).toBeCloseTo(0.49115537475983245, 10)
   })
 
   it('should return the correct Lunar angular diameter for the given date in 1977 from Meeus', () => {
@@ -441,7 +441,7 @@ describe('getLunarAngularDiameter', () => {
     // The topocentric angular diameter is ~0.5306° (ERFA moon98), e.g., at a topocentric distance of ~375,327 km:
     const datetime = new Date('1977-02-13T00:00:00Z')
     const δ = getLunarAngularDiameter(datetime, palomer)
-    expect(δ).toBeCloseTo(0.5388887916772126, 10)
+    expect(δ).toBeCloseTo(0.5309009294051787, 10)
   })
 })
 
@@ -456,7 +456,7 @@ describe('getLunarDistance', () => {
     // The geocentric distance is ~387,394 km (ERFA moon98):
     const datetime = new Date('2015-01-02T03:00:00.000+00:00')
     const Δ = getLunarDistance(datetime)
-    expect(Δ).toBe(384091790.5171041)
+    expect(Δ).toBe(387346194.55599594)
   })
 
   it('should return the correct Lunar distance at perigee and apogee', () => {
@@ -466,12 +466,17 @@ describe('getLunarDistance', () => {
     // The Moon is at apogee on the 13th of January 2026 at ~21:00 UTC, at a distance of ~405,403 km (ERFA moon98):
     const apogee = getLunarDistance(new Date('2026-01-13T21:00:00Z'))
 
-    expect(perigee).toBeCloseTo(364392310.6266889, 4)
-    expect(apogee).toBeCloseTo(405457626.7581165, 4)
+    expect(perigee).toBeCloseTo(360465918.48594505, 4)
+    expect(apogee).toBeCloseTo(405488059.8576063, 4)
 
     // The distance at apogee exceeds the semi-major axis of the Moon's orbit, e.g., ~384,400 km:
     expect(apogee).toBeGreaterThan(3.844e8)
     expect(perigee).toBeLessThan(3.844e8)
+
+    // The evection and the variation, of up to ~3,699 km and ~2,956 km, are resolved, and so the distance is
+    // within ~1,000 km of the reference at both perigee and apogee:
+    expect(Math.abs(perigee - 360363100)).toBeLessThan(1000000)
+    expect(Math.abs(apogee - 405403000)).toBeLessThan(1000000)
   })
 })
 
