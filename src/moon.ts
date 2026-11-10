@@ -727,14 +727,9 @@ export function getLunarAngularDiameter(
   observer?: GeographicCoordinate & { elevation: number }
 ): number {
   if (!observer) {
-    // Get the true anomaly:
-    const ν = getLunarTrueAnomaly(datetime)
-
-    // Get the F orbital paramater which applies corrections
-    // due to the Moon's orbital eccentricity:
-    const F = getFOrbitalParameter(ν, 0.0549)
-
-    return 0.5181 * F
+    // The angular diameter is inversely proportional to the distance, e.g., it is ~0.5181° at the
+    // semi-major axis of the Moon's orbit of 384,400 km:
+    return (0.5181 * 3.844e8) / getLunarDistance(datetime)
   }
 
   const k = 2 * 0.272481
@@ -784,7 +779,8 @@ export function getLunarAngularDiameter(
  *
  * The distance to the Moon is the distance between the centre of the Earth
  * and the centre of the Moon, corrected for the equation of center and the
- * Moon's ecliptic longitude at perigee at the epoch.
+ * Moon's ecliptic longitude at perigee at the epoch, and for the evection and
+ * the variation, e.g., the two greatest perturbations of the distance by the Sun.
  *
  * @param datetime - The date to calculate the distance to the Moon for.
  * @returns The distance to the Moon in metres.
@@ -798,7 +794,13 @@ export function getLunarDistance(datetime: Date): number {
   // due to the Moon's orbital eccentricity:
   const F = getFOrbitalParameter(ν, 0.0549)
 
-  return 3.844e8 / F
+  // Get the evection correction to the distance (in metres):
+  const Ev = getLunarEvectionCorrectionToDistance(datetime)
+
+  // Get the variation correction to the distance (in metres):
+  const V = getLunarVariationCorrectionToDistance(datetime)
+
+  return 3.844e8 / F + Ev + V
 }
 
 /*****************************************************************************************************************/
