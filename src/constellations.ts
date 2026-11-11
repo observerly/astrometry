@@ -1066,8 +1066,9 @@ export function getConstellation(target: EquatorialCoordinate): Constellation | 
   // We precess to 1875, as the Nancy Roman lookup table is accurate for that epoch:
   const corr = getCorrectionToEquatorialForPrecessionOfEquinoxes(new Date(1875, 0, 0), target)
 
-  // Apply the correction to the target's right ascension:
-  const ra = target.ra + (corr.ra % 360)
+  // Apply the correction to the target's right ascension, wrapped into the range [0, 360), e.g., a
+  // target just east of 0h is carried west of it by the precession to 1875:
+  const ra = (((target.ra + corr.ra) % 360) + 360) % 360
 
   // Apply the correction to the target's declination:
   const dec = target.dec + corr.dec
@@ -1086,8 +1087,14 @@ export function getConstellation(target: EquatorialCoordinate): Constellation | 
     return undefined
   }
 
+  // N.B. The Nancy Roman lookup table gives the two parts of Serpens, which lie either side of
+  // Ophiuchus, as the one constellation, and so the part is resolved from the right ascension,
+  // e.g., Serpens Caput lies west of 16.27h and Serpens Cauda lies east of 17.17h (B1875):
+  const name =
+    record.name === 'Serpens' ? (ha < 17 ? 'Serpens Caput' : 'Serpens Cauda') : record.name
+
   // If we have a match, return the constellation, otherwise return undefined:
-  return record ? constellations.get(record.name as ConstellationName) : undefined
+  return constellations.get(name as ConstellationName)
 }
 
 /*****************************************************************************************************************/
