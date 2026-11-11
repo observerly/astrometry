@@ -192,9 +192,9 @@ describe('getSolarTransit', () => {
     expect(noon).toBeInstanceOf(Date)
     expect(sunset).toBeInstanceOf(Date)
 
-    expect(sunrise?.toISOString()).toBe('2021-05-14T04:42:45.923Z')
+    expect(sunrise?.toISOString()).toBe('2021-05-14T04:42:44.933Z')
     expect(noon?.toISOString()).toBe('2021-05-14T12:21:36.700Z')
-    expect(sunset?.toISOString()).toBe('2021-05-14T20:01:21.089Z')
+    expect(sunset?.toISOString()).toBe('2021-05-14T20:01:21.995Z')
   })
 
   it('should return the correct solar transit for the observer at a horizon of -6 degrees', () => {
@@ -275,8 +275,8 @@ describe('getNight', () => {
     expect(start).toBeInstanceOf(Date)
     expect(end).toBeInstanceOf(Date)
 
-    expect(start?.toISOString()).toBe('2021-05-14T20:01:21.089Z')
-    expect(end?.toISOString()).toBe('2021-05-15T04:41:22.787Z')
+    expect(start?.toISOString()).toBe('2021-05-14T20:01:21.995Z')
+    expect(end?.toISOString()).toBe('2021-05-15T04:41:21.798Z')
   })
 
   it('should return the correct night for the observer at a horizon of -18 degrees', () => {
@@ -474,9 +474,9 @@ describe('getSolarTransit at the horizon given by the caller', () => {
       0
     )
 
-    expect(sunrise?.toISOString()).toBe('2021-02-28T15:11:20.178Z')
+    expect(sunrise?.toISOString()).toBe('2021-02-28T15:11:06.929Z')
     expect(noon).toBeInstanceOf(Date)
-    expect(sunset?.toISOString()).toBe('2021-02-28T17:36:06.461Z')
+    expect(sunset?.toISOString()).toBe('2021-02-28T17:36:19.739Z')
   })
 
   it('should resolve a grazing rise the estimated noon samples on the wrong side of', () => {

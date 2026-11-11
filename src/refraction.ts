@@ -21,24 +21,26 @@ const REFRACTION_ALTITUDE_FLOOR = -1
 /*****************************************************************************************************************/
 
 // The reference temperature (in Kelvin) and pressure (in Pascals) that Sæmundsson's formula is
-// stated at, e.g., the conditions the refraction is scaled away from, and not the conditions an
-// observation is taken to be made at, which is DEFAULT_SURFACE_TEMPERATURE below.
+// stated at, e.g., 283.15 K and 101000 Pa (Meeus, Astronomical Algorithms, Chapter 16), which are
+// the conditions the refraction is scaled away from, and not the conditions an observation is
+// taken to be made at, which are DEFAULT_SURFACE_TEMPERATURE and DEFAULT_SURFACE_PRESSURE below.
 //
-// N.B. The two temperatures are the same, as the default conditions are the conditions the formula
-// is stated at, but they are not the same quantity: a caller that gives conditions of their own
-// displaces the default, and leaves the reference of the formula as it is:
+// N.B. The reference temperature and the default temperature are the same, but they are not the
+// same quantity: a caller that gives conditions of their own displaces the default, and leaves the
+// reference of the formula as it is. The default pressure is one standard atmosphere, 101325 Pa,
+// and so the refraction at the default conditions is 101325 / 101000 of the formula as stated:
 const SAEMUNDSSON_REFERENCE_TEMPERATURE = 283.15
 
-const SAEMUNDSSON_REFERENCE_PRESSURE = 101325
+const SAEMUNDSSON_REFERENCE_PRESSURE = 101000
 
 /*****************************************************************************************************************/
 
 /**
  *
  * The temperature of the air at the surface of the Earth (in Kelvin) an observation is taken to be
- * made at where the caller gives none, e.g., 10°C, which is the temperature Sæmundsson's formula
- * is stated at, and at which the refraction at the horizon is the standard ~34 arcminutes that the
- * -0.833° altitude of sunrise and sunset is drawn from.
+ * made at where the caller gives none, e.g., 283.15 K, which is the temperature Sæmundsson's
+ * formula is stated at, and at which the refraction at the horizon is the standard ~34 arcminutes
+ * that the -0.833° altitude of sunrise and sunset is drawn from.
  *
  */
 export const DEFAULT_SURFACE_TEMPERATURE = 283.15
@@ -48,7 +50,7 @@ export const DEFAULT_SURFACE_TEMPERATURE = 283.15
 /**
  *
  * The pressure of the air at the surface of the Earth (in Pascals) an observation is taken to be
- * made at where the caller gives none, e.g., one standard atmosphere at sea level.
+ * made at where the caller gives none, e.g., one standard atmosphere at sea level, 101325 Pa.
  *
  */
 export const DEFAULT_SURFACE_PRESSURE = 101325

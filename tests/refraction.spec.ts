@@ -57,8 +57,31 @@ describe('getRefraction', () => {
     expect(target.az).toBeCloseTo(134.43777898765828, 9)
     expect(target.alt).toBeCloseTo(72.78239710139869, 9)
 
+    // At a temperature of 283.15 K and a pressure of one standard atmosphere, 101325 Pa:
     const R = getRefraction(target, 283.15, 101325)
-    expect(R).toBeCloseTo(0.005225131363332857, 9)
+    expect(R).toBeCloseTo(0.005241944904848531, 9)
+  })
+
+  it("should be Sæmundsson's formula as stated at its reference conditions of 283.15 K and 101000 Pa", () => {
+    // Sæmundsson's formula is stated at a temperature of 283.15 K and a pressure of 101000 Pa
+    // (Meeus, Astronomical Algorithms, Chapter 16), and so it is unscaled at those conditions:
+    for (const alt of [-0.57, 0, 10, 45, 89]) {
+      const R = 1.02 / Math.tan(((alt + 10.3 / (alt + 5.11)) * Math.PI) / 180) / 60
+
+      expect(getRefraction({ alt, az: 0 }, 283.15, 101000)).toBe(R)
+    }
+  })
+
+  it('should scale the refraction with the pressure relative to the reference pressure of 101000 Pa', () => {
+    // The refraction at one standard atmosphere, 101325 Pa, is 101325 / 101000 of the refraction at
+    // the reference pressure, at the same temperature:
+    for (const alt of [0, 10, 45]) {
+      const target = { alt, az: 0 }
+
+      expect(
+        getRefraction(target, 283.15, 101325) / getRefraction(target, 283.15, 101000)
+      ).toBeCloseTo(101325 / 101000, 12)
+    }
   })
 
   it('should return no correction for an object below the floor of the approximation', () => {
@@ -78,11 +101,12 @@ describe('getRefraction', () => {
   })
 
   it('should refract an object at a true altitude of -0.57 degrees to the horizon', () => {
-    // The refraction at the horizon is ~34 arcminutes, e.g., the standard value, and so an object
-    // at a true altitude of -0.57° is refracted to an apparent altitude of 0:
+    // The refraction at the horizon is ~34 arcminutes, e.g., the standard value, at the conditions
+    // Sæmundsson's formula is stated at, 283.15 K and 101000 Pa, and so an object at a true altitude
+    // of -0.57° is refracted to an apparent altitude of 0:
     const alt = -0.57
 
-    const R = getRefraction({ alt, az: 0 })
+    const R = getRefraction({ alt, az: 0 }, 283.15, 101000)
 
     expect(R * 60).toBeCloseTo(34.4, 1)
 
@@ -314,11 +338,12 @@ describe('getAirRefractiveIndex', () => {
 /*****************************************************************************************************************/
 
 describe('the default conditions at the surface', () => {
-  it("should be the conditions Sæmundsson's formula is stated at", () => {
-    // The default temperature is the temperature the formula is stated at, e.g., the refraction at
-    // the default conditions is the standard ~34 arcminutes at the horizon that the -0.833° of
-    // sunrise and sunset is drawn from, and so a caller that gives no conditions is not returned a
-    // refraction that disagrees with that convention:
+  it("should be the temperature Sæmundsson's formula is stated at and one standard atmosphere", () => {
+    // The default temperature is the temperature the formula is stated at, 283.15 K, e.g., the
+    // refraction at the default conditions is the standard ~34 arcminutes at the horizon that the
+    // -0.833° of sunrise and sunset is drawn from, and so a caller that gives no conditions is not
+    // returned a refraction that disagrees with that convention. The default pressure is one
+    // standard atmosphere, 101325 Pa, which is 325 Pa above the pressure the formula is stated at:
     expect(DEFAULT_SURFACE_TEMPERATURE).toBe(283.15)
     expect(DEFAULT_SURFACE_PRESSURE).toBe(101325)
 
