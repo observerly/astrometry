@@ -28,7 +28,7 @@ import {
 
 import { convertEquatorialToHorizontal } from './coordinates'
 
-import { getLunarEquatorialCoordinate, getLunarIllumination } from './moon'
+import { getLunarDistance, getLunarEquatorialCoordinate, getLunarIllumination } from './moon'
 
 import { getCorrectionToEquatorialForNutation } from './nutation'
 
@@ -96,8 +96,14 @@ const getConstraintContext = (
     convertEquatorialToHorizontal(datetime, observer, getSolarEquatorialCoordinate(datetime))
   )
 
+  // N.B. The Moon is near enough to the Earth that its horizontal parallax is ~1°, and so its
+  // altitude is resolved for the observer on the surface of the Earth, and not for the centre of
+  // the Earth, by giving its distance (in SI metres):
   const moon = getCorrectionToHorizontalForRefraction(
-    convertEquatorialToHorizontal(datetime, observer, getLunarEquatorialCoordinate(datetime))
+    convertEquatorialToHorizontal(datetime, observer, {
+      ...getLunarEquatorialCoordinate(datetime),
+      distance: getLunarDistance(datetime)
+    })
   )
 
   // The Moon's illuminated fraction, as a percentage in the range [0, 100]:
