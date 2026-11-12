@@ -292,9 +292,13 @@ export function getSolarTransit(
   const sunset = crossing(false)
 
   // The Sun does not cross the horizon for an observer in perpetual daylight or perpetual night:
-  if (sunrise === null || sunset === null) {
+  if (sunrise === null && sunset === null) {
     return { sunrise: null, noon: null, sunset: null }
   }
+
+  // N.B. On the day that borders a season without a crossing, e.g., the first or last night of
+  // the polar day at a twilight horizon, the Sun crosses the horizon only once, and so the one
+  // crossing is returned, and the other is null, rather than both being discarded:
 
   // The noon returned is the refined meridian transit itself, and not the lower accuracy
   // estimate it was resolved about, which is up to ~10 seconds from the true transit:
