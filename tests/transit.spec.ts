@@ -942,6 +942,30 @@ describe('isBodyVisibleForNight', () => {
       process.env.TZ = TZ
     }
   })
+
+  it('should return true for an object that rises during the polar night', () => {
+    // At 80°N in mid-December the Sun stays below -12° all day, and so the whole day is night, in
+    // which an object that rises is above the horizon at some point:
+    const visible = isBodyVisibleForNight(
+      new Date('2025-12-15T12:00:00Z'),
+      { latitude: 80, longitude: 15 },
+      { ra: 0, dec: 5 }
+    )
+
+    expect(visible).toBe(true)
+  })
+
+  it('should return false for a circumpolar object where there is no night', () => {
+    // In Edinburgh at midsummer the Sun stays above -12° all night, and so there is no night in
+    // which even a circumpolar object, e.g., Polaris, could be observed:
+    const visible = isBodyVisibleForNight(
+      new Date('2025-06-21T12:00:00Z'),
+      { latitude: 55.9533, longitude: -3.1883 },
+      { ra: 37.95, dec: 89.26 }
+    )
+
+    expect(visible).toBe(false)
+  })
 })
 
 /*****************************************************************************************************************/
