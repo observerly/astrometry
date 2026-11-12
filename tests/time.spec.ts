@@ -10,13 +10,25 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { DateTime } from '../src'
+import { DateTime, getHeliocentricJulianDate } from '../src'
 
 /*****************************************************************************************************************/
 
 // For testing we need to specify a date because most calculations are
 // differential w.r.t a time component. We set it to the author's birthday:
 const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+
+/*****************************************************************************************************************/
+
+// For testing we need to specify a target, e.g., Betelgeuse, as the heliocentric Julian date is
+// resolved along the direction to the target that was observed:
+const betelgeuse = { ra: 88.7929583, dec: 7.4070639 }
+
+/*****************************************************************************************************************/
+
+// IP Pegasi, e.g., the target of the worked example of the light travel time corrections in the
+// documentation of astropy.time, at 23h 23m 08.55s, +18° 24' 59.3" (ICRS):
+const pegasi = { ra: 350.785625, dec: 18.416472222 }
 
 /*****************************************************************************************************************/
 
@@ -82,9 +94,38 @@ describe('DateTime Heliocentric Julian Dates', () => {
     expect(new DateTime().getHJD).toBeInstanceOf(Function)
   })
 
-  it('should return the Heliocentric Julian Date (HJD) of the given date', () => {
-    const HJD = new DateTime(datetime).getHeliocentricJulianDate()
-    expect(HJD).toBeCloseTo(2459348.49416325)
+  it('should return the Heliocentric Julian Date (HJD) of the given date for the given target', () => {
+    const HJD = new DateTime(datetime).getHeliocentricJulianDate(betelgeuse)
+    expect(HJD).toBe(getHeliocentricJulianDate(datetime, betelgeuse))
+  })
+
+  it('should return the same Heliocentric Julian Date (HJD) from the getHJD method', () => {
+    const HJD = new DateTime(datetime).getHJD(betelgeuse)
+    expect(HJD).toBe(getHeliocentricJulianDate(datetime, betelgeuse))
+  })
+
+  it('should return a Heliocentric Julian Date (HJD) that depends on the given target', () => {
+    // The target opposite Betelgeuse on the sky is corrected by the equal and opposite interval,
+    // e.g., the correction is not the light travel time to the Sun for every target:
+    const JD = new DateTime(datetime).getJulianDate()
+
+    const near = new DateTime(datetime).getHeliocentricJulianDate(betelgeuse)
+
+    const far = new DateTime(datetime).getHeliocentricJulianDate({
+      ra: betelgeuse.ra + 180,
+      dec: -betelgeuse.dec
+    })
+
+    expect(near).not.toBe(far)
+    expect(near - JD).toBeCloseTo(JD - far, 8)
+  })
+
+  it('should return the Heliocentric Julian Date (HJD) of astropy for IP Pegasi', () => {
+    // The worked example of the documentation of astropy.time resolves the heliocentric light
+    // travel time of IP Pegasi at MJD 56325.95833333 (UTC) as −0.00376576 days, e.g., a
+    // heliocentric Julian date of 2456326.45456757:
+    const HJD = new DateTime('2013-02-02T23:00:00.000+00:00').getHJD(pegasi)
+    expect(HJD).toBeCloseTo(2456326.45456757, 6)
   })
 })
 
