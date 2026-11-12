@@ -23,8 +23,9 @@ import { getJulianDate } from './epoch'
  *
  */
 export function convertJulianDateToUTC(JD: number): Date {
-  // Return the UTC date from the Julian Date:
-  return new Date((JD - J1970) * 86400000)
+  // Return the UTC date from the Julian Date, rounded to the nearest millisecond. A Julian Date resolves to
+  // roughly 0.04 ms as a double, and the Date constructor truncates a fractional time value towards zero:
+  return new Date(Math.round((JD - J1970) * 86400000))
 }
 
 /*****************************************************************************************************************/
