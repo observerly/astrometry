@@ -513,7 +513,15 @@ export function getSolarEclipse(
     eclipseType === EclipseType.Annular ||
     eclipseType === EclipseType.AnnularTotal
   ) {
-    magnitude = 1 - u / (0.27305 + u)
+    // The radius of the umbral cone, u, is given in the fundamental plane, e.g., the plane through the centre
+    // of the Earth that is perpendicular to the axis of the shadow of the Moon. The observer at greatest
+    // eclipse is on the surface of the Earth, and so is nearer to the Moon by √(1 − γ²) equatorial radii of
+    // the Earth, where the umbral cone is narrower by 0.00464 per equatorial radius:
+    const ρ = u - 0.00464 * Math.sqrt(1 - γ ** 2)
+
+    // The magnitude of a central eclipse is the ratio of the apparent diameter of the Moon to that of the
+    // Sun, as seen from the surface of the Earth at greatest eclipse:
+    magnitude = 1 - ρ / (0.27305 + ρ)
   }
 
   // Get the equatorial coordinates of the maximum of the eclipse for the Moon:

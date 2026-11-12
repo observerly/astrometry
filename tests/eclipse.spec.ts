@@ -241,7 +241,7 @@ describe('getSolarEclipse', () => {
 
     expect(eclipse.type).toBe('total')
     expect(eclipse.magnitude).toBeGreaterThan(1)
-    expect(eclipse.magnitude).toBeCloseTo(1.0139)
+    expect(eclipse.magnitude).toBeCloseTo(1.029)
     expect(eclipse.γ).toBeCloseTo(0.5063)
   })
 
@@ -267,7 +267,7 @@ describe('getSolarEclipse', () => {
     expect(eclipse.k).toBe(-5)
     expect(eclipse.type).toBe('total')
     expect(eclipse.isCentral).toBe(true)
-    expect(eclipse.magnitude).toBeCloseTo(1.0139)
+    expect(eclipse.magnitude).toBeCloseTo(1.029)
     expect(eclipse.γ).toBeCloseTo(0.5063)
     expect(eclipse.alt).toBeGreaterThan(0)
     expect(eclipse.Ω).toBeCloseTo(132.59337943170326, 13)
@@ -284,7 +284,7 @@ describe('getSolarEclipse', () => {
 
     expect(eclipse.type).toBe('annular')
     expect(eclipse.magnitude).toBeLessThan(1)
-    expect(eclipse.magnitude).toBeCloseTo(0.95342)
+    expect(eclipse.magnitude).toBeCloseTo(0.968)
     expect(eclipse.γ).toBeCloseTo(0.4088)
   })
 
@@ -321,7 +321,7 @@ describe('getSolarEclipse', () => {
 
     expect(eclipse.type).toBe('annular')
     expect(eclipse.magnitude).toBeLessThan(1)
-    expect(eclipse.magnitude).toBeCloseTo(0.9305)
+    expect(eclipse.magnitude).toBeCloseTo(0.944)
     expect(eclipse.γ).toBeCloseTo(0.4827)
   })
 
@@ -343,7 +343,7 @@ describe('getSolarEclipse', () => {
 
     expect(eclipse.type).toBe('total')
     expect(eclipse.magnitude).toBeGreaterThan(1)
-    expect(eclipse.magnitude).toBeCloseTo(1.0119)
+    expect(eclipse.magnitude).toBeCloseTo(1.025)
     expect(eclipse.γ).toBeCloseTo(-0.2942)
   })
 
@@ -378,6 +378,118 @@ describe('getSolarEclipse', () => {
       )
     }
   )
+  it.each([
+    ['1991-01-15', -178, 'annular', 0.929],
+    ['1991-07-11', -107, 'total', 1.08],
+    ['1992-01-04', -166, 'annular', 0.918],
+    ['1992-06-30', -3, 'total', 1.059],
+    ['1994-05-10', -78, 'annular', 0.943],
+    ['1994-11-03', -25, 'total', 1.054],
+    ['1995-04-29', -83, 'annular', 0.95],
+    ['1995-10-24', 112, 'total', 1.021],
+    ['1997-03-09', 159, 'total', 1.042],
+    ['1998-02-26', -82, 'total', 1.044],
+    ['1998-08-22', 148, 'annular', 0.973],
+    ['1999-02-16', 82, 'annular', 0.993],
+    ['1999-08-11', 14, 'total', 1.029],
+    ['2001-06-21', -1, 'total', 1.05],
+    ['2001-12-14', -133, 'annular', 0.968],
+    ['2002-06-10', -176, 'annular', 0.996],
+    ['2002-12-04', 67, 'total', 1.024],
+    ['2003-05-31', 118, 'annular', 0.938],
+    ['2003-11-23', -162, 'total', 1.038],
+    ['2005-04-08', -129, 'annular-total', 1.007],
+    ['2005-10-03', 22, 'annular', 0.958],
+    ['2006-03-29', 27, 'total', 1.052],
+    ['2006-09-22', 5, 'annular', 0.935],
+    ['2008-02-07', 121, 'annular', 0.965],
+    ['2008-08-01', 24, 'total', 1.039],
+    ['2009-01-26', 60, 'annular', 0.928],
+    ['2009-07-22', 141, 'total', 1.08],
+    ['2010-01-15', 73, 'annular', 0.919],
+    ['2010-07-11', -114, 'total', 1.058],
+    ['2012-05-20', -178, 'annular', 0.944],
+    ['2012-11-13', -153, 'total', 1.05],
+    ['2013-05-10', 174, 'annular', 0.954],
+    ['2013-11-03', -12, 'annular-total', 1.016],
+    ['2015-03-20', 33, 'total', 1.045],
+    ['2016-03-09', 150, 'total', 1.045],
+    ['2016-09-01', 43, 'annular', 0.974],
+    ['2017-02-26', -44, 'annular', 0.992],
+    ['2017-08-21', -96, 'total', 1.031],
+    ['2019-07-02', -111, 'total', 1.046],
+    ['2019-12-26', 100, 'annular', 0.97],
+    ['2020-06-21', 80, 'annular', 0.994],
+    ['2020-12-14', -64, 'total', 1.025],
+    ['2021-06-10', 19, 'annular', 0.943],
+    ['2021-12-04', 66, 'total', 1.037],
+    ['2023-04-20', 116, 'annular-total', 1.013],
+    ['2023-10-14', -90, 'annular', 0.952],
+    ['2024-04-08', -95, 'total', 1.057],
+    ['2024-10-02', -101, 'annular', 0.933],
+    ['2026-02-17', -3, 'annular', 0.963],
+    ['2026-08-12', -87, 'total', 1.039],
+    ['2027-02-06', -60, 'annular', 0.928],
+    ['2027-08-02', 28, 'total', 1.079],
+    ['2028-01-26', -47, 'annular', 0.921],
+    ['2028-07-22', 136, 'total', 1.056],
+    ['2030-06-01', 83, 'annular', 0.944],
+    ['2030-11-25', 77, 'total', 1.047]
+  ])(
+    'should return the magnitude of the central solar eclipse of %s at the surface of the Earth',
+    (date, longitude, type, reference) => {
+      // The magnitude of a central eclipse is the ratio of the apparent diameter of the Moon to that of the
+      // Sun at greatest eclipse, as seen from the surface of the Earth and not from the fundamental plane
+      // through the centre of the Earth. The reference is the "Five Millennium Canon of Solar Eclipses" of
+      // Espenak & Meeus (NASA), for every central eclipse with a central line between 1991 and 2030, and
+      // the observer is on the equator near to the meridian of the Sun at greatest eclipse:
+      const eclipse = getSolarEclipse(new Date(`${date}T12:00:00Z`), {
+        latitude: 0,
+        longitude,
+        elevation: 0
+      })
+
+      if (!eclipse) {
+        throw new Error('Expected a solar eclipse')
+      }
+
+      expect(eclipse.isCentral).toBe(true)
+      expect(eclipse.type).toBe(type)
+
+      if (eclipse.magnitude === undefined) {
+        throw new Error('Expected a magnitude for the solar eclipse')
+      }
+
+      // The magnitude is within the accuracy of the method, of up to ~0.002, of the reference:
+      expect(Math.abs(eclipse.magnitude - reference)).toBeLessThan(0.002)
+
+      // The Moon covers the Sun at greatest eclipse for a total and for an annular-total (hybrid) eclipse,
+      // and it does not for an annular eclipse:
+      if (type === 'annular') {
+        expect(eclipse.magnitude).toBeLessThan(1)
+      } else {
+        expect(eclipse.magnitude).toBeGreaterThan(1)
+      }
+    }
+  )
+
+  it('should not correct the magnitude of the partial solar eclipse of 29th April 2014 to the surface of the Earth', () => {
+    // The annular eclipse of 2014 April 29 is not central, e.g., |γ| > 0.9972, and so the axis of the shadow
+    // of the Moon does not meet the surface of the Earth, and the magnitude is that of a partial eclipse:
+    const eclipse = getSolarEclipse(new Date('2014-04-29T12:00:00Z'), {
+      latitude: 0,
+      longitude: 89,
+      elevation: 0
+    })
+
+    if (!eclipse) {
+      throw new Error('Expected a solar eclipse')
+    }
+
+    expect(eclipse.isCentral).toBe(false)
+    expect(eclipse.type).toBe('partial')
+    expect(eclipse.magnitude).toBeCloseTo(0.9885, 4)
+  })
 })
 
 /*****************************************************************************************************************/
