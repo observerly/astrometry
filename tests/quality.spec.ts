@@ -204,6 +204,19 @@ describe('getObservationalQuality', () => {
     expect(quality).toBeGreaterThanOrEqual(-1)
     expect(quality).toBeLessThanOrEqual(1)
   })
+
+  it("should resolve the Moon's altitude for the observer, corrected for its parallax", () => {
+    // The Moon's horizontal parallax is ~1°, and so its altitude for an observer on the surface of
+    // the Earth is ~0.7° below its geocentric altitude at ~40°. The topocentric altitude, refracted,
+    // is ~40.025° (ERFA moon98 and epv00), and the geocentric altitude is ~40.76°:
+    const { context } = getObservationalQuality(
+      new Date('2024-03-10T20:00:00Z'),
+      { latitude: 19.82, longitude: -155.47, elevation: 0 },
+      { ra: 0, dec: 0 }
+    )
+
+    expect(Math.abs(context.moon.alt - 40.025)).toBeLessThan(0.2)
+  })
 })
 
 /*****************************************************************************************************************/
