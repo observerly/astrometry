@@ -430,8 +430,28 @@ export function getBodyNextRise(
   // Convert the Greenwich sidereal time to universal coordinate time for the date specified:
   const rise = convertGreenwichSiderealTimeToUniversalTime(GSTr, datetime)
 
-  // If the rise is before the current time, then we know the next rise is tomorrow:
+  // If the rise is before the current time, then the next rise is one sidereal day after it:
   if (rise.getTime() < datetime.getTime()) {
+    // A sidereal day is ~3 minutes 56 seconds shorter than a day of UTC, e.g., sidereal time
+    // advances by 1.002737909 days for each day of UTC, and so the local sidereal time of rise
+    // occurs twice within the same day of UTC where it first occurs within that time of 0h UTC.
+    // The conversion from Greenwich sidereal time resolves only the first of the two, and so the
+    // second is resolved here, one sidereal day of ~86,164.0905 seconds (in milliseconds) after
+    // the first:
+    const again = new Date(rise.getTime() + 86400000 / 1.002737909)
+
+    // If the second rise of the day is yet to occur, then it is the next rise, and not the rise
+    // of tomorrow, which would otherwise skip over it:
+    if (again.getTime() >= datetime.getTime() && again.getTime() < tomorrow.getTime()) {
+      return {
+        datetime: again,
+        LST: transit.LSTr,
+        GST: GSTr,
+        az: transit.R
+      }
+    }
+
+    // Otherwise, we know the next rise is tomorrow:
     return getBodyNextRise(tomorrow, observer, target, horizon)
   }
 
