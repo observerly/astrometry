@@ -510,8 +510,28 @@ export function getBodyNextSet(
   // Convert the Greenwich sidereal time to universal coordinate time for the date specified:
   const set = convertGreenwichSiderealTimeToUniversalTime(GSTs, datetime)
 
-  // If the set is before the current time, then we know the next set is tomorrow:
+  // If the set is before the current time, then the next set is one sidereal day after it:
   if (set < datetime) {
+    // A sidereal day is ~3 minutes 56 seconds shorter than a day of UTC, e.g., sidereal time
+    // advances by 1.002737909 days for each day of UTC, and so the local sidereal time of set
+    // occurs twice within the same day of UTC where it first occurs within that time of 0h UTC.
+    // The conversion from Greenwich sidereal time resolves only the first of the two, and so the
+    // second is resolved here, one sidereal day of ~86,164.0905 seconds (in milliseconds) after
+    // the first:
+    const again = new Date(set.getTime() + 86400000 / 1.002737909)
+
+    // If the second set of the day is yet to occur, then it is the next set, and not the set of
+    // tomorrow, which would otherwise skip over it:
+    if (again.getTime() >= datetime.getTime() && again.getTime() < tomorrow.getTime()) {
+      return {
+        datetime: again,
+        LST: transit.LSTs,
+        GST: GSTs,
+        az: transit.S
+      }
+    }
+
+    // Otherwise, we know the next set is tomorrow:
     return getBodyNextSet(tomorrow, observer, target, horizon)
   }
 

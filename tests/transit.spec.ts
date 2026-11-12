@@ -837,6 +837,177 @@ describe('getBodyNextSet', () => {
       }
     }
   })
+
+  describe('for a body that sets twice within the same day of UTC', () => {
+    const observer = { latitude, longitude }
+
+    // A sidereal day is ~3 minutes 56 seconds shorter than a day of UTC, and so a body that sets
+    // within that time of 0h UTC sets a second time before the day is out. The body here first
+    // sets at 00:00:34.546 UTC, and again one sidereal day later, at 23:56:38.636 UTC:
+    const target: EquatorialCoordinate = { ra: 343.95, dec: 7.407064 }
+
+    it('should return the first set of the day where it is yet to occur', () => {
+      const set = getBodyNextSet(datetime, observer, target)
+
+      expect(typeof set).not.toBe('boolean')
+
+      if (typeof set === 'boolean') {
+        return
+      }
+
+      expect(set.datetime).toStrictEqual(new Date('2021-05-14T00:00:34.546Z'))
+    })
+
+    it('should return the first set of the day at the instant of that set', () => {
+      const set = getBodyNextSet(new Date('2021-05-14T00:00:34.546Z'), observer, target)
+
+      expect(typeof set).not.toBe('boolean')
+
+      if (typeof set === 'boolean') {
+        return
+      }
+
+      expect(set.datetime).toStrictEqual(new Date('2021-05-14T00:00:34.546Z'))
+    })
+
+    it('should return the second set of the day once the first has occurred', () => {
+      const set = getBodyNextSet(new Date('2021-05-14T00:01:34.546Z'), observer, target)
+
+      expect(typeof set).not.toBe('boolean')
+
+      if (typeof set === 'boolean') {
+        return
+      }
+
+      expect(set.datetime).toStrictEqual(new Date('2021-05-14T23:56:38.636Z'))
+    })
+
+    it('should return the second set of the day one sidereal day after the first', () => {
+      const first = getBodyNextSet(datetime, observer, target)
+
+      const second = getBodyNextSet(new Date('2021-05-14T12:00:00.000Z'), observer, target)
+
+      expect(typeof first).not.toBe('boolean')
+      expect(typeof second).not.toBe('boolean')
+
+      if (typeof first === 'boolean' || typeof second === 'boolean') {
+        return
+      }
+
+      // The sidereal day is ~86,164.0905 seconds:
+      expect(second.datetime.getTime() - first.datetime.getTime()).toBe(86164090)
+    })
+
+    it('should return the same sidereal time and azimuth for both of the sets of the day', () => {
+      const first = getBodyNextSet(datetime, observer, target)
+
+      const second = getBodyNextSet(new Date('2021-05-14T12:00:00.000Z'), observer, target)
+
+      expect(typeof first).not.toBe('boolean')
+      expect(typeof second).not.toBe('boolean')
+
+      if (typeof first === 'boolean' || typeof second === 'boolean') {
+        return
+      }
+
+      expect(second.LST).toBe(first.LST)
+      expect(second.GST).toBe(first.GST)
+      expect(second.az).toBe(first.az)
+    })
+
+    it('should return the second set of the day at the instant of that set', () => {
+      const set = getBodyNextSet(new Date('2021-05-14T23:56:38.636Z'), observer, target)
+
+      expect(typeof set).not.toBe('boolean')
+
+      if (typeof set === 'boolean') {
+        return
+      }
+
+      expect(set.datetime).toStrictEqual(new Date('2021-05-14T23:56:38.636Z'))
+    })
+
+    it('should return the body at the horizon at the second set of the day', () => {
+      const set = getBodyNextSet(new Date('2021-05-14T00:01:34.546Z'), observer, target)
+
+      expect(typeof set).not.toBe('boolean')
+
+      if (typeof set === 'boolean') {
+        return
+      }
+
+      const { alt, az } = convertEquatorialToHorizontal(set.datetime, observer, target)
+
+      expect(alt).toBeCloseTo(0, 1)
+      expect(az).toBeCloseTo(set.az, 1)
+    })
+
+    it('should return the set of the following day once both sets of the day have occurred', () => {
+      const set = getBodyNextSet(new Date('2021-05-14T23:58:00.000Z'), observer, target)
+
+      expect(typeof set).not.toBe('boolean')
+
+      if (typeof set === 'boolean') {
+        return
+      }
+
+      expect(set.datetime).toStrictEqual(new Date('2021-05-15T23:52:42.765Z'))
+    })
+
+    it('should not modify the datetime given by the caller', () => {
+      const when = new Date('2021-05-14T00:01:34.546Z')
+
+      getBodyNextSet(when, observer, target)
+
+      expect(when).toStrictEqual(new Date('2021-05-14T00:01:34.546Z'))
+    })
+
+    it('should never return a set that is more than a sidereal day away for any minute of the day', () => {
+      for (let minute = 0; minute < 1440; minute++) {
+        const when = new Date(datetime.getTime() + minute * 60000)
+
+        const set = getBodyNextSet(when, observer, target)
+
+        expect(typeof set).not.toBe('boolean')
+
+        if (typeof set === 'boolean') {
+          return
+        }
+
+        const wait = set.datetime.getTime() - when.getTime()
+
+        expect(wait).toBeGreaterThanOrEqual(0)
+        // The body sets once every sidereal day of ~86,164.0905 seconds, and so the next set is
+        // never further away than that, to within a second:
+        expect(wait).toBeLessThanOrEqual(86165000)
+      }
+    })
+  })
+
+  it('should never return a set that is more than a sidereal day away for any body or observer', () => {
+    for (const latitude of [-45, 0, 19.820611, 52]) {
+      for (const longitude of [-155.468094, 0, 120]) {
+        for (let ra = 0; ra < 360; ra += 5) {
+          for (let hour = 0; hour < 24; hour++) {
+            const when = new Date(datetime.getTime() + hour * 3600000)
+
+            const set = getBodyNextSet(when, { latitude, longitude }, { ra, dec: 7.407064 })
+
+            expect(typeof set).not.toBe('boolean')
+
+            if (typeof set === 'boolean') {
+              return
+            }
+
+            const wait = set.datetime.getTime() - when.getTime()
+
+            expect(wait).toBeGreaterThanOrEqual(0)
+            expect(wait).toBeLessThanOrEqual(86165000)
+          }
+        }
+      }
+    }
+  })
 })
 
 /*****************************************************************************************************************/
