@@ -1194,7 +1194,21 @@ export function isBlueMoon(datetime: Date): boolean {
   }
 
   // Is the Moon full?
-  return isFullMoon(datetime)
+  if (!isFullMoon(datetime)) {
+    return false
+  }
+
+  // Get the first full Moon of the calendar month (of UTC):
+  const first = getNextFullMoon(
+    new Date(Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), 1, 0, 0, 0, 0))
+  )
+
+  // The Moon is a Blue Moon only if it is the second full Moon of the calendar month, e.g., the
+  // first full Moon of the month fell in the same month and at least half a synodic month earlier:
+  return (
+    first.getUTCMonth() === datetime.getUTCMonth() &&
+    datetime.getTime() - first.getTime() > (LUNAR_SYNODIC_MONTH / 2) * 24 * 60 * 60 * 1000
+  )
 }
 
 /*****************************************************************************************************************/
