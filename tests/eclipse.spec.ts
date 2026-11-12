@@ -484,6 +484,29 @@ describe('isSolarEclipse', () => {
     const eclipse = isSolarEclipse(datetime, { latitude, longitude })
     expect(eclipse).toBe(false)
   })
+
+  it.each([
+    ['2006-09-22T11:41:00Z', 0, 0, 'annular'],
+    ['2010-07-11T19:34:00Z', -27.1127, -109.3497, 'total'],
+    ['2025-03-29T10:49:00Z', 0, 0, 'partial'],
+    ['2028-07-22T02:57:00Z', -33.8688, 151.2093, 'total']
+  ])(
+    'should return the solar eclipse at its greatest eclipse at %s',
+    (iso, latitude, longitude, type) => {
+      // The Moon lies near one of the two nodes of its orbit at an eclipse, and the difference in longitude
+      // between the Moon and the ascending node may fall anywhere in (-360°, 360°), e.g., -176° is 4° from
+      // the descending node, and so the distance from the nearer node is resolved modulo 180°:
+      const eclipse = isSolarEclipse(new Date(iso), { latitude, longitude, elevation: 0 })
+
+      expect(eclipse).not.toBe(false)
+
+      if (!eclipse) {
+        throw new Error('Expected a solar eclipse')
+      }
+
+      expect(eclipse.type).toBe(type)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
