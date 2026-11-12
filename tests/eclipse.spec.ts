@@ -427,6 +427,34 @@ describe('isLunarEclipse', () => {
     expect(eclipse.magnitude).toBeCloseTo(0.2464)
     expect(eclipse.γ).toBeCloseTo(0.8668)
   })
+
+  it.each([
+    ['2008-02-21T03:26:00Z', 'total'],
+    ['2011-12-10T14:32:00Z', 'total'],
+    ['2015-09-28T02:47:00Z', 'total'],
+    ['2024-09-18T02:44:00Z', 'partial'],
+    ['2026-03-03T11:33:00Z', 'total'],
+    ['2029-12-20T22:42:00Z', 'total']
+  ])('should return the lunar eclipse at its greatest eclipse at %s', (iso, type) => {
+    // The Moon lies near one of the two nodes of its orbit at an eclipse, and the difference in longitude
+    // between the Moon and the ascending node may fall anywhere in (-360°, 360°), e.g., -176° is 4° from
+    // the descending node, and so the distance from the nearer node is resolved modulo 180°:
+    const observer = {
+      latitude: 0,
+      longitude: 0,
+      elevation: 0
+    }
+
+    const eclipse = isLunarEclipse(new Date(iso), observer)
+
+    expect(eclipse).not.toBe(false)
+
+    if (!eclipse) {
+      throw new Error('Expected a lunar eclipse')
+    }
+
+    expect(eclipse.type).toBe(type)
+  })
 })
 
 /*****************************************************************************************************************/
