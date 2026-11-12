@@ -571,17 +571,17 @@ export function isLunarEclipse(
   // Get the corrected ecliptic longitude of the ascending node:
   const Ωcorr = getLunarCorrectedEclipticLongitudeOfTheAscendingNode(datetime)
 
-  // Get the difference in longitude between the Moon and the ascending node,
-  // and take the absolute value of the difference:
-  const d = λt - Ωcorr
+  // Get the difference in longitude between the Moon and the ascending node, reduced into the
+  // range [0, 180), e.g., as the two nodes of the Moon's orbit lie 180° apart:
+  const d = (((λt - Ωcorr) % 180) + 180) % 180
 
-  // Check if the Moon is within the threshold of the ascending node, if not
-  // we cannot have a lunar eclipse.
-  // If the Moon is within the threshold of the ascending node, then we can
-  // have a lunar eclipse. We can return the parameters of the eclipse:
-  return Math.abs(d) % 360 > threshold && Math.abs(d - 180) % 360 > threshold
-    ? false
-    : getLunarEclipse(datetime, observer)
+  // Get the angular distance of the Moon from the nearer of the two nodes, in the range [0, 90]:
+  const distance = Math.min(d, 180 - d)
+
+  // Check if the Moon is within the threshold of a node, if not we cannot have a lunar eclipse.
+  // If the Moon is within the threshold of a node, then we can have a lunar eclipse. We can
+  // return the parameters of the eclipse:
+  return distance > threshold ? false : getLunarEclipse(datetime, observer)
 }
 
 /*****************************************************************************************************************/
