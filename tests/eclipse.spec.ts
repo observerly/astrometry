@@ -143,6 +143,30 @@ describe('getLunarEclipse', () => {
     expect(eclipse.magnitude).toBeCloseTo(0.2464)
     expect(eclipse.γ).toBeCloseTo(0.8668)
   })
+
+  it.each([
+    ['2022-11-08', '2022-11-08T10:59:03Z'],
+    ['2025-03-14', '2025-03-14T06:58:43Z'],
+    ['2029-12-20', '2029-12-20T22:42:08Z']
+  ])('should return the maximum of the lunar eclipse of %s in UTC', (date, reference) => {
+    // The maximum of Meeus is a Julian Ephemeris Day, referred to Terrestrial Time (TT), and so it is
+    // carried onto UTC by TT − UTC, e.g., ~69 seconds. The reference is the closest approach of the
+    // Moon to the anti-solar point, e.g., the axis of the Earth's shadow (ERFA moon98 and epv00):
+    const observer = {
+      latitude: 0,
+      longitude: 0,
+      elevation: 0
+    }
+
+    const eclipse = getLunarEclipse(new Date(`${date}T00:00:00Z`), observer)
+
+    if (!eclipse) {
+      throw new Error('Expected a lunar eclipse')
+    }
+
+    // The maximum is within the accuracy of the method, of up to ~1 minute, of the reference:
+    expect(Math.abs(eclipse.maximum.getTime() - new Date(reference).getTime())).toBeLessThan(60000)
+  })
 })
 
 /*****************************************************************************************************************/
