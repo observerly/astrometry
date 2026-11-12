@@ -219,7 +219,7 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       saturn
     )
     expect(λ).toBe(251.43163340163272)
-    expect(β).toBe(1.6299734753402197)
+    expect(β).toBe(1.6299734753402253)
   })
 
   it('should return the correct value for Mars (an exterior planet) at the datetime prescribed', () => {
@@ -331,6 +331,23 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
 
     expect(ra).toBeCloseTo(38.19251254563533)
     expect(dec).toBeCloseTo(13.510000622097355)
+  })
+
+  it('should return a geocentric ecliptic longitude in the range [0, 360)', () => {
+    // On the 4th of January 2016 Neptune lies just west of the vernal equinox, e.g., at a longitude
+    // of ~337.4°, and not at the -22.6° the sum of the heliocentric longitude and its correction gives:
+    const neptune = planets.find(planet => planet.name === 'Neptune')
+
+    if (!neptune) {
+      throw new Error('Neptune is not defined')
+    }
+
+    const { λ } = getPlanetaryGeocentricEclipticCoordinate(
+      new Date('2016-01-04T03:00:00Z'),
+      neptune
+    )
+
+    expect(λ).toBeCloseTo(337.40865961139633, 10)
   })
 })
 
