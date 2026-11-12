@@ -13,8 +13,11 @@ import { describe, expect, it } from 'vitest'
 import {
   AU_IN_METERS,
   SPEED_OF_LIGHT as c,
+  convertCartesianToEquatorial,
+  convertDegreesToRadians,
   convertEclipticToEquatorial,
   type EquatorialCoordinate,
+  getAngularSeparation,
   getBarycentricJulianDate,
   getBarycentricSolarVector,
   getEclipticPlane,
@@ -359,23 +362,160 @@ describe('getHeliocentricJulianDate', () => {
     expect(getHeliocentricJulianDate).toBeDefined()
   })
 
-  it('should return the correct heliocentric Julian date for the given date', () => {
-    const HJD = getHeliocentricJulianDate(datetime)
+  // For testing we need to specify a date because most calculations are differential w.r.t a time
+  // component, at which the Earth is ~1.0106 AU from the Sun, e.g., ~504.3 light seconds:
+  const when = new Date('2021-05-14T00:00:00.000+00:00')
 
-    const JD = getJulianDate(datetime)
+  // The interval, in seconds, between the Julian date and the heliocentric Julian date, which is
+  // signed, e.g., it is negative where the light reaches the Sun first:
+  const offset = (target: EquatorialCoordinate, at: Date = when): number =>
+    (getHeliocentricJulianDate(at, target) - getJulianDate(at)) * 86400
 
-    // We expect that HJD will be less than JD because the light travel time:
-    expect(HJD).toBeLessThan(JD)
+  // The direction of the Sun from the centre of the Earth, referred to the mean equator and equinox
+  // of J2000.0, e.g., the frame the coordinate of a target is given in:
+  const sun = convertCartesianToEquatorial(getGeometricSolarVector(when))
 
-    // The difference should be less than 1 day:
-    expect(JD - HJD).toBeLessThan(1)
+  // The light travel time from the Sun to the Earth (in seconds):
+  const τ = getSolarGeometricEclipticCoordinate(when).R / c
 
-    // The difference should be greater than 0:
-    expect(JD - HJD).toBeGreaterThan(0)
+  // The north pole of the ecliptic of J2000.0, which the Sun is ~90 degrees from throughout the year:
+  const pole = { ra: 270, dec: 66.5607089 }
 
-    // The difference should be approximately less than ~9minutes:
-    expect(JD - HJD).toBeLessThan(0.00625)
-    expect(Math.round((JD - HJD) * 1440)).toBeCloseTo(8)
+  // IP Pegasi, e.g., the target of the worked example of the light travel time corrections in the
+  // documentation of astropy.time, at 23h 23m 08.55s, +18° 24' 59.3" (ICRS):
+  const pegasi = { ra: 350.785625, dec: 18.416472222 }
+
+  it('should precede the Julian date for a target behind the Sun', () => {
+    // The Sun lies between the observer and the target, and so the light of the target reaches the
+    // Sun before it reaches the observer, by the light travel time of the distance between them:
+    expect(offset({ ra: sun.ra, dec: sun.dec })).toBeCloseTo(-τ, 4)
+  })
+
+  it('should follow the Julian date for a target opposite the Sun', () => {
+    // The observer lies between the target and the Sun, and so the light of the target reaches
+    // the observer first:
+    expect(offset({ ra: (sun.ra + 180) % 360, dec: -sun.dec })).toBeCloseTo(τ, 4)
+  })
+
+  it('should differ by twice the light travel time between a target behind and opposite the Sun', () => {
+    // The correction is not the light travel time to the Sun for every target, e.g., a target
+    // opposite the Sun is otherwise ~17 minutes in error:
+    const difference =
+      offset({ ra: (sun.ra + 180) % 360, dec: -sun.dec }) - offset({ ra: sun.ra, dec: sun.dec })
+
+    expect(difference).toBeCloseTo(2 * τ, 4)
+    expect(difference / 60).toBeGreaterThan(16.5)
+  })
+
+  it('should equal the Julian date for a target perpendicular to the Sun', () => {
+    // The observer is displaced from the Sun across the line of sight, and not along it, and so
+    // the light of the target reaches them both at once:
+    expect(offset({ ra: (sun.ra + 90) % 360, dec: 0 })).toBeCloseTo(0, 4)
+    expect(offset({ ra: (sun.ra + 270) % 360, dec: 0 })).toBeCloseTo(0, 4)
+    expect(offset({ ra: (sun.ra + 180) % 360, dec: 90 - sun.dec })).toBeCloseTo(0, 4)
+  })
+
+  it('should scale with the cosine of the angular separation of the target from the Sun', () => {
+    for (let ra = 0; ra < 360; ra += 30) {
+      for (let dec = -75; dec <= 75; dec += 25) {
+        const separation = getAngularSeparation({ θ: dec, φ: ra }, { θ: sun.dec, φ: sun.ra })
+
+        expect(offset({ ra, dec })).toBeCloseTo(
+          -τ * Math.cos(convertDegreesToRadians(separation)),
+          4
+        )
+      }
+    }
+  })
+
+  it('should be equal and opposite for a target and the target opposite it', () => {
+    for (let ra = 0; ra < 360; ra += 45) {
+      for (let dec = -60; dec <= 60; dec += 30) {
+        expect(offset({ ra, dec })).toBeCloseTo(-offset({ ra: (ra + 180) % 360, dec: -dec }), 3)
+      }
+    }
+  })
+
+  it('should be bounded by the light travel time to the Sun', () => {
+    // No target is corrected by more than the distance of the observer from the Sun, and so the
+    // correction is bounded by ~500 seconds:
+    for (let ra = 0; ra < 360; ra += 15) {
+      for (let dec = -90; dec <= 90; dec += 15) {
+        expect(Math.abs(offset({ ra, dec }))).toBeLessThanOrEqual(τ + 1e-4)
+      }
+    }
+  })
+
+  it('should be independent of the right ascension of a target at a celestial pole', () => {
+    expect(offset({ ra: 123.456, dec: 90 })).toBeCloseTo(offset({ ra: 0, dec: 90 }), 3)
+    expect(offset({ ra: 123.456, dec: -90 })).toBeCloseTo(offset({ ra: 0, dec: -90 }), 3)
+    expect(offset({ ra: 0, dec: 90 })).toBeCloseTo(-offset({ ra: 0, dec: -90 }), 3)
+  })
+
+  it('should be periodic in the right ascension of the target', () => {
+    expect(offset({ ra: 448.7929583, dec: 7.4070639 })).toBeCloseTo(
+      offset({ ra: 88.7929583, dec: 7.4070639 }),
+      3
+    )
+
+    expect(offset({ ra: -271.2070417, dec: 7.4070639 })).toBeCloseTo(
+      offset({ ra: 88.7929583, dec: 7.4070639 }),
+      3
+    )
+  })
+
+  it('should vanish for a target at the pole of the ecliptic throughout the year', () => {
+    // The Sun is carried about the ecliptic over the year, and so it is always ~90 degrees from
+    // the pole of it, e.g., the observer is never displaced along the direction to the target:
+    for (let month = 0; month < 12; month++) {
+      expect(Math.abs(offset(pole, new Date(Date.UTC(2021, month, 14))))).toBeLessThan(0.1)
+    }
+  })
+
+  it('should change sign over half a year for a target on the ecliptic', () => {
+    // The target is behind the Sun at the first date, and opposite the Sun half a year on, e.g.,
+    // the heliocentric Julian date of it runs from ~8.4 minutes behind the Julian date to ~8.2
+    // minutes ahead of it:
+    const target = { ra: sun.ra, dec: sun.dec }
+
+    const later = new Date('2021-11-14T00:00:00.000+00:00')
+
+    expect(offset(target)).toBeLessThan(-500)
+    expect(offset(target, later)).toBeGreaterThan(490)
+    expect(offset(target, later)).toBeLessThan(500)
+  })
+
+  it('should return the heliocentric light travel time of astropy for IP Pegasi', () => {
+    // The worked example of the documentation of astropy.time resolves the heliocentric light
+    // travel time of IP Pegasi at MJD 56325.95833333 and MJD 56325.978254 (UTC) as −0.00376576
+    // and −0.00376712 days, from Greenwich, e.g., to within the ~21 light milliseconds of the
+    // radius of the Earth of the geocentre:
+    const first = new Date('2013-02-02T23:00:00.000+00:00')
+
+    const second = new Date('2013-02-02T23:28:41.146+00:00')
+
+    expect(offset(pegasi, first) / 86400).toBeCloseTo(-0.00376576, 6)
+    expect(offset(pegasi, second) / 86400).toBeCloseTo(-0.00376712, 6)
+  })
+
+  it('should return a Julian date within a light travel time of the Julian date', () => {
+    const JD = getJulianDate(when)
+
+    const HJD = getHeliocentricJulianDate(when, { ra: 88.7929583, dec: 7.4070639 })
+
+    expect(Number.isFinite(HJD)).toBe(true)
+    expect(Math.abs(HJD - JD)).toBeLessThan(0.006)
+  })
+
+  it('should not resolve a heliocentric Julian date for a target that is not finite', () => {
+    expect(getHeliocentricJulianDate(when, { ra: Number.NaN, dec: 7.4070639 })).toBeNaN()
+    expect(getHeliocentricJulianDate(when, { ra: 88.7929583, dec: Number.NaN })).toBeNaN()
+  })
+
+  it('should not modify the datetime given by the caller', () => {
+    const at = new Date('2021-05-14T00:00:00.000+00:00')
+    getHeliocentricJulianDate(at, { ra: 88.7929583, dec: 7.4070639 })
+    expect(at).toEqual(new Date('2021-05-14T00:00:00.000+00:00'))
   })
 })
 

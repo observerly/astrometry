@@ -6,6 +6,8 @@
 
 /*****************************************************************************************************************/
 
+import type { EquatorialCoordinate } from './common'
+
 import {
   getInternationalAtomicTime,
   getJulianDate,
@@ -159,21 +161,23 @@ export class DateTime extends Date {
   /**
    *
    *
+   * @param target - The equatorial coordinate of the target that was observed.
    * @returns Heliocentric Julian Date as number - the Heliocentric Julian Date (HJD) of the given date.
    *
    */
-  getHeliocentricJulianDate(): number {
-    return getHeliocentricJulianDate(this)
+  getHeliocentricJulianDate(target: EquatorialCoordinate): number {
+    return getHeliocentricJulianDate(this, target)
   }
 
   /**
    *
    *
+   * @param target - The equatorial coordinate of the target that was observed.
    * @returns Heliocentric Julian Date as number - the Heliocentric Julian Date (HJD) of the given date.
    *
    */
-  getHJD(): number {
-    return this.getHeliocentricJulianDate()
+  getHJD(target: EquatorialCoordinate): number {
+    return this.getHeliocentricJulianDate(target)
   }
 }
 

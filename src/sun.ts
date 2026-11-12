@@ -30,7 +30,7 @@ import {
   getTerrestrialTime
 } from './epoch'
 
-import { getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
+import { doDotProduct, getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
 
 import { getNutation } from './nutation'
 
@@ -587,18 +587,52 @@ export function getSolarDistance(datetime: Date): number {
 
 /*****************************************************************************************************************/
 
-export function getHeliocentricJulianDate(datetime: Date): number {
+/**
+ *
+ * getHeliocentricJulianDate()
+ *
+ * Calculates the heliocentric Julian date of an observation, e.g., the Julian date at which the
+ * light of the target would have arrived at the center of the Sun, which does not carry the
+ * observer about the Sun over the year.
+ *
+ * The observer is displaced from the Sun, and so the light of a target arrives earlier or later
+ * than it does at the Sun, by the displacement resolved along the direction to the target, which
+ * reaches ~499 seconds for a target along the line to the Sun, e.g., the heliocentric Julian date
+ * precedes the Julian date by it for a target behind the Sun, follows the Julian date by it for a
+ * target opposite the Sun, and is the Julian date for a target perpendicular to the Sun.
+ *
+ * N.B. The displacement is the geometric position of the Sun, referred to the mean equator and
+ * equinox of J2000.0, and so the coordinate of the target is taken to be referred to it too, e.g.,
+ * as a catalogue coordinate of the ICRS is to within ~0.02 arcseconds.
+ *
+ * N.B. The heliocentric Julian date is of the time scale of the given date, e.g., UTC, and so it
+ * is not continuous across a leap second.
+ *
+ * @param datetime - The date and time of the observation.
+ * @param target - The equatorial coordinate of the target that was observed.
+ * @returns The heliocentric Julian date of the observation.
+ *
+ */
+export function getHeliocentricJulianDate(datetime: Date, target: EquatorialCoordinate): number {
   const JD = getJulianDate(datetime)
 
-  // Get the eccentricity of the Earth's orbit:
-  const R = getSolarDistance(datetime)
+  // The geometric position of the Sun from the centre of the Earth, referred to the mean equator
+  // and equinox of J2000.0 (in astronomical units):
+  const sun = getGeometricSolarVector(datetime)
 
-  // Determine the distance between the Earth and the Sun and compute the light travel time
-  // to correct the Julian Date to the time of the observation (in seconds):
-  const HJD = JD - R / c / 86400
+  // The unit vector of the direction to the target, in the same frame:
+  const direction = convertEquatorialToCartesian(target)
 
-  // Return the Heliocentric Julian Date:
-  return HJD
+  // The displacement of the Sun from the observer, resolved along the direction to the target,
+  // e.g., the distance of the Sun by the cosine of the angle at the observer between the target
+  // and the Sun. The Sun is nearer to the target than the observer is where the target is towards
+  // the Sun, and so the light of it arrives at the Sun first (in SI metres):
+  const projection = doDotProduct(sun, direction) * AU_IN_METERS
+
+  // The light travel time over that displacement, e.g., the interval between the arrival of the
+  // light at the Sun and its arrival at the observer, which is signed: the Sun is reached first
+  // where the target lies beyond the Sun, and last where it lies opposite it:
+  return JD - projection / c / 86400
 }
 
 /*****************************************************************************************************************/
