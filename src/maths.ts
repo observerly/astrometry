@@ -34,7 +34,9 @@ export function interpolate(start: number[], end: number[], precision: number): 
   const steps = Math.ceil(distance / precision)
 
   for (let i = 0; i <= steps; i++) {
-    const t = i / steps
+    // N.B. A segment of zero length, e.g., a repeated vertex, has no steps, and so it is the start
+    // point alone, rather than the 0 / 0 that is not a number:
+    const t = steps === 0 ? 0 : i / steps
     const x = startX + t * (endX - startX)
     const y = startY + t * (endY - startY)
     points.push([x, y])
@@ -73,7 +75,9 @@ export function interpolateGeodesic(start: number[], end: number[], precision: n
   const steps = Math.ceil(distance / precision)
 
   for (let i = 0; i <= steps; i++) {
-    const t = i / steps
+    // N.B. A segment of zero length, e.g., a repeated vertex, has no steps, and so it is the start
+    // point alone, rather than the 0 / 0 that is not a number:
+    const t = steps === 0 ? 0 : i / steps
 
     // Interpolate X and Y
     let x = startX + t * (adjustedEndX - startX)

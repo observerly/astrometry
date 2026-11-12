@@ -28,7 +28,9 @@ import {
   getMatrixProduct,
   getRotatedCartesianCoordinate,
   getRotationMatrix,
-  IDENTITY_MATRIX
+  IDENTITY_MATRIX,
+  interpolate,
+  interpolateGeodesic
 } from '../src/maths'
 
 /*****************************************************************************************************************/
@@ -2613,6 +2615,32 @@ describe('IDENTITY_MATRIX', () => {
   it('should not be returned by reference from an operation, e.g., so that a caller cannot reach it', () => {
     expect(doTranspose(IDENTITY_MATRIX)).not.toBe(IDENTITY_MATRIX)
     expect(getMatrixProduct(IDENTITY_MATRIX, IDENTITY_MATRIX)).not.toBe(IDENTITY_MATRIX)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('interpolate', () => {
+  it('should return the start point alone for a segment of zero length', () => {
+    // A repeated vertex has no steps between it and itself, and so it is not divided by zero:
+    expect(interpolate([1, 2], [1, 2], 1)).toEqual([[1, 2]])
+  })
+
+  it('should return the start and end points and the steps between them', () => {
+    expect(interpolate([0, 0], [2, 0], 1)).toEqual([
+      [0, 0],
+      [1, 0],
+      [2, 0]
+    ])
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('interpolateGeodesic', () => {
+  it('should return the start point alone for a segment of zero length', () => {
+    // A repeated vertex has no steps between it and itself, and so it is not divided by zero:
+    expect(interpolateGeodesic([1, 2], [1, 2], 1)).toEqual([[1, 2]])
   })
 })
 
