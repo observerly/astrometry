@@ -660,12 +660,18 @@ export function getLunarEquatorialCoordinate(datetime: Date): EquatorialCoordina
   const ε = radians(getObliquityOfTheEcliptic(datetime))
 
   // Calculate the right ascension of the Moon:
-  const ra = degrees(
+  let ra = degrees(
     Math.atan2(
       Math.sin(radians(λ)) * Math.cos(ε) - Math.tan(radians(β)) * Math.sin(ε),
       Math.cos(radians(λ))
     )
   )
+
+  // Correct for negative angles, e.g., as the arc tangent is in the range (-180, 180], and the
+  // right ascension is in the range [0, 360):
+  if (ra < 0) {
+    ra += 360
+  }
 
   // Calculate the declination of the Moon:
   const dec = degrees(
