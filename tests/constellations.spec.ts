@@ -35,6 +35,25 @@ describe('constellations', () => {
     // e.g., Serpens Caput and Serpens Cauda:
     expect(constellations.size).toBe(89)
   })
+
+  it('should give every boundary as finite coordinates', () => {
+    // A boundary that repeats a vertex, e.g., Pyxis and Piscis Austrinus, is interpolated without a
+    // coordinate that is not a number, which would otherwise be serialised as null in the GeoJSON.
+
+    // Every number anywhere in the feature collection, e.g., each coordinate of each boundary:
+    const numbers = (value: unknown): unknown[] =>
+      Array.isArray(value) ? value.flatMap(numbers) : [value]
+
+    for (const [, constellation] of constellations) {
+      for (const feature of constellation.feature.features) {
+        if (!('coordinates' in feature.geometry)) continue
+
+        for (const n of numbers(feature.geometry.coordinates)) {
+          expect(Number.isFinite(n)).toBe(true)
+        }
+      }
+    }
+  })
 })
 
 /*****************************************************************************************************************/
