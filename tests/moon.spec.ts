@@ -716,10 +716,8 @@ describe('isBlueMoon', () => {
     const timezone = process.env.TZ
 
     try {
-      // N.B. The instant on the 29th is compared against the fraction of a day by which the
-      // synodic month exceeds 29 days, e.g., ~12.7 hours, and so it exercises the time of day as
-      // well as the day of the month:
-      for (const iso of ['1999-03-31T23:49:00Z', '2023-08-31T01:35:00Z', '2004-08-29T18:00:00Z']) {
+      // N.B. July 2004 has full Moons on the 2nd and the 31st, and so the 31st is a Blue Moon:
+      for (const iso of ['1999-03-31T23:49:00Z', '2023-08-31T01:35:00Z', '2004-07-31T18:05:00Z']) {
         for (const TZ of ['UTC', 'Pacific/Auckland', 'Asia/Tokyo', 'America/Los_Angeles']) {
           process.env.TZ = TZ
 
@@ -729,6 +727,16 @@ describe('isBlueMoon', () => {
     } finally {
       process.env.TZ = timezone
     }
+  })
+
+  it.each([
+    ['2004-08-29T18:00:00Z', 'the only full Moon of August 2004, on the 30th'],
+    ['2026-06-29T23:56:00Z', 'the only full Moon of June 2026'],
+    ['2026-07-29T15:15:00Z', 'the only full Moon of July 2026']
+  ])('should return false for %s, %s', iso => {
+    // A full Moon late in the month is only a Blue Moon if there was an earlier full Moon in the
+    // same calendar month:
+    expect(isBlueMoon(new Date(iso))).toBe(false)
   })
 
   it('should return true for August 31st 2023', () => {
