@@ -714,6 +714,177 @@ describe('getBodyNextRise', () => {
       )
     ).toBe(false)
   })
+
+  describe('for a body that rises twice within the same day of UTC', () => {
+    const observer = { latitude, longitude }
+
+    // A sidereal day is ~3 minutes 56 seconds shorter than a day of UTC, and so a body that rises
+    // within that time of 0h UTC rises a second time before the day is out. The body here first
+    // rises at 00:00:41.404 UTC, and again one sidereal day later, at 23:56:45.494 UTC:
+    const target: EquatorialCoordinate = { ra: 169.35, dec: 7.407064 }
+
+    it('should return the first rise of the day where it is yet to occur', () => {
+      const rise = getBodyNextRise(datetime, observer, target)
+
+      expect(typeof rise).not.toBe('boolean')
+
+      if (typeof rise === 'boolean') {
+        return
+      }
+
+      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T00:00:41.404Z'))
+    })
+
+    it('should return the first rise of the day at the instant of that rise', () => {
+      const rise = getBodyNextRise(new Date('2021-05-14T00:00:41.404Z'), observer, target)
+
+      expect(typeof rise).not.toBe('boolean')
+
+      if (typeof rise === 'boolean') {
+        return
+      }
+
+      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T00:00:41.404Z'))
+    })
+
+    it('should return the second rise of the day once the first has occurred', () => {
+      const rise = getBodyNextRise(new Date('2021-05-14T00:01:41.404Z'), observer, target)
+
+      expect(typeof rise).not.toBe('boolean')
+
+      if (typeof rise === 'boolean') {
+        return
+      }
+
+      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T23:56:45.494Z'))
+    })
+
+    it('should return the second rise of the day one sidereal day after the first', () => {
+      const first = getBodyNextRise(datetime, observer, target)
+
+      const second = getBodyNextRise(new Date('2021-05-14T12:00:00.000Z'), observer, target)
+
+      expect(typeof first).not.toBe('boolean')
+      expect(typeof second).not.toBe('boolean')
+
+      if (typeof first === 'boolean' || typeof second === 'boolean') {
+        return
+      }
+
+      // The sidereal day is ~86,164.0905 seconds:
+      expect(second.datetime.getTime() - first.datetime.getTime()).toBe(86164090)
+    })
+
+    it('should return the same sidereal time and azimuth for both of the rises of the day', () => {
+      const first = getBodyNextRise(datetime, observer, target)
+
+      const second = getBodyNextRise(new Date('2021-05-14T12:00:00.000Z'), observer, target)
+
+      expect(typeof first).not.toBe('boolean')
+      expect(typeof second).not.toBe('boolean')
+
+      if (typeof first === 'boolean' || typeof second === 'boolean') {
+        return
+      }
+
+      expect(second.LST).toBe(first.LST)
+      expect(second.GST).toBe(first.GST)
+      expect(second.az).toBe(first.az)
+    })
+
+    it('should return the second rise of the day at the instant of that rise', () => {
+      const rise = getBodyNextRise(new Date('2021-05-14T23:56:45.494Z'), observer, target)
+
+      expect(typeof rise).not.toBe('boolean')
+
+      if (typeof rise === 'boolean') {
+        return
+      }
+
+      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T23:56:45.494Z'))
+    })
+
+    it('should return the body at the horizon at the second rise of the day', () => {
+      const rise = getBodyNextRise(new Date('2021-05-14T00:01:41.404Z'), observer, target)
+
+      expect(typeof rise).not.toBe('boolean')
+
+      if (typeof rise === 'boolean') {
+        return
+      }
+
+      const { alt, az } = convertEquatorialToHorizontal(rise.datetime, observer, target)
+
+      expect(alt).toBeCloseTo(0, 1)
+      expect(az).toBeCloseTo(rise.az, 1)
+    })
+
+    it('should return the rise of the following day once both rises of the day have occurred', () => {
+      const rise = getBodyNextRise(new Date('2021-05-14T23:58:00.000Z'), observer, target)
+
+      expect(typeof rise).not.toBe('boolean')
+
+      if (typeof rise === 'boolean') {
+        return
+      }
+
+      expect(rise.datetime).toStrictEqual(new Date('2021-05-15T23:52:49.622Z'))
+    })
+
+    it('should not modify the datetime given by the caller', () => {
+      const when = new Date('2021-05-14T00:01:41.404Z')
+
+      getBodyNextRise(when, observer, target)
+
+      expect(when).toStrictEqual(new Date('2021-05-14T00:01:41.404Z'))
+    })
+
+    it('should never return a rise that is more than a sidereal day away for any minute of the day', () => {
+      for (let minute = 0; minute < 1440; minute++) {
+        const when = new Date(datetime.getTime() + minute * 60000)
+
+        const rise = getBodyNextRise(when, observer, target)
+
+        expect(typeof rise).not.toBe('boolean')
+
+        if (typeof rise === 'boolean') {
+          return
+        }
+
+        const wait = rise.datetime.getTime() - when.getTime()
+
+        expect(wait).toBeGreaterThanOrEqual(0)
+        // The body rises once every sidereal day of ~86,164.0905 seconds, and so the next rise is
+        // never further away than that, to within a second:
+        expect(wait).toBeLessThanOrEqual(86165000)
+      }
+    })
+  })
+
+  it('should never return a rise that is more than a sidereal day away for any body or observer', () => {
+    for (const latitude of [-45, 0, 19.820611, 52]) {
+      for (const longitude of [-155.468094, 0, 120]) {
+        for (let ra = 0; ra < 360; ra += 5) {
+          for (let hour = 0; hour < 24; hour++) {
+            const when = new Date(datetime.getTime() + hour * 3600000)
+
+            const rise = getBodyNextRise(when, { latitude, longitude }, { ra, dec: 7.407064 })
+
+            expect(typeof rise).not.toBe('boolean')
+
+            if (typeof rise === 'boolean') {
+              return
+            }
+
+            const wait = rise.datetime.getTime() - when.getTime()
+
+            expect(wait).toBeGreaterThanOrEqual(0)
+            expect(wait).toBeLessThanOrEqual(86165000)
+          }
+        }
+      }
+    }
+  })
 })
 
 /*****************************************************************************************************************/
