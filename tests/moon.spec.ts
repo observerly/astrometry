@@ -388,6 +388,14 @@ describe('getLunarEquatorialCoordinate', () => {
     expect(ra).toBe(64.18621356617048)
     expect(dec).toBe(17.28348391119229)
   })
+
+  it('should return a right ascension in the range [0, 360) for the given date', () => {
+    // On the 7th of September 2025 the Moon lies just west of 0h, e.g., at a right ascension of
+    // ~346.5°, and not at the -13.5° the arc tangent gives:
+    const { ra } = getLunarEquatorialCoordinate(new Date('2025-09-07T18:00:00Z'))
+
+    expect(ra).toBeCloseTo(346.53492823627744, 10)
+  })
 })
 
 /*****************************************************************************************************************/
