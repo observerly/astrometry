@@ -438,8 +438,15 @@ export function getSolarEclipse(
     0.0002 * E * Math.sin(radians(2 * Ml - Ms)) -
     0.0002 * Math.sin(radians(Ω))
 
-  // Get the Julian Date of the maximum of the eclipse:
-  const maximum = convertJulianDateToUTC(JDE + corr)
+  // Get the maximum of the eclipse, as the Julian Ephemeris Day of Meeus, which is referred to
+  // Terrestrial Time (TT) and not to UTC:
+  const instant = convertJulianDateToUTC(JDE + corr)
+
+  // Get the maximum of the eclipse in UTC, e.g., the instant less the difference between the two
+  // time scales, TT − UTC, which is 69.184 seconds since 2017:
+  const maximum = new Date(
+    instant.getTime() - (getTerrestrialTime(instant).getTime() - instant.getTime())
+  )
 
   const W = Math.abs(Math.cos(radians(F1)))
 

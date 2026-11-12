@@ -351,6 +351,33 @@ describe('getSolarEclipse', () => {
     const eclipse = getSolarEclipse(datetime, { latitude, longitude })
     expect(eclipse).toBe(false)
   })
+
+  it.each([
+    ['2017-08-21', 36.97, -87.67, '2017-08-21T18:25:31Z'],
+    ['2024-04-08', 25.3, -104.1, '2024-04-08T18:17:24Z'],
+    ['2026-08-12', 65.2, -25.2, '2026-08-12T17:45:50Z']
+  ])(
+    'should return the maximum of the solar eclipse of %s in UTC',
+    (date, latitude, longitude, reference) => {
+      // The maximum of Meeus is a Julian Ephemeris Day, referred to Terrestrial Time (TT), and so it is
+      // carried onto UTC by TT − UTC, e.g., ~69 seconds. The reference is the least geocentric separation
+      // of the Moon from the Sun, e.g., the greatest eclipse (ERFA moon98 and epv00):
+      const eclipse = getSolarEclipse(new Date(`${date}T00:00:00Z`), {
+        latitude,
+        longitude,
+        elevation: 0
+      })
+
+      if (!eclipse) {
+        throw new Error('Expected a solar eclipse')
+      }
+
+      // The maximum is within the accuracy of the method, of up to ~1 minute, of the reference:
+      expect(Math.abs(eclipse.maximum.getTime() - new Date(reference).getTime())).toBeLessThan(
+        60000
+      )
+    }
+  )
 })
 
 /*****************************************************************************************************************/
