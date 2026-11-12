@@ -471,15 +471,26 @@ export function getPlanetaryGeocentricEclipticCoordinate(
       )
   }
 
-  const βp = degrees(
-    Math.atan(
-      (Rp * Math.cos(radians(Λp)) * Math.tan(radians(Λp)) * Math.sin(radians(λp - Lp_corr))) /
-        (Re * Math.sin(radians(Lp_corr - Le)))
-    )
+  // The geocentric ecliptic latitude is the height of the planet above the ecliptic against its
+  // distance from the Earth projected onto the ecliptic, e.g., resolved by the arc tangent of the two
+  // directly, which is defined at every elongation, including at an exact opposition or conjunction,
+  // where the ratio of sines of the elongation would otherwise be the indeterminate 0 / 0:
+  const ρ = Math.hypot(
+    Rp * Math.cos(radians(Λp)) * Math.cos(radians(Lp_corr)) - Re * Math.cos(radians(Le)),
+    Rp * Math.cos(radians(Λp)) * Math.sin(radians(Lp_corr)) - Re * Math.sin(radians(Le))
   )
 
+  const βp = degrees(Math.atan2(Rp * Math.sin(radians(Λp)), ρ))
+
+  // Correct for negative angles, e.g., the longitude is in the range [0, 360):
+  let λ = λp % 360
+
+  if (λ < 0) {
+    λ += 360
+  }
+
   return {
-    λ: λp % 360,
+    λ,
     β: βp
   }
 }
