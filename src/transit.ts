@@ -16,7 +16,7 @@ import {
 
 import { convertEquatorialToHorizontal } from './coordinates'
 
-import { getNight } from './night'
+import { getNight, isNight } from './night'
 
 import { getLocalHorizon } from './observer'
 
@@ -556,28 +556,39 @@ export function isBodyVisibleForNight(
     return false
   }
 
-  // If the object is circumpolar, it never sets:
+  // Get night for the date specified:
+  const { start, end } = getNight(midnight, observer)
+
+  // The Sun neither sets nor rises across the horizon of the night, e.g., the observer is either in
+  // perpetual daylight, and so there is no night, or in perpetual night, and so the whole day is
+  // night, in which an object that rises is above the horizon at some point:
+  if (!start && !end) {
+    return isNight(midnight, observer)
+  }
+
+  // If the object is circumpolar, it never sets, and so it is visible for whatever night there is:
   if (isBodyCircumpolar(observer, target, horizon)) {
     return true
   }
 
-  // Get night for the date specified:
-  const { start, end } = getNight(midnight, observer)
+  // The night is bounded by the sunset and the following sunrise, and where the Sun crosses the
+  // horizon of the night only once, e.g., at the border of the polar night or the polar day, the
+  // missing end is bounded by the day either side, within which it is night only where it is:
+  const from = start ? start.getTime() : midnight.getTime()
 
-  // If we are at the poles, then there is (potentially) no night:
-  if (!start || !end) {
-    return false
-  }
+  const to = end ? end.getTime() : midnight.getTime() + 2 * 86400000
 
-  // Loop over the night to determine whether the object is visible at some point during the night:
-  while (start <= end) {
+  // Loop over the night, in steps of 1 minute of UTC, e.g., independent of the timezone of the host
+  // system, to determine whether the object is visible at some point during the night:
+  for (let when = from; when <= to; when += 60000) {
+    const t = new Date(when)
+
     // If the object is above the horizon at any point during the night, then it is visible:
-    if (isBodyAboveHorizon(start, observer, target, horizon)) {
-      return true
+    if ((start && end) || isNight(t, observer)) {
+      if (isBodyAboveHorizon(t, observer, target, horizon)) {
+        return true
+      }
     }
-
-    // Increment the time by 1 minute:
-    start.setMinutes(start.getMinutes() + 1)
   }
 
   // If the rise or set is within the night, then the object is visible for the night:
