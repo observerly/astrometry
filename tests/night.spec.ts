@@ -295,6 +295,25 @@ describe('getNight', () => {
     expect(start?.toISOString()).toBe('2021-05-14T22:48:59.385Z')
     expect(end?.toISOString()).toBe('2021-05-15T10:33:57.251Z')
   })
+
+  it.each([
+    ['2025-05-30', '2025-05-30T23:49:28.935Z', '2025-05-31T00:31:00.059Z'],
+    ['2025-07-11', '2025-07-12T00:01:03.389Z', '2025-07-12T00:36:04.202Z']
+  ])(
+    'should return both ends of the night that borders a season without one for %s',
+    (date, start, end) => {
+      // In Edinburgh the Sun stays above -12° all night from the 31st of May to the 10th of July, and
+      // so on the nights either side of that season the Sun crosses -12° on one day of the night
+      // only, e.g., the one crossing of each day is kept, and not discarded for want of the other:
+      const night = getNight(new Date(`${date}T12:00:00Z`), {
+        latitude: 55.9533,
+        longitude: -3.1883
+      })
+
+      expect(night.start?.toISOString()).toBe(start)
+      expect(night.end?.toISOString()).toBe(end)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
