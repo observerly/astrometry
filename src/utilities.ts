@@ -66,16 +66,25 @@ export function getNormalizedAzimuthalDegree(degrees: number): number {
  *
  * getNormalizedInclinationDegree()
  *
- * Normalizes an inclination angle to a value between -90 and 90.
+ * Normalizes an inclination angle to a value between -90 and 90, reflecting the angle back
+ * over each pole that it lies beyond.
  *
  * @param degrees - The angle in degrees to convert.
  * @returns The normalized angle in degrees.
  *
  */
 export function getNormalizedInclinationDegree(degrees: number): number {
-  // Correct for angles greater than 90° or less than -90°, e.g., reflect the angle back over the
-  // pole that it lies beyond:
-  return Math.abs(degrees) > 90 ? Math.sign(degrees) * 180 - degrees : degrees
+  // The number of poles that the angle lies beyond, e.g., an angle of 91° lies beyond one pole and
+  // an angle of 271° lies beyond two (the poles are 180° apart):
+  const poles = Math.round(degrees / 180)
+
+  // The angle from the equatorial crossing that it lies nearest to:
+  const d = degrees - poles * 180
+
+  // Correct for angles greater than 90° or less than -90°, e.g., reflect the angle back over each
+  // pole that it lies beyond (an even number of reflections leaves the angle as it is, and an odd
+  // number reflects it, with a reflected zero resolved as zero and not as a negative zero):
+  return poles % 2 === 0 ? d : 0 - d
 }
 
 /*****************************************************************************************************************/

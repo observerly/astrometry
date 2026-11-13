@@ -151,6 +151,101 @@ describe('getNormalizedInclinationDegree', () => {
     degree = getNormalizedInclinationDegree(-130)
     expect(degree).toBe(-50)
   })
+
+  it('should leave a degree value already between -90 and 90 unchanged', () => {
+    expect(getNormalizedInclinationDegree(45.123456789)).toBe(45.123456789)
+    expect(getNormalizedInclinationDegree(-45.123456789)).toBe(-45.123456789)
+    expect(getNormalizedInclinationDegree(89.999999999)).toBe(89.999999999)
+    expect(getNormalizedInclinationDegree(-89.999999999)).toBe(-89.999999999)
+    expect(getNormalizedInclinationDegree(1e-12)).toBe(1e-12)
+    expect(getNormalizedInclinationDegree(-1e-12)).toBe(-1e-12)
+  })
+
+  it('should correctly normalize a degree value that lies beyond both poles', () => {
+    expect(getNormalizedInclinationDegree(271)).toBe(-89)
+    expect(getNormalizedInclinationDegree(-271)).toBe(89)
+    expect(getNormalizedInclinationDegree(271.5)).toBe(-88.5)
+    expect(getNormalizedInclinationDegree(-271.5)).toBe(88.5)
+    expect(getNormalizedInclinationDegree(300)).toBe(-60)
+    expect(getNormalizedInclinationDegree(-300)).toBe(60)
+    expect(getNormalizedInclinationDegree(315)).toBe(-45)
+    expect(getNormalizedInclinationDegree(-315)).toBe(45)
+    expect(getNormalizedInclinationDegree(359)).toBe(-1)
+    expect(getNormalizedInclinationDegree(-359)).toBe(1)
+  })
+
+  it('should correctly normalize a multiple of 360 to zero', () => {
+    expect(getNormalizedInclinationDegree(360)).toBe(0)
+    expect(getNormalizedInclinationDegree(-360)).toBe(0)
+    expect(getNormalizedInclinationDegree(720)).toBe(0)
+    expect(getNormalizedInclinationDegree(-720)).toBe(0)
+    expect(getNormalizedInclinationDegree(3600)).toBe(0)
+    expect(getNormalizedInclinationDegree(-3600)).toBe(0)
+  })
+
+  it('should correctly normalize a degree value that lies beyond many poles', () => {
+    expect(getNormalizedInclinationDegree(361)).toBe(1)
+    expect(getNormalizedInclinationDegree(-361)).toBe(-1)
+    expect(getNormalizedInclinationDegree(450)).toBe(90)
+    expect(getNormalizedInclinationDegree(-450)).toBe(-90)
+    expect(getNormalizedInclinationDegree(451)).toBe(89)
+    expect(getNormalizedInclinationDegree(-451)).toBe(-89)
+    expect(getNormalizedInclinationDegree(480)).toBe(60)
+    expect(getNormalizedInclinationDegree(-480)).toBe(-60)
+    expect(getNormalizedInclinationDegree(540)).toBe(0)
+    expect(getNormalizedInclinationDegree(-540)).toBe(0)
+    expect(getNormalizedInclinationDegree(630)).toBe(-90)
+    expect(getNormalizedInclinationDegree(-630)).toBe(90)
+    expect(getNormalizedInclinationDegree(1000)).toBe(-80)
+    expect(getNormalizedInclinationDegree(-1000)).toBe(80)
+  })
+
+  it('should always normalize a degree value to between -90 and 90', () => {
+    for (let degrees = -1440; degrees <= 1440; degrees += 0.5) {
+      const degree = getNormalizedInclinationDegree(degrees)
+      expect(degree).toBeGreaterThanOrEqual(-90)
+      expect(degree).toBeLessThanOrEqual(90)
+    }
+  })
+
+  it('should preserve the sine of the angle', () => {
+    for (let degrees = -1440; degrees <= 1440; degrees += 0.5) {
+      const degree = getNormalizedInclinationDegree(degrees)
+      expect(Math.sin(convertDegreesToRadians(degree))).toBeCloseTo(
+        Math.sin(convertDegreesToRadians(degrees)),
+        12
+      )
+    }
+  })
+
+  it('should be unchanged by a further crossing of both poles', () => {
+    for (let degrees = -720; degrees <= 720; degrees += 1) {
+      const degree = getNormalizedInclinationDegree(degrees)
+      expect(getNormalizedInclinationDegree(degrees + 360)).toBe(degree)
+      expect(getNormalizedInclinationDegree(degrees - 360)).toBe(degree)
+    }
+  })
+
+  it('should be antisymmetric about zero', () => {
+    for (let degrees = 0; degrees <= 1440; degrees += 0.5) {
+      expect(
+        getNormalizedInclinationDegree(degrees) + getNormalizedInclinationDegree(-degrees)
+      ).toBe(0)
+    }
+  })
+
+  it('should be idempotent', () => {
+    for (let degrees = -1440; degrees <= 1440; degrees += 0.5) {
+      const degree = getNormalizedInclinationDegree(degrees)
+      expect(getNormalizedInclinationDegree(degree)).toBe(degree)
+    }
+  })
+
+  it('should not resolve a non-finite degree value', () => {
+    expect(getNormalizedInclinationDegree(Number.NaN)).toBeNaN()
+    expect(getNormalizedInclinationDegree(Number.POSITIVE_INFINITY)).toBeNaN()
+    expect(getNormalizedInclinationDegree(Number.NEGATIVE_INFINITY)).toBeNaN()
+  })
 })
 
 /*****************************************************************************************************************/
