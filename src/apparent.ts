@@ -18,6 +18,10 @@ import {
 
 import type { CartesianCoordinate, EquatorialCoordinate, EquatorialProperMotion } from './common'
 
+import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './coordinates'
+
+import { doVectorDifference, doVectorSum } from './maths'
+
 import { getCorrectionToEquatorialForAnnualParallax } from './parallax'
 
 /*****************************************************************************************************************/
@@ -87,16 +91,36 @@ export function getApparentEquatorialCoordinate(
     ? getCorrectionToEquatorialForVelocityAberration(moved, { ...velocity, z: velocity.z ?? 0 })
     : { ra: 0, dec: 0 }
 
+  // The unit vector of the moved target, in the axes of the catalogue:
+  const p = convertEquatorialToCartesian(moved)
+
   // The displacements are each a few arcseconds at their greatest, and so they are resolved about
-  // the one coordinate and summed, e.g., the cross terms between them are below a microarcsecond:
-  const apparent = getNormalizedSphericalCoordinate({
-    θ: moved.dec + parallax.dec + annual.dec + orbital.dec,
-    φ: moved.ra + parallax.ra + annual.ra + orbital.ra
-  })
+  // the one coordinate, e.g., the cross terms between them are below a milliarcsecond. They are
+  // summed as the vectors they displace the target by, and not as their differences of right
+  // ascension and of declination, which are not additive towards the celestial poles, e.g., a
+  // displacement of a few arcseconds is there a difference of tens of degrees of right ascension:
+  const displaced = [parallax, annual, orbital].reduce(
+    (sum, correction) =>
+      doVectorSum(
+        sum,
+        doVectorDifference(
+          convertEquatorialToCartesian({
+            ra: moved.ra + correction.ra,
+            dec: moved.dec + correction.dec
+          }),
+          p
+        )
+      ),
+    p
+  )
+
+  // The coordinate is recovered from the direction of the displaced vector, e.g., with a right
+  // ascension in [0°, 360°) and a declination in [-90°, 90°]:
+  const { ra, dec } = convertCartesianToEquatorial(displaced)
 
   return {
-    ra: apparent.φ,
-    dec: apparent.θ
+    ra,
+    dec
   }
 }
 
