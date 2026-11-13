@@ -202,7 +202,7 @@ export function getAirmass(target: HorizontalCoordinate): number {
  *
  * @see Birch, K. P., & Downs, M. J. (1994). “Correction to the Updated Edlén Equation for the Refractive Index of Air.” Metrologia, 31(4), 315–316.
  *
- * @param wavelength - The wavelength of the observed light (in nanometres).
+ * @param wavelength - The wavelength of the observed light (in metres).
  * @param temperature - The temperature in Kelvin.
  * @param pressure - The pressure in Pascals.
  * @param humidity - The partial pressure of water vapour in the air (in Pascals).
@@ -211,16 +211,16 @@ export function getAirmass(target: HorizontalCoordinate): number {
  *
  */
 export function getAirRefractiveIndex(
-  wavelength = 550,
+  wavelength = 550e-9,
   temperature = DEFAULT_SURFACE_TEMPERATURE,
   pressure = DEFAULT_SURFACE_PRESSURE,
   humidity = DEFAULT_SURFACE_HUMIDITY
 ): number {
   // Outside of the bounds of the equation the dispersion terms are singular, and the
   // refractive index is no longer physical:
-  if (!Number.isFinite(wavelength) || wavelength < 300 || wavelength > 1700) {
+  if (!Number.isFinite(wavelength) || wavelength < 300e-9 || wavelength > 1700e-9) {
     throw new Error(
-      'Invalid wavelength: wavelength must be finite and within [300, 1700] nanometres'
+      'Invalid wavelength: wavelength must be finite and within [300e-9, 1700e-9] metres'
     )
   }
 
@@ -243,10 +243,12 @@ export function getAirRefractiveIndex(
   // The temperature, in degrees Celsius:
   const t = temperature - 273.15
 
-  // The vacuum wavenumber of the observed light, in inverse micrometres:
-  const σ = 1000 / wavelength
+  // The vacuum wavenumber of the observed light, in inverse micrometres, as the coefficients of the
+  // modified Edlén equation are stated for it, e.g., the reciprocal of the wavelength in metres scaled
+  // by 10⁻⁶ metres per micrometre:
+  const σ = 1e-6 / wavelength
 
-  // Get the refractivity of standard air, e.g., dry air at 15°C and 101325 Pascals, as the
+  // Get the refractivity of standard air, e.g., dry air at 288.15 K and 101325 Pascals, as the
   // dispersion of the air is dependent on the wavelength of the observed light:
   const N = (8342.54 + 2406147 / (130 - σ ** 2) + 15998 / (38.9 - σ ** 2)) * 1e-8
 
