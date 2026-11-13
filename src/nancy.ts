@@ -39,7 +39,7 @@ export function isNancyRomanRecord(record: unknown): record is NancyRomanRecord 
  * @see https://iopscience.iop.org/article/10.1086/132034/pdf
  *
  * A table permits rapid determination of the constellation in which an object is
- * located from its J1875.0 position.
+ * located from its B1875.0 position.
  *
  * @citation Nancy G. Roman 1987 The Astronomical Society of the Pacific 99 695
  *

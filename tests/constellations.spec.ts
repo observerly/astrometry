@@ -10,7 +10,17 @@ import { describe, expect, it } from 'vitest'
 
 /*****************************************************************************************************************/
 
-import { constellations, type EquatorialCoordinate, getConstellation } from '../src'
+import {
+  constellations,
+  convertCartesianToEquatorial,
+  convertEquatorialToCartesian,
+  doTranspose,
+  type EquatorialCoordinate,
+  getConstellation,
+  getJulianDate,
+  getPrecessionMatrix,
+  getRotatedCartesianCoordinate
+} from '../src'
 
 /*****************************************************************************************************************/
 
@@ -141,6 +151,90 @@ describe('getConstellation', () => {
 
       expect(constellation.name).toBe(name)
       expect(constellation.abbreviation).toBe(abbreviation)
+    }
+  )
+
+  it.each([
+    ['~0.01″ south of the boundary to Pegasus', 359.25, 9.9999972, 'Pisces', 'Psc'],
+    ['~0.01″ north of the boundary to Pisces', 359.25, 10.0000028, 'Pegasus', 'Peg'],
+    ['~0.01″ south of the boundary to Virgo', 178.5, -11.0000028, 'Corvus', 'Crv'],
+    ['~0.01″ north of the boundary to Corvus', 178.5, -10.9999972, 'Virgo', 'Vir'],
+    ['~0.01″ south of the boundary to Centaurus', 187.5, -55.0000028, 'Crux', 'Cru'],
+    ['~0.01″ north of the boundary to Crux', 187.5, -54.9999972, 'Centaurus', 'Cen'],
+    ['~0.02″ west of the boundary to Chamaeleon', 115.0004944, -80, 'Mensa', 'Men'],
+    ['~0.02″ east of the boundary to Mensa', 115.0005056, -80, 'Chamaeleon', 'Cha']
+  ])(
+    'should give the correct constellation for a B1875.0 position %s',
+    (_, ra, dec, name, abbreviation) => {
+      // The boundaries of the Nancy Roman lookup table are given for the mean equator and equinox of
+      // the Besselian epoch B1875.0, e.g., the Julian date 2405889.258550, as 25 tropical years of
+      // 365.242198781 days before B1900.0 at the Julian date 2415020.31352:
+      const epoch = new Date('1874-12-31T18:12:18.761Z')
+
+      expect(getJulianDate(epoch)).toBeCloseTo(2405889.25855, 6)
+
+      // The position is given either side of a boundary as it is tabulated, e.g., a declination of
+      // +10° between Pisces and Pegasus, and is carried from the mean equator and equinox of B1875.0
+      // back to that of J2000.0 by the transpose of the precession matrix:
+      const target = convertCartesianToEquatorial(
+        getRotatedCartesianCoordinate(
+          doTranspose(getPrecessionMatrix(epoch)),
+          convertEquatorialToCartesian({ ra, dec })
+        )
+      )
+
+      const constellation = getConstellation(target)
+
+      expect(constellation).toBeDefined()
+
+      if (!constellation) {
+        throw new Error('Constellation not defined')
+      }
+
+      expect(constellation.name).toBe(name)
+      expect(constellation.abbreviation).toBe(abbreviation)
+    }
+  )
+
+  it.each([
+    ['Betelgeuse', 88.7929583, 7.4070639, 'Orion', 'Ori'],
+    ['Polaris', 37.9528333, 89.2641083, 'Ursa Minor', 'UMi'],
+    ['Alpha Centauri', 219.9009167, -60.8339722, 'Centaurus', 'Cen'],
+    ['a target ~0.04″ west of the boundary to Chamaeleon', 113.04658957, -80, 'Mensa', 'Men'],
+    ['a target ~0.04″ east of the boundary to Mensa', 113.04661179, -80, 'Chamaeleon', 'Cha'],
+    ['a target ~0.015″ south of the boundary to Pegasus', 0.5, 10.69604225, 'Pisces', 'Psc'],
+    ['a target ~0.015″ north of the boundary to Pisces', 0.5, 10.69605059, 'Pegasus', 'Peg'],
+    ['a target ~0.015″ south of the boundary to Virgo', 180, -11.69599244, 'Corvus', 'Crv'],
+    ['a target ~0.015″ north of the boundary to Corvus', 180, -11.69598411, 'Virgo', 'Vir']
+  ])(
+    'should give the same constellation for %s irrespective of the host timezone',
+    (_, ra, dec, name, abbreviation) => {
+      // The epoch of the Nancy Roman lookup table is an instant in UTC, and not the local midnight of
+      // the host, which would otherwise carry the boundaries by up to ~0.1″ between timezones, e.g.,
+      // enough to move a target that lies within ~0.1″ of a boundary into the neighbouring constellation:
+      const TZ = process.env.TZ
+
+      try {
+        for (const timezone of [
+          'UTC',
+          'Etc/GMT-14',
+          'Etc/GMT+12',
+          'Pacific/Auckland',
+          'Asia/Kolkata',
+          'Europe/London',
+          'America/New_York',
+          'America/Los_Angeles'
+        ]) {
+          process.env.TZ = timezone
+
+          const constellation = getConstellation({ ra, dec })
+
+          expect(constellation?.name, timezone).toBe(name)
+          expect(constellation?.abbreviation, timezone).toBe(abbreviation)
+        }
+      } finally {
+        process.env.TZ = TZ
+      }
     }
   )
 })
