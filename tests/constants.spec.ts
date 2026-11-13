@@ -14,6 +14,7 @@ import {
   ARCSECOND_IN_DEGREES,
   AU_IN_METERS,
   MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000,
+  MILLIARCSECOND_IN_DEGREES,
   MINUTES_IN_DAY,
   SCHWARZSCHILD_RADIUS_OF_THE_SUN,
   SECONDS_IN_DAY,
@@ -153,6 +154,31 @@ describe('ARCSECOND_IN_DEGREES', () => {
   it('should be a positive, finite number', () => {
     expect(ARCSECOND_IN_DEGREES).toBeGreaterThan(0)
     expect(Number.isFinite(ARCSECOND_IN_DEGREES)).toBe(true)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('MILLIARCSECOND_IN_DEGREES', () => {
+  it('should be defined', () => {
+    expect(MILLIARCSECOND_IN_DEGREES).toBeDefined()
+  })
+
+  it('should be a thousandth of an arcsecond (in degrees)', () => {
+    expect(MILLIARCSECOND_IN_DEGREES).toBe(ARCSECOND_IN_DEGREES / 1e3)
+  })
+
+  it('should be 3,600,000 to the degree', () => {
+    expect(MILLIARCSECOND_IN_DEGREES * 3600 * 1e3).toBeCloseTo(1, 12)
+  })
+
+  it('should be 1,000 to the arcsecond', () => {
+    expect(ARCSECOND_IN_DEGREES / MILLIARCSECOND_IN_DEGREES).toBeCloseTo(1e3, 9)
+  })
+
+  it('should be a positive, finite number', () => {
+    expect(MILLIARCSECOND_IN_DEGREES).toBeGreaterThan(0)
+    expect(Number.isFinite(MILLIARCSECOND_IN_DEGREES)).toBe(true)
   })
 })
 
