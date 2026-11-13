@@ -27,12 +27,19 @@ import {
   getCorrectionToEquatorialForDiurnalAberration,
   getCorrectionToEquatorialForLightDeflection,
   getCorrectionToEquatorialForVelocityAberration,
+  getGeocentricRotationalVelocity,
   getGeometricSolarVector,
   getHourAngle,
+  getLocalSiderealTime,
   SPEED_OF_LIGHT
 } from '../src'
 
-import { convertDegreesToRadians as radians } from '../src/utilities'
+import { MICROARCSECOND_IN_DEGREES } from '../src/constants'
+
+import {
+  convertRadiansToDegrees as degrees,
+  convertDegreesToRadians as radians
+} from '../src/utilities'
 
 /*****************************************************************************************************************/
 
@@ -182,6 +189,25 @@ describe('getCorrectionToEquatorialForAnnualAberration', () => {
 /*****************************************************************************************************************/
 
 describe('getCorrectionToEquatorialForDiurnalAberration', () => {
+  // The observer the rotation of the Earth carries, e.g., at Mauna Kea, at the surface:
+  const observer = { latitude, longitude }
+
+  // The constant of diurnal aberration for the observer, e.g., the speed the rotation of the Earth
+  // carries them at as a fraction of the speed of light, which is ~0.30 arcseconds at the latitude
+  // of Mauna Kea (in degrees):
+  const κ =
+    degrees((radians(EARTH_ANGULAR_VELOCITY) * EARTH_RADIUS) / SPEED_OF_LIGHT) *
+    Math.cos(radians(latitude))
+
+  // The declinations to sample the sphere at, e.g., to within less than the constant of diurnal
+  // aberration of either celestial pole, and at the poles themselves:
+  const declinations = [-90, -90 + 1e-9, -89.9999, -60, -30, 0, 30, 60, 89.9999, 90 - 1e-9, 90]
+
+  // The datetimes to sample a rotation of the Earth at, e.g., every three hours:
+  const datetimes = [0, 3, 6, 9, 12, 15, 18, 21].map(
+    hour => new Date(datetime.getTime() + hour * 3600000)
+  )
+
   it('should be defined', () => {
     expect(getCorrectionToEquatorialForDiurnalAberration).toBeDefined()
   })
@@ -195,8 +221,8 @@ describe('getCorrectionToEquatorialForDiurnalAberration', () => {
       },
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBe(88.7928898251804)
-    expect(dec + betelgeuse.dec).toBe(7.407057608077356)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.7928898251804, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.407057608077356, 9)
   })
 
   it('should return the correct aberration correction for the designated epoch', () => {
@@ -208,8 +234,8 @@ describe('getCorrectionToEquatorialForDiurnalAberration', () => {
       },
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBe(88.793040690999)
-    expect(dec + betelgeuse.dec).toBe(7.407061603196344)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.793040690999, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.407061603196344, 9)
   })
 
   it('should never exceed the constant of diurnal aberration for the observer', () => {
@@ -275,6 +301,279 @@ describe('getCorrectionToEquatorialForDiurnalAberration', () => {
     )
 
     expect(Math.abs(dec) * 3600).toBeCloseTo(0, 3)
+  })
+
+  it('should return a bounded correction for a target at a celestial pole', () => {
+    // Every meridian meets at a pole, where cos δ vanishes, and so the correction is recovered
+    // from the displaced vector, and not expanded about the target, which would divide by cos δ:
+    for (const when of datetimes) {
+      for (let ra = 0; ra < 360; ra += 15) {
+        for (const dec of [90, -90]) {
+          const correction = getCorrectionToEquatorialForDiurnalAberration(when, observer, {
+            ra,
+            dec
+          })
+
+          expect(Number.isFinite(correction.ra)).toBe(true)
+          expect(Number.isFinite(correction.dec)).toBe(true)
+
+          expect(correction.ra).toBeGreaterThanOrEqual(-180)
+          expect(correction.ra).toBeLessThan(180)
+
+          // The target is displaced away from the pole by the whole of the constant, as the pole
+          // is at right angles to the east point of the horizon:
+          expect(Math.abs(correction.dec)).toBeCloseTo(κ, 9)
+        }
+      }
+    }
+  })
+
+  it('should resolve the displacement in right ascension the shorter way about the sphere', () => {
+    for (const when of datetimes) {
+      for (let ra = 0; ra < 360; ra += 15) {
+        for (const dec of declinations) {
+          const correction = getCorrectionToEquatorialForDiurnalAberration(when, observer, {
+            ra,
+            dec
+          })
+
+          expect(Number.isFinite(correction.ra)).toBe(true)
+          expect(Number.isFinite(correction.dec)).toBe(true)
+
+          expect(correction.ra).toBeGreaterThanOrEqual(-180)
+          expect(correction.ra).toBeLessThan(180)
+        }
+      }
+    }
+  })
+
+  it('should resolve the same apparent place for a target at a celestial pole, whatever its right ascension', () => {
+    // A pole is the one direction, whichever meridian it is given along, and so it is displaced
+    // to the one apparent place:
+    for (const when of datetimes) {
+      for (const dec of [90, -90]) {
+        const a = getCorrectionToEquatorialForDiurnalAberration(when, observer, { ra: 0, dec })
+
+        for (let ra = 15; ra < 360; ra += 15) {
+          const b = getCorrectionToEquatorialForDiurnalAberration(when, observer, { ra, dec })
+
+          const separation = getAngularSeparation(
+            { θ: dec + a.dec, φ: a.ra },
+            { θ: dec + b.dec, φ: ra + b.ra }
+          )
+
+          expect(separation).toBeLessThan(MICROARCSECOND_IN_DEGREES)
+        }
+      }
+    }
+  })
+
+  it('should displace a target by κ sin θ, e.g., ~0.30″ at right angles to the east point', () => {
+    for (const when of datetimes) {
+      // The east point of the horizon of the observer, e.g., on the celestial equator, six hours
+      // of right ascension to the east of their meridian:
+      const east = { θ: 0, φ: getLocalSiderealTime(when, longitude) * 15 + 90 }
+
+      for (let ra = 0; ra < 360; ra += 30) {
+        for (const dec of declinations) {
+          const correction = getCorrectionToEquatorialForDiurnalAberration(when, observer, {
+            ra,
+            dec
+          })
+
+          const θ = radians(getAngularSeparation({ θ: dec, φ: ra }, east))
+
+          const separation = getAngularSeparation(
+            { θ: dec + correction.dec, φ: ra + correction.ra },
+            { θ: dec, φ: ra }
+          )
+
+          // N.B. The displacement is κ sin θ to the first order, and the term of the second order
+          // is κ² / 2 at the most, e.g., ~0.2 microarcseconds:
+          expect(Math.abs(separation - κ * Math.sin(θ))).toBeLessThan(MICROARCSECOND_IN_DEGREES)
+        }
+      }
+    }
+  })
+
+  it('should never exceed the constant of diurnal aberration anywhere on the sphere', () => {
+    for (const when of datetimes) {
+      for (let ra = 0; ra < 360; ra += 15) {
+        for (const dec of declinations) {
+          const correction = getCorrectionToEquatorialForDiurnalAberration(when, observer, {
+            ra,
+            dec
+          })
+
+          const separation = getAngularSeparation(
+            { θ: dec + correction.dec, φ: ra + correction.ra },
+            { θ: dec, φ: ra }
+          )
+
+          expect(separation).toBeLessThan(κ + MICROARCSECOND_IN_DEGREES)
+
+          // The displacement in declination is an arc of a great circle, and so it is bounded
+          // by the constant itself, whatever the declination of the target:
+          expect(Math.abs(correction.dec)).toBeLessThan(κ + MICROARCSECOND_IN_DEGREES)
+        }
+      }
+    }
+  })
+
+  it('should displace a target towards the east point of the observer horizon', () => {
+    for (const when of datetimes) {
+      const east = { θ: 0, φ: getLocalSiderealTime(when, longitude) * 15 + 90 }
+
+      for (let ra = 0; ra < 360; ra += 30) {
+        for (const dec of declinations) {
+          const correction = getCorrectionToEquatorialForDiurnalAberration(when, observer, {
+            ra,
+            dec
+          })
+
+          const before = getAngularSeparation({ θ: dec, φ: ra }, east)
+
+          const after = getAngularSeparation(
+            { θ: dec + correction.dec, φ: ra + correction.ra },
+            east
+          )
+
+          // N.B. A target within an arcminute of the east or the west point is barely displaced:
+          if (before > 1 / 60 && before < 180 - 1 / 60) {
+            expect(after).toBeLessThan(before)
+          }
+        }
+      }
+    }
+  })
+
+  it('should not displace a target at the east or the west point of the observer horizon', () => {
+    // The aberration is transverse, and so a target the observer is carried directly towards, or
+    // directly away from, is not displaced:
+    for (const when of datetimes) {
+      const meridian = getLocalSiderealTime(when, longitude) * 15
+
+      for (const ra of [meridian + 90, meridian - 90]) {
+        const correction = getCorrectionToEquatorialForDiurnalAberration(when, observer, {
+          ra,
+          dec: 0
+        })
+
+        const separation = getAngularSeparation(
+          { θ: correction.dec, φ: ra + correction.ra },
+          { θ: 0, φ: ra }
+        )
+
+        expect(separation).toBeLessThan(MICROARCSECOND_IN_DEGREES)
+      }
+    }
+  })
+
+  it('should agree with the velocity aberration of the rotation of the Earth towards the poles', () => {
+    // The diurnal aberration is the aberration of the velocity the rotation of the Earth carries
+    // the observer at, and so the two resolve the one apparent place, whatever the declination:
+    for (const when of datetimes) {
+      const velocity = getGeocentricRotationalVelocity(when, observer)
+
+      for (let ra = 0; ra < 360; ra += 30) {
+        for (const dec of declinations) {
+          const diurnal = getCorrectionToEquatorialForDiurnalAberration(when, observer, {
+            ra,
+            dec
+          })
+
+          const resolved = getCorrectionToEquatorialForVelocityAberration({ ra, dec }, velocity)
+
+          const separation = getAngularSeparation(
+            { θ: dec + diurnal.dec, φ: ra + diurnal.ra },
+            { θ: dec + resolved.dec, φ: ra + resolved.ra }
+          )
+
+          expect(separation).toBeLessThan(MICROARCSECOND_IN_DEGREES)
+        }
+      }
+    }
+  })
+
+  it('should not displace a target on the celestial equator in declination', () => {
+    // The observer is carried within the plane of the equator, and so a target within that plane
+    // is displaced along it:
+    for (const when of datetimes) {
+      for (let ra = 0; ra < 360; ra += 15) {
+        const correction = getCorrectionToEquatorialForDiurnalAberration(when, observer, {
+          ra,
+          dec: 0
+        })
+
+        expect(correction.dec).toBeCloseTo(0, 12)
+      }
+    }
+  })
+
+  it('should mirror the displacement in declination between the two hemispheres', () => {
+    for (const when of datetimes) {
+      for (let ra = 0; ra < 360; ra += 30) {
+        for (const dec of [15, 45, 75, 89]) {
+          const north = getCorrectionToEquatorialForDiurnalAberration(when, observer, { ra, dec })
+
+          const south = getCorrectionToEquatorialForDiurnalAberration(when, observer, {
+            ra,
+            dec: -dec
+          })
+
+          expect(south.ra).toBeCloseTo(north.ra, 12)
+          expect(south.dec).toBeCloseTo(-north.dec, 12)
+        }
+      }
+    }
+  })
+
+  it('should not depend on the hemisphere of the observer', () => {
+    // The speed of the observer is that of their parallel, which is the same to either side of
+    // the equator:
+    const north = getCorrectionToEquatorialForDiurnalAberration(datetime, observer, betelgeuse)
+
+    const south = getCorrectionToEquatorialForDiurnalAberration(
+      datetime,
+      { latitude: -latitude, longitude },
+      betelgeuse
+    )
+
+    expect(south.ra).toBeCloseTo(north.ra, 12)
+    expect(south.dec).toBeCloseTo(north.dec, 12)
+  })
+
+  it('should scale with the distance of the observer from the axis of rotation', () => {
+    // An observer above the surface is carried about a wider parallel, e.g., the summit of Mauna
+    // Kea is ~4,205 metres above the surface, and so is carried ~0.07 % faster than the surface:
+    const elevation = 4205
+
+    const target = { ra: betelgeuse.ra, dec: betelgeuse.dec }
+
+    const surface = getCorrectionToEquatorialForDiurnalAberration(datetime, observer, target)
+
+    const summit = getCorrectionToEquatorialForDiurnalAberration(
+      datetime,
+      { latitude, longitude, elevation },
+      target
+    )
+
+    const ratio = (EARTH_RADIUS + elevation) / EARTH_RADIUS
+
+    expect(summit.ra / surface.ra).toBeCloseTo(ratio, 6)
+    expect(summit.dec / surface.dec).toBeCloseTo(ratio, 6)
+  })
+
+  it('should return the same correction for a right ascension a whole turn apart', () => {
+    const a = getCorrectionToEquatorialForDiurnalAberration(datetime, observer, betelgeuse)
+
+    const b = getCorrectionToEquatorialForDiurnalAberration(datetime, observer, {
+      ra: betelgeuse.ra + 360,
+      dec: betelgeuse.dec
+    })
+
+    expect(b.ra).toBeCloseTo(a.ra, 12)
+    expect(b.dec).toBeCloseTo(a.dec, 12)
   })
 })
 
