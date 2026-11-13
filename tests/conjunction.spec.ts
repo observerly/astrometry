@@ -42,6 +42,48 @@ const longitude = -155.468094
 
 /*****************************************************************************************************************/
 
+// For testing we will fix a pair of targets that are less than three degrees from one another, and
+// which are therefore in conjunction whatever the datetime:
+const conjunct = [
+  {
+    name: 'Jupiter',
+    alt: 64.0599911587097,
+    az: 130.91766651820868,
+    ra: 8.420871680780856,
+    dec: 2.0277241328636877
+  },
+  {
+    name: 'Venus',
+    alt: 65.63530627727039,
+    az: 136.9150698751929,
+    ra: 5.47961736055115,
+    dec: 1.4571416216749102
+  }
+] as Parameters<typeof findConjunction>[1]
+
+/*****************************************************************************************************************/
+
+// For testing we will fix a pair of targets that are far more than three degrees from one another,
+// and which are therefore never in conjunction whatever the datetime:
+const apart = [
+  {
+    name: 'Jupiter',
+    alt: 64.0599911587097,
+    az: 130.91766651820868,
+    ra: 8.420871680780856,
+    dec: 2.0277241328636877
+  },
+  {
+    name: 'Saturn',
+    alt: 30,
+    az: 250,
+    ra: 325,
+    dec: -15
+  }
+] as Parameters<typeof findConjunction>[1]
+
+/*****************************************************************************************************************/
+
 describe('getMidpointEquatorialCoordinate', () => {
   it('should be defined', () => {
     expect(getMidpointEquatorialCoordinate).toBeDefined()
@@ -316,6 +358,185 @@ describe('findPlanetaryConjunction()', () => {
       throw new Error('Conjunction is not defined')
     }
   })
+
+  it('should throw for a step of zero minutes', () => {
+    // There is no conjunction between Jupiter and Venus over this interval, such that a step of
+    // zero would never advance through it:
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    for (const stepMinutes of [0, -0]) {
+      expect(() =>
+        findPlanetaryConjunction(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          { latitude, longitude },
+          planets,
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for a step of less than zero minutes', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    for (const stepMinutes of [-0.001, -1, -20, -1440, -Number.MAX_VALUE]) {
+      expect(() =>
+        findPlanetaryConjunction(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          { latitude, longitude },
+          planets,
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for a step that is not finite', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    for (const stepMinutes of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      expect(() =>
+        findPlanetaryConjunction(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          { latitude, longitude },
+          planets,
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for an invalid step where the interval starts at a conjunction', () => {
+    // Jupiter and Venus are in conjunction at the very start of this interval:
+    const datetime = new Date('2023-02-27T00:20:00Z')
+
+    for (const stepMinutes of [0, -20, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() =>
+        findPlanetaryConjunction(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          { latitude, longitude },
+          planets,
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for an invalid step where the interval ends before it starts', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    for (const stepMinutes of [0, -20, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() =>
+        findPlanetaryConjunction(
+          { from: datetime, to: new Date(datetime.getTime() - 1000 * 60 * 60 * 24) },
+          { latitude, longitude },
+          planets,
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw an Error for an invalid step without mutating the interval', () => {
+    const interval = {
+      from: new Date('2023-01-01T10:00:00Z'),
+      to: new Date('2023-01-02T10:00:00Z')
+    }
+
+    expect(() =>
+      findPlanetaryConjunction(interval, { latitude, longitude }, planets, { stepMinutes: 0 })
+    ).toThrow(Error)
+
+    expect(interval.from).toEqual(new Date('2023-01-01T10:00:00Z'))
+
+    expect(interval.to).toEqual(new Date('2023-01-02T10:00:00Z'))
+  })
+
+  it('should fall back to the default step when the step is not specified', () => {
+    const interval = {
+      from: new Date('2023-02-26T22:00:00Z'),
+      to: new Date('2023-02-28T00:00:00Z')
+    }
+
+    const expected = findPlanetaryConjunction(interval, { latitude, longitude }, planets, {
+      stepMinutes: 20
+    })
+
+    expect(expected?.datetime).toEqual(new Date('2023-02-27T00:20:00Z'))
+
+    expect(findPlanetaryConjunction(interval, { latitude, longitude }, planets)).toEqual(expected)
+
+    expect(findPlanetaryConjunction(interval, { latitude, longitude }, planets, {})).toEqual(
+      expected
+    )
+
+    expect(
+      findPlanetaryConjunction(interval, { latitude, longitude }, planets, {
+        stepMinutes: undefined
+      })
+    ).toEqual(expected)
+  })
+
+  it('should resolve the conjunction on a multiple of the step for a step greater than zero', () => {
+    const interval = {
+      from: new Date('2023-02-26T22:00:00Z'),
+      to: new Date('2023-02-28T00:00:00Z')
+    }
+
+    // Each step is a multiple of the one before it, such that a coarser step can not resolve the
+    // conjunction any earlier than a finer one:
+    let earliest = interval.from.getTime()
+
+    for (const stepMinutes of [0.5, 10, 20, 60]) {
+      const conjunction = findPlanetaryConjunction(interval, { latitude, longitude }, planets, {
+        stepMinutes
+      })
+
+      if (!conjunction) {
+        throw new Error('Conjunction is not defined')
+      }
+
+      const elapsed = conjunction.datetime.getTime() - interval.from.getTime()
+
+      expect(elapsed % (stepMinutes * 60000)).toBe(0)
+
+      expect(conjunction.datetime.getTime()).toBeGreaterThanOrEqual(earliest)
+
+      expect(conjunction.datetime.getTime()).toBeLessThanOrEqual(interval.to.getTime())
+
+      expect(conjunction.angularSeparation).toBeLessThan(3)
+
+      earliest = conjunction.datetime.getTime()
+    }
+  })
+
+  it('should only test the start of the interval for a step longer than the interval', () => {
+    for (const stepMinutes of [1441, 2880, Number.MAX_SAFE_INTEGER]) {
+      // Jupiter and Venus are not in conjunction at the start of this interval:
+      const datetime = new Date('2023-02-26T22:00:00Z')
+
+      expect(
+        findPlanetaryConjunction(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          { latitude, longitude },
+          planets,
+          { stepMinutes }
+        )
+      ).toBeUndefined()
+
+      // Jupiter and Venus are in conjunction at the start of this interval:
+      const start = new Date('2023-02-27T00:20:00Z')
+
+      const conjunction = findPlanetaryConjunction(
+        { from: start, to: new Date(start.getTime() + 1000 * 60 * 60 * 24) },
+        { latitude, longitude },
+        planets,
+        { stepMinutes }
+      )
+
+      expect(conjunction?.datetime).toEqual(start)
+    }
+  })
 })
 
 /*****************************************************************************************************************/
@@ -366,6 +587,146 @@ describe('findConjunction()', () => {
       expect(conjunction.dec).toBeGreaterThan(0)
     } else {
       throw new Error('Conjunction is not defined')
+    }
+  })
+
+  it('should throw for a step of zero minutes', () => {
+    // The targets are never in conjunction, such that a step of zero would never advance through
+    // the interval:
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    for (const stepMinutes of [0, -0]) {
+      expect(() =>
+        findConjunction(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          apart,
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for a step of less than zero minutes', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    for (const stepMinutes of [-0.001, -1, -20, -1440, -Number.MAX_VALUE]) {
+      expect(() =>
+        findConjunction(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          apart,
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for a step that is not finite', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    for (const stepMinutes of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      expect(() =>
+        findConjunction(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          apart,
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for an invalid step where the interval starts at a conjunction', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    for (const stepMinutes of [0, -20, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() =>
+        findConjunction(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          conjunct,
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for an invalid step where the interval ends before it starts', () => {
+    const datetime = new Date('2023-01-01T10:00:00Z')
+
+    for (const stepMinutes of [0, -20, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() =>
+        findConjunction(
+          { from: datetime, to: new Date(datetime.getTime() - 1000 * 60 * 60 * 24) },
+          apart,
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw an Error for an invalid step without mutating the interval', () => {
+    const interval = {
+      from: new Date('2023-01-01T10:00:00Z'),
+      to: new Date('2023-01-02T10:00:00Z')
+    }
+
+    expect(() => findConjunction(interval, apart, { stepMinutes: 0 })).toThrow(Error)
+
+    expect(interval.from).toEqual(new Date('2023-01-01T10:00:00Z'))
+
+    expect(interval.to).toEqual(new Date('2023-01-02T10:00:00Z'))
+  })
+
+  it('should fall back to the default step when the step is not specified', () => {
+    const interval = {
+      from: new Date('2023-01-01T10:00:00Z'),
+      to: new Date('2023-01-02T10:00:00Z')
+    }
+
+    const expected = findConjunction(interval, conjunct, { stepMinutes: 20 })
+
+    expect(expected).not.toBe(false)
+
+    expect(findConjunction(interval, conjunct)).toEqual(expected)
+
+    expect(findConjunction(interval, conjunct, {})).toEqual(expected)
+
+    expect(findConjunction(interval, conjunct, { stepMinutes: undefined })).toEqual(expected)
+
+    expect(findConjunction(interval, apart)).toBe(false)
+
+    expect(findConjunction(interval, apart, {})).toBe(false)
+
+    expect(findConjunction(interval, apart, { stepMinutes: undefined })).toBe(false)
+  })
+
+  it('should resolve the conjunction at the start of the interval for a step greater than zero', () => {
+    const interval = {
+      from: new Date('2023-01-01T10:00:00Z'),
+      to: new Date('2023-01-02T10:00:00Z')
+    }
+
+    for (const stepMinutes of [0.5, 10, 20, 60, 1440, 2880, Number.MAX_SAFE_INTEGER]) {
+      const conjunction = findConjunction(interval, conjunct, { stepMinutes })
+
+      if (!conjunction) {
+        throw new Error('Conjunction is not defined')
+      }
+
+      expect(conjunction.datetime).toEqual(interval.from)
+
+      expect(conjunction.targets).toEqual(conjunct)
+
+      expect(conjunction.angularSeparation).toBeLessThan(3)
+    }
+  })
+
+  it('should resolve no conjunction across the whole interval for a step greater than zero', () => {
+    const interval = {
+      from: new Date('2023-01-01T10:00:00Z'),
+      to: new Date('2023-01-02T10:00:00Z')
+    }
+
+    for (const stepMinutes of [0.5, 10, 20, 60, 1440, 2880, Number.MAX_SAFE_INTEGER]) {
+      expect(findConjunction(interval, apart, { stepMinutes })).toBe(false)
     }
   })
 })
@@ -428,6 +789,198 @@ describe('findPlanetaryConjunctions()', () => {
     expect(conjunction.targets).toHaveLength(2)
     expect(conjunction.targets[0].name).toBe('Venus')
     expect(conjunction.targets[1].name).toBe('Jupiter')
+  })
+
+  it('should throw for a step of zero minutes', () => {
+    // The whole of the interval is searched for the closest conjunctions, such that a step of zero
+    // would never advance through it:
+    const datetime = new Date('2012-03-10T00:00:00Z')
+
+    for (const stepMinutes of [0, -0]) {
+      expect(() =>
+        findPlanetaryConjunctions(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          { latitude, longitude },
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for a step of less than zero minutes', () => {
+    const datetime = new Date('2012-03-10T00:00:00Z')
+
+    for (const stepMinutes of [-0.001, -1, -20, -1440, -Number.MAX_VALUE]) {
+      expect(() =>
+        findPlanetaryConjunctions(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          { latitude, longitude },
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for a step that is not finite', () => {
+    const datetime = new Date('2012-03-10T00:00:00Z')
+
+    for (const stepMinutes of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      expect(() =>
+        findPlanetaryConjunctions(
+          { from: datetime, to: new Date(datetime.getTime() + 1000 * 60 * 60 * 24) },
+          { latitude, longitude },
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for an invalid step where the interval ends before it starts', () => {
+    const datetime = new Date('2012-03-10T00:00:00Z')
+
+    for (const stepMinutes of [0, -20, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() =>
+        findPlanetaryConjunctions(
+          { from: datetime, to: new Date(datetime.getTime() - 1000 * 60 * 60 * 24) },
+          { latitude, longitude },
+          { stepMinutes }
+        )
+      ).toThrow('Invalid step: stepMinutes must be finite and greater than zero')
+    }
+  })
+
+  it('should throw an Error for an invalid step without mutating the interval', () => {
+    const interval = {
+      from: new Date('2012-03-10T00:00:00Z'),
+      to: new Date('2012-03-11T00:00:00Z')
+    }
+
+    expect(() =>
+      findPlanetaryConjunctions(interval, { latitude, longitude }, { stepMinutes: 0 })
+    ).toThrow(Error)
+
+    expect(interval.from).toEqual(new Date('2012-03-10T00:00:00Z'))
+
+    expect(interval.to).toEqual(new Date('2012-03-11T00:00:00Z'))
+  })
+
+  it('should fall back to the default step when the step is not specified', () => {
+    const interval = {
+      from: new Date('2012-03-10T00:00:00Z'),
+      to: new Date('2012-03-13T00:00:00Z')
+    }
+
+    const expected = findPlanetaryConjunctions(
+      interval,
+      { latitude, longitude },
+      { angularSeparationThreshold: 4, stepMinutes: 20 }
+    )
+
+    expect(expected).toHaveLength(1)
+
+    expect(
+      findPlanetaryConjunctions(
+        interval,
+        { latitude, longitude },
+        { angularSeparationThreshold: 4 }
+      )
+    ).toEqual(expected)
+
+    expect(
+      findPlanetaryConjunctions(
+        interval,
+        { latitude, longitude },
+        { angularSeparationThreshold: 4, stepMinutes: undefined }
+      )
+    ).toEqual(expected)
+
+    // Without any parameters, the default angular separation threshold of three degrees applies:
+    expect(findPlanetaryConjunctions(interval, { latitude, longitude })).toEqual(
+      findPlanetaryConjunctions(interval, { latitude, longitude }, { stepMinutes: 20 })
+    )
+
+    expect(findPlanetaryConjunctions(interval, { latitude, longitude }, {})).toEqual(
+      findPlanetaryConjunctions(interval, { latitude, longitude }, { stepMinutes: 20 })
+    )
+  })
+
+  it('should resolve the conjunction on a multiple of the step for a step greater than zero', () => {
+    const interval = {
+      from: new Date('2012-03-10T00:00:00Z'),
+      to: new Date('2012-03-13T00:00:00Z')
+    }
+
+    // Each step is a multiple of the one after it, such that a finer step can not resolve a wider
+    // closest approach than a coarser one:
+    let widest = 4
+
+    for (const stepMinutes of [60, 20, 10]) {
+      const conjunctions = findPlanetaryConjunctions(
+        interval,
+        { latitude, longitude },
+        { angularSeparationThreshold: 4, stepMinutes }
+      )
+
+      expect(conjunctions).toHaveLength(1)
+
+      const conjunction = conjunctions.get('Jupiter-Venus')
+
+      if (!conjunction) {
+        throw new Error('Conjunction between Venus & Jupiter is not defined')
+      }
+
+      const elapsed = conjunction.datetime.getTime() - interval.from.getTime()
+
+      expect(elapsed % (stepMinutes * 60000)).toBe(0)
+
+      expect(conjunction.datetime.getTime()).toBeGreaterThanOrEqual(interval.from.getTime())
+
+      expect(conjunction.datetime.getTime()).toBeLessThanOrEqual(interval.to.getTime())
+
+      expect(conjunction.angularSeparation).toBeLessThanOrEqual(widest)
+
+      widest = conjunction.angularSeparation
+    }
+  })
+
+  it('should only test the start of the interval for a step longer than the interval', () => {
+    const interval = {
+      from: new Date('2012-03-10T00:00:00Z'),
+      to: new Date('2012-03-13T00:00:00Z')
+    }
+
+    // The closest approach of Venus and Jupiter across the interval, at which the two are in
+    // conjunction, is taken as the start of an interval of a day:
+    const closest = findPlanetaryConjunctions(
+      interval,
+      { latitude, longitude },
+      { angularSeparationThreshold: 4 }
+    ).get('Jupiter-Venus')
+
+    if (!closest) {
+      throw new Error('Conjunction between Venus & Jupiter is not defined')
+    }
+
+    const start = closest.datetime
+
+    for (const stepMinutes of [1441, 2880, Number.MAX_SAFE_INTEGER]) {
+      const conjunctions = findPlanetaryConjunctions(
+        { from: start, to: new Date(start.getTime() + 1000 * 60 * 60 * 24) },
+        { latitude, longitude },
+        { angularSeparationThreshold: 4, stepMinutes }
+      )
+
+      // A step longer than the interval is the same as an interval of only its start:
+      expect(conjunctions).toEqual(
+        findPlanetaryConjunctions(
+          { from: start, to: start },
+          { latitude, longitude },
+          { angularSeparationThreshold: 4 }
+        )
+      )
+
+      expect(conjunctions.get('Jupiter-Venus')?.datetime).toEqual(start)
+    }
   })
 })
 
