@@ -6,21 +6,15 @@
 
 /*****************************************************************************************************************/
 
-import { getHourAngle } from './astrometry'
-
 import type { CartesianCoordinate, EquatorialCoordinate, GeographicCoordinate } from './common'
 
-import {
-  AU_IN_METERS,
-  c,
-  EARTH_ANGULAR_VELOCITY,
-  EARTH_RADIUS,
-  SCHWARZSCHILD_RADIUS_OF_THE_SUN
-} from './constants'
+import { AU_IN_METERS, c, SCHWARZSCHILD_RADIUS_OF_THE_SUN } from './constants'
 
 import { convertCartesianToEquatorial, convertEquatorialToCartesian } from './coordinates'
 
 import { doDotProduct, doNormalize, doScale, doVectorDifference, doVectorSum } from './maths'
+
+import { getGeocentricRotationalVelocity } from './observer'
 
 import { getBarycentricSolarVector, getGeometricSolarVector } from './sun'
 
@@ -153,12 +147,22 @@ export function getCorrectionToEquatorialForAnnualAberration(
  *
  * getCorrectionToEquatorialForDiurnalAberration()
  *
- * Corrects the equatorial coordinate of a target for aberration in
- * longitude and obliquity due to the apparent motion of the Earth.
+ * Corrects the equatorial coordinate of a target for the diurnal aberration of light, e.g., the
+ * displacement of the target towards the east point of the observer's horizon, as the observer is
+ * carried eastward by the rotation of the Earth, of up to ~0.32 arcseconds for an observer at the
+ * equator. The correction terms should be added to the target's coordinate by the caller.
+ *
+ * The aberration is that of the velocity the rotation of the Earth carries the observer at, and
+ * so it vanishes for an observer at either pole of the Earth, who is not carried at all.
+ *
+ * N.B. The correction is recovered from the displaced vector of the target, and is not expanded
+ * about the target, e.g., as Δα = κ cos φ cos H / cos δ, which divides by cos δ and so is
+ * unbounded towards the celestial poles.
  *
  * @param datetime - The date to correct the equatorial coordinate for.
- * @param target - The equatorial J2000 coordinate of the target.
- * @returns The corrected equatorial coordinate of the target.
+ * @param observer - The geographic coordinate of the observer.
+ * @param target - The equatorial coordinate of the target.
+ * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
  *
  */
 export function getCorrectionToEquatorialForDiurnalAberration(
@@ -166,33 +170,13 @@ export function getCorrectionToEquatorialForDiurnalAberration(
   observer: GeographicCoordinate,
   target: EquatorialCoordinate
 ): EquatorialCoordinate {
-  const dec = radians(target.dec)
+  // The velocity the rotation of the Earth carries the observer at, e.g., towards the east point
+  // of their horizon, at up to ~465 metres per second at the equator (in SI metres per second):
+  const velocity = getGeocentricRotationalVelocity(datetime, observer)
 
-  const phi = radians(observer.latitude)
-
-  // Get the hour angle for the target (in radians):
-  const ha = radians(getHourAngle(datetime, observer.longitude, target.ra))
-
-  // Calculate the observer's tangential velocity at the equator due to Earth's rotation (in m/s):
-  const v = radians(EARTH_ANGULAR_VELOCITY) * EARTH_RADIUS
-
-  // The constant of diurnal aberration, e.g., the ratio of the observer's velocity to the speed of
-  // light, which is ~0.32 arcseconds for an observer at the equator (in radians):
-  const k = v / c
-
-  // The observer is carried eastward by the rotation of the Earth, and so the target is displaced
-  // towards the east point of the observer's horizon. The displacement is at a maximum in right
-  // ascension when the target is on the observer's meridian, and it vanishes at the poles, where
-  // the observer is not carried by the rotation of the Earth at all:
-  const Δra = (k * Math.cos(phi) * Math.cos(ha)) / Math.cos(dec)
-
-  // Calculate the aberration correction in declination (in radians):
-  const Δdec = k * Math.cos(phi) * Math.sin(ha) * Math.sin(dec)
-
-  return {
-    ra: degrees(Δra),
-    dec: degrees(Δdec)
-  }
+  // The diurnal aberration is the aberration of that velocity, and so the target is displaced
+  // by it as a vector, which is bounded whatever the declination of the target:
+  return getCorrectionToEquatorialForVelocityAberration(target, velocity)
 }
 
 /*****************************************************************************************************************/
