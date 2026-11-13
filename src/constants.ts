@@ -157,6 +157,15 @@ export const MILLIARCSECOND_IN_DEGREES = ARCSECOND_IN_DEGREES / 1e3
 
 /**
  *
+ * A microarcsecond, e.g., a millionth of an arcsecond (in degrees).
+ *
+ */
+export const MICROARCSECOND_IN_DEGREES = ARCSECOND_IN_DEGREES / 1e6
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * Two pi, e.g., the angle of a whole turn (in radians), or the circumference of a circle of a
  * unit radius.
  *
