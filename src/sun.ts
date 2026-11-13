@@ -445,27 +445,30 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
   // Daily variation in the longitude (in arcseconds), for the geocentric
   // longitude of the Sun in a fixed reference frame:
   //
+  // N.B. The terms in 7.311, 0.305 and 0.010 are multiplied by τ, those in 0.309, 0.021 and 0.004 by τ², and
+  // that in 0.01 by τ³ (Meeus, Astronomical Algorithms, 2nd edition, Chapter 25, p. 168), e.g., they are secular
+  // terms that vanish at J2000.0, and that carry no more than ~0.8 arcseconds per day a century from it:
   const Δλ =
     3548.193 +
     118.568 * Math.sin(radians(87.5287 + 359993.7286 * τ)) +
     2.476 * Math.sin(radians(85.0561 + 719987.4571 * τ)) +
     1.376 * Math.sin(radians(27.8502 + 4452671.1152 * τ)) +
-    0.119 * Math.sin(radians(73.1375 + 450368.8567 * τ)) +
-    0.114 * Math.sin(radians(337.2264 + 329644.6719 * τ)) +
+    0.119 * Math.sin(radians(73.1375 + 450368.8564 * τ)) +
+    0.114 * Math.sin(radians(337.2264 + 329644.6718 * τ)) +
     0.086 * Math.sin(radians(222.54 + 659289.3436 * τ)) +
     0.078 * Math.sin(radians(162.8136 + 9224659.7915 * τ)) +
     0.054 * Math.sin(radians(82.5823 + 1079981.1857 * τ)) +
     0.052 * Math.sin(radians(171.5189 + 225184.4282 * τ)) +
     0.034 * Math.sin(radians(30.3214 + 4092677.3866 * τ)) +
-    0.033 * Math.sin(radians(119.8105 + 337181.0415 * τ)) +
+    0.033 * Math.sin(radians(119.8105 + 337181.4711 * τ)) +
     0.023 * Math.sin(radians(247.5418 + 299295.6151 * τ)) +
     0.023 * Math.sin(radians(325.1526 + 315559.556 * τ)) +
     0.021 * Math.sin(radians(155.1241 + 675553.2846 * τ)) +
-    7.311 * Math.sin(radians(333.4515 + 359993.7286 * τ)) +
-    0.305 * Math.sin(radians(330.9814 + 719987.4571 * τ)) +
-    0.0107 * Math.sin(radians(328.517 + 1079981.1857 * τ)) +
-    0.309 * τ * Math.sin(radians(241.4518 + 359993.7286 * τ)) +
-    0.021 * τ * Math.sin(radians(205.0482 + 719987.4571 * τ)) +
+    7.311 * τ * Math.sin(radians(333.4515 + 359993.7286 * τ)) +
+    0.305 * τ * Math.sin(radians(330.9814 + 719987.4571 * τ)) +
+    0.01 * τ * Math.sin(radians(328.517 + 1079981.1857 * τ)) +
+    0.309 * τ ** 2 * Math.sin(radians(241.4518 + 359993.7286 * τ)) +
+    0.021 * τ ** 2 * Math.sin(radians(205.0482 + 719987.4571 * τ)) +
     0.004 * τ ** 2 * Math.sin(radians(297.861 + 4452671.1152 * τ)) +
     0.01 * τ ** 3 * Math.sin(radians(154.7066 + 359993.7286 * τ))
 

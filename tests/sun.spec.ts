@@ -42,6 +42,8 @@ import {
   SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET
 } from '../src'
 
+import { ARCSECOND_IN_DEGREES } from '../src/constants'
+
 /*****************************************************************************************************************/
 
 // For testing we need to specify a date because most calculations are
@@ -182,6 +184,112 @@ describe('getSolarEclipticCoordinate', () => {
       dec
     })
   })
+
+  it.each([
+    // J2000.0 TT, e.g., τ = 0, at which every term of the series in a power of τ vanishes:
+    ['2000-01-01T11:58:55.816Z', -20.84205823],
+    ['2015-02-05T12:00:00.000Z', -20.774321756],
+    ['2026-01-03T00:00:00.000Z', -20.828198613],
+    ['2026-02-15T00:00:00.000Z', -20.752801332],
+    ['2026-04-01T00:00:00.000Z', -20.499131611],
+    ['2026-05-15T00:00:00.000Z', -20.280174857],
+    ['2026-06-21T08:00:00.000Z', -20.165174948],
+    ['2026-07-04T00:00:00.000Z', -20.148764371],
+    ['2026-08-15T00:00:00.000Z', -20.2373718],
+    ['2026-09-23T00:00:00.000Z', -20.410149213],
+    ['2026-10-01T00:00:00.000Z', -20.457114354],
+    ['2026-11-13T00:00:00.000Z', -20.708241228],
+    ['2026-12-15T00:00:00.000Z', -20.819302249],
+    // Epochs far from J2000.0, at which the terms in τ, τ² and τ³ are at their largest:
+    ['1800-01-01T00:00:00.000Z', -20.8433005],
+    ['1900-06-01T00:00:00.000Z', -20.208102631],
+    ['2100-03-01T00:00:00.000Z', -20.682763157],
+    ['2500-09-01T00:00:00.000Z', -20.269468778],
+    ['3000-01-01T00:00:00.000Z', -20.815830091]
+  ])(
+    'should displace the Sun by the aberration of light of the daily variation in longitude for %s',
+    (iso, expected) => {
+      const datetime = new Date(iso)
+
+      const { λ } = getSolarGeometricEclipticCoordinate(datetime)
+
+      const apparent = getSolarEclipticCoordinate(datetime)
+
+      const { Δψ } = getNutation(datetime)
+
+      // The aberration of light is what remains of the apparent longitude once the geometric longitude and the
+      // nutation in longitude are taken from it, e.g., −0.005775518 · R · Δλ, where Δλ is the daily variation
+      // of the geocentric longitude of the Sun in a fixed reference frame, of which the terms in 7.311, 0.305
+      // and 0.010 are multiplied by τ, those in 0.309, 0.021 and 0.004 by τ², and that in 0.010 by τ³ (Meeus,
+      // Astronomical Algorithms, 2nd edition, Chapter 25, p. 168) (in arcseconds):
+      const aberration = (apparent.λ - (λ + Δψ)) / ARCSECOND_IN_DEGREES
+
+      expect(aberration).toBeCloseTo(expected, 8)
+    }
+  )
+
+  it('should displace the Sun by the aberration of light of Meeus Example 25.b for 1992 October 13.0 TD', () => {
+    // 1992 October 13.0 TD is 1992 October 12 23:59:00.816 UTC, e.g., TT − UTC = 27 s + 32.184 s:
+    const datetime = new Date('1992-10-12T23:59:00.816Z')
+
+    const { λ } = getSolarGeometricEclipticCoordinate(datetime)
+
+    const apparent = getSolarEclipticCoordinate(datetime)
+
+    const { Δψ } = getNutation(datetime)
+
+    const aberration = (apparent.λ - (λ + Δψ)) / ARCSECOND_IN_DEGREES
+
+    // The aberration of light of the example is −20.539 arcseconds, e.g., −20.4898 arcseconds over the radius
+    // vector of an unperturbed elliptical motion, which the daily variation in longitude departs from by the
+    // ~0.01 arcseconds of the perturbations of the Moon and of the planets:
+    expect(Math.abs(aberration - -20.539)).toBeLessThan(0.015)
+  })
+
+  it.each([1900, 1992, 2026, 2099])(
+    'should agree with the aberration of light of an unperturbed elliptical motion on every day of %i',
+    year => {
+      for (
+        const day = new Date(Date.UTC(year, 0, 1));
+        day.getUTCFullYear() === year;
+        day.setUTCDate(day.getUTCDate() + 1)
+      ) {
+        const { λ, R } = getSolarGeometricEclipticCoordinate(day)
+
+        const apparent = getSolarEclipticCoordinate(day)
+
+        const { Δψ } = getNutation(day)
+
+        const aberration = (apparent.λ - (λ + Δψ)) / ARCSECOND_IN_DEGREES
+
+        // The aberration of light of an unperturbed elliptical motion is −20.4898 arcseconds over the radius
+        // vector (in astronomical units) (Meeus, Astronomical Algorithms, 2nd edition, Chapter 25, p. 167), which
+        // the daily variation in longitude departs from by no more than the ~0.01 arcseconds of the perturbations
+        // of the Moon and of the planets, and not by the ~0.04 arcseconds of a term in 7.311 that is not
+        // multiplied by τ:
+        expect(Math.abs(aberration - -20.4898 / (R / AU_IN_METERS))).toBeLessThan(0.015)
+      }
+    }
+  )
+
+  it.each([
+    '1900-06-01T00:00:00.000Z',
+    '2000-01-01T11:58:55.816Z',
+    '2026-11-13T00:00:00.000Z',
+    '2500-09-01T00:00:00.000Z'
+  ])(
+    'should not displace the ecliptic latitude or the distance of the Sun by the aberration of light for %s',
+    iso => {
+      const datetime = new Date(iso)
+
+      const { β, R } = getSolarGeometricEclipticCoordinate(datetime)
+
+      const apparent = getSolarEclipticCoordinate(datetime)
+
+      expect(apparent.β).toBe(β)
+      expect(apparent.R).toBe(R)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
@@ -254,8 +362,8 @@ describe('getSolarEquatorialCoordinate', () => {
   it('should return the correct Solar equatorial coordinate for the given date', () => {
     const datetime = new Date('2015-02-05T12:00:00.000+00:00')
     const { ra: α, dec: δ } = getSolarEquatorialCoordinate(datetime)
-    expect(α).toBeCloseTo(318.80814871698885, 12)
-    expect(δ).toBeCloseTo(-15.932575017408832, 12)
+    expect(α).toBeCloseTo(318.8081506224865, 12)
+    expect(δ).toBeCloseTo(-15.93257444270331, 12)
   })
 })
 
