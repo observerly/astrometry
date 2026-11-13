@@ -139,6 +139,15 @@ export const MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000 = 84381.406 / 3600
 
 /**
  *
+ * An arcsecond, e.g., a sixtieth of an arcminute, or 1/3600 of a degree (in degrees).
+ *
+ */
+export const ARCSECOND_IN_DEGREES = 1 / 3600
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * Two pi, e.g., the angle of a whole turn (in radians), or the circumference of a circle of a
  * unit radius.
  *
