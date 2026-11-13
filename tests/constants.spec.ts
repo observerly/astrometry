@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest'
 /*****************************************************************************************************************/
 
 import {
+  ARCSECOND_IN_DEGREES,
   AU_IN_METERS,
   MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000,
   MINUTES_IN_DAY,
@@ -127,6 +128,31 @@ describe('SCHWARZSCHILD_RADIUS_OF_THE_SUN', () => {
   it('should be a positive, finite number', () => {
     expect(Number.isFinite(SCHWARZSCHILD_RADIUS_OF_THE_SUN)).toBe(true)
     expect(SCHWARZSCHILD_RADIUS_OF_THE_SUN).toBeGreaterThan(0)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('ARCSECOND_IN_DEGREES', () => {
+  it('should be defined', () => {
+    expect(ARCSECOND_IN_DEGREES).toBeDefined()
+  })
+
+  it('should be 1/3600 of a degree', () => {
+    expect(ARCSECOND_IN_DEGREES).toBe(1 / 3600)
+  })
+
+  it('should be 3,600 to the degree', () => {
+    expect(ARCSECOND_IN_DEGREES * 3600).toBeCloseTo(1, 15)
+  })
+
+  it('should be 1,296,000 to the whole turn', () => {
+    expect(360 / ARCSECOND_IN_DEGREES).toBeCloseTo(1296000, 6)
+  })
+
+  it('should be a positive, finite number', () => {
+    expect(ARCSECOND_IN_DEGREES).toBeGreaterThan(0)
+    expect(Number.isFinite(ARCSECOND_IN_DEGREES)).toBe(true)
   })
 })
 
