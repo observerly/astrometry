@@ -149,6 +149,81 @@ describe('getTwilightBandsForDay', () => {
       }
     }
   })
+
+  it('should throw for a step of zero seconds', () => {
+    expect(() =>
+      getTwilightBandsForDay(datetime, { latitude, longitude }, { stepSeconds: 0 })
+    ).toThrow('Invalid step: stepSeconds must be finite and greater than zero')
+
+    expect(() =>
+      getTwilightBandsForDay(datetime, { latitude, longitude }, { stepSeconds: -0 })
+    ).toThrow('Invalid step: stepSeconds must be finite and greater than zero')
+  })
+
+  it('should throw for a step of less than zero seconds', () => {
+    for (const stepSeconds of [-0.001, -1, -10, -86400, -Number.MAX_VALUE]) {
+      expect(() =>
+        getTwilightBandsForDay(datetime, { latitude, longitude }, { stepSeconds })
+      ).toThrow('Invalid step: stepSeconds must be finite and greater than zero')
+    }
+  })
+
+  it('should throw for a step that is not finite', () => {
+    for (const stepSeconds of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      expect(() =>
+        getTwilightBandsForDay(datetime, { latitude, longitude }, { stepSeconds })
+      ).toThrow('Invalid step: stepSeconds must be finite and greater than zero')
+    }
+  })
+
+  it('should throw an Error for an invalid step without mutating the datetime', () => {
+    expect(() =>
+      getTwilightBandsForDay(datetime, { latitude, longitude }, { stepSeconds: 0 })
+    ).toThrow(Error)
+
+    expect(datetime).toEqual(new Date('2021-05-14T03:00:00.000+00:00'))
+  })
+
+  it('should fall back to the default step when the step is not specified', () => {
+    const expected = getTwilightBandsForDay(datetime, { latitude, longitude }, { stepSeconds: 10 })
+
+    expect(getTwilightBandsForDay(datetime, { latitude, longitude })).toEqual(expected)
+
+    expect(getTwilightBandsForDay(datetime, { latitude, longitude }, {})).toEqual(expected)
+
+    expect(
+      getTwilightBandsForDay(datetime, { latitude, longitude }, { stepSeconds: undefined })
+    ).toEqual(expected)
+  })
+
+  it('should resolve contiguous bands spanning the whole day for a step greater than zero', () => {
+    for (const stepSeconds of [2.5, 60, 3600]) {
+      const bands = getTwilightBandsForDay(datetime, { latitude, longitude }, { stepSeconds })
+
+      expect(bands.length).toBeGreaterThan(0)
+
+      expect(bands[0].interval.from.getTime()).toBe(Date.UTC(2021, 4, 14, 0, 0, 0, 0))
+
+      expect(bands[bands.length - 1].interval.to.getTime()).toBe(Date.UTC(2021, 4, 15, 0, 0, 0, 0))
+
+      for (let i = 1; i < bands.length; i++) {
+        expect(bands[i].interval.from.getTime()).toBe(bands[i - 1].interval.to.getTime())
+        expect(bands[i].name).not.toBe(bands[i - 1].name)
+      }
+    }
+  })
+
+  it('should resolve a single band spanning the whole day for a step longer than the day', () => {
+    for (const stepSeconds of [86400, 172800, Number.MAX_SAFE_INTEGER]) {
+      const bands = getTwilightBandsForDay(datetime, { latitude, longitude }, { stepSeconds })
+
+      expect(bands.length).toBe(1)
+
+      expect(bands[0].interval.from.getTime()).toBe(Date.UTC(2021, 4, 14, 0, 0, 0, 0))
+
+      expect(bands[0].interval.to.getTime()).toBe(Date.UTC(2021, 4, 15, 0, 0, 0, 0))
+    }
+  })
 })
 
 /*****************************************************************************************************************/

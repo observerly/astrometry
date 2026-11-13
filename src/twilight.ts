@@ -82,8 +82,9 @@ const getWhatTwilight = (altitude: number) => {
  *
  * @param datetime - The date and time for which to calculate the twilight bands
  * @param observer - The geographic coordinates of the observer
- * @param params - Optional parameters for the calculation
+ * @param params - Optional parameters for the calculation, e.g., the step (in seconds) at which the day is sampled
  * @returns An array of twilight bands for the given day
+ * @throws An error if the step is not finite and greater than zero
  */
 export function getTwilightBandsForDay(
   datetime: Date,
@@ -93,6 +94,11 @@ export function getTwilightBandsForDay(
   }
 ): TwilightBand[] {
   const { stepSeconds = 10 } = params
+
+  // A step that is not a positive number of seconds does not advance the sampling through the day:
+  if (!Number.isFinite(stepSeconds) || stepSeconds <= 0) {
+    throw new Error('Invalid step: stepSeconds must be finite and greater than zero')
+  }
 
   // Set the datetime to be at midnight UTC for the date specified, taking a copy of the datetime so
   // as to not modify the date given by the caller, and deriving the day boundary in UTC so as to be
@@ -146,7 +152,7 @@ export function getTwilightBandsForDay(
       start = to
     }
 
-    // Add 1 seconds to the current time:
+    // Advance the current time by the step:
     from = new Date(from.getTime() + stepSeconds * 1000)
   }
 
