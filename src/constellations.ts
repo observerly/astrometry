@@ -1063,11 +1063,18 @@ export const constellations: Map<ConstellationName, Constellation> = new Map<
  *
  */
 export function getConstellation(target: EquatorialCoordinate): Constellation | undefined {
-  // We precess to 1875, as the Nancy Roman lookup table is accurate for that epoch:
-  const corr = getCorrectionToEquatorialForPrecessionOfEquinoxes(new Date(1875, 0, 0), target)
+  // We precess to the Besselian epoch B1875.0, as the Nancy Roman lookup table is accurate for that
+  // epoch, e.g., the Julian date 2405889.258550, as 25 tropical years of 365.242198781 days before
+  // B1900.0 at the Julian date 2415020.31352, or 18:12:18.761 on the 31st December 1874.
+  // N.B. The epoch is given as an instant in UTC, and not as the local midnight of the host, such
+  // that the boundaries are not carried by up to ~0.1″ between timezones:
+  const corr = getCorrectionToEquatorialForPrecessionOfEquinoxes(
+    new Date(Date.UTC(1874, 11, 31, 18, 12, 18, 761)),
+    target
+  )
 
   // Apply the correction to the target's right ascension, wrapped into the range [0, 360), e.g., a
-  // target just east of 0h is carried west of it by the precession to 1875:
+  // target just east of 0h is carried west of it by the precession to B1875.0:
   const ra = (((target.ra + corr.ra) % 360) + 360) % 360
 
   // Apply the correction to the target's declination:
