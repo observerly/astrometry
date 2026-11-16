@@ -28,6 +28,34 @@ describe('CURRENT_EXPIRY_UNIX_TIMESTAMP', () => {
     expect(new Date(CURRENT_EXPIRY_UNIX_TIMESTAMP).toISOString()).toBe('2027-06-28T00:00:00.000Z')
   })
 
+  it('should not have expired', () => {
+    // The table is published by the IERS with an expiry, e.g., every six months, and so this fails
+    // once the expiry has passed, at which point the table and its expiry are to be updated from
+    // https://data.iana.org/time-zones/data/leap-seconds.list:
+    expect(Date.now()).toBeLessThan(CURRENT_EXPIRY_UNIX_TIMESTAMP)
+  })
+
+  it('should not log a warning where the module is imported after the expiry', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    vi.useFakeTimers()
+
+    try {
+      // One day after the expiry of the table:
+      vi.setSystemTime(new Date(CURRENT_EXPIRY_UNIX_TIMESTAMP + 86400000))
+
+      vi.resetModules()
+
+      await import('../src/iers')
+
+      expect(warn).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+      vi.resetModules()
+      warn.mockRestore()
+    }
+  })
+
   it('should be the same expiry irrespective of the host timezone', async () => {
     const TZ = process.env.TZ
 

@@ -61,12 +61,6 @@ interface IERS_LEAP_SECONDS_NTP {
  *
  */
 const getLeapSeconds = (): IERS_LEAP_SECONDS_NTP[] => {
-  // Log a warning if the current leap seconds table is out of date according
-  // to the IERS expiry date.
-  if (Date.now() > CURRENT_EXPIRY_UNIX_TIMESTAMP) {
-    console.warn('The current IERS leap seconds table is out of date. Please update it.')
-  }
-
   return [
     {
       ntp: 2272060800,
@@ -241,7 +235,8 @@ const getLeapSeconds = (): IERS_LEAP_SECONDS_NTP[] => {
 
 /*****************************************************************************************************************/
 
-// We return a function to ensure a warning is logged if the leap seconds table is out of date.
+// N.B. The table is resolved without a side effect, e.g., nothing is logged where the module is imported
+// after the expiry of the table, as that the table is current is asserted by the tests of the module:
 export const LEAP_SECONDS: IERS_LEAP_SECONDS_NTP[] = getLeapSeconds()
 
 /*****************************************************************************************************************/
