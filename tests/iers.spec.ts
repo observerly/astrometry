@@ -25,7 +25,7 @@ describe('CURRENT_EXPIRY_UNIX_TIMESTAMP', () => {
   })
 
   it('should be the expiry of the current IERS leap second table', () => {
-    expect(new Date(CURRENT_EXPIRY_UNIX_TIMESTAMP).toISOString()).toBe('2026-12-28T00:00:00.000Z')
+    expect(new Date(CURRENT_EXPIRY_UNIX_TIMESTAMP).toISOString()).toBe('2027-06-28T00:00:00.000Z')
   })
 
   it('should be the same expiry irrespective of the host timezone', async () => {
@@ -41,7 +41,7 @@ describe('CURRENT_EXPIRY_UNIX_TIMESTAMP', () => {
 
         const { CURRENT_EXPIRY_UNIX_TIMESTAMP: expiry } = await import('../src/iers')
 
-        expect(new Date(expiry).toISOString()).toBe('2026-12-28T00:00:00.000Z')
+        expect(new Date(expiry).toISOString()).toBe('2027-06-28T00:00:00.000Z')
       }
     } finally {
       process.env.TZ = TZ

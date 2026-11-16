@@ -8,7 +8,7 @@
 
 // The current Unix timestamp for the expiry of the current IERS leap second table.
 // This is when we should next check for an updated table.
-export const CURRENT_EXPIRY_UNIX_TIMESTAMP: number = Date.UTC(2026, 11, 28, 0, 0, 0, 0)
+export const CURRENT_EXPIRY_UNIX_TIMESTAMP: number = Date.UTC(2027, 5, 28, 0, 0, 0, 0)
 
 /*****************************************************************************************************************/
 
