@@ -600,10 +600,20 @@ export function isBodyVisibleForNight(
   const { start, end } = getNight(midnight, observer)
 
   // The Sun neither sets nor rises across the horizon of the night, e.g., the observer is either in
-  // perpetual daylight, and so there is no night, or in perpetual night, and so the whole day is
-  // night, in which an object that rises is above the horizon at some point:
+  // perpetual night, and so the whole day is night, in which an object that rises is above the
+  // horizon at some point, or there is no night of the date at all.
+  //
+  // N.B. The two are told apart over the whole of the day, and not at midnight UTC alone, which may
+  // fall in the tail of the night of the date before, e.g., on the first date of a season without a
+  // night, where the night of the date before ends after midnight UTC:
   if (!start && !end) {
-    return isNight(midnight, observer)
+    for (let when = midnight.getTime(); when < midnight.getTime() + 86400000; when += 600000) {
+      if (!isNight(new Date(when), observer)) {
+        return false
+      }
+    }
+
+    return true
   }
 
   // If the object is circumpolar, it never sets, and so it is visible for whatever night there is:
@@ -613,10 +623,14 @@ export function isBodyVisibleForNight(
 
   // The night is bounded by the sunset and the following sunrise, and where the Sun crosses the
   // horizon of the night only once, e.g., at the border of the polar night or the polar day, the
-  // missing end is bounded by the day either side, within which it is night only where it is:
-  const from = start ? start.getTime() : midnight.getTime()
+  // missing end is bounded by the day after the sunset, or the day before the sunrise, within
+  // which it is night only where it is.
+  //
+  // N.B. The missing end is resolved from the end that is known, and not from the longitude of the
+  // observer, so that the bounds are always in order, e.g., for an observer at the antimeridian:
+  const from = start ? start.getTime() : (end as Date).getTime() - 86400000
 
-  const to = end ? end.getTime() : midnight.getTime() + 2 * 86400000
+  const to = end ? end.getTime() : (start as Date).getTime() + 86400000
 
   // Loop over the night, in steps of 1 minute of UTC, e.g., independent of the timezone of the host
   // system, to determine whether the object is visible at some point during the night:

@@ -1308,6 +1308,38 @@ describe('isBodyVisibleForNight', () => {
 
     expect(visible).toBe(false)
   })
+
+  it.each([
+    ['2024-05-31', 55.95, -3.19],
+    ['2024-05-19', 58, 0]
+  ])('should return false on the first date without a night, %s', (date, latitude, longitude) => {
+    // On the first date of the season without a night the night of the date before ends just after
+    // midnight UTC, e.g., at ~00:28 UTC in Edinburgh, and so midnight UTC is still night, although
+    // the date itself has no night of its own, and the object does not rise until after it ends:
+    const visible = isBodyVisibleForNight(
+      new Date(`${date}T12:00:00Z`),
+      { latitude, longitude },
+      { ra: 0, dec: 5 }
+    )
+
+    expect(visible).toBe(false)
+  })
+
+  it.each([[-180], [180]])(
+    'should return true at the border of the polar night at a longitude of %s°',
+    longitude => {
+      // At 80°N on the antimeridian the Sun sets for the last time on the 2nd of December 2025 at
+      // ~00:11 UTC, and does not rise the day after, and so the night is bounded from the sunset that
+      // is known, and not from the longitude of the observer, which wraps at the antimeridian:
+      const visible = isBodyVisibleForNight(
+        new Date('2025-12-01T12:00:00Z'),
+        { latitude: 80, longitude },
+        { ra: 0, dec: 5 }
+      )
+
+      expect(visible).toBe(true)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
