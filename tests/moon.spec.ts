@@ -591,6 +591,24 @@ describe('getLunarBrownLunationNumber', () => {
     const LBN = getLunarBrownLunationNumber(datetime)
     expect(LBN).toBe(1217)
   })
+
+  it.each([
+    ['1923-01-17T03:00:00Z', 1],
+    ['1923-02-10T00:00:00Z', 1],
+    ['1923-02-16T00:00:00Z', 2],
+    ['2000-01-06T19:00:00Z', 953],
+    ['2000-01-25T00:00:00Z', 953],
+    ['2021-06-01T00:00:00Z', 1217],
+    ['2021-06-10T12:00:00Z', 1218]
+  ])(
+    'should return the Brown Lunation number of the lunation in progress at %s',
+    (iso, expected) => {
+      // The lunation begins at its New Moon, e.g., Lunation 1 on the 17th of January 1923, Lunation 953
+      // on the 6th of January 2000 and Lunation 1218 on the 10th of June 2021 at ~10:53 UTC, and it
+      // does not advance until the next New Moon, e.g., not at the Full Moon half a lunation before it:
+      expect(getLunarBrownLunationNumber(new Date(iso))).toBe(expected)
+    }
+  )
 })
 
 /*****************************************************************************************************************/

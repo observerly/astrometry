@@ -972,7 +972,9 @@ export function getLunarBrownLunationNumber(datetime: Date): number {
   // Get the Julian date:
   const JD = getJulianDate(datetime)
 
-  return Math.round((JD - LUNATION_BASE_JULIAN_DAY) / LUNAR_SYNODIC_MONTH) + 1
+  // The lunation begins at its New Moon, and so the number of whole synodic months since Lunation
+  // 1st is rounded down, e.g., the lunation does not advance until the next New Moon:
+  return Math.floor((JD - LUNATION_BASE_JULIAN_DAY) / LUNAR_SYNODIC_MONTH) + 1
 }
 
 /*****************************************************************************************************************/
