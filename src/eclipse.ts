@@ -564,6 +564,9 @@ export function getSolarEclipse(
  *
  * isLunarEclipse()
  *
+ * N.B. A lunar eclipse is taken to be in progress within 3.5 hours of its maximum, e.g., the Moon
+ * takes up to ~3.5 hours either side of its maximum to cross the penumbra of the Earth's shadow.
+ *
  * @param datetime - The date and time to calculate the lunar eclipse for.
  * @param observer - The geographic coordinates of the observer.
  * @returns The lunar eclipse at the given date and time for the observer or false if no eclipse occurs.
@@ -600,10 +603,22 @@ export function isLunarEclipse(
   // Get the angular distance of the Moon from the nearer of the two nodes, in the range [0, 90]:
   const distance = Math.min(d, 180 - d)
 
-  // Check if the Moon is within the threshold of a node, if not we cannot have a lunar eclipse.
-  // If the Moon is within the threshold of a node, then we can have a lunar eclipse. We can
-  // return the parameters of the eclipse:
-  return distance > threshold ? false : getLunarEclipse(datetime, observer)
+  // Check if the Moon is within the threshold of a node, if not we cannot have a lunar eclipse:
+  if (distance > threshold) {
+    return false
+  }
+
+  // If the Moon is within the threshold of a node, then we can have a lunar eclipse:
+  const eclipse = getLunarEclipse(datetime, observer)
+
+  if (!eclipse) {
+    return false
+  }
+
+  // N.B. The Moon is within the threshold of a node for days either side of an eclipse, e.g., at the
+  // New Moon two weeks before it, and so the eclipse is only in progress at the given date and time
+  // where it is within the duration of the eclipse either side of its maximum:
+  return Math.abs(datetime.getTime() - eclipse.maximum.getTime()) > 3.5 * 3600000 ? false : eclipse
 }
 
 /*****************************************************************************************************************/
