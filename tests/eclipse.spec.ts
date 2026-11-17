@@ -618,6 +618,46 @@ describe('isLunarEclipse', () => {
 
     expect(eclipse.type).toBe(type)
   })
+
+  it.each([
+    ['2023-10-28T17:00:00Z', 'partial'],
+    ['2023-10-28T20:14:00Z', 'partial'],
+    ['2023-10-28T23:30:00Z', 'partial']
+  ])('should return the lunar eclipse in progress at %s', (iso, type) => {
+    // The partial lunar eclipse of the 28th of October 2023 is at its maximum at ~20:14 UTC, and so
+    // it is in progress within 3.5 hours either side of it:
+    const eclipse = isLunarEclipse(new Date(iso), {
+      latitude: 32.78,
+      longitude: -96.8,
+      elevation: 0
+    })
+
+    expect(eclipse).not.toBe(false)
+
+    if (!eclipse) {
+      throw new Error('Expected a lunar eclipse')
+    }
+
+    expect(eclipse.type).toBe(type)
+  })
+
+  it.each([
+    ['2023-10-14T18:00:00Z', 'the New Moon two weeks before the eclipse'],
+    ['2023-10-28T16:00:00Z', 'more than 3.5 hours before the maximum'],
+    ['2023-10-29T00:00:00Z', 'more than 3.5 hours after the maximum'],
+    ['2023-10-29T20:00:00Z', 'the day after the eclipse']
+  ])('should not return a lunar eclipse at %s, %s', iso => {
+    // The Moon is within the threshold of a node for days either side of the partial lunar eclipse of
+    // the 28th of October 2023, e.g., at the annular solar eclipse of the 14th of October 2023, but no
+    // lunar eclipse is in progress other than within the duration of the eclipse about its maximum:
+    const eclipse = isLunarEclipse(new Date(iso), {
+      latitude: 32.78,
+      longitude: -96.8,
+      elevation: 0
+    })
+
+    expect(eclipse).toBe(false)
+  })
 })
 
 /*****************************************************************************************************************/
