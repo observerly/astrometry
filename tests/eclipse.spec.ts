@@ -670,6 +670,46 @@ describe('isSolarEclipse', () => {
       expect(eclipse.type).toBe(type)
     }
   )
+
+  it.each([
+    ['2024-04-08T15:30:00Z', 'total'],
+    ['2024-04-08T18:17:00Z', 'total'],
+    ['2024-04-08T21:00:00Z', 'total']
+  ])('should return the solar eclipse in progress at %s', (iso, type) => {
+    // The total solar eclipse of the 8th of April 2024 is at its maximum at ~18:17 UTC, and so it is
+    // in progress within 3 hours either side of it:
+    const eclipse = isSolarEclipse(new Date(iso), {
+      latitude: 32.78,
+      longitude: -96.8,
+      elevation: 0
+    })
+
+    expect(eclipse).not.toBe(false)
+
+    if (!eclipse) {
+      throw new Error('Expected a solar eclipse')
+    }
+
+    expect(eclipse.type).toBe(type)
+  })
+
+  it.each([
+    ['2024-03-25T07:12:00Z', 'the Full Moon two weeks before the eclipse'],
+    ['2024-04-08T12:00:00Z', 'more than 3 hours before the maximum'],
+    ['2024-04-08T22:00:00Z', 'more than 3 hours after the maximum'],
+    ['2024-04-09T18:00:00Z', 'the day after the eclipse']
+  ])('should not return a solar eclipse at %s, %s', iso => {
+    // The Moon is within the threshold of a node for days either side of the total solar eclipse of
+    // the 8th of April 2024, e.g., at the penumbral lunar eclipse of the 25th of March 2024, but no
+    // solar eclipse is in progress other than within the duration of the eclipse about its maximum:
+    const eclipse = isSolarEclipse(new Date(iso), {
+      latitude: 32.78,
+      longitude: -96.8,
+      elevation: 0
+    })
+
+    expect(eclipse).toBe(false)
+  })
 })
 
 /*****************************************************************************************************************/
