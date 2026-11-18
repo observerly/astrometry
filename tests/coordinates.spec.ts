@@ -20,8 +20,10 @@ import {
   convertEquatorialToHorizontal,
   convertGalacticToEquatorial,
   convertGeocentricToGeographic,
+  convertGeographicToGeocentric,
   convertHorizontalToEquatorial,
   doTranspose,
+  EARTH_FLATTENING,
   EARTH_RADIUS,
   type EclipticCoordinate,
   type EquatorialCoordinate,
@@ -1149,6 +1151,126 @@ describe('convertGeocentricToGeographic', () => {
         convertGeocentricToGeographic(datetime, { x: EARTH_RADIUS, y: 0, z: 0 }, radius)
       ).toThrow('Invalid radius: the radius must be greater than zero')
     }
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('convertGeographicToGeocentric', () => {
+  it('should be defined', () => {
+    expect(convertGeographicToGeocentric).toBeDefined()
+  })
+
+  it.each([
+    ['the equator', 0, 0, 0, 6378137.8, 0],
+    ['the north pole', 90, 0, 0, 0, 6356753.1116],
+    ['the south pole', -90, 0, 0, 0, -6356753.1116],
+    ['Mauna Kea', 19.820611, -155.468094, 4207, 6006557.8392, 2150451.6582],
+    ['Greenwich', 51.4769, -0.0005, 46, 3980688.7003, 4966798.769],
+    ['Sydney', -33.8688, 151.2093, 58, 5301431.1947, -3534405.1542],
+    ['an observer in low Earth orbit', 51.6, 30, 420000, 4230817.8532, 5304432.7538]
+  ])(
+    'should return the position of an observer at %s on the WGS84 ellipsoid',
+    (_, latitude, longitude, elevation, ρ, z) => {
+      // The distance of the observer from the axis of rotation, ρ, and from the plane of the equator,
+      // z, do not depend on the rotation of the Earth, and so they are compared against the geodetic to
+      // geocentric conversion of ERFA (eraGd2gce), for the equatorial radius and flattening in use:
+      const position = convertGeographicToGeocentric(datetime, { latitude, longitude, elevation })
+
+      expect(Math.hypot(position.x, position.y)).toBeCloseTo(ρ, 3)
+      expect(position.z).toBeCloseTo(z, 3)
+    }
+  )
+
+  it('should orient the position by the sidereal rotation of the Earth', () => {
+    // The right ascension of the position is the Greenwich Sidereal Time carried east by the
+    // longitude of the observer:
+    const { x, y } = convertGeographicToGeocentric(datetime, { latitude: 20, longitude: -155 })
+
+    const ra = degrees(Math.atan2(y, x))
+
+    const expected = getGreenwichSiderealTime(datetime) * 15 - 155
+
+    expect(Math.cos(radians(ra - expected))).toBeCloseTo(1, 12)
+    expect(Math.sin(radians(ra - expected))).toBeCloseTo(0, 12)
+  })
+
+  it('should take the elevation to be zero where it is not given', () => {
+    const observer = { latitude: 45, longitude: 10 }
+
+    expect(convertGeographicToGeocentric(datetime, observer)).toEqual(
+      convertGeographicToGeocentric(datetime, { ...observer, elevation: 0 })
+    )
+  })
+
+  it('should resolve the geocentric latitude below the geodetic latitude by up to ~0.19°', () => {
+    // The vertical of an observer on an ellipsoid does not pass through the center of the Earth, other
+    // than at the equator and the poles, e.g., at a latitude of 45° the two differ by ~11.5 arcminutes:
+    const { x, y, z } = convertGeographicToGeocentric(datetime, { latitude: 45, longitude: 0 })
+
+    expect(degrees(Math.atan2(z, Math.hypot(x, y)))).toBeCloseTo(44.807577, 6)
+  })
+
+  it('should be the inverse of convertGeocentricToGeographic for a spherical Earth', () => {
+    // For a flattening of zero the figure of the Earth is the sphere that the inverse resolves the
+    // geographic coordinate against:
+    for (const observer of [
+      { latitude: 19.820611, longitude: -155.468094, elevation: 4207 },
+      { latitude: -33.8688, longitude: 151.2093, elevation: 58 },
+      { latitude: 51.6, longitude: 30, elevation: 420000 }
+    ]) {
+      const position = convertGeographicToGeocentric(datetime, observer, EARTH_RADIUS, 0)
+
+      const { latitude, longitude, elevation } = convertGeocentricToGeographic(datetime, position)
+
+      expect(latitude).toBeCloseTo(observer.latitude, 10)
+      expect(longitude).toBeCloseTo(observer.longitude, 10)
+      expect(elevation).toBeCloseTo(observer.elevation, 6)
+    }
+  })
+
+  it('should default to the equatorial radius and the flattening of the WGS84 ellipsoid', () => {
+    const observer = { latitude: 35, longitude: 139, elevation: 40 }
+
+    expect(convertGeographicToGeocentric(datetime, observer)).toEqual(
+      convertGeographicToGeocentric(datetime, observer, EARTH_RADIUS, EARTH_FLATTENING)
+    )
+  })
+
+  it('should throw for an observer with a component that is not finite', () => {
+    expect(() =>
+      convertGeographicToGeocentric(datetime, { latitude: Number.NaN, longitude: 0 })
+    ).toThrow()
+    expect(() =>
+      convertGeographicToGeocentric(datetime, { latitude: 0, longitude: Number.POSITIVE_INFINITY })
+    ).toThrow()
+    expect(() =>
+      convertGeographicToGeocentric(datetime, { latitude: 0, longitude: 0, elevation: Number.NaN })
+    ).toThrow()
+  })
+
+  it('should throw for a radius that is not finite or not greater than zero', () => {
+    const observer = { latitude: 0, longitude: 0 }
+
+    expect(() => convertGeographicToGeocentric(datetime, observer, 0)).toThrow()
+    expect(() => convertGeographicToGeocentric(datetime, observer, -1)).toThrow()
+    expect(() => convertGeographicToGeocentric(datetime, observer, Number.NaN)).toThrow()
+  })
+
+  it('should throw for a flattening that is not finite or not in the range [0, 1)', () => {
+    const observer = { latitude: 0, longitude: 0 }
+
+    expect(() => convertGeographicToGeocentric(datetime, observer, EARTH_RADIUS, -0.1)).toThrow()
+    expect(() => convertGeographicToGeocentric(datetime, observer, EARTH_RADIUS, 1)).toThrow()
+    expect(() =>
+      convertGeographicToGeocentric(datetime, observer, EARTH_RADIUS, Number.NaN)
+    ).toThrow()
+  })
+
+  it('should not modify the observer given by the caller', () => {
+    const observer = Object.freeze({ latitude: 19.820611, longitude: -155.468094, elevation: 4207 })
+
+    expect(() => convertGeographicToGeocentric(datetime, observer)).not.toThrow()
   })
 })
 

@@ -13,6 +13,8 @@ import { describe, expect, it } from 'vitest'
 import {
   ARCSECOND_IN_DEGREES,
   AU_IN_METERS,
+  EARTH_FLATTENING,
+  EARTH_RADIUS,
   MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000,
   MICROARCSECOND_IN_DEGREES,
   MILLIARCSECOND_IN_DEGREES,
@@ -209,6 +211,28 @@ describe('MICROARCSECOND_IN_DEGREES', () => {
   it('should be a positive, finite number', () => {
     expect(MICROARCSECOND_IN_DEGREES).toBeGreaterThan(0)
     expect(Number.isFinite(MICROARCSECOND_IN_DEGREES)).toBe(true)
+  })
+})
+
+/*****************************************************************************************************************/
+
+describe('EARTH_FLATTENING', () => {
+  it('should be defined', () => {
+    expect(EARTH_FLATTENING).toBeDefined()
+  })
+
+  it('should be the flattening of the WGS84 ellipsoid', () => {
+    expect(1 / EARTH_FLATTENING).toBeCloseTo(298.257223563, 9)
+  })
+
+  it('should give a polar radius ~21.4 km shorter than the equatorial radius', () => {
+    expect(EARTH_RADIUS * EARTH_FLATTENING).toBeCloseTo(21384.69, 2)
+  })
+
+  it('should be a positive, finite number less than one', () => {
+    expect(EARTH_FLATTENING).toBeGreaterThan(0)
+    expect(EARTH_FLATTENING).toBeLessThan(1)
+    expect(Number.isFinite(EARTH_FLATTENING)).toBe(true)
   })
 })
 

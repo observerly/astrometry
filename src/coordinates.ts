@@ -20,7 +20,7 @@ import type {
   GeographicCoordinate,
   HorizontalCoordinate
 } from './common'
-import { EARTH_RADIUS } from './constants'
+import { EARTH_FLATTENING, EARTH_RADIUS } from './constants'
 
 import {
   doTranspose,
@@ -433,6 +433,90 @@ export function convertGeocentricToGeographic(
     latitude,
     longitude,
     elevation: distance - radius
+  }
+}
+
+/*****************************************************************************************************************/
+
+/**
+ *
+ * convertGeographicToGeocentric()
+ *
+ * Performs the conversion from the geographic coordinate of an observer to their geocentric
+ * equatorial cartesian position, e.g., the position of the observer from the center of the Earth,
+ * on or above the ellipsoid that is the figure of the Earth.
+ *
+ * The position is given in the geocentric equatorial frame, e.g., the frame an ephemeris resolves
+ * the position of a satellite in, with the x-axis towards the vernal equinox, the z-axis along the
+ * rotational axis of the Earth, and the origin at its center (in SI metres).
+ *
+ * N.B. The latitude is the geodetic latitude, e.g., the angle of the vertical of the observer from
+ * the plane of the equator, as a navigation receiver or a map gives it, and the elevation is taken
+ * along that vertical above the ellipsoid. An observer of a spherical Earth gives a flattening of
+ * zero, for which the conversion is the inverse of convertGeocentricToGeographic().
+ *
+ * @param datetime - The date and time of the observation, which orients the Earth beneath the position.
+ * @param observer - The geographic coordinate of the observer, e.g., { latitude, longitude, elevation }.
+ * @param radius - The equatorial radius of the Earth (in SI metres). Defaults to the equatorial radius.
+ * @param flattening - The flattening of the Earth. Defaults to the flattening of the WGS84 ellipsoid.
+ * @throws An error if the latitude, longitude or elevation of the observer is not finite.
+ * @throws An error if the radius is not finite, or is not greater than zero.
+ * @throws An error if the flattening is not finite, or is not in the range [0, 1).
+ * @returns The geocentric equatorial cartesian position of the observer (in SI metres).
+ *
+ */
+export function convertGeographicToGeocentric(
+  datetime: Date,
+  observer: GeographicCoordinate,
+  radius: number = EARTH_RADIUS,
+  flattening: number = EARTH_FLATTENING
+): Required<CartesianCoordinate> {
+  const { latitude, longitude, elevation = 0 } = observer
+
+  // A coordinate with a component that is not finite is above no one point of the Earth:
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !Number.isFinite(elevation)) {
+    throw new Error(
+      'Invalid observer: each of the latitude, longitude and elevation must be finite'
+    )
+  }
+
+  if (!Number.isFinite(radius)) {
+    throw new Error('Invalid radius: the radius must be finite')
+  }
+
+  if (radius <= 0) {
+    throw new Error('Invalid radius: the radius must be greater than zero')
+  }
+
+  // A flattening of one or more has no polar radius, and a flattening below zero is not oblate:
+  if (!Number.isFinite(flattening) || flattening < 0 || flattening >= 1) {
+    throw new Error('Invalid flattening: the flattening must be finite and in the range [0, 1)')
+  }
+
+  const φ = radians(latitude)
+
+  // The square of the ratio of the polar radius to the equatorial radius of the ellipsoid:
+  const w = (1 - flattening) ** 2
+
+  // The radius of curvature of the ellipsoid in the prime vertical at the latitude of the observer,
+  // e.g., the distance along their vertical from the surface to the axis of rotation (in SI metres):
+  const N = radius / Math.sqrt(Math.cos(φ) ** 2 + w * Math.sin(φ) ** 2)
+
+  // The distance of the observer from the axis of rotation of the Earth (in SI metres):
+  const ρ = (N + elevation) * Math.cos(φ)
+
+  // The distance of the observer from the plane of the equator (in SI metres):
+  const z = (w * N + elevation) * Math.sin(φ)
+
+  // The Earth rotates beneath the equatorial frame, and so the right ascension of the meridian of
+  // the observer is the Greenwich Sidereal Time, e.g., the hour angle of the vernal equinox at
+  // Greenwich (in hours, of 15 degrees each), carried east by their longitude (in radians):
+  const θ = radians(getGreenwichSiderealTime(datetime) * 15 + longitude)
+
+  return {
+    x: ρ * Math.cos(θ),
+    y: ρ * Math.sin(θ),
+    z
   }
 }
 
