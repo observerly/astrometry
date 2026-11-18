@@ -496,19 +496,46 @@ describe('convertEquatorialToHorizontal', () => {
       }
     )
 
-    // The horizontal parallax at the mean distance of the Moon is ~0.95°, and the parallax at the
-    // altitude of the target is that parallax projected onto the vertical circle of the target:
-    const p = degrees(Math.asin(EARTH_RADIUS / 384400000)) * Math.cos(radians(geocentric.alt))
+    // The horizontal parallax at the mean distance of the Moon is ~0.95°, and the target lies at the
+    // cosine of its geocentric altitude along the horizon of the observer, and at the sine of it,
+    // less the radius of the Earth as a fraction of its distance, above the observer:
+    const ρ = EARTH_RADIUS / 384400000
 
-    expect(p).toBeCloseTo(0.28, 2)
+    const p =
+      geocentric.alt -
+      degrees(Math.atan2(Math.sin(radians(geocentric.alt)) - ρ, Math.cos(radians(geocentric.alt))))
+
+    expect(p).toBeCloseTo(0.29, 2)
 
     // The parallax displaces the target towards the horizon, and so the topocentric altitude is
     // always lower than the geocentric altitude:
-    expect(topocentric.alt).toBeCloseTo(geocentric.alt - p, 6)
+    expect(topocentric.alt).toBeCloseTo(geocentric.alt - p, 9)
     expect(topocentric.alt).toBeLessThan(geocentric.alt)
 
     // The parallax acts along the vertical circle of the target, and so the azimuth is unchanged:
     expect(topocentric.az).toBe(geocentric.az)
+  })
+
+  it.each([
+    ['the mean distance of the Moon', 384400000, 44.31982],
+    ['the distance of a geostationary satellite', 42164000, 38.16991],
+    ['the distance of a satellite in low Earth orbit', 6778000, -18.30335]
+  ])('should correct the altitude of a target at %s exactly', (_, distance, expected) => {
+    // A target on the celestial equator, on the meridian of an observer at a latitude of 45°, is at a
+    // geocentric altitude of 45°, and so its topocentric altitude is atan2(sin 45° − ρ, cos 45°), where
+    // ρ is the radius of the Earth as a fraction of its distance, e.g., a satellite in low Earth orbit
+    // that is above the horizon as seen from the center of the Earth is well below it for the observer:
+    const observer = { latitude: 45, longitude: 0 }
+
+    const ra = getGreenwichApparentSiderealTime(datetime) * 15
+
+    const geocentric = convertEquatorialToHorizontal(datetime, observer, { ra, dec: 0 })
+
+    expect(geocentric.alt).toBeCloseTo(45, 9)
+
+    const topocentric = convertEquatorialToHorizontal(datetime, observer, { ra, dec: 0, distance })
+
+    expect(topocentric.alt).toBeCloseTo(expected, 4)
   })
 
   it('should not correct the altitude of a distant target for its diurnal parallax', () => {

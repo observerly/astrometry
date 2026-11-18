@@ -269,25 +269,29 @@ export function convertEquatorialToHorizontal(
     )
   )
 
-  // The topocentric correction for the diurnal parallax of the target, e.g., the displacement of a
-  // nearby object as seen from the surface of the Earth, rather than from its center (in radians):
-  let parallax = 0
+  // The topocentric altitude of the target, e.g., as seen from the surface of the Earth, rather than
+  // from its center, which is the geocentric altitude where the target is at no given distance (in
+  // radians):
+  let topocentric = altitude
 
   if (target.distance !== undefined && target.distance > 0) {
-    // For nearby objects, the horizontal parallax (p) is the angle subtended at the target by the
-    // geocentric distance of the observer (in radians):
-    const p = Math.asin(Math.min(1, (R + Math.max(0, elevation)) / target.distance))
+    // For nearby objects, the geocentric distance of the observer as a fraction of the geocentric
+    // distance of the target, e.g., the sine of the horizontal parallax of the target:
+    const ρ = (R + Math.max(0, elevation)) / target.distance
 
-    // The parallax displaces the target along its vertical circle, towards the horizon, and so it
-    // is at a maximum at the horizon and vanishes at the zenith. The azimuth is unaffected:
-    parallax = p * Math.cos(altitude)
+    // The parallax displaces the target along its vertical circle, towards the horizon, and so the
+    // azimuth is unaffected. The target lies at cos(altitude) along the horizon of the observer and
+    // at sin(altitude) above the center of the Earth, e.g., at sin(altitude) − ρ above the observer,
+    // which holds exactly for any distance, e.g., for the Moon and for an artificial satellite, and
+    // not to the first order of the parallax alone:
+    topocentric = Math.atan2(Math.sin(altitude) - ρ, Math.cos(altitude))
   }
 
   // N.B. The elevation of the observer does not displace the target: it depresses the observer's
   // horizon, e.g., getLocalHorizon(), which the horizon-relative predicates apply to the horizon
   // they compare the altitude of the target against:
   return {
-    alt: degrees(altitude - parallax),
+    alt: degrees(topocentric),
     az: Math.sin(ha) > 0 ? 360 - degrees(azimuth) : degrees(azimuth)
   }
 }
