@@ -17,6 +17,16 @@ export const EARTH_RADIUS = 6.3781378e6 as const
 
 /**
  *
+ * The flattening of the figure of the Earth, e.g., the fraction by which its polar radius is
+ * shorter than its equatorial radius, of the World Geodetic System 1984 (WGS84) ellipsoid.
+ *
+ */
+export const EARTH_FLATTENING = 1 / 298.257223563
+
+/*****************************************************************************************************************/
+
+/**
+ *
  * The angular velocity of the sidereal rotation of the Earth (in degrees per second), e.g., the
  * rate at which it turns about its axis against the stars: one whole turn of 360° per sidereal
  * day of ~86,164.0905 seconds, which is the ~360.9856° it turns through per mean solar day of

@@ -86,6 +86,7 @@ export {
   AU_IN_METERS,
   c,
   EARTH_ANGULAR_VELOCITY,
+  EARTH_FLATTENING,
   EARTH_RADIUS,
   J1900,
   J1970,
@@ -241,6 +242,7 @@ export {
   convertEquatorialToHorizontal,
   convertGalacticToEquatorial,
   convertGeocentricToGeographic,
+  convertGeographicToGeocentric,
   convertHorizontalToEquatorial
 } from './coordinates'
 
