@@ -50,7 +50,7 @@ export type Planet = {
   /**
    *
    *
-   * The planet's orbital period in tropical years.
+   * The planet's orbital period in Julian years, e.g., of 365.25 days each.
    *
    */
   T: number
@@ -285,7 +285,9 @@ export function getPlanetaryMeanAnomaly(datetime: Date, planet: PlanetOrbitalPar
   const De = JD - J2000
 
   // Calculate the mean anomaly:
-  let M = ((360 / 365.242191) * (De / planet.T) + planet.ε - planet.ϖ) % 360
+  // N.B. The orbital period of the planet is in Julian years, of 365.25 days each, e.g., it is the
+  // period of its mean longitude referred to the equinox of J2000.0, and not in tropical years:
+  let M = ((360 / 365.25) * (De / planet.T) + planet.ε - planet.ϖ) % 360
 
   if (M < 0) {
     M += 360
