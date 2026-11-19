@@ -12,6 +12,9 @@ import {
   convertDegreesToRadians as radians,
   convertRadiansToDegrees as degrees,
   convertEclipticToEquatorial,
+  getEquatorialToEclipticMatrix,
+  getMatrixProduct,
+  getNutationMatrix,
   getPlanetaryEquationOfCenter,
   getPlanetaryGeocentricEclipticCoordinate,
   getPlanetaryHeliocentricDistance,
@@ -20,8 +23,13 @@ import {
   getPlanetaryMeanAnomaly,
   getPlanetaryPositions,
   getPlanetaryTrueAnomaly,
+  getPrecessionMatrix,
+  getRotatedCartesianCoordinate,
+  getRotationMatrix,
   planets
 } from '../src'
+
+import { MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000 } from '../src/constants'
 
 /*****************************************************************************************************************/
 
@@ -237,8 +245,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       venus
     )
-    expect(λ).toBe(245.64297266250972)
-    expect(β).toBe(1.8978337767306641)
+    expect(λ).toBe(245.86633391147632)
+    expect(β).toBe(1.8958603718987546)
   })
 
   it('should return the correct value for Saturn (an exterior planet) at the datetime prescribed', () => {
@@ -253,8 +261,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       saturn
     )
-    expect(λ).toBe(251.41829233254936)
-    expect(β).toBe(1.6299128820122528)
+    expect(λ).toBe(251.6416446197856)
+    expect(β).toBe(1.6278803703297742)
   })
 
   it('should return the correct value for Mars (an exterior planet) at the datetime prescribed', () => {
@@ -274,8 +282,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       mars
     )
 
-    expect(λ).toBeCloseTo(142.12990545191866, 10)
-    expect(β).toBeCloseTo(1.7480841491237944, 10)
+    expect(λ).toBeCloseTo(142.50729317712552, 10)
+    expect(β).toBeCloseTo(1.7499765570372463, 10)
   })
 
   it.each(['Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'])(
@@ -315,11 +323,30 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
         const y = R * Math.cos(radians(Λ)) * Math.sin(radians(l)) - Re * Math.sin(radians(Le))
         const z = R * Math.sin(radians(Λ))
 
+        // The elements of the planets are referred to the ecliptic and equinox of J2000.0, and so the
+        // vector is rotated onto the mean equator of J2000.0, carried to the true equator and equinox
+        // of the date by the precession and the nutation, and rotated onto the true ecliptic of the date:
+        const r = Math.hypot(x, y, z)
+
+        const v = getRotatedCartesianCoordinate(
+          getMatrixProduct(
+            getEquatorialToEclipticMatrix(datetime),
+            getMatrixProduct(
+              getNutationMatrix(datetime),
+              getMatrixProduct(
+                getPrecessionMatrix(datetime),
+                getRotationMatrix('x', -MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000)
+              )
+            )
+          ),
+          { x: x / r, y: y / r, z: z / r }
+        )
+
         const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(datetime, planet)
 
-        expect(Math.cos(radians(λ))).toBeCloseTo(x / Math.hypot(x, y), 10)
-        expect(Math.sin(radians(λ))).toBeCloseTo(y / Math.hypot(x, y), 10)
-        expect(β).toBeCloseTo(degrees(Math.atan2(z, Math.hypot(x, y))), 8)
+        expect(Math.cos(radians(λ))).toBeCloseTo(v.x / Math.hypot(v.x, v.y), 10)
+        expect(Math.sin(radians(λ))).toBeCloseTo(v.y / Math.hypot(v.x, v.y), 10)
+        expect(β).toBeCloseTo(degrees(Math.atan2(v.z, Math.hypot(v.x, v.y))), 8)
       }
     }
   )
@@ -342,8 +369,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       β
     })
 
-    expect(ra).toBeCloseTo(224.0542711762369)
-    expect(dec).toBeCloseTo(-17.442501989561396)
+    expect(ra).toBeCloseTo(224.38577722592606)
+    expect(dec).toBeCloseTo(-17.539090028463548)
   })
 
   it('should return the correct value for Jupiter (an exterior planet) at the datetime prescribed', () => {
@@ -364,13 +391,13 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       β
     })
 
-    expect(ra).toBeCloseTo(38.217404259869205)
-    expect(dec).toBeCloseTo(13.517729478847281)
+    expect(ra).toBeCloseTo(38.53981247503315)
+    expect(dec).toBeCloseTo(13.62294209494143)
   })
 
   it('should return a geocentric ecliptic longitude in the range [0, 360)', () => {
     // On the 4th of January 2016 Neptune lies just west of the vernal equinox, e.g., at a longitude
-    // of ~337.4°, and not at the -22.6° the sum of the heliocentric longitude and its correction gives:
+    // of ~337.6°, and not at the -22.4° the sum of the heliocentric longitude and its correction gives:
     const neptune = planets.find(planet => planet.name === 'Neptune')
 
     if (!neptune) {
@@ -382,8 +409,33 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       neptune
     )
 
-    expect(λ).toBeCloseTo(337.40553270668033, 10)
+    expect(λ).toBeCloseTo(337.6288988145574, 10)
   })
+
+  it.each([
+    ['Venus', '1900-01-01T00:00:00Z', 306.375],
+    ['Venus', '2099-12-31T00:00:00Z', 318.867],
+    ['Uranus', '1900-01-01T00:00:00Z', 250.146],
+    ['Uranus', '2099-12-31T00:00:00Z', 17.726],
+    ['Neptune', '1900-01-01T00:00:00Z', 85.221],
+    ['Neptune', '2099-12-31T00:00:00Z', 167.297]
+  ])(
+    'should refer the geocentric ecliptic longitude of %s to the equinox of the date at %s',
+    (name, iso, reference) => {
+      const planet = planets.find(planet => planet.name === name)
+
+      if (!planet) {
+        throw new Error(`${name} is not defined`)
+      }
+
+      // The equinox precesses by ~1.4° per century, and so a longitude left referred to the equinox of
+      // J2000.0, as the orbital elements of the planets are, is ~1.4° from the longitude referred to the
+      // true ecliptic and equinox of the date a century either side of it (ERFA plan94 and epv00):
+      const { λ } = getPlanetaryGeocentricEclipticCoordinate(new Date(iso), planet)
+
+      expect(Math.abs(λ - reference)).toBeLessThan(0.25)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
@@ -410,12 +462,12 @@ describe('getPlanetaryPositions', () => {
     expect(venus).toMatchObject({
       name: 'Venus',
       symbol: '♀',
-      λ: 245.64297266250972,
-      β: 1.8978337767306641,
-      ra: expect.closeTo(244.09152178185911, 12),
-      dec: expect.closeTo(-19.373069731819268, 12),
-      alt: expect.closeTo(-23.310713421459607, 12),
-      az: expect.closeTo(256.7828481452263, 12)
+      λ: 245.86633391147632,
+      β: 1.8958603718987546,
+      ra: expect.closeTo(244.3242524624544, 12),
+      dec: expect.closeTo(-19.413664246117726, 12),
+      alt: expect.closeTo(-23.107363620353066, 12),
+      az: expect.closeTo(256.68260339582156, 12)
     })
 
     expect(venus).toHaveProperty('ra')
