@@ -51,7 +51,7 @@ describe('getPlanetaryMeanAnomaly', () => {
     }
 
     const M = getPlanetaryMeanAnomaly(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(M).toBeCloseTo(57.636998)
+    expect(M).toBeCloseTo(57.437992)
   })
 
   it.each([
@@ -78,6 +78,41 @@ describe('getPlanetaryMeanAnomaly', () => {
       expect(M).toBeCloseTo(expected, 6)
     }
   )
+
+  it.each([
+    ['Mercury', 149472.67411175],
+    ['Venus', 58517.81538729],
+    ['Earth', 35999.37244981],
+    ['Mars', 19140.30268499],
+    ['Jupiter', 3034.74612775],
+    ['Saturn', 1222.49362201],
+    ['Uranus', 428.48202785],
+    ['Neptune', 218.45945325]
+  ])(
+    'should advance the mean anomaly of %s at its mean motion over a Julian century',
+    (name, rate) => {
+      const planet = planets.find(planet => planet.name === name)
+
+      if (!planet) {
+        throw new Error(`${name} is not defined`)
+      }
+
+      // The orbital period of the planet is in Julian years, of 365.25 days each, and so over a Julian
+      // century of 36525 days the mean anomaly advances by the mean motion of the mean longitude of the
+      // planet (in degrees per Julian century, Standish, E. M., Keplerian Elements for Approximate
+      // Positions of the Major Planets), and not by that of a century of tropical years:
+      const epoch = new Date('2000-01-01T11:58:55.816+00:00')
+
+      const century = new Date(epoch.getTime() + 36525 * 86400000)
+
+      // N.B. The Terrestrial Time of the two instants is the same 64.184 s ahead of UTC, e.g., as no
+      // leap second is taken to be inserted after the last of the table:
+      const advance =
+        getPlanetaryMeanAnomaly(century, planet) - getPlanetaryMeanAnomaly(epoch, planet)
+
+      expect(((((advance - rate) % 360) + 540) % 360) - 180).toBeCloseTo(0, 1)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
@@ -96,7 +131,7 @@ describe('getPlanetaryEquationOfCenter', () => {
     }
 
     const E = getPlanetaryEquationOfCenter(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(E).toBeCloseTo(0.655907)
+    expect(E).toBeCloseTo(0.654486)
   })
 })
 
@@ -116,7 +151,7 @@ describe('getPlanetaryTrueAnomaly', () => {
 
     expect(venus).toBeDefined()
     const E = getPlanetaryTrueAnomaly(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(E).toBeCloseTo(58.294206)
+    expect(E).toBeCloseTo(58.092478)
   })
 })
 
@@ -139,7 +174,7 @@ describe('getPlanetaryHeliocentricEclipticLongitude', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       venus
     )
-    expect(L).toBeCloseTo(189.896673)
+    expect(L).toBeCloseTo(189.694945)
   })
 })
 
@@ -159,7 +194,7 @@ describe('getPlanetaryHeliocentricEclipticLatitude', () => {
     }
 
     const Λ = getPlanetaryHeliocentricEclipticLatitude(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(Λ).toBeCloseTo(3.119613)
+    expect(Λ).toBeCloseTo(3.124186)
   })
 })
 
@@ -179,7 +214,7 @@ describe('getPlanetaryHeliocentricDistance', () => {
     }
 
     const R = getPlanetaryHeliocentricDistance(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(R).toBe(0.7207355085244032)
+    expect(R).toBe(0.7207209466568515)
   })
 })
 
@@ -202,8 +237,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       venus
     )
-    expect(λ).toBe(245.79499387030154)
-    expect(β).toBe(1.8937687210761236)
+    expect(λ).toBe(245.64297266250972)
+    expect(β).toBe(1.8978337767306641)
   })
 
   it('should return the correct value for Saturn (an exterior planet) at the datetime prescribed', () => {
@@ -218,8 +253,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       saturn
     )
-    expect(λ).toBe(251.43163340163272)
-    expect(β).toBe(1.6299734753402253)
+    expect(λ).toBe(251.41829233254936)
+    expect(β).toBe(1.6299128820122528)
   })
 
   it('should return the correct value for Mars (an exterior planet) at the datetime prescribed', () => {
@@ -239,8 +274,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       mars
     )
 
-    expect(λ).toBeCloseTo(142.2317240749898, 10)
-    expect(β).toBeCloseTo(1.7526700348933917, 10)
+    expect(λ).toBeCloseTo(142.12990545191866, 10)
+    expect(β).toBeCloseTo(1.7480841491237944, 10)
   })
 
   it.each(['Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'])(
@@ -307,8 +342,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       β
     })
 
-    expect(ra).toBeCloseTo(224.32477023329668)
-    expect(dec).toBeCloseTo(-17.537833237099484)
+    expect(ra).toBeCloseTo(224.0542711762369)
+    expect(dec).toBeCloseTo(-17.442501989561396)
   })
 
   it('should return the correct value for Jupiter (an exterior planet) at the datetime prescribed', () => {
@@ -329,8 +364,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       β
     })
 
-    expect(ra).toBeCloseTo(38.19251254563533)
-    expect(dec).toBeCloseTo(13.510000622097355)
+    expect(ra).toBeCloseTo(38.217404259869205)
+    expect(dec).toBeCloseTo(13.517729478847281)
   })
 
   it('should return a geocentric ecliptic longitude in the range [0, 360)', () => {
@@ -347,7 +382,7 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       neptune
     )
 
-    expect(λ).toBeCloseTo(337.40865961139633, 10)
+    expect(λ).toBeCloseTo(337.40553270668033, 10)
   })
 })
 
@@ -375,12 +410,12 @@ describe('getPlanetaryPositions', () => {
     expect(venus).toMatchObject({
       name: 'Venus',
       symbol: '♀',
-      λ: 245.79499387030154,
-      β: 1.8937687210761236,
-      ra: expect.closeTo(244.24940775385573, 12),
-      dec: expect.closeTo(-19.403414860199373, 12),
-      alt: expect.closeTo(-23.173421327788937, 12),
-      az: expect.closeTo(256.71187684275975, 12)
+      λ: 245.64297266250972,
+      β: 1.8978337767306641,
+      ra: expect.closeTo(244.09152178185911, 12),
+      dec: expect.closeTo(-19.373069731819268, 12),
+      alt: expect.closeTo(-23.310713421459607, 12),
+      az: expect.closeTo(256.7828481452263, 12)
     })
 
     expect(venus).toHaveProperty('ra')

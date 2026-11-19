@@ -51,7 +51,7 @@ describe('Observation', () => {
       datetime: new Date('2000-01-01T00:00:00.000+00:00')
     })
 
-    expect(Polaris.ra).toBeCloseTo(38.19287866531595, 9)
+    expect(Polaris.ra).toBeCloseTo(38.19287867006004, 9)
     expect(Polaris.dec).toBeCloseTo(89.26695650770861, 9)
   })
 
@@ -67,7 +67,7 @@ describe('Observation', () => {
     })
 
     expect(Polaris.datetime.getTime()).toEqual(datetime.getTime())
-    expect(Polaris.ra).toBeCloseTo(44.098081541604955, 9)
+    expect(Polaris.ra).toBeCloseTo(44.09808159727275, 9)
     expect(Polaris.dec).toBeCloseTo(89.35166177018709, 9)
     expect(Polaris.ha).toBe(getApparentHourAngle(datetime, longitude, Polaris.ra))
   })
