@@ -13,13 +13,22 @@ import type {
   HorizontalCoordinate
 } from './common'
 
-import { J2000 } from './constants'
+import { J2000, MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000 } from './constants'
 
-import { convertEclipticToEquatorial, convertEquatorialToHorizontal } from './coordinates'
+import {
+  convertCartesianToEquatorial,
+  convertEclipticToEquatorial,
+  convertEquatorialToCartesian,
+  convertEquatorialToHorizontal
+} from './coordinates'
 
 import { earth } from './earth'
 
 import { getJulianDate, getTerrestrialTime } from './epoch'
+
+import { getEquatorialToEclipticMatrix, getNutationMatrix, getPrecessionMatrix } from './frames'
+
+import { getMatrixProduct, getRotatedCartesianCoordinate, getRotationMatrix } from './maths'
 
 import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
 
@@ -409,6 +418,11 @@ export function getPlanetaryHeliocentricDistance(
  *
  * getPlanetaryGeocentricEclipticCoordinate()
  *
+ * N.B. The coordinate is referred to the true ecliptic and equinox of the date, e.g., as the
+ * ecliptic coordinates of the Sun and the Moon are, and as convertEclipticToEquatorial() takes it,
+ * and not to the ecliptic and equinox of J2000.0 that the orbital elements of the planets, and so
+ * their heliocentric coordinates, are referred to.
+ *
  * @param datetime - The date to calculate the Planet's geocentric ecliptic coordinates for.
  * @param planet - The planet to calculate the geocentric ecliptic coordinates for.
  * @returns a planet's geocentric ecliptic coordinates at a given datetime
@@ -484,8 +498,28 @@ export function getPlanetaryGeocentricEclipticCoordinate(
 
   const βp = degrees(Math.atan2(Rp * Math.sin(radians(Λp)), ρ))
 
+  // The unit vector of the planet from the Earth, referred to the ecliptic and equinox of J2000.0,
+  // e.g., as the orbital elements of the planets are, rotated onto the mean equator and equinox of
+  // J2000.0 through the mean obliquity of the ecliptic at J2000.0:
+  const equatorial = getRotatedCartesianCoordinate(
+    getRotationMatrix('x', -MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000),
+    convertEquatorialToCartesian({ ra: λp, dec: βp })
+  )
+
+  // The precession and the nutation carry the vector to the true equator and equinox of the date,
+  // and the true obliquity of the ecliptic of the date carries it onto the true ecliptic of the date:
+  const { ra, dec } = convertCartesianToEquatorial(
+    getRotatedCartesianCoordinate(
+      getMatrixProduct(
+        getEquatorialToEclipticMatrix(datetime),
+        getMatrixProduct(getNutationMatrix(datetime), getPrecessionMatrix(datetime))
+      ),
+      equatorial
+    )
+  )
+
   // Correct for negative angles, e.g., the longitude is in the range [0, 360):
-  let λ = λp % 360
+  let λ = ra % 360
 
   if (λ < 0) {
     λ += 360
@@ -493,7 +527,7 @@ export function getPlanetaryGeocentricEclipticCoordinate(
 
   return {
     λ,
-    β: βp
+    β: dec
   }
 }
 

@@ -156,7 +156,7 @@ describe('isPlanetaryConjunction(datetime)', () => {
 
   it('should return a midpoint on the same side of the sky when the targets straddle 0h', () => {
     // On the 2nd of May 2022 Venus and Jupiter are either side of the vernal equinox at 0h,
-    // e.g., Venus is at a right ascension of ~0.3° and Jupiter is at ~358.7°:
+    // e.g., Venus is at a right ascension of ~0.6° and Jupiter is at ~359.0°:
     const datetime = new Date('2022-05-02T16:00:00Z')
 
     const conjunction = isPlanetaryConjunction(datetime, { latitude, longitude }, planets)
@@ -168,8 +168,8 @@ describe('isPlanetaryConjunction(datetime)', () => {
     }
 
     // The midpoint must lie between the two targets, and not on the opposite side of the sky:
-    expect(conjunction.ra).toBeCloseTo(359.4764, 3)
-    expect(conjunction.dec).toBeCloseTo(-1.5657, 4)
+    expect(conjunction.ra).toBeCloseTo(359.7589, 3)
+    expect(conjunction.dec).toBeCloseTo(-1.443003, 4)
   })
 })
 
