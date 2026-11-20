@@ -312,20 +312,59 @@ export function getPlanetaryMeanAnomaly(datetime: Date, planet: PlanetOrbitalPar
  *
  * getPlanetaryEquationOfCenter()
  *
+ * A planet's equation of center is the difference between its true anomaly and its mean anomaly.
+ *
+ * N.B. The equation of center is resolved from Kepler's equation, e.g., E − e sin E = M, solved for
+ * the eccentric anomaly E, from which the true anomaly follows exactly, and not from the first-order
+ * term of its series, (360 / π) e sin M, e.g., 2e sin M, which omits the second-order term (5 / 4) e²
+ * sin 2M and is in error by up to ~3.3° for Mercury and ~0.65° for Mars.
+ *
  * @param datetime - The date to calculate the Planet's equation of center for.
  * @param planet - The planet to calculate the equation of center for.
- * @returns a planet's equation of center at a given datetime
+ * @returns a planet's equation of center at a given datetime (in degrees, in the range (−180, 180])
  *
  */
 export function getPlanetaryEquationOfCenter(
   datetime: Date,
   planet: PlanetOrbitalParameters
 ): number {
-  const M = getPlanetaryMeanAnomaly(datetime, planet)
+  // Get the mean anomaly of the planet, e.g., in radians:
+  const M = radians(getPlanetaryMeanAnomaly(datetime, planet))
 
-  const E = (360 / Math.PI) * planet.e * Math.sin(radians(M))
+  // Get the eccentricity of the orbit of the planet:
+  const e = planet.e
 
-  return E
+  // Solve Kepler's equation, e.g., E − e sin E = M, for the eccentric anomaly by Newton's method,
+  // starting from the first-order solution, e.g., E = M + e sin M:
+  let E = M + e * Math.sin(M)
+
+  for (let i = 0; i < 50; i++) {
+    const ΔE = (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E))
+
+    E -= ΔE
+
+    if (Math.abs(ΔE) < 1e-14) {
+      break
+    }
+  }
+
+  // Get the true anomaly from the eccentric anomaly, e.g., tan(ν / 2) = √((1 + e) / (1 − e)) tan(E / 2),
+  // resolved by the arc tangent of the two so that it is defined in every quadrant:
+  const ν = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2))
+
+  // The equation of center is the true anomaly less the mean anomaly, e.g., in degrees:
+  let C = degrees(ν - M) % 360
+
+  // Correct the equation of center into the range (−180, 180]:
+  if (C > 180) {
+    C -= 360
+  }
+
+  if (C <= -180) {
+    C += 360
+  }
+
+  return C
 }
 
 /*****************************************************************************************************************/
@@ -345,9 +384,9 @@ export function getPlanetaryEquationOfCenter(
 export function getPlanetaryTrueAnomaly(datetime: Date, planet: PlanetOrbitalParameters): number {
   const M = getPlanetaryMeanAnomaly(datetime, planet)
 
-  const E = getPlanetaryEquationOfCenter(datetime, planet)
+  const C = getPlanetaryEquationOfCenter(datetime, planet)
 
-  return (M + E) % 360
+  return (M + C) % 360
 }
 
 /*****************************************************************************************************************/

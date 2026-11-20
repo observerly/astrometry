@@ -68,14 +68,14 @@ describe('getCorrectionToEquatorialForAnnualAberration', () => {
       new Date('2000-01-01T00:00:00+00:00'),
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBeCloseTo(88.798686690145, 9)
-    expect(dec + betelgeuse.dec).toBeCloseTo(7.406803713851167, 9)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.7986866812921, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.40680371161868, 9)
   })
 
   it('should return the correct aberration correction for the designated epoch', () => {
     const { ra, dec } = getCorrectionToEquatorialForAnnualAberration(datetime, betelgeuse)
-    expect(ra + betelgeuse.ra).toBeCloseTo(88.788391902834, 9)
-    expect(dec + betelgeuse.dec).toBeCloseTo(7.406101846632362, 9)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.78839190581094, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.406101848342968, 9)
   })
 
   it('should not displace a target at the apex or the antapex of the motion of the Earth', () => {
@@ -593,8 +593,8 @@ describe('getCorrectionToEquatorialForAberration', () => {
       },
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBeCloseTo(88.7986182153254, 9)
-    expect(dec + betelgeuse.dec).toBeCloseTo(7.406797421928522, 9)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.79861820653129, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.406797419696119, 9)
   })
 
   it('should return the correct aberration correction for the designated epoch', () => {
@@ -606,8 +606,8 @@ describe('getCorrectionToEquatorialForAberration', () => {
       },
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBeCloseTo(88.788474293833, 9)
-    expect(dec + betelgeuse.dec).toBeCloseTo(7.406099549828706, 9)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.78847429678412, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.406099551532445, 9)
   })
 })
 
