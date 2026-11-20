@@ -26,6 +26,7 @@ import {
   getPrecessionMatrix,
   getRotatedCartesianCoordinate,
   getRotationMatrix,
+  getSolarEquationOfCenter,
   planets
 } from '../src'
 
@@ -138,8 +139,190 @@ describe('getPlanetaryEquationOfCenter', () => {
       throw new Error('Venus is not defined')
     }
 
-    const E = getPlanetaryEquationOfCenter(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(E).toBeCloseTo(0.654486)
+    const C = getPlanetaryEquationOfCenter(new Date('2016-01-04T03:00:00+00:00'), venus)
+    expect(C).toBeCloseTo(0.657468)
+  })
+
+  it.each(['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'])(
+    "should recover the mean anomaly of %s from its true anomaly through Kepler's equation",
+    name => {
+      const planet = planets.find(planet => planet.name === name)
+
+      if (!planet) {
+        throw new Error(`${name} is not defined`)
+      }
+
+      const { e } = planet
+
+      // Over the two centuries from 1900 to 2100, e.g., every 997 days, such that each planet is sampled at a spread
+      // of mean anomalies around its orbit:
+      for (let day = 0; day <= 73050; day += 997) {
+        const when = new Date(Date.UTC(1900, 0, 1) + day * 86400000)
+
+        const M = getPlanetaryMeanAnomaly(when, planet)
+
+        // The true anomaly is the mean anomaly plus the equation of center:
+        const ν = radians(M + getPlanetaryEquationOfCenter(when, planet))
+
+        // The eccentric anomaly of the true anomaly, e.g., tan(E / 2) = √((1 − e) / (1 + e)) tan(ν / 2):
+        const E =
+          2 * Math.atan2(Math.sqrt(1 - e) * Math.sin(ν / 2), Math.sqrt(1 + e) * Math.cos(ν / 2))
+
+        // Kepler's equation carries the eccentric anomaly back to the mean anomaly, e.g., M = E − e sin E, which is
+        // compared modulo 360°:
+        const residual = degrees(E - e * Math.sin(E)) - M
+
+        expect((((residual % 360) + 540) % 360) - 180).toBeCloseTo(0, 9)
+      }
+    }
+  )
+
+  it.each(['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'])(
+    'should return a finite equation of center for %s in the range (−180, 180]',
+    name => {
+      const planet = planets.find(planet => planet.name === name)
+
+      if (!planet) {
+        throw new Error(`${name} is not defined`)
+      }
+
+      for (let day = 0; day <= 73050; day += 997) {
+        const C = getPlanetaryEquationOfCenter(
+          new Date(Date.UTC(1900, 0, 1) + day * 86400000),
+          planet
+        )
+
+        expect(Number.isFinite(C)).toBe(true)
+        expect(C).toBeGreaterThan(-180)
+        expect(C).toBeLessThanOrEqual(180)
+      }
+    }
+  )
+
+  it('should depart from the first-order term 2e sin M by more than 1° for Mercury', () => {
+    const mercury = planets.find(planet => planet.name === 'Mercury')
+
+    if (!mercury) {
+      throw new Error('Mercury is not defined')
+    }
+
+    // Over one orbit of Mercury, e.g., ~88 days, sampled every 6 hours:
+    let departure = 0
+
+    for (let hour = 0; hour < 88 * 24; hour += 6) {
+      const when = new Date(Date.UTC(2024, 0, 1) + hour * 3600000)
+
+      const M = getPlanetaryMeanAnomaly(when, mercury)
+
+      const first = (360 / Math.PI) * mercury.e * Math.sin(radians(M))
+
+      departure = Math.max(departure, Math.abs(getPlanetaryEquationOfCenter(when, mercury) - first))
+    }
+
+    // The second-order term, e.g., (5 / 4) e² sin 2M, alone reaches ~3.0° for Mercury, and the departure from the
+    // first-order term over the orbit reaches ~3.34°:
+    expect(departure).toBeGreaterThan(1)
+    expect(departure).toBeLessThan(3.4)
+  })
+
+  it('should reach the greatest equation of center of ~23.681° for Mercury', () => {
+    const mercury = planets.find(planet => planet.name === 'Mercury')
+
+    if (!mercury) {
+      throw new Error('Mercury is not defined')
+    }
+
+    // Over one orbit of Mercury, e.g., ~88 days, sampled every 6 hours:
+    let greatest = Number.NEGATIVE_INFINITY
+
+    for (let hour = 0; hour < 88 * 24; hour += 6) {
+      greatest = Math.max(
+        greatest,
+        getPlanetaryEquationOfCenter(new Date(Date.UTC(2024, 0, 1) + hour * 3600000), mercury)
+      )
+    }
+
+    // The greatest equation of center of an orbit of eccentricity 0.205636 is 23.6809°, at a mean anomaly of
+    // ~75.24°, and not the 2e = 23.5644° of the first-order term:
+    expect(greatest).toBeCloseTo(23.681, 2)
+  })
+
+  it.each(['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'])(
+    'should vanish at perihelion and at aphelion for %s',
+    name => {
+      const planet = planets.find(planet => planet.name === name)
+
+      if (!planet) {
+        throw new Error(`${name} is not defined`)
+      }
+
+      // At 2000 January 1.5 TT the mean anomaly is the mean longitude at epoch less the longitude of perihelion, and
+      // so an orbit whose mean longitude at epoch is its longitude of perihelion, or 180° from it, is at perihelion,
+      // or at aphelion, at that instant:
+      const epoch = new Date('2000-01-01T11:58:55.816+00:00')
+
+      expect(getPlanetaryEquationOfCenter(epoch, { ...planet, ε: planet.ϖ })).toBeCloseTo(0, 8)
+      expect(getPlanetaryEquationOfCenter(epoch, { ...planet, ε: planet.ϖ + 180 })).toBeCloseTo(
+        0,
+        8
+      )
+    }
+  )
+
+  it.each(['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'])(
+    'should be an odd function of the mean anomaly, positive from perihelion to aphelion, for %s',
+    name => {
+      const planet = planets.find(planet => planet.name === name)
+
+      if (!planet) {
+        throw new Error(`${name} is not defined`)
+      }
+
+      // At 2000 January 1.5 TT the mean anomaly is the mean longitude at epoch less the longitude of perihelion:
+      const epoch = new Date('2000-01-01T11:58:55.816+00:00')
+
+      for (const M of [1, 30, 60, 90, 120, 150, 179]) {
+        const ahead = getPlanetaryEquationOfCenter(epoch, { ...planet, ε: planet.ϖ + M })
+
+        const behind = getPlanetaryEquationOfCenter(epoch, { ...planet, ε: planet.ϖ - M })
+
+        expect(ahead).toBeGreaterThan(0)
+        expect(ahead + behind).toBeCloseTo(0, 8)
+      }
+    }
+  )
+
+  it('should vanish for a circular orbit', () => {
+    const venus = planets.find(planet => planet.name === 'Venus')
+
+    if (!venus) {
+      throw new Error('Venus is not defined')
+    }
+
+    for (let day = 0; day <= 73050; day += 997) {
+      const when = new Date(Date.UTC(1900, 0, 1) + day * 86400000)
+
+      expect(getPlanetaryEquationOfCenter(when, { ...venus, e: 0 })).toBeCloseTo(0, 10)
+    }
+  })
+
+  it('should agree with the equation of center of the Sun for the Earth to within 0.001° near J2000.0', () => {
+    const earth = planets.find(planet => planet.name === 'Earth')
+
+    if (!earth) {
+      throw new Error('Earth is not defined')
+    }
+
+    // The equation of center of the Earth is that of the Sun, e.g., the geocentric longitude of the Sun is the
+    // heliocentric longitude of the Earth less 180°, and so it carries the second-order term of the series of Meeus,
+    // ~0.020° sin 2M, which the first-order term 2e sin M omits:
+    for (let month = 0; month < 60; month++) {
+      const when = new Date(Date.UTC(2000, month, 1))
+
+      expect(
+        Math.abs(getPlanetaryEquationOfCenter(when, earth) - getSolarEquationOfCenter(when))
+      ).toBeLessThan(0.001)
+    }
   })
 })
 
@@ -159,7 +342,7 @@ describe('getPlanetaryTrueAnomaly', () => {
 
     expect(venus).toBeDefined()
     const E = getPlanetaryTrueAnomaly(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(E).toBeCloseTo(58.092478)
+    expect(E).toBeCloseTo(58.09546)
   })
 })
 
@@ -182,7 +365,7 @@ describe('getPlanetaryHeliocentricEclipticLongitude', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       venus
     )
-    expect(L).toBeCloseTo(189.694945)
+    expect(L).toBeCloseTo(189.697927)
   })
 })
 
@@ -202,7 +385,7 @@ describe('getPlanetaryHeliocentricEclipticLatitude', () => {
     }
 
     const Λ = getPlanetaryHeliocentricEclipticLatitude(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(Λ).toBeCloseTo(3.124186)
+    expect(Λ).toBeCloseTo(3.124117)
   })
 })
 
@@ -222,7 +405,7 @@ describe('getPlanetaryHeliocentricDistance', () => {
     }
 
     const R = getPlanetaryHeliocentricDistance(new Date('2016-01-04T03:00:00+00:00'), venus)
-    expect(R).toBe(0.7207209466568515)
+    expect(R).toBe(0.720721161719085)
   })
 })
 
@@ -245,8 +428,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       venus
     )
-    expect(λ).toBe(245.86633391147632)
-    expect(β).toBe(1.8958603718987546)
+    expect(λ).toBe(245.8673463828605)
+    expect(β).toBe(1.8957692353450832)
   })
 
   it('should return the correct value for Saturn (an exterior planet) at the datetime prescribed', () => {
@@ -261,8 +444,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       new Date('2016-01-04T03:00:00+00:00'),
       saturn
     )
-    expect(λ).toBe(251.6416446197856)
-    expect(β).toBe(1.6278803703297742)
+    expect(λ).toBe(251.49453677618874)
+    expect(β).toBe(1.6325922264365922)
   })
 
   it('should return the correct value for Mars (an exterior planet) at the datetime prescribed', () => {
@@ -273,17 +456,17 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       throw new Error('Mars is not defined')
     }
 
-    // On the 8th of November 2026 Mars lies ~59° from the Earth in heliocentric longitude, e.g., where the
+    // On the 8th of November 2026 Mars lies ~58.5° from the Earth in heliocentric longitude, e.g., where the
     // elongation is far from conjunction or opposition, and so the Earth's displacement along the line to the
-    // planet, R cos(l' − L), is ~0.51 AU. The geocentric ecliptic coordinate is λ ≈ 142.0633°, β ≈ 1.7509°
+    // planet, R cos(l' − L), is ~0.52 AU. The geocentric ecliptic coordinate is λ ≈ 142.0633°, β ≈ 1.7509°
     // (ERFA plan94 and epv00, true ecliptic and equinox of date):
     const { λ, β } = getPlanetaryGeocentricEclipticCoordinate(
       new Date('2026-11-08T00:00:00Z'),
       mars
     )
 
-    expect(λ).toBeCloseTo(142.50729317712552, 10)
-    expect(β).toBeCloseTo(1.7499765570372463, 10)
+    expect(λ).toBeCloseTo(142.0445431145075, 10)
+    expect(β).toBeCloseTo(1.749468131727991, 10)
   })
 
   it.each(['Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'])(
@@ -369,8 +552,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       β
     })
 
-    expect(ra).toBeCloseTo(224.38577722592606)
-    expect(dec).toBeCloseTo(-17.539090028463548)
+    expect(ra).toBeCloseTo(223.8636497092914)
+    expect(dec).toBeCloseTo(-17.320939155439074)
   })
 
   it('should return the correct value for Jupiter (an exterior planet) at the datetime prescribed', () => {
@@ -391,8 +574,8 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       β
     })
 
-    expect(ra).toBeCloseTo(38.53981247503315)
-    expect(dec).toBeCloseTo(13.62294209494143)
+    expect(ra).toBeCloseTo(38.697782887579095)
+    expect(dec).toBeCloseTo(13.67505928876966)
   })
 
   it('should return a geocentric ecliptic longitude in the range [0, 360)', () => {
@@ -409,7 +592,7 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
       neptune
     )
 
-    expect(λ).toBeCloseTo(337.6288988145574, 10)
+    expect(λ).toBeCloseTo(337.6248798644595, 10)
   })
 
   it.each([
@@ -462,12 +645,12 @@ describe('getPlanetaryPositions', () => {
     expect(venus).toMatchObject({
       name: 'Venus',
       symbol: '♀',
-      λ: 245.86633391147632,
-      β: 1.8958603718987546,
-      ra: expect.closeTo(244.3242524624544, 12),
-      dec: expect.closeTo(-19.413664246117726, 12),
-      alt: expect.closeTo(-23.107363620353066, 12),
-      az: expect.closeTo(256.68260339582156, 12)
+      λ: 245.8673463828605,
+      β: 1.8957692353450832,
+      ra: expect.closeTo(244.32529265749355, 12),
+      dec: expect.closeTo(-19.413928478312027, 12),
+      alt: expect.closeTo(-23.106474912194976, 12),
+      az: expect.closeTo(256.6820680223369, 12)
     })
 
     expect(venus).toHaveProperty('ra')
