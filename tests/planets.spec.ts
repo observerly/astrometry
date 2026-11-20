@@ -613,10 +613,11 @@ describe('getPlanetaryGeocentricEclipticCoordinate', () => {
 
       // The equinox precesses by ~1.4° per century, and so a longitude left referred to the equinox of
       // J2000.0, as the orbital elements of the planets are, is ~1.4° from the longitude referred to the
-      // true ecliptic and equinox of the date a century either side of it (ERFA plan94 and epv00):
+      // true ecliptic and equinox of the date a century either side of it (ERFA plan94 and epv00), and
+      // with the equation of center resolved from Kepler's equation the longitude lies within 0.05° of it:
       const { λ } = getPlanetaryGeocentricEclipticCoordinate(new Date(iso), planet)
 
-      expect(Math.abs(λ - reference)).toBeLessThan(0.25)
+      expect(Math.abs(λ - reference)).toBeLessThan(0.05)
     }
   )
 })
