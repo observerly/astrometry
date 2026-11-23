@@ -451,14 +451,22 @@ export function getParallacticAngle(
  * the coordinate and the datetime given. The correction terms should be added to the target's
  * coordinate by the caller.
  *
- * N.B. The proper motion in right ascension is the great-circle rate, as published, and so it is
- * divided through by the cosine of the declination to obtain the rate of change of the right
- * ascension itself.
+ * The target is carried along a straight line through space at a constant velocity, at right
+ * angles to its direction at the epoch, e.g., its space motion for no radial velocity, as the
+ * pmsafe routine of ERFA resolves it. Its direction therefore moves along the great circle of its
+ * proper motion, through an arc whose tangent grows linearly with the interval. N.B. The right
+ * ascension and the declination are not each moved linearly, which departs from the great circle
+ * by the cross terms between the two, e.g., by ~0.15" for Kapteyn's Star from J2000.0 to the
+ * present day.
  *
- * N.B. The motion is treated as linear over the interval, which is accurate for the intervals of
- * decades that separate the epoch of a catalogue from the present day. A rigorous treatment
- * resolves the space motion of the target, for which its parallax and its radial velocity are
- * also required.
+ * N.B. The proper motion in right ascension is the great-circle rate, as published, e.g., it is
+ * the rate along the axis of increasing right ascension in the plane tangent to the celestial
+ * sphere at the coordinate. At either celestial pole that axis is degenerate, and so only the
+ * proper motion in declination is resolved there.
+ *
+ * N.B. The direction of a target of no radial velocity is independent of its distance, and so its
+ * parallax is not required. The perspective acceleration of a target of a given radial velocity,
+ * for which its parallax is also required, is not resolved.
  *
  * @param datetime - The date to calculate the equatorial correction for.
  * @param target - The equatorial coordinate of the target, of its epoch, or of J2000.
@@ -474,27 +482,46 @@ export function getCorrectionToEquatorialForProperMotion(
   // The number of Julian years between the epoch of the coordinate and the datetime given:
   const years = (getJulianDate(datetime) - (target.epoch ?? J2000)) / 365.25
 
-  // The proper motion in declination is the rate of change of the declination itself, converted
-  // from arcseconds to degrees:
-  const Δdec = (properMotion.dec * years) / 3600
-
   // The right ascension of a target at either celestial pole is degenerate, and its proper motion
   // in right ascension is therefore not resolvable. N.B. The cosine of the declination is tested
   // for through the declination itself, as the cosine of ±90° is not exactly zero:
   if (Math.abs(target.dec) >= 90) {
     return {
       ra: 0,
-      dec: Δdec
+      dec: (properMotion.dec * years) / 3600
     }
   }
 
-  // The proper motion in right ascension is the great-circle rate, and so it is divided through by
-  // the cosine of the declination to obtain the rate of change of the right ascension itself:
-  const Δra = (properMotion.ra * years) / Math.cos(radians(target.dec)) / 3600
+  // The displacement of the target over the interval along the axes of increasing right ascension
+  // and of increasing declination, e.g., its standard coordinates (ξ, η) in the plane tangent to
+  // the celestial sphere at the coordinate (in radians):
+  const ξ = radians((properMotion.ra * years) / 3600)
+
+  const η = radians((properMotion.dec * years) / 3600)
+
+  const δ = radians(target.dec)
+
+  // The moved direction of the target, e.g., the unit vector of the coordinate displaced by (ξ, η)
+  // within the tangent plane, in the axes rotated about the pole onto the meridian of its right
+  // ascension:
+  const x = Math.cos(δ) - η * Math.sin(δ)
+
+  const y = ξ
+
+  const z = Math.sin(δ) + η * Math.cos(δ)
+
+  // The length of the projection of the moved direction onto the plane of the equator:
+  const ρ = Math.hypot(x, y)
 
   return {
-    ra: Δra,
-    dec: Δdec
+    // The correction to the right ascension is the angle of the moved direction from the meridian
+    // of the coordinate, e.g., it is within (-180°, 180°] for a target that moves over 0h:
+    ra: degrees(Math.atan2(y, x)),
+    // The correction to the declination is the difference between the declination of the moved
+    // direction and that of the coordinate, resolved as the arc tangent of the sine of the
+    // difference against its cosine, e.g., without the cancellation of subtracting the two, and so
+    // it is precise for a small correction:
+    dec: degrees(Math.atan2(z * Math.cos(δ) - ρ * Math.sin(δ), ρ * Math.cos(δ) + z * Math.sin(δ)))
   }
 }
 

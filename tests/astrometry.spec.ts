@@ -35,6 +35,8 @@ import {
   J2000
 } from '../src'
 
+import { MICROARCSECOND_IN_DEGREES } from '../src/constants'
+
 import {
   convertRadiansToDegrees as degrees,
   convertDegreesToRadians as radians
@@ -679,6 +681,12 @@ const at = (years: number): Date => convertJulianDateToUTC(J2000 + years * 365.2
 
 /*****************************************************************************************************************/
 
+// The datetime of the reference values of ERFA, e.g., 2026-11-15T00:00:00Z, which is the Julian
+// date 2461359.5:
+const erfaReferenceDatetime = new Date('2026-11-15T00:00:00.000+00:00')
+
+/*****************************************************************************************************************/
+
 describe('getCorrectionToEquatorialForProperMotion', () => {
   it('should be defined', () => {
     expect(getCorrectionToEquatorialForProperMotion).toBeDefined()
@@ -715,14 +723,17 @@ describe('getCorrectionToEquatorialForProperMotion', () => {
     // The interval between the J2000.0 epoch and the datetime, in Julian years:
     const years = (getJulianDate(datetime) - J2000) / 365.25
 
-    // The declination moves north at the rate given, e.g., ~10.3" per year:
-    expect(dec * 3600).toBeCloseTo(barnardProperMotion.dec * years, 9)
+    // The declination moves north at the rate given, e.g., ~10.3" per year. N.B. The motion is
+    // along the great circle, and so it departs from the linear rate by ~0.1 milliarcseconds over
+    // the interval:
+    expect(dec * 3600).toBeCloseTo(barnardProperMotion.dec * years, 3)
 
     // The right ascension moves west at the rate given, divided through by the cosine of the
-    // declination, as the rate given is the great-circle rate:
+    // declination, as the rate given is the great-circle rate. N.B. The motion is along the great
+    // circle, and so it departs from the linear rate by ~1.5 milliarcseconds over the interval:
     expect(ra * 3600).toBeCloseTo(
       (barnardProperMotion.ra * years) / Math.cos((barnard.dec * Math.PI) / 180),
-      9
+      2
     )
 
     // Barnard's Star moves ~10.3" per year, and so it has moved ~3.7' over the interval:
@@ -734,8 +745,10 @@ describe('getCorrectionToEquatorialForProperMotion', () => {
 
     const century = getCorrectionToEquatorialForProperMotion(at(100), barnard, barnardProperMotion)
 
-    expect(century.ra / decade.ra).toBeCloseTo(10, 6)
-    expect(century.dec / decade.dec).toBeCloseTo(10, 6)
+    // N.B. The motion is along the great circle, and so it is linear to first order in the
+    // interval, e.g., the ratio departs from 10 by ~4 × 10⁻³ in right ascension:
+    expect(century.ra / decade.ra).toBeCloseTo(10, 2)
+    expect(century.dec / decade.dec).toBeCloseTo(10, 3)
   })
 
   it('should reverse the correction for a datetime before the epoch of the coordinate', () => {
@@ -743,8 +756,10 @@ describe('getCorrectionToEquatorialForProperMotion', () => {
 
     const after = getCorrectionToEquatorialForProperMotion(at(10), barnard, barnardProperMotion)
 
-    expect(before.ra).toBeCloseTo(-after.ra, 9)
-    expect(before.dec).toBeCloseTo(-after.dec, 9)
+    // N.B. The motion is along the great circle, and so it reverses to first order in the
+    // interval, e.g., to within ~0.7 milliarcseconds of right ascension over a decade:
+    expect(before.ra).toBeCloseTo(-after.ra, 6)
+    expect(before.dec).toBeCloseTo(-after.dec, 7)
   })
 
   it('should correct towards increasing right ascension and declination for a positive proper motion', () => {
@@ -801,7 +816,9 @@ describe('getCorrectionToEquatorialForProperMotion', () => {
 
     const years = (getJulianDate(datetime) - 2457388.5) / 365.25
 
-    expect(dec * 3600).toBeCloseTo(barnardProperMotion.dec * years, 9)
+    // N.B. The motion is along the great circle, and so it departs from the linear rate by ~5
+    // microarcseconds over the interval:
+    expect(dec * 3600).toBeCloseTo(barnardProperMotion.dec * years, 4)
 
     // The correction is smaller than it is for the same coordinate of the J2000 epoch:
     const { dec: j2000 } = getCorrectionToEquatorialForProperMotion(
@@ -837,6 +854,230 @@ describe('getCorrectionToEquatorialForProperMotion', () => {
       expect(Number.isFinite(correction.dec)).toBe(true)
     }
   })
+
+  it('should carry the target through an arc whose tangent grows linearly with the interval', () => {
+    // A target of no radial velocity moves along a straight line through space, at right angles
+    // to its direction at the epoch, and so the arc it sweeps out on the celestial sphere is the
+    // arc tangent of its proper motion over the interval, e.g., ~8.6" short of the linear rate
+    // after a millennium for Barnard's Star:
+    const μ = Math.hypot(barnardProperMotion.ra, barnardProperMotion.dec)
+
+    for (const years of [-1000, -100, -10, -1, 1, 10, 100, 1000]) {
+      const { ra, dec } = getCorrectionToEquatorialForProperMotion(
+        at(years),
+        barnard,
+        barnardProperMotion
+      )
+
+      const arc = getAngularSeparation(
+        { θ: barnard.dec, φ: barnard.ra },
+        { θ: barnard.dec + dec, φ: barnard.ra + ra }
+      )
+
+      expect(
+        Math.abs(arc - degrees(Math.atan(radians((μ * Math.abs(years)) / 3600))))
+      ).toBeLessThan(MICROARCSECOND_IN_DEGREES)
+    }
+  })
+
+  it('should carry the target along the one great circle over any interval', () => {
+    // The target moves along a straight line through space, and so its directions at every
+    // datetime lie in the one plane through the observer, e.g., the plane of a great circle. N.B.
+    // A target of a high declination and a high proper motion departs from it most where its
+    // right ascension and its declination are each moved linearly:
+    const target = { ra: 30, dec: 70 }
+
+    const properMotion = { ra: 5, dec: 5 }
+
+    const p = convertEquatorialToCartesian(target)
+
+    const directions = [10, 100, 1000].map(years => {
+      const { ra, dec } = getCorrectionToEquatorialForProperMotion(at(years), target, properMotion)
+
+      return convertEquatorialToCartesian({ ra: target.ra + ra, dec: target.dec + dec })
+    })
+
+    for (let i = 0; i < directions.length; i++) {
+      for (let j = i + 1; j < directions.length; j++) {
+        // The triple product of three coplanar directions vanishes:
+        expect(doDotProduct(p, doCrossProduct(directions[i], directions[j]))).toBeCloseTo(0, 12)
+      }
+    }
+  })
+
+  it('should carry the target equally far either side of the coordinate before and after its epoch', () => {
+    const target = { ra: 30, dec: 70 }
+
+    const properMotion = { ra: 5, dec: 5 }
+
+    const before = getCorrectionToEquatorialForProperMotion(at(-100), target, properMotion)
+
+    const after = getCorrectionToEquatorialForProperMotion(at(100), target, properMotion)
+
+    const start = { θ: target.dec, φ: target.ra }
+
+    const a = { θ: target.dec + before.dec, φ: target.ra + before.ra }
+
+    const b = { θ: target.dec + after.dec, φ: target.ra + after.ra }
+
+    // The target lies as far from the coordinate a century before its epoch as a century after:
+    expect(Math.abs(getAngularSeparation(start, a) - getAngularSeparation(start, b))).toBeLessThan(
+      MICROARCSECOND_IN_DEGREES
+    )
+
+    // The target lies either side of the coordinate along the one great circle, e.g., the arc
+    // between the two passes through the coordinate:
+    expect(
+      Math.abs(
+        getAngularSeparation(a, b) - getAngularSeparation(start, a) - getAngularSeparation(start, b)
+      )
+    ).toBeLessThan(MICROARCSECOND_IN_DEGREES)
+  })
+
+  it('should resolve the correction of a coordinate of a given epoch as that of J2000 over the same interval', () => {
+    // The Gaia DR3 catalogue resolves its coordinates at the J2016.0 epoch, e.g., the Julian date
+    // 2457389.0:
+    const epoch = J2000 + 16 * 365.25
+
+    const { ra, dec } = getCorrectionToEquatorialForProperMotion(
+      datetime,
+      { ...barnard, epoch },
+      barnardProperMotion
+    )
+
+    // The correction is that of the same coordinate of the J2000 epoch over the same interval:
+    const shifted = getCorrectionToEquatorialForProperMotion(
+      convertJulianDateToUTC(getJulianDate(datetime) - (epoch - J2000)),
+      barnard,
+      barnardProperMotion
+    )
+
+    expect(ra).toBeCloseTo(shifted.ra, 12)
+    expect(dec).toBeCloseTo(shifted.dec, 12)
+  })
+
+  it('should resolve a small correction in right ascension for a target that moves over 0h', () => {
+    // A target that moves over the meridian of 0h is corrected by the arc it moves through, and not
+    // by that arc less a whole turn of right ascension:
+    const east = getCorrectionToEquatorialForProperMotion(
+      at(100),
+      { ra: 359.9999, dec: 10 },
+      { ra: 10, dec: 0 }
+    )
+
+    expect(east.ra).toBeGreaterThan(0)
+    expect(east.ra).toBeLessThan(1)
+
+    const west = getCorrectionToEquatorialForProperMotion(
+      at(100),
+      { ra: 0.0001, dec: 10 },
+      { ra: -10, dec: 0 }
+    )
+
+    expect(west.ra).toBeLessThan(0)
+    expect(west.ra).toBeGreaterThan(-1)
+  })
+
+  // The coordinate of each star as the pmsafe routine of ERFA carries it from the J2000.0 epoch to
+  // 2026-11-15T00:00:00Z, for no radial velocity (in degrees). N.B. The coordinate and the proper
+  // motion of each star at J2000.0 are those of Gaia DR3, carried back from its J2016.0 epoch by
+  // pmsafe, save for Barnard's Star, which is the coordinate and proper motion above:
+  it.each([
+    {
+      name: 'Kapteyn’s Star',
+      target: { ra: 77.91912433, dec: -45.01843381 },
+      properMotion: { ra: 6.488343, dec: -5.711882 },
+      expected: { ra: 77.98768693392955, dec: -45.06104715349671 }
+    },
+    {
+      name: 'Groombridge 1830',
+      target: { ra: 178.24486391, dec: 37.7186817 },
+      properMotion: { ra: 4.00405, dec: -5.816837 },
+      expected: { ra: 178.2826237996871, dec: 37.6752584357065 }
+    },
+    {
+      name: 'Proxima Centauri',
+      target: { ra: 217.42894222, dec: -62.67949019 },
+      properMotion: { ra: -3.782177, dec: 0.767317 },
+      expected: { ra: 217.36744562591093, dec: -62.67374942604829 }
+    },
+    {
+      name: '61 Cygni A',
+      target: { ra: 316.72474829, dec: 38.74941732 },
+      properMotion: { ra: 4.163365, dec: 3.250693 },
+      expected: { ra: 316.76460795778047, dec: 38.77367393536938 }
+    },
+    {
+      name: 'Barnard’s Star',
+      target: barnard,
+      properMotion: barnardProperMotion,
+      expected: { ra: 269.4460978013426, dec: 4.770486913931256 }
+    }
+  ])(
+    'should agree with ERFA for $name from the J2000.0 epoch',
+    ({ target, properMotion, expected }) => {
+      const { ra, dec } = getCorrectionToEquatorialForProperMotion(
+        erfaReferenceDatetime,
+        target,
+        properMotion
+      )
+
+      expect(
+        getAngularSeparation(
+          { θ: target.dec + dec, φ: target.ra + ra },
+          { θ: expected.dec, φ: expected.ra }
+        )
+      ).toBeLessThan(MICROARCSECOND_IN_DEGREES)
+    }
+  )
+
+  // The coordinate of each star as the pmsafe routine of ERFA carries it from the J2016.0 epoch of
+  // Gaia DR3 to 2026-11-15T00:00:00Z, for no radial velocity (in degrees):
+  it.each([
+    {
+      name: 'Kapteyn’s Star',
+      target: { ra: 77.9599373502, dec: -45.0438126994 },
+      properMotion: { ra: 6.491223, dec: -5.708614 },
+      expected: { ra: 77.98768698020895, dec: -45.0610471911677 }
+    },
+    {
+      name: 'Groombridge 1830',
+      target: { ra: 178.2673532082, dec: 37.6928269469 },
+      properMotion: { ra: 4.002655, dec: -5.8178 },
+      expected: { ra: 178.28262382333432, dec: 37.67525841044776 }
+    },
+    {
+      name: 'Proxima Centauri',
+      target: { ra: 217.392321472, dec: -62.6760751168 },
+      properMotion: { ra: -3.781741, dec: 0.769465 },
+      expected: { ra: 217.36744561833214, dec: -62.6737494215994 }
+    },
+    {
+      name: '61 Cygni A',
+      target: { ra: 316.748479294, dec: 38.7638624465 },
+      properMotion: { ra: 4.164209, dec: 3.249614 },
+      expected: { ra: 316.7646079724593, dec: 38.77367394159085 }
+    }
+  ])(
+    'should agree with ERFA for $name from the J2016.0 epoch of Gaia DR3',
+    ({ target, properMotion, expected }) => {
+      // The J2016.0 epoch of Gaia DR3, e.g., the Julian date 2457389.0:
+      const epoch = J2000 + 16 * 365.25
+
+      const { ra, dec } = getCorrectionToEquatorialForProperMotion(
+        erfaReferenceDatetime,
+        { ...target, epoch },
+        properMotion
+      )
+
+      expect(
+        getAngularSeparation(
+          { θ: target.dec + dec, φ: target.ra + ra },
+          { θ: expected.dec, φ: expected.ra }
+        )
+      ).toBeLessThan(MICROARCSECOND_IN_DEGREES)
+    }
+  )
 })
 
 /***************************************************************************************************************/
