@@ -50,7 +50,11 @@ import {
 
 import { getPrecessionAngles } from './precession'
 
-import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
+import {
+  convertRadiansToDegrees as degrees,
+  getNormalizedAzimuthalDegree,
+  convertDegreesToRadians as radians
+} from './utilities'
 
 import { calculateB, calculateL, calculateR } from './vsop87'
 
@@ -424,7 +428,7 @@ export function getBarycentricSolarVector(datetime: Date): Required<CartesianCoo
  * ecliptic longitude at perigee at the epoch.
  *
  * @param datetime - The date to calculate the Sun's ecliptic coordinates for.
- * @returns The Sun's ecliptic coordinates at the given date.
+ * @returns The Sun's ecliptic coordinates at the given date, with the longitude within [0°, 360°).
  */
 export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate & {
   R: number
@@ -488,7 +492,9 @@ export function getSolarEclipticCoordinate(datetime: Date): EclipticCoordinate &
   λ += (-0.005775518 * RO * Δλ) / 3600
 
   return {
-    λ: λ % 360,
+    // N.B. The nutation in longitude and the aberration of light can carry a geometric longitude just past 0°
+    // back across it, e.g., in the minutes before the March equinox, and so the sum is normalised to [0°, 360°):
+    λ: getNormalizedAzimuthalDegree(λ),
     β,
     R: r
   }
