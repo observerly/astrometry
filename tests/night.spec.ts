@@ -169,6 +169,106 @@ describe('getGeneralizedSolarTransit', () => {
     expect(sunrise).toBeNull()
     expect(sunset).toBeNull()
   })
+
+  it('should return the events of the given UTC date for a datetime after 12:00 UTC', () => {
+    const { sunrise, noon, sunset, J, ha } = getGeneralizedSolarTransit(
+      new Date('2021-05-14T15:00:00.000+00:00'),
+      { latitude, longitude }
+    )
+
+    // The events are those of the 14th of May 2021, e.g., as resolved from 03:00 UTC on that date:
+    expect(sunrise).toEqual(new Date('2021-05-14T04:40:58.540Z'))
+    expect(noon).toEqual(new Date('2021-05-14T12:21:40.985Z'))
+    expect(sunset).toEqual(new Date('2021-05-14T20:02:23.430Z'))
+    expect(J).toBe(7804.017542125)
+    expect(ha).toBe(115.17685519818016)
+  })
+
+  it('should return a noon close to the ERFA transit of the given UTC date for a datetime after 12:00 UTC', () => {
+    const { noon } = getGeneralizedSolarTransit(new Date('2021-05-14T18:00:00.000+00:00'), {
+      latitude,
+      longitude
+    })
+
+    // The meridian transit of the Sun for the Isles of Scilly is on the 14th of May 2021 at
+    // ~12:21:36.864 UTC (ERFA epv00), e.g., the estimate is ~4 seconds from it:
+    const transit = Date.parse('2021-05-14T12:21:36.864Z')
+
+    expect(Math.abs((noon?.getTime() ?? 0) - transit)).toBeLessThan(10 * 1000)
+  })
+
+  it('should return the same events either side of 12:00:08 UTC on the given date', () => {
+    const before = getGeneralizedSolarTransit(new Date('2021-05-14T12:00:08.000+00:00'), {
+      latitude,
+      longitude
+    })
+
+    const after = getGeneralizedSolarTransit(new Date('2021-05-14T12:00:09.000+00:00'), {
+      latitude,
+      longitude
+    })
+
+    expect(after).toEqual(before)
+    expect(after.noon).toEqual(new Date('2021-05-14T12:21:40.985Z'))
+  })
+
+  it('should return the same events for every time of day of the given UTC date', () => {
+    const midnight = getGeneralizedSolarTransit(new Date('2021-05-14T00:00:00.000+00:00'), {
+      latitude,
+      longitude
+    })
+
+    // Every quarter of an hour of the date, through to the last millisecond before midnight:
+    for (let minute = 0; minute < 1440; minute += 15) {
+      const when = new Date(Date.UTC(2021, 4, 14, 0, minute))
+
+      expect(getGeneralizedSolarTransit(when, { latitude, longitude })).toEqual(midnight)
+    }
+
+    expect(
+      getGeneralizedSolarTransit(new Date('2021-05-14T23:59:59.999+00:00'), { latitude, longitude })
+    ).toEqual(midnight)
+  })
+
+  it('should return the events of the following UTC date from midnight UTC onwards', () => {
+    const { noon, J } = getGeneralizedSolarTransit(new Date('2021-05-15T00:00:00.000+00:00'), {
+      latitude,
+      longitude
+    })
+
+    expect(noon).toEqual(new Date('2021-05-15T12:21:42.196Z'))
+    expect(J).toBe(7805.017542125)
+  })
+
+  it('should return the same events for every time of day of the given UTC date near the antimeridian', () => {
+    // An observer either side of the antimeridian, e.g., whose local noon falls close to 0h UTC:
+    for (const observer of [
+      { latitude: 10, longitude: 179.5 },
+      { latitude: 10, longitude: -179.5 }
+    ]) {
+      const midnight = getGeneralizedSolarTransit(
+        new Date('2021-05-14T00:00:00.000+00:00'),
+        observer
+      )
+
+      const evening = getGeneralizedSolarTransit(
+        new Date('2021-05-14T23:59:59.999+00:00'),
+        observer
+      )
+
+      expect(evening).toEqual(midnight)
+    }
+  })
+
+  it('should return the events of the given UTC date for a datetime given in a timezone ahead of UTC', () => {
+    // 01:00 on the 15th of May 2021 in UTC+10:00 is 15:00 UTC on the 14th of May 2021:
+    const { noon } = getGeneralizedSolarTransit(new Date('2021-05-15T01:00:00.000+10:00'), {
+      latitude,
+      longitude
+    })
+
+    expect(noon).toEqual(new Date('2021-05-14T12:21:40.985Z'))
+  })
 })
 
 /*****************************************************************************************************************/

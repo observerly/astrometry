@@ -69,7 +69,9 @@ const getApparentSolarAltitude = (
  *
  * Atmospheric conditions are not taken into account.
  *
- * @param datetime - The date to calculate the generalized solar transit for.
+ * The events are those of the UTC date of the datetime given, whatever its time of day.
+ *
+ * @param datetime - The UTC date to calculate the generalized solar transit for.
  * @param observer - The geographic coordinates of the observer.
  * @returns The generalized solar transit for the given date.
  *
@@ -86,8 +88,16 @@ export function getGeneralizedSolarTransit(
 } {
   const { latitude, longitude } = observer
 
-  // Get the Julian Date:
-  const JD = getJulianDate(datetime)
+  // Set the datetime to be at midnight UTC for the date specified, taking a copy of the
+  // datetime so as to not modify the date given by the caller, so that the events are those of
+  // the UTC date whatever the time of day, e.g., 15:00 UTC on the 14th of May 2021 resolves the
+  // events of the 14th, where the Julian Date of the datetime itself would resolve the 15th:
+  const midnight = new Date(
+    Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), datetime.getUTCDate(), 0, 0, 0, 0)
+  )
+
+  // Get the Julian Date at midnight UTC on the date specified:
+  const JD = getJulianDate(midnight)
 
   const n = Math.ceil(JD - (J2000 + 0.0009) + 69.184 / 86400.0)
 
