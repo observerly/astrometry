@@ -61,14 +61,18 @@ export function getApparentEquatorialCoordinate(
 ): EquatorialCoordinate {
   // The proper motion of the target carries it from the epoch of the catalogue to the datetime of
   // the observation, and so it is applied first, and the displacements of the observer are then
-  // resolved about the target as it lies at the datetime:
+  // resolved about the target as it lies at the datetime. N.B. The proper motion carries the target
+  // through minutes of arc over the decades from the epoch of a catalogue, and so it is not held to
+  // the bound on the cross terms of the displacements below: its correction is the difference of
+  // the moved coordinate from that of the catalogue, resolved along the great circle of its motion,
+  // and so it is added exactly:
   const motion = properMotion
     ? getCorrectionToEquatorialForProperMotion(datetime, target, properMotion)
     : { ra: 0, dec: 0 }
 
-  // Normalise the moved coordinate as a pair, e.g., a declination that is carried over a pole is
-  // reflected back over it, and its right ascension is rotated to the antipodal meridian. The
-  // parallax of the target is carried with it:
+  // Normalise the moved coordinate as a pair, e.g., its right ascension is rotated into [0°, 360°),
+  // and a declination that is carried over a pole is reflected back over it, with its right
+  // ascension rotated to the antipodal meridian. The parallax of the target is carried with it:
   const { θ, φ } = getNormalizedSphericalCoordinate({
     θ: target.dec + motion.dec,
     φ: target.ra + motion.ra
@@ -94,11 +98,12 @@ export function getApparentEquatorialCoordinate(
   // The unit vector of the moved target, in the axes of the catalogue:
   const p = convertEquatorialToCartesian(moved)
 
-  // The displacements are each a few arcseconds at their greatest, and so they are resolved about
-  // the one coordinate, e.g., the cross terms between them are below a milliarcsecond. They are
-  // summed as the vectors they displace the target by, and not as their differences of right
-  // ascension and of declination, which are not additive towards the celestial poles, e.g., a
-  // displacement of a few arcseconds is there a difference of tens of degrees of right ascension:
+  // The displacements of the observer are each a few arcseconds at their greatest, and so they are
+  // resolved about the one coordinate, e.g., the cross terms between them are below a
+  // milliarcsecond. They are summed as the vectors they displace the target by, and not as their
+  // differences of right ascension and of declination, which are not additive towards the
+  // celestial poles, e.g., a displacement of a few arcseconds is there a difference of tens of
+  // degrees of right ascension:
   const displaced = [parallax, annual, orbital].reduce(
     (sum, correction) =>
       doVectorSum(
