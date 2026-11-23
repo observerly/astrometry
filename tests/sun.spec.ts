@@ -42,7 +42,7 @@ import {
   SOLAR_STANDARD_ALTITUDE_OF_RISE_AND_SET
 } from '../src'
 
-import { ARCSECOND_IN_DEGREES } from '../src/constants'
+import { ARCSECOND_IN_DEGREES, MILLIARCSECOND_IN_DEGREES } from '../src/constants'
 
 /*****************************************************************************************************************/
 
@@ -290,6 +290,69 @@ describe('getSolarEclipticCoordinate', () => {
       expect(apparent.R).toBe(R)
     }
   )
+
+  it.each([
+    // Minutes before the March equinox, at which the geometric longitude has passed 0° and the nutation in
+    // longitude and the aberration of light carry the apparent longitude back across it:
+    ['2024-03-20T03:00:00.000Z', 359.99558172921274],
+    ['2024-03-20T03:06:00.000Z', 359.999721268173],
+    ['2025-03-20T09:00:00.000Z', 359.9989779733176],
+    // Minutes before the March equinox, at which the geometric longitude has not yet passed 0°:
+    ['2026-03-20T14:40:00.000Z', 359.9958883823908],
+    ['1992-03-20T08:40:00.000Z', 359.99445551079026]
+  ])(
+    'should return the apparent ecliptic longitude within [0°, 360°) before the March equinox for %s',
+    (iso, reference) => {
+      const { λ } = getSolarEclipticCoordinate(new Date(iso))
+
+      expect(λ).toBeGreaterThanOrEqual(0)
+      expect(λ).toBeLessThan(360)
+
+      // The apparent longitude of the Sun referred to the true ecliptic and equinox of the date (ERFA plan94 and
+      // epv00), from which the longitude of VSOP87 departs by no more than ~0.15 arcseconds:
+      expect(Math.abs(λ - reference)).toBeLessThan(ARCSECOND_IN_DEGREES / 4)
+    }
+  )
+
+  it.each([
+    '2000-03-20T07:35:00.000Z',
+    '2020-03-20T03:50:00.000Z',
+    '2024-03-20T03:06:00.000Z',
+    '2025-03-20T09:01:00.000Z',
+    '2026-03-20T14:46:00.000Z'
+  ])(
+    'should return the apparent ecliptic longitude within [0°, 360°) on every minute about the March equinox of %s',
+    iso => {
+      for (let minute = -30; minute <= 30; minute++) {
+        const { λ } = getSolarEclipticCoordinate(new Date(new Date(iso).getTime() + minute * 60000))
+
+        expect(λ).toBeGreaterThanOrEqual(0)
+        expect(λ).toBeLessThan(360)
+      }
+    }
+  )
+
+  it('should advance the apparent ecliptic longitude through 0° by the geometric advance at the March equinox', () => {
+    const before = new Date('2024-03-20T03:00:00.000Z')
+
+    const after = new Date('2024-03-20T03:10:00.000Z')
+
+    // The geometric longitude has passed 0° at both instants, whereas the apparent longitude crosses 0° between
+    // them, e.g., at the equinox of 2024 March 20 03:06 UTC:
+    const advance =
+      getSolarGeometricEclipticCoordinate(after).λ - getSolarGeometricEclipticCoordinate(before).λ
+
+    expect(getSolarEclipticCoordinate(before).λ).toBeGreaterThan(359.99)
+    expect(getSolarEclipticCoordinate(after).λ).toBeLessThan(0.01)
+
+    // The nutation in longitude and the aberration of light vary by no more than ~0.05 milliarcseconds over the
+    // ten minutes, and so the apparent longitude advances by the geometric advance, once carried across 0°:
+    expect(
+      Math.abs(
+        getSolarEclipticCoordinate(after).λ + 360 - getSolarEclipticCoordinate(before).λ - advance
+      )
+    ).toBeLessThan(MILLIARCSECOND_IN_DEGREES)
+  })
 })
 
 /*****************************************************************************************************************/
