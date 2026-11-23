@@ -105,6 +105,57 @@ describe('convertPixelToWorldCoordinateSystem', () => {
     expect(convertPixelToWorldCoordinateSystem(wcs, { x: 0, y: -91 }).dec).toBe(-90)
     expect(convertPixelToWorldCoordinateSystem(wcs, { x: 0, y: -180 }).dec).toBe(-90)
   })
+
+  // A WCS whose right ascension is simply the pixel offset in the x-dimension, in degrees:
+  const ra = {
+    crpix: { x: 0, y: 0 },
+    crval: { ra: 0, dec: 0 },
+    cd11: 1,
+    cd12: 0,
+    cd21: 0,
+    cd22: 0,
+    E: 0,
+    F: 0
+  } satisfies WCS
+
+  it('should resolve a tiny negative right ascension to 0 degrees and not 360 degrees', () => {
+    expect(convertPixelToWorldCoordinateSystem(ra, { x: -1e-15, y: 0 }).ra).toBe(0)
+    expect(convertPixelToWorldCoordinateSystem(ra, { x: -1e-300, y: 0 }).ra).toBe(0)
+    expect(convertPixelToWorldCoordinateSystem(ra, { x: -Number.MIN_VALUE, y: 0 }).ra).toBe(0)
+  })
+
+  it('should resolve a right ascension of a whole number of revolutions to 0 degrees', () => {
+    for (const x of [-1080, -720, -360, 0, 360, 720, 1080]) {
+      expect(convertPixelToWorldCoordinateSystem(ra, { x, y: 0 }).ra).toBe(0)
+    }
+  })
+
+  it('should wrap a negative right ascension into the range 0 to 360 degrees', () => {
+    expect(convertPixelToWorldCoordinateSystem(ra, { x: -1, y: 0 }).ra).toBe(359)
+    expect(convertPixelToWorldCoordinateSystem(ra, { x: -90, y: 0 }).ra).toBe(270)
+    expect(convertPixelToWorldCoordinateSystem(ra, { x: -361, y: 0 }).ra).toBe(359)
+  })
+
+  it('should wrap a right ascension beyond 360 degrees into the range 0 to 360 degrees', () => {
+    expect(convertPixelToWorldCoordinateSystem(ra, { x: 361, y: 0 }).ra).toBe(1)
+    expect(convertPixelToWorldCoordinateSystem(ra, { x: 450, y: 0 }).ra).toBe(90)
+    expect(convertPixelToWorldCoordinateSystem(ra, { x: 719, y: 0 }).ra).toBe(359)
+  })
+
+  it('should keep the right ascension within the range 0 to 360 degrees', () => {
+    for (let x = -1080; x <= 1080; x += 0.5) {
+      for (const offset of [-1e-13, -1e-15, 0, 1e-15, 1e-13]) {
+        const { ra: α } = convertPixelToWorldCoordinateSystem(ra, { x: x + offset, y: 0 })
+
+        expect(α).toBeGreaterThanOrEqual(0)
+        expect(α).toBeLessThan(360)
+      }
+    }
+  })
+
+  it('should return a NaN right ascension for a NaN pixel', () => {
+    expect(convertPixelToWorldCoordinateSystem(ra, { x: Number.NaN, y: 0 }).ra).toBeNaN()
+  })
 })
 
 /*****************************************************************************************************************/

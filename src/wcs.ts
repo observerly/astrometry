@@ -173,6 +173,12 @@ export function convertPixelToWorldCoordinateSystem(
     ra += 360
   }
 
+  // A tiny negative RA rounds up to exactly 360° when 360° is added to it, and a negative whole
+  // number of revolutions leaves a negative zero, both of which are the same RA as 0°:
+  if (ra === 360 || ra === 0) {
+    ra = 0
+  }
+
   // Calculate the reference equatorial coordinate for the declination:
   let dec = wcs.cd21 * deltaX + wcs.cd22 * deltaY + wcs.F
 
