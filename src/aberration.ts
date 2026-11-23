@@ -185,12 +185,23 @@ export function getCorrectionToEquatorialForDiurnalAberration(
  *
  * getCorrectionToEquatorialForAberration()
  *
- * Corrects the equatorial coordinate of a target for aberration in
- * longitude and obliquity due to the apparent motion of the Earth.
+ * Corrects the equatorial coordinate of a target for the aberration of light, e.g., the annual
+ * aberration of the motion of the Earth about the barycentre of the Solar System, together with
+ * the diurnal aberration of the observer carried by the rotation of the Earth. The correction
+ * terms should be added to the target's coordinate by the caller.
+ *
+ * The two are composed in sequence, e.g., the diurnal aberration is resolved about the apparent
+ * direction of the target after the annual aberration, as eraAb of the IAU Standards of
+ * Fundamental Astronomy (SOFA) resolves the aberration of the summed velocity of the observer.
+ *
+ * N.B. The corrections are not summed as differences of right ascension and of declination, which
+ * are not additive towards the celestial poles, e.g., a displacement of a few arcseconds is there
+ * a difference of tens of degrees of right ascension about the pole.
  *
  * @param datetime - The date to correct the equatorial coordinate for.
+ * @param observer - The geographic coordinate of the observer.
  * @param target - The equatorial J2000 coordinate of the target.
- * @returns The corrected equatorial coordinate of the target.
+ * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
  *
  */
 export function getCorrectionToEquatorialForAberration(
@@ -201,11 +212,20 @@ export function getCorrectionToEquatorialForAberration(
   // Get the annual aberration correction:
   const annual = getCorrectionToEquatorialForAnnualAberration(datetime, target)
 
-  // Get the diurnal aberration correction:
-  const diurnal = getCorrectionToEquatorialForDiurnalAberration(datetime, observer, target)
+  // The target displaced by the annual aberration, e.g., its apparent direction from the centre
+  // of the Earth:
+  const displaced = {
+    ra: target.ra + annual.ra,
+    dec: target.dec + annual.dec
+  }
 
+  // Get the diurnal aberration correction, about the target displaced by the annual aberration:
+  const diurnal = getCorrectionToEquatorialForDiurnalAberration(datetime, observer, displaced)
+
+  // The displacement in right ascension, taken the shorter of the two ways about the sphere, e.g.,
+  // the two displacements about a target near a pole may together exceed half of a whole turn:
   return {
-    ra: annual.ra + diurnal.ra,
+    ra: getNormalizedAzimuthalDegree(annual.ra + diurnal.ra + 180) - 180,
     dec: annual.dec + diurnal.dec
   }
 }
