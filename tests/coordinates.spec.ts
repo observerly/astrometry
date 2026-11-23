@@ -510,34 +510,155 @@ describe('convertEquatorialToHorizontal', () => {
     expect(p).toBeCloseTo(0.29, 2)
 
     // The parallax displaces the target towards the horizon, and so the topocentric altitude is
-    // always lower than the geocentric altitude:
-    expect(topocentric.alt).toBeCloseTo(geocentric.alt - p, 9)
+    // always lower than the geocentric altitude, here by the parallax of a spherical Earth to within
+    // ~5″, as the observer is on the WGS84 ellipsoid rather than on the sphere:
+    expect(topocentric.alt).toBeCloseTo(geocentric.alt - p, 2)
     expect(topocentric.alt).toBeLessThan(geocentric.alt)
 
-    // The parallax acts along the vertical circle of the target, and so the azimuth is unchanged:
-    expect(topocentric.az).toBe(geocentric.az)
+    // The line from the observer to the center of the Earth is ~0.12° from their vertical on the
+    // ellipsoid, and so the parallax also displaces the azimuth, here by ~18″, e.g., by much less
+    // than it displaces the altitude:
+    expect(topocentric.az).not.toBe(geocentric.az)
+    expect(Math.abs(topocentric.az - geocentric.az)).toBeLessThan(p / 10)
+
+    // The topocentric coordinate at the apparent hour angle of the target (ERFA gd2gc and hd2ae):
+    expect(topocentric.alt).toBeCloseTo(72.4979554802, 6)
+    expect(topocentric.az).toBeCloseTo(134.4328796885, 6)
   })
 
   it.each([
-    ['the mean distance of the Moon', 384400000, 44.31982],
-    ['the distance of a geostationary satellite', 42164000, 38.16991],
-    ['the distance of a satellite in low Earth orbit', 6778000, -18.30335]
-  ])('should correct the altitude of a target at %s exactly', (_, distance, expected) => {
-    // A target on the celestial equator, on the meridian of an observer at a latitude of 45°, is at a
-    // geocentric altitude of 45°, and so its topocentric altitude is atan2(sin 45° − ρ, cos 45°), where
-    // ρ is the radius of the Earth as a fraction of its distance, e.g., a satellite in low Earth orbit
-    // that is above the horizon as seen from the center of the Earth is well below it for the observer:
-    const observer = { latitude: 45, longitude: 0 }
+    ['the mean distance of the Moon', 384400000, 44.3232269737, 6],
+    ['the distance of a geostationary satellite', 42164000, 38.2025722029, 5],
+    ['the distance of a satellite in low Earth orbit', 6778000, -18.2642628913, 4]
+  ])(
+    'should correct the altitude of a target at %s exactly',
+    (_, distance, expected, precision) => {
+      // A target on the celestial equator, on the meridian of an observer at a geodetic latitude of
+      // 45°, is at a geocentric altitude of 45°. The observer is on the WGS84 ellipsoid, e.g., ~21 km
+      // from the line through the center of the Earth along their vertical, and so the topocentric
+      // altitude is that of the position of the target less the position of the observer (ERFA gd2gc
+      // and hd2ae), e.g., a satellite in low Earth orbit that is above the horizon as seen from the
+      // center of the Earth is well below it for the observer.
+      //
+      // N.B. The precision of the satellite in low Earth orbit allows for the 0.8 m by which the
+      // EARTH_RADIUS exceeds the equatorial radius of WGS84, e.g., ~0.03″ here:
+      const observer = { latitude: 45, longitude: 0 }
 
-    const ra = getGreenwichApparentSiderealTime(datetime) * 15
+      const ra = getGreenwichApparentSiderealTime(datetime) * 15
 
-    const geocentric = convertEquatorialToHorizontal(datetime, observer, { ra, dec: 0 })
+      const geocentric = convertEquatorialToHorizontal(datetime, observer, { ra, dec: 0 })
 
-    expect(geocentric.alt).toBeCloseTo(45, 9)
+      expect(geocentric.alt).toBeCloseTo(45, 9)
 
-    const topocentric = convertEquatorialToHorizontal(datetime, observer, { ra, dec: 0, distance })
+      const topocentric = convertEquatorialToHorizontal(datetime, observer, {
+        ra,
+        dec: 0,
+        distance
+      })
 
-    expect(topocentric.alt).toBeCloseTo(expected, 4)
+      expect(topocentric.alt).toBeCloseTo(expected, precision)
+
+      // The target and the observer are both in the plane of the meridian, and so the parallax does
+      // not displace the target out of it, e.g., to within the conditioning of the arc cosine the
+      // azimuth is resolved from, which is ill-conditioned on the meridian:
+      expect(topocentric.az).toBeCloseTo(180, 5)
+    }
+  )
+
+  it.each([
+    ['the mean distance of the Moon', 384400000, 75.2329692867, 127.7650286781, 6],
+    ['the distance of a geostationary satellite', 42164000, 72.9526536607, 127.6846093204, 5],
+    ['the distance of a satellite in low Earth orbit', 6778000, 6.5823933661, 127.2095119773, 4]
+  ])(
+    'should correct the horizontal coordinate of a target at %s off the meridian of an elevated observer',
+    (_, distance, alt, az, precision) => {
+      // A target at an hour angle of -15°, e.g., east of the meridian, and a declination of 40°, for an
+      // observer at a geodetic latitude of 50° and an elevation of 1000 m above the WGS84 ellipsoid
+      // (ERFA gd2gc and hd2ae). The line from the observer to the center of the Earth is not their
+      // vertical, and so the parallax displaces the azimuth of the target as well as its altitude:
+      const observer = { latitude: 50, longitude: 0, elevation: 1000 }
+
+      const ra = getGreenwichApparentSiderealTime(datetime) * 15 + 15
+
+      const topocentric = convertEquatorialToHorizontal(datetime, observer, {
+        ra,
+        dec: 40,
+        distance
+      })
+
+      expect(topocentric.alt).toBeCloseTo(alt, precision)
+      expect(topocentric.az).toBeCloseTo(az, precision)
+    }
+  )
+
+  it('should correct the altitude of a nearby target for the elevation of an observer below sea level', () => {
+    // A satellite in low Earth orbit at an hour angle of 10° and a declination of 30°, for an
+    // observer at a geodetic latitude of 31.5°, e.g., by the shore of the Dead Sea, ~430 m below the
+    // WGS84 ellipsoid, and for an observer at the ellipsoid itself (ERFA gd2gc and hd2ae):
+    const ra = getGreenwichApparentSiderealTime(datetime) * 15 - 10
+
+    const target = { ra, dec: 30, distance: 6778000 }
+
+    const below = convertEquatorialToHorizontal(
+      datetime,
+      { latitude: 31.5, longitude: 0, elevation: -430 },
+      target
+    )
+
+    const sea = convertEquatorialToHorizontal(datetime, { latitude: 31.5, longitude: 0 }, target)
+
+    expect(below.alt).toBeCloseTo(17.7260689805, 4)
+    expect(below.az).toBeCloseTo(263.7410358646, 4)
+
+    expect(sea.alt).toBeCloseTo(17.7042669973, 4)
+    expect(sea.az).toBeCloseTo(263.7410358646, 4)
+
+    // The observer below sea level is further from the target, which is therefore higher in the sky:
+    expect(below.alt).toBeGreaterThan(sea.alt)
+  })
+
+  it('should correct the horizontal coordinate of a nearby target for an observer on the equator', () => {
+    // The vertical of an observer on the equator passes through the center of the Earth, at the
+    // equatorial radius, and so the parallax is that of a spherical Earth (ERFA gd2gc and hd2ae):
+    const ra = getGreenwichApparentSiderealTime(datetime) * 15 - 10
+
+    const geocentric = convertEquatorialToHorizontal(
+      datetime,
+      { latitude: 0, longitude: 0 },
+      { ra, dec: 5 }
+    )
+
+    const topocentric = convertEquatorialToHorizontal(
+      datetime,
+      { latitude: 0, longitude: 0 },
+      { ra, dec: 5, distance: 6778000 }
+    )
+
+    expect(topocentric.alt).toBeCloseTo(11.6831496418, 4)
+    expect(topocentric.az).toBeCloseTo(296.7402053557, 6)
+
+    // The parallax acts along the vertical of the observer, and so the azimuth is unchanged:
+    expect(topocentric.az).toBeCloseTo(geocentric.az, 9)
+  })
+
+  it('should return NaN for an observer that is not finite for a nearby target', () => {
+    // An observer with a coordinate that is not finite is at no one position, and so the parallax
+    // of a nearby target, and with it the coordinate returned, is NaN:
+    for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      for (const observer of [
+        { latitude: value, longitude: 0, elevation: 0 },
+        { latitude: 45, longitude: value, elevation: 0 },
+        { latitude: 45, longitude: 0, elevation: value }
+      ]) {
+        const coordinate = convertEquatorialToHorizontal(datetime, observer, {
+          ...betelgeuse,
+          distance: 384400000
+        })
+
+        expect(Number.isNaN(coordinate.alt)).toBe(true)
+        expect(Number.isNaN(coordinate.az)).toBe(true)
+      }
+    }
   })
 
   it('should not correct the altitude of a distant target for its diurnal parallax', () => {
@@ -554,7 +675,7 @@ describe('convertEquatorialToHorizontal', () => {
     )
 
     expect(topocentric.alt).toBeCloseTo(geocentric.alt, 9)
-    expect(topocentric.az).toBe(geocentric.az)
+    expect(topocentric.az).toBeCloseTo(geocentric.az, 9)
   })
 })
 
@@ -999,6 +1120,20 @@ describe('convertEquatorialToHorizontal for an observer at a celestial pole', ()
       expect(south.alt).toBeCloseTo(-target.dec, 9)
       expect(Number.isFinite(south.az)).toBe(true)
     }
+  })
+
+  it('should correct the altitude of a nearby target from the polar radius of the Earth', () => {
+    // An observer at the north pole is at the polar radius of the WGS84 ellipsoid, ~21 km closer
+    // to the center of the Earth than the equatorial radius, and so a target at the mean distance of
+    // the Moon at a declination of 20° is at a topocentric altitude of ~19.1047° (ERFA gd2gc and
+    // hd2ae):
+    const { alt } = convertEquatorialToHorizontal(
+      datetime,
+      { latitude: 90, longitude: 0 },
+      { ra: getGreenwichApparentSiderealTime(datetime) * 15, dec: 20, distance: 384400000 }
+    )
+
+    expect(alt).toBeCloseTo(19.104659321, 6)
   })
 
   it('should return NaN for a latitude that is not finite', () => {

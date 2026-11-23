@@ -218,9 +218,13 @@ export function convertEquatorialToGalactic(target: EquatorialCoordinate): Galac
  * Performs the conversion from Equatorial to Horizontal coordinates for a given
  * datetime, observer, and target.
  *
+ * N.B. A target given at a geocentric distance, e.g., the Moon or an artificial satellite, is
+ * corrected for its diurnal parallax, as seen from the observer on or above the WGS84 ellipsoid,
+ * whose latitude is the geodetic latitude and whose elevation is above the ellipsoid.
+ *
  * @param datetime - The date and time of the observation for which to calculate the Horizontal coordinate
  * @param observer - The geographic coordinate of the observer.
- * @param target - The equatorial coordinate of the observed object.
+ * @param target - The equatorial coordinate and geocentric distance (in SI metres) of the target.
  * @returns The horizontal coordinates of the target
  *
  */
@@ -231,9 +235,7 @@ export function convertEquatorialToHorizontal(
 ): HorizontalCoordinate {
   const { latitude, longitude, elevation = 0 } = observer
 
-  const declination = radians(target.dec)
-
-  const R = EARTH_RADIUS
+  let declination = radians(target.dec)
 
   // N.B. The cosine of the latitude does not vanish for any finite latitude, e.g., it is ~6.1e-17
   // at ±90°, where the altitude resolves to the declination of the target through the ordinary
@@ -242,7 +244,41 @@ export function convertEquatorialToHorizontal(
   // Get the hour angle for the target, taken against the Local Apparent Sidereal Time, e.g., referred
   // to the true equinox of the date, as the apparent place of a target is, which balances the
   // nutation in longitude its right ascension carries:
-  const ha = radians(getApparentHourAngle(datetime, longitude, target.ra))
+  let ha = radians(getApparentHourAngle(datetime, longitude, target.ra))
+
+  // The topocentric hour angle and declination of a nearby target, e.g., as seen from the observer
+  // on the surface of the Earth, rather than from its center:
+  if (target.distance !== undefined && target.distance > 0) {
+    // An observer with a coordinate that is not finite is at no one position, and so the parallax
+    // of the target, and with it the coordinate, is NaN:
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !Number.isFinite(elevation)) {
+      return { alt: Number.NaN, az: Number.NaN }
+    }
+
+    // The geocentric position of the observer on or above the WGS84 ellipsoid (in SI metres):
+    const { x, y, z } = convertGeographicToGeocentric(datetime, observer)
+
+    // The observer is in the plane of their own meridian, at ρ from the axis of rotation and at z
+    // above the plane of the equator, and so is resolved in that plane, e.g., in the frame of the
+    // apparent hour angle of the target, rather than against the mean sidereal time the geocentric
+    // position is rotated by (in SI metres):
+    const ρ = Math.hypot(x, y)
+
+    // The position of the target less the position of the observer, in the frame of the meridian
+    // of the observer, e.g., with the x-axis towards the meridian on the equator, the y-axis towards
+    // an hour angle of 90°, west of the meridian, and the z-axis towards the celestial pole, which
+    // holds exactly for any distance, e.g., for the Moon and for an artificial satellite, and not to
+    // the first order of the parallax alone (in SI metres):
+    const u = target.distance * Math.cos(declination) * Math.cos(ha) - ρ
+
+    const v = target.distance * Math.cos(declination) * Math.sin(ha)
+
+    const w = target.distance * Math.sin(declination) - z
+
+    ha = Math.atan2(v, u)
+
+    declination = Math.atan2(w, Math.hypot(u, v))
+  }
 
   // Calculate the altitude of the target, ensuring it is within the range -π/2 to π/2 for arcsin,
   // i.e., between [-1, 1]. This accounts for the observer's target being directly overhead, e.g., at the zenith,
@@ -269,29 +305,11 @@ export function convertEquatorialToHorizontal(
     )
   )
 
-  // The topocentric altitude of the target, e.g., as seen from the surface of the Earth, rather than
-  // from its center, which is the geocentric altitude where the target is at no given distance (in
-  // radians):
-  let topocentric = altitude
-
-  if (target.distance !== undefined && target.distance > 0) {
-    // For nearby objects, the geocentric distance of the observer as a fraction of the geocentric
-    // distance of the target, e.g., the sine of the horizontal parallax of the target:
-    const ρ = (R + Math.max(0, elevation)) / target.distance
-
-    // The parallax displaces the target along its vertical circle, towards the horizon, and so the
-    // azimuth is unaffected. The target lies at cos(altitude) along the horizon of the observer and
-    // at sin(altitude) above the center of the Earth, e.g., at sin(altitude) − ρ above the observer,
-    // which holds exactly for any distance, e.g., for the Moon and for an artificial satellite, and
-    // not to the first order of the parallax alone:
-    topocentric = Math.atan2(Math.sin(altitude) - ρ, Math.cos(altitude))
-  }
-
-  // N.B. The elevation of the observer does not displace the target: it depresses the observer's
-  // horizon, e.g., getLocalHorizon(), which the horizon-relative predicates apply to the horizon
-  // they compare the altitude of the target against:
+  // N.B. The elevation of the observer does not displace a distant target: it depresses the
+  // observer's horizon, e.g., getLocalHorizon(), which the horizon-relative predicates apply to the
+  // horizon they compare the altitude of the target against:
   return {
-    alt: degrees(topocentric),
+    alt: degrees(altitude),
     az: Math.sin(ha) > 0 ? 360 - degrees(azimuth) : degrees(azimuth)
   }
 }
