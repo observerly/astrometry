@@ -34,7 +34,11 @@ import {
   SPEED_OF_LIGHT
 } from '../src'
 
-import { MICROARCSECOND_IN_DEGREES } from '../src/constants'
+import {
+  ARCSECOND_IN_DEGREES,
+  MICROARCSECOND_IN_DEGREES,
+  MILLIARCSECOND_IN_DEGREES
+} from '../src/constants'
 
 import {
   convertRadiansToDegrees as degrees,
@@ -593,8 +597,8 @@ describe('getCorrectionToEquatorialForAberration', () => {
       },
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBeCloseTo(88.79861820653129, 9)
-    expect(dec + betelgeuse.dec).toBeCloseTo(7.406797419696119, 9)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.79861820165148, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.406797420791114, 9)
   })
 
   it('should return the correct aberration correction for the designated epoch', () => {
@@ -606,9 +610,455 @@ describe('getCorrectionToEquatorialForAberration', () => {
       },
       betelgeuse
     )
-    expect(ra + betelgeuse.ra).toBeCloseTo(88.78847429678412, 9)
-    expect(dec + betelgeuse.dec).toBeCloseTo(7.406099551532445, 9)
+    expect(ra + betelgeuse.ra).toBeCloseTo(88.7884742980359, 9)
+    expect(dec + betelgeuse.dec).toBeCloseTo(7.406099552668467, 9)
   })
+
+  it.each([
+    {
+      target: { ra: 0, dec: 0 }
+    },
+    {
+      target: { ra: 45, dec: 45 }
+    },
+    {
+      target: { ra: 90, dec: 80 }
+    },
+    {
+      target: { ra: 135, dec: 89 }
+    },
+    {
+      target: { ra: 180, dec: 89.9 }
+    },
+    {
+      target: { ra: 225, dec: 89.99 }
+    },
+    {
+      target: { ra: 270, dec: 89.999 }
+    },
+    {
+      target: { ra: 315, dec: 90 }
+    },
+    {
+      target: { ra: 333, dec: -45 }
+    },
+    {
+      target: { ra: 0, dec: -89.9 }
+    },
+    {
+      target: { ra: 90, dec: -89.999 }
+    },
+    {
+      target: { ra: 180, dec: -90 }
+    }
+  ])(
+    'should compose the annual and the diurnal aberration in sequence for the target at $target.ra°, $target.dec°',
+    ({ target }) => {
+      // The epoch of the polar targets, which ERFA was resolved for:
+      const epoch = new Date('2026-11-15T05:00:00.000+00:00')
+
+      // An observer on the equator, e.g., carried at the greatest speed by the rotation of the Earth:
+      const equatorial = { latitude: 0, longitude: 30 }
+
+      // The diurnal aberration is that of the apparent direction of the target after the annual
+      // aberration, e.g., the observer's velocity is the sum of the two, and so the diurnal
+      // correction is resolved about the target displaced by the annual correction, and not about
+      // the target:
+      const annual = getCorrectionToEquatorialForAnnualAberration(epoch, target)
+
+      const displaced = { ra: target.ra + annual.ra, dec: target.dec + annual.dec }
+
+      const diurnal = getCorrectionToEquatorialForDiurnalAberration(epoch, equatorial, displaced)
+
+      const correction = getCorrectionToEquatorialForAberration(epoch, equatorial, target)
+
+      const separation = getAngularSeparation(
+        { θ: target.dec + correction.dec, φ: target.ra + correction.ra },
+        { θ: displaced.dec + diurnal.dec, φ: displaced.ra + diurnal.ra }
+      )
+
+      expect(separation).toBeLessThan(MICROARCSECOND_IN_DEGREES)
+    }
+  )
+
+  it.each([
+    {
+      target: { ra: 0, dec: 89.9 },
+      apparent: { ra: 1.849545781665274, dec: 89.90459120595035 }
+    },
+    {
+      target: { ra: 90, dec: 89.9 },
+      apparent: { ra: 92.57660880160557, dec: 89.89681875898319 }
+    },
+    {
+      target: { ra: 90, dec: 89.999 },
+      apparent: { ra: 138.6703559927948, dec: 89.99382289696747 }
+    },
+    {
+      target: { ra: 333, dec: 89.999 },
+      apparent: { ra: 144.98680159949456, dec: 89.99542435926085 }
+    },
+    {
+      target: { ra: 180, dec: 90 },
+      apparent: { ra: 146.4214856607471, dec: 89.99443240162024 }
+    },
+    {
+      target: { ra: 270, dec: -89.999 },
+      apparent: { ra: 155.8546283591873, dec: -89.99491662093757 }
+    }
+  ])(
+    'should agree with eraAb of the summed velocity for the target at $target.ra°, $target.dec°',
+    ({ target, apparent }) => {
+      // The epoch of the polar targets, which ERFA was resolved for:
+      const epoch = new Date('2026-11-15T05:00:00.000+00:00')
+
+      // An observer on the equator, e.g., carried at the greatest speed by the rotation of the Earth:
+      const equatorial = { latitude: 0, longitude: 30 }
+
+      // The apparent place of eraAb of ERFA, for the sum of the barycentric velocity of the Earth and
+      // the rotational velocity of the observer, as eraApcs sums them, e.g., to within the second
+      // order terms of the diurnal aberration, which are below 0.02 milliarcseconds:
+      const correction = getCorrectionToEquatorialForAberration(epoch, equatorial, target)
+
+      const separation = getAngularSeparation(
+        { θ: target.dec + correction.dec, φ: target.ra + correction.ra },
+        { θ: apparent.dec, φ: apparent.ra }
+      )
+
+      expect(separation).toBeLessThan(0.05 * MILLIARCSECOND_IN_DEGREES)
+    }
+  )
+
+  it.each([
+    {
+      target: { ra: 0, dec: 0 }
+    },
+    {
+      target: { ra: 45, dec: 45 }
+    },
+    {
+      target: { ra: 90, dec: 80 }
+    },
+    {
+      target: { ra: 135, dec: 89 }
+    },
+    {
+      target: { ra: 180, dec: 89.9 }
+    },
+    {
+      target: { ra: 225, dec: 89.99 }
+    },
+    {
+      target: { ra: 270, dec: 89.999 }
+    },
+    {
+      target: { ra: 315, dec: 90 }
+    },
+    {
+      target: { ra: 333, dec: -45 }
+    },
+    {
+      target: { ra: 0, dec: -89.9 }
+    },
+    {
+      target: { ra: 90, dec: -89.999 }
+    },
+    {
+      target: { ra: 180, dec: -90 }
+    }
+  ])(
+    'should not displace the target at $target.ra°, $target.dec° by more than the aberration of the summed velocity',
+    ({ target }) => {
+      // The epoch of the polar targets, which ERFA was resolved for:
+      const epoch = new Date('2026-11-15T05:00:00.000+00:00')
+
+      // An observer on the equator, e.g., carried at the greatest speed by the rotation of the Earth:
+      const equatorial = { latitude: 0, longitude: 30 }
+
+      // The annual aberration is at most ~20.5 arcseconds, and the diurnal aberration at most ~0.32
+      // arcseconds, and so the target is displaced by no more than their sum, whatever its
+      // declination:
+      const correction = getCorrectionToEquatorialForAberration(epoch, equatorial, target)
+
+      const separation = getAngularSeparation(
+        { θ: target.dec + correction.dec, φ: target.ra + correction.ra },
+        { θ: target.dec, φ: target.ra }
+      )
+
+      expect(separation).toBeLessThan(21 * ARCSECOND_IN_DEGREES)
+    }
+  )
+
+  it.each([
+    {
+      target: { ra: 0, dec: 0 }
+    },
+    {
+      target: { ra: 45, dec: 45 }
+    },
+    {
+      target: { ra: 90, dec: 80 }
+    },
+    {
+      target: { ra: 135, dec: 89 }
+    },
+    {
+      target: { ra: 180, dec: 89.9 }
+    },
+    {
+      target: { ra: 225, dec: 89.99 }
+    },
+    {
+      target: { ra: 270, dec: 89.999 }
+    },
+    {
+      target: { ra: 315, dec: 90 }
+    },
+    {
+      target: { ra: 333, dec: -45 }
+    },
+    {
+      target: { ra: 0, dec: -89.9 }
+    },
+    {
+      target: { ra: 90, dec: -89.999 }
+    },
+    {
+      target: { ra: 180, dec: -90 }
+    }
+  ])(
+    'should return the displacement in right ascension the shorter way about the sphere for the target at $target.ra°, $target.dec°',
+    ({ target }) => {
+      // The epoch of the polar targets, which ERFA was resolved for:
+      const epoch = new Date('2026-11-15T05:00:00.000+00:00')
+
+      // An observer on the equator, e.g., carried at the greatest speed by the rotation of the Earth:
+      const equatorial = { latitude: 0, longitude: 30 }
+
+      const correction = getCorrectionToEquatorialForAberration(epoch, equatorial, target)
+
+      expect(correction.ra).toBeGreaterThanOrEqual(-180)
+      expect(correction.ra).toBeLessThan(180)
+      expect(correction.dec).toBeGreaterThanOrEqual(-90 - target.dec)
+      expect(correction.dec).toBeLessThanOrEqual(90 - target.dec)
+    }
+  )
+
+  it.each([
+    {
+      target: { ra: 0, dec: 90 }
+    },
+    {
+      target: { ra: 180, dec: 90 }
+    },
+    {
+      target: { ra: 315, dec: 90 }
+    },
+    {
+      target: { ra: 0, dec: -90 }
+    },
+    {
+      target: { ra: 180, dec: -90 }
+    },
+    {
+      target: { ra: 333, dec: -90 }
+    }
+  ])(
+    'should return a finite correction for the target at $target.ra°, $target.dec°',
+    ({ target }) => {
+      // The epoch of the polar targets, which ERFA was resolved for:
+      const epoch = new Date('2026-11-15T05:00:00.000+00:00')
+
+      // An observer on the equator, e.g., carried at the greatest speed by the rotation of the Earth:
+      const equatorial = { latitude: 0, longitude: 30 }
+
+      const correction = getCorrectionToEquatorialForAberration(epoch, equatorial, target)
+
+      expect(Number.isFinite(correction.ra)).toBe(true)
+      expect(Number.isFinite(correction.dec)).toBe(true)
+    }
+  )
+
+  it.each([
+    {
+      latitude: 90,
+      target: { ra: 0, dec: 0 }
+    },
+    {
+      latitude: 90,
+      target: { ra: 90, dec: 80 }
+    },
+    {
+      latitude: 90,
+      target: { ra: 180, dec: 89.9 }
+    },
+    {
+      latitude: 90,
+      target: { ra: 270, dec: 89.999 }
+    },
+    {
+      latitude: 90,
+      target: { ra: 315, dec: 90 }
+    },
+    {
+      latitude: 90,
+      target: { ra: 90, dec: -89.999 }
+    },
+    {
+      latitude: -90,
+      target: { ra: 45, dec: 45 }
+    },
+    {
+      latitude: -90,
+      target: { ra: 135, dec: 89 }
+    },
+    {
+      latitude: -90,
+      target: { ra: 225, dec: 89.99 }
+    },
+    {
+      latitude: -90,
+      target: { ra: 333, dec: -45 }
+    },
+    {
+      latitude: -90,
+      target: { ra: 0, dec: -89.9 }
+    },
+    {
+      latitude: -90,
+      target: { ra: 180, dec: -90 }
+    }
+  ])(
+    'should reduce to the annual aberration for an observer at latitude $latitude° and the target at $target.ra°, $target.dec°',
+    ({ latitude, target }) => {
+      // The epoch of the polar targets, which ERFA was resolved for:
+      const epoch = new Date('2026-11-15T05:00:00.000+00:00')
+
+      // An observer at either pole of the Earth is not carried by its rotation at all, and so the
+      // diurnal aberration vanishes and only the annual aberration is left, whatever the target:
+      const correction = getCorrectionToEquatorialForAberration(
+        epoch,
+        { latitude, longitude: 30 },
+        target
+      )
+
+      const annual = getCorrectionToEquatorialForAnnualAberration(epoch, target)
+
+      const separation = getAngularSeparation(
+        { θ: target.dec + correction.dec, φ: target.ra + correction.ra },
+        { θ: target.dec + annual.dec, φ: target.ra + annual.ra }
+      )
+
+      expect(separation).toBeLessThan(MICROARCSECOND_IN_DEGREES)
+    }
+  )
+
+  it.each([
+    {
+      target: { ra: 0, dec: -60 }
+    },
+    {
+      target: { ra: 90, dec: -60 }
+    },
+    {
+      target: { ra: 225, dec: -60 }
+    },
+    {
+      target: { ra: 45, dec: -30 }
+    },
+    {
+      target: { ra: 180, dec: -30 }
+    },
+    {
+      target: { ra: 333, dec: -30 }
+    },
+    {
+      target: { ra: 0, dec: 0 }
+    },
+    {
+      target: { ra: 135, dec: 0 }
+    },
+    {
+      target: { ra: 270, dec: 0 }
+    },
+    {
+      target: { ra: 90, dec: 30 }
+    },
+    {
+      target: { ra: 225, dec: 30 }
+    },
+    {
+      target: { ra: 315, dec: 30 }
+    },
+    {
+      target: { ra: 45, dec: 60 }
+    },
+    {
+      target: { ra: 180, dec: 60 }
+    },
+    {
+      target: { ra: 333, dec: 60 }
+    }
+  ])(
+    'should agree with the sum of the annual and the diurnal corrections for the target at $target.ra°, $target.dec°',
+    ({ target }) => {
+      // The epoch of the polar targets, which ERFA was resolved for:
+      const epoch = new Date('2026-11-15T05:00:00.000+00:00')
+
+      // An observer on the equator, e.g., carried at the greatest speed by the rotation of the Earth:
+      const equatorial = { latitude: 0, longitude: 30 }
+
+      // Away from the poles, the corrections are additive in right ascension and declination to
+      // within their cross terms, e.g., the product of ~10⁻⁴ and ~1.5 × 10⁻⁶ radians, scaled by up
+      // to tan δ, or ~0.06 milliarcseconds at a declination of ±60°:
+      const correction = getCorrectionToEquatorialForAberration(epoch, equatorial, target)
+
+      const annual = getCorrectionToEquatorialForAnnualAberration(epoch, target)
+
+      const diurnal = getCorrectionToEquatorialForDiurnalAberration(epoch, equatorial, target)
+
+      const separation = getAngularSeparation(
+        { θ: target.dec + correction.dec, φ: target.ra + correction.ra },
+        {
+          θ: target.dec + annual.dec + diurnal.dec,
+          φ: target.ra + annual.ra + diurnal.ra
+        }
+      )
+
+      expect(separation).toBeLessThan(0.1 * MILLIARCSECOND_IN_DEGREES)
+    }
+  )
+
+  it.each([
+    {
+      dec: 0
+    },
+    {
+      dec: 89.9
+    },
+    {
+      dec: 89.999
+    },
+    {
+      dec: -89.999
+    }
+  ])(
+    'should return the same correction for a right ascension a whole turn apart at a declination of $dec°',
+    ({ dec }) => {
+      // The epoch of the polar targets, which ERFA was resolved for:
+      const epoch = new Date('2026-11-15T05:00:00.000+00:00')
+
+      // An observer on the equator, e.g., carried at the greatest speed by the rotation of the Earth:
+      const equatorial = { latitude: 0, longitude: 30 }
+
+      const a = getCorrectionToEquatorialForAberration(epoch, equatorial, { ra: 90, dec })
+
+      const b = getCorrectionToEquatorialForAberration(epoch, equatorial, { ra: 450, dec })
+
+      expect(b.ra).toBeCloseTo(a.ra, 9)
+      expect(b.dec).toBeCloseTo(a.dec, 9)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
