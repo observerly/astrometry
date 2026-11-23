@@ -8,7 +8,11 @@
 
 import type { CartesianCoordinate, HorizontalCoordinate } from './common'
 
-import { convertRadiansToDegrees as degrees, convertDegreesToRadians as radians } from './utilities'
+import {
+  convertRadiansToDegrees as degrees,
+  getNormalizedAzimuthalDegree,
+  convertDegreesToRadians as radians
+} from './utilities'
 
 /*****************************************************************************************************************/
 
@@ -47,7 +51,20 @@ export function convertHorizontalToStereo(
 
   const cosalt = Math.cos(radians(alt))
 
-  const k = 2 / (1 + sinalt1 * sinalt + cosalt1 * cosalt * cosaz)
+  // The denominator of the scale factor of the projection:
+  const d = 1 + sinalt1 * sinalt + cosalt1 * cosalt * cosaz
+
+  // The antipode of the center of the projection, e.g., the point on the horizon due north of the
+  // observer, has no finite stereographic projection (the scale factor diverges), and so we return
+  // the point at infinity rather than the indeterminate { x: -Infinity, y: NaN }:
+  if (d === 0) {
+    return {
+      x: Number.POSITIVE_INFINITY,
+      y: Number.POSITIVE_INFINITY
+    }
+  }
+
+  const k = 2 / d
 
   const x = width / 2 + f * k * height * cosalt * sinaz
 
@@ -100,6 +117,15 @@ export function convertStereoToHorizontal(
     }
   }
 
+  // The point at infinity is the projection of the antipode of the center of the projection, e.g.,
+  // the point on the horizon due north of the observer:
+  if (P === Number.POSITIVE_INFINITY) {
+    return {
+      az: 0,
+      alt: 0
+    }
+  }
+
   const c = 2 * Math.atan2(P, 2 * focus)
 
   const alt = Math.asin(Math.cos(c) * sinalt1 + (Y * Math.sin(c) * cosalt1) / P)
@@ -108,7 +134,9 @@ export function convertStereoToHorizontal(
     Math.PI + Math.atan2(X * Math.sin(c), P * cosalt1 * Math.cos(c) - Y * sinalt1 * Math.sin(c))
 
   return {
-    az: degrees(az),
+    // The azimuth lies within (0, 2π], where a point due north resolves to 2π, so we normalize it
+    // to resolve such a point to 0° and not to 360°:
+    az: getNormalizedAzimuthalDegree(degrees(az)),
     alt: degrees(alt)
   }
 }
@@ -209,8 +237,10 @@ export function convertPolarToHorizontal(
   const alt = 90 - degrees(z)
 
   // Recover the azimuth from the angular component, undoing the π offset that
-  // was applied in the forward projection:
-  const az = degrees(Math.atan2(X, Y) + Math.PI)
+  // was applied in the forward projection. The azimuth lies within [0, 2π], where
+  // a point due north can resolve to 2π, so we normalize it to resolve such a
+  // point to 0° and not to 360°:
+  const az = getNormalizedAzimuthalDegree(degrees(Math.atan2(X, Y) + Math.PI))
 
   return {
     az: az,
