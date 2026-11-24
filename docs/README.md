@@ -118,11 +118,12 @@ Every example below reuses `datetime`, `observer`, `betelgeuse` and `position` f
 
 ### Apparent Place
 
-A catalogue position is where a star sat at J2000. To find where it appears tonight, apply three corrections in order:
+A catalogue position is where a star sat at J2000. To find where it appears tonight, apply four corrections in order:
 
 ```ts
 import {
   getApparentEquatorialCoordinate,
+  getCorrectionToEquatorialForFrameBias,
   getCorrectionToEquatorialForNutation,
   getCorrectionToEquatorialForPrecessionOfEquinoxes
 } from '@observerly/astrometry'
@@ -130,12 +131,17 @@ import {
 // 1. Proper motion, parallax and annual aberration, still in the frame of J2000:
 const displaced = getApparentEquatorialCoordinate(datetime, betelgeuse)
 
-// 2. Precession carries it to the mean equator and equinox of the date:
-const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, displaced)
+// 2. Frame bias carries it from the ICRS to the mean equator and equinox of J2000:
+const bias = getCorrectionToEquatorialForFrameBias(displaced)
 
-const mean = { ra: displaced.ra + precession.ra, dec: displaced.dec + precession.dec }
+const biased = { ra: displaced.ra + bias.ra, dec: displaced.dec + bias.dec }
 
-// 3. Nutation carries it to the true equator and equinox of the date:
+// 3. Precession carries it to the mean equator and equinox of the date:
+const precession = getCorrectionToEquatorialForPrecessionOfEquinoxes(datetime, biased)
+
+const mean = { ra: biased.ra + precession.ra, dec: biased.dec + precession.dec }
+
+// 4. Nutation carries it to the true equator and equinox of the date:
 const nutation = getCorrectionToEquatorialForNutation(datetime, mean)
 
 const apparent = { ra: mean.ra + nutation.ra, dec: mean.dec + nutation.dec }
