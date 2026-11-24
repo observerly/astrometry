@@ -580,7 +580,14 @@ export class MoonIlluminationConstraint extends Constraint {
   constructor({ minimum = 0, maximum = 100, weight }: MoonIlluminationConstraintParameters = {}) {
     super(weight)
 
-    if (minimum < 0 || minimum > 100 || maximum < 0 || maximum > 100) {
+    if (
+      !Number.isFinite(minimum) ||
+      !Number.isFinite(maximum) ||
+      minimum < 0 ||
+      minimum > 100 ||
+      maximum < 0 ||
+      maximum > 100
+    ) {
       throw new Error(
         'Invalid illumination bounds: minimum and maximum must be within [0, 100] percent'
       )
