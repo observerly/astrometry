@@ -35,7 +35,7 @@ interface IERS_LEAP_SECONDS_NTP {
    *
    *
    * DTAI is the difference between TAI and UTC, and is the number of seconds that
-   * the UTC time scale is ahead of TAI.
+   * the TAI time scale is ahead of UTC.
    *
    */
   dtai: number
