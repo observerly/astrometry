@@ -343,8 +343,8 @@ export const LAST = getLocalApparentSiderealTime
  * from the observer's meridian to the hour circle of a celestial body.
  *
  * @param datetime - The date for which to calculate the hour angle.
- * @param ra - Right Ascension of the target in degrees.
  * @param longitude - The longitude of the observer in degrees.
+ * @param ra - Right Ascension of the target in degrees.
  * @returns The Hour Angle (HA) of the given date.
  *
  */
