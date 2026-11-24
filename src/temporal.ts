@@ -8,7 +8,7 @@
 
 import type { GeographicCoordinate } from './common'
 
-import { J1970 } from './constants'
+import { J1970, J2000 } from './constants'
 
 import { getJulianDate } from './epoch'
 
@@ -79,37 +79,26 @@ export function convertGreenwichSiderealTimeToUniversalTime(GST: number, date: D
     new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0))
   )
 
-  // Get the Julian Date at 0h on 1st January for the current year:
-  const JD_0 = getJulianDate(new Date(Date.UTC(date.getUTCFullYear(), 1, 1, 0, 0, 0, 0))) - 1
+  // Get the number of centuries since J2000.0 of 0h UTC:
+  const T = (JD - J2000) / 36525.0
 
-  // Get the number of Julian days since 1st January for the current year:
-  const d = JD - JD_0
-
-  // Calculate the number of centuries since J1900.0 and JD_0:
-  const T = (JD_0 - 2415020.0) / 36525
-
-  const R = 6.6460656 + 2400.051262 * T + 0.00002581 * T ** 2
-
-  const B = 24 - R + 24 * (date.getUTCFullYear() - 1900)
-
-  let T_0 = 0.0657098 * d - B
+  // Calculate the Greenwich Sidereal Time (GST) at 0h UT, e.g., the same polynomial as the forward
+  // conversion of getGreenwichSiderealTime(), so that the one is the exact inverse of the other:
+  let T_0 = (6.697374558 + 2400.051336 * T + 0.000025862 * T ** 2) % 24
 
   if (T_0 < 0) {
     T_0 += 24
   }
 
-  if (T_0 > 24) {
-    T_0 -= 24
-  }
-
-  let A = GST - T_0
+  let A = (GST - T_0) % 24
 
   // Correct for negative hour angles
   if (A < 0) {
     A += 24
   }
 
-  const UTC = 0.99727 * A
+  // The sidereal interval since 0h UT, converted to the mean solar interval:
+  const UTC = A / 1.002737909
 
   // Convert decimal hours to hours, minutes and seconds:
   const hours = Math.floor(UTC)
