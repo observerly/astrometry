@@ -612,7 +612,7 @@ describe('getBodyNextRise', () => {
     expect(LST).toBe(23.740485646638913)
     expect(az).toBeCloseTo(82.12362992591511)
 
-    expect(d).toStrictEqual(new Date('2021-05-15T18:31:28.713Z'))
+    expect(d).toStrictEqual(new Date('2021-05-15T18:31:28.582Z'))
   })
 
   it('should rise at the horizon given by the caller', () => {
@@ -649,7 +649,7 @@ describe('getBodyNextRise', () => {
     // of the equinoxes, e.g., by up to ~1 second of time in hour angle:
     expect(az).toBeCloseTo(rise.az, 2)
 
-    expect(rise.datetime).toStrictEqual(new Date('2021-05-14T19:39:18.123Z'))
+    expect(rise.datetime).toStrictEqual(new Date('2021-05-14T19:39:17.990Z'))
   })
 
   it('should rise earlier for an elevated observer than it does at sea level', () => {
@@ -695,7 +695,7 @@ describe('getBodyNextRise', () => {
     expect(LST).toBe(0.09857546002774953)
     expect(az).toBeCloseTo(82.12362992591511)
 
-    expect(d).toStrictEqual(new Date('2021-10-02T09:42:26.990Z'))
+    expect(d).toStrictEqual(new Date('2021-10-02T09:42:26.860Z'))
   })
 
   it('should return false, and not recurse indefinitely, for an object that has no transit', () => {
@@ -732,11 +732,11 @@ describe('getBodyNextRise', () => {
         return
       }
 
-      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T00:00:41.404Z'))
+      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T00:00:41.302Z'))
     })
 
     it('should return the first rise of the day at the instant of that rise', () => {
-      const rise = getBodyNextRise(new Date('2021-05-14T00:00:41.404Z'), observer, target)
+      const rise = getBodyNextRise(new Date('2021-05-14T00:00:41.302Z'), observer, target)
 
       expect(typeof rise).not.toBe('boolean')
 
@@ -744,7 +744,7 @@ describe('getBodyNextRise', () => {
         return
       }
 
-      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T00:00:41.404Z'))
+      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T00:00:41.302Z'))
     })
 
     it('should return the second rise of the day once the first has occurred', () => {
@@ -756,7 +756,7 @@ describe('getBodyNextRise', () => {
         return
       }
 
-      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T23:56:45.494Z'))
+      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T23:56:45.392Z'))
     })
 
     it('should return the second rise of the day one sidereal day after the first', () => {
@@ -793,7 +793,7 @@ describe('getBodyNextRise', () => {
     })
 
     it('should return the second rise of the day at the instant of that rise', () => {
-      const rise = getBodyNextRise(new Date('2021-05-14T23:56:45.494Z'), observer, target)
+      const rise = getBodyNextRise(new Date('2021-05-14T23:56:45.392Z'), observer, target)
 
       expect(typeof rise).not.toBe('boolean')
 
@@ -801,7 +801,7 @@ describe('getBodyNextRise', () => {
         return
       }
 
-      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T23:56:45.494Z'))
+      expect(rise.datetime).toStrictEqual(new Date('2021-05-14T23:56:45.392Z'))
     })
 
     it('should return the body at the horizon at the second rise of the day', () => {
@@ -828,7 +828,7 @@ describe('getBodyNextRise', () => {
         return
       }
 
-      expect(rise.datetime).toStrictEqual(new Date('2021-05-15T23:52:49.622Z'))
+      expect(rise.datetime).toStrictEqual(new Date('2021-05-15T23:52:49.483Z'))
     })
 
     it('should not modify the datetime given by the caller', () => {
@@ -916,7 +916,7 @@ describe('getBodyNextSet', () => {
     expect(LST).toBe(12.098575460027751)
     expect(az).toBeCloseTo(277.8763700740849)
 
-    expect(d).toStrictEqual(new Date('2021-05-15T06:54:52.253Z'))
+    expect(d).toStrictEqual(new Date('2021-05-15T06:54:52.140Z'))
   })
 
   it('should set at the horizon given by the caller', () => {
@@ -953,7 +953,7 @@ describe('getBodyNextSet', () => {
     // of the equinoxes, e.g., by up to ~1 second of time in hour angle:
     expect(az).toBeCloseTo(set.az, 2)
 
-    expect(set.datetime).toStrictEqual(new Date('2021-05-15T05:50:58.753Z'))
+    expect(set.datetime).toStrictEqual(new Date('2021-05-15T05:50:58.642Z'))
   })
 
   it('should return no set, and not recurse indefinitely, for an object that has no transit', () => {
@@ -1026,11 +1026,11 @@ describe('getBodyNextSet', () => {
         return
       }
 
-      expect(set.datetime).toStrictEqual(new Date('2021-05-14T00:00:34.546Z'))
+      expect(set.datetime).toStrictEqual(new Date('2021-05-14T00:00:34.444Z'))
     })
 
     it('should return the first set of the day at the instant of that set', () => {
-      const set = getBodyNextSet(new Date('2021-05-14T00:00:34.546Z'), observer, target)
+      const set = getBodyNextSet(new Date('2021-05-14T00:00:34.444Z'), observer, target)
 
       expect(typeof set).not.toBe('boolean')
 
@@ -1038,7 +1038,7 @@ describe('getBodyNextSet', () => {
         return
       }
 
-      expect(set.datetime).toStrictEqual(new Date('2021-05-14T00:00:34.546Z'))
+      expect(set.datetime).toStrictEqual(new Date('2021-05-14T00:00:34.444Z'))
     })
 
     it('should return the second set of the day once the first has occurred', () => {
@@ -1050,7 +1050,7 @@ describe('getBodyNextSet', () => {
         return
       }
 
-      expect(set.datetime).toStrictEqual(new Date('2021-05-14T23:56:38.636Z'))
+      expect(set.datetime).toStrictEqual(new Date('2021-05-14T23:56:38.534Z'))
     })
 
     it('should return the second set of the day one sidereal day after the first', () => {
@@ -1087,7 +1087,7 @@ describe('getBodyNextSet', () => {
     })
 
     it('should return the second set of the day at the instant of that set', () => {
-      const set = getBodyNextSet(new Date('2021-05-14T23:56:38.636Z'), observer, target)
+      const set = getBodyNextSet(new Date('2021-05-14T23:56:38.534Z'), observer, target)
 
       expect(typeof set).not.toBe('boolean')
 
@@ -1095,7 +1095,7 @@ describe('getBodyNextSet', () => {
         return
       }
 
-      expect(set.datetime).toStrictEqual(new Date('2021-05-14T23:56:38.636Z'))
+      expect(set.datetime).toStrictEqual(new Date('2021-05-14T23:56:38.534Z'))
     })
 
     it('should return the body at the horizon at the second set of the day', () => {
@@ -1122,7 +1122,7 @@ describe('getBodyNextSet', () => {
         return
       }
 
-      expect(set.datetime).toStrictEqual(new Date('2021-05-15T23:52:42.765Z'))
+      expect(set.datetime).toStrictEqual(new Date('2021-05-15T23:52:42.625Z'))
     })
 
     it('should not modify the datetime given by the caller', () => {
