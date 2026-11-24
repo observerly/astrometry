@@ -16,6 +16,8 @@ import {
   convertCartesianToEquatorial,
   convertDegreesToRadians,
   convertEclipticToEquatorial,
+  doDotProduct,
+  doVectorDifference,
   type EquatorialCoordinate,
   getAngularSeparation,
   getBarycentricJulianDate,
@@ -702,42 +704,43 @@ describe('getBarycentricJulianDate', () => {
   const offset = (target: EquatorialCoordinate): number =>
     (getBarycentricJulianDate(when, target) - getJulianDate(when)) * 86400
 
+  // The position of the Earth about the barycenter, referred to the mean equator and equinox of
+  // J2000.0 (in astronomical units):
+  const earth = doVectorDifference(getBarycentricSolarVector(when), getGeometricSolarVector(when))
+
+  // The direction of the Earth from the barycenter:
+  const direction = convertCartesianToEquatorial(earth)
+
+  // The light travel time from the barycenter to the Earth (in seconds):
+  const τ = (Math.sqrt(doDotProduct(earth, earth)) * AU_IN_METERS) / c
+
   it('should be defined', () => {
     expect(getBarycentricJulianDate).toBeDefined()
   })
 
-  it('should precede the Julian date for a target behind the Sun', () => {
+  it('should precede the Julian date for a target behind the barycenter', () => {
     // The barycenter lies between the observer and the target, and so the light of the target
     // reaches the barycenter before it reaches the observer, by the light travel time of the
     // distance between them:
-    const sun = getSolarEquatorialCoordinate(when)
-
-    expect(offset({ ra: sun.ra, dec: sun.dec })).toBeCloseTo(-getSolarDistance(when) / c, 4)
+    expect(offset({ ra: (direction.ra + 180) % 360, dec: -direction.dec })).toBeCloseTo(-τ, 4)
   })
 
-  it('should follow the Julian date for a target opposite the Sun', () => {
+  it('should follow the Julian date for a target opposite the barycenter', () => {
     // The observer lies between the target and the barycenter, and so the light of the target
     // reaches the observer first:
-    const sun = getSolarEquatorialCoordinate(when)
-
-    expect(offset({ ra: (sun.ra + 180) % 360, dec: -sun.dec })).toBeCloseTo(
-      getSolarDistance(when) / c,
-      4
-    )
+    expect(offset(direction)).toBeCloseTo(τ, 4)
   })
 
-  it('should equal the Julian date for a target perpendicular to the Sun', () => {
+  it('should equal the Julian date for a target perpendicular to the barycenter', () => {
     // The observer is displaced from the barycenter across the line of sight, and not along it,
     // and so the light of the target reaches them both at once:
-    const sun = getSolarEquatorialCoordinate(when)
-
-    expect(offset({ ra: (sun.ra + 90) % 360, dec: 0 })).toBeCloseTo(0, 6)
+    expect(offset({ ra: (direction.ra + 90) % 360, dec: 0 })).toBeCloseTo(0, 4)
   })
 
   it('should be bounded by the light travel time to the Sun', () => {
     // No target is corrected by more than the distance of the observer from the barycenter, and so
     // the correction is bounded by ~500 seconds:
-    const bound = getSolarDistance(when) / c
+    const bound = τ
 
     for (let ra = 0; ra < 360; ra += 15) {
       for (let dec = -90; dec <= 90; dec += 15) {
@@ -754,6 +757,98 @@ describe('getBarycentricJulianDate', () => {
     expect(Number.isFinite(BJD)).toBe(true)
     expect(Math.abs(BJD - JD)).toBeLessThan(0.006)
   })
+
+  it.each([
+    {
+      name: 'the vernal equinox',
+      datetime: '2000-01-01T12:00:00.000+00:00',
+      target: { ra: 0, dec: 0 },
+      delay: -91.95875324106412
+    },
+    {
+      name: 'Betelgeuse',
+      datetime: '2000-01-01T12:00:00.000+00:00',
+      target: { ra: 88.7929583, dec: 7.4070639 },
+      delay: 460.498048654439
+    },
+    {
+      name: 'Arcturus',
+      datetime: '2000-01-01T12:00:00.000+00:00',
+      target: { ra: 213.9153, dec: 19.1824 },
+      delay: -97.66201101002132
+    },
+    {
+      name: 'Betelgeuse',
+      datetime: '2010-03-20T00:00:00.000+00:00',
+      target: { ra: 88.7929583, dec: 7.4070639 },
+      delay: -2.000179475740211
+    },
+    {
+      name: 'Arcturus',
+      datetime: '2010-03-20T00:00:00.000+00:00',
+      target: { ra: 213.9153, dec: 19.1824 },
+      delay: 387.8615380712827
+    },
+    {
+      name: 'Sirius',
+      datetime: '2021-05-14T00:00:00.000+00:00',
+      target: { ra: 101.2871553, dec: -16.7161159 },
+      delay: -242.27625569745464
+    },
+    {
+      name: 'Polaris',
+      datetime: '2021-05-14T00:00:00.000+00:00',
+      target: { ra: 37.9529, dec: 89.2641 },
+      delay: -165.4027443502975
+    },
+    {
+      name: 'Sirius',
+      datetime: '2026-11-15T05:00:00.000+00:00',
+      target: { ra: 101.2871553, dec: -16.7161159 },
+      delay: 234.38210062127305
+    },
+    {
+      name: 'Polaris',
+      datetime: '2026-11-15T05:00:00.000+00:00',
+      target: { ra: 37.9529, dec: 89.2641 },
+      delay: 160.58642488948774
+    },
+    {
+      name: 'Betelgeuse',
+      datetime: '2035-08-01T18:30:00.000+00:00',
+      target: { ra: 88.7929583, dec: 7.4070639 },
+      delay: -375.34980865426076
+    },
+    {
+      name: 'Polaris',
+      datetime: '2035-08-01T18:30:00.000+00:00',
+      target: { ra: 37.9529, dec: 89.2641 },
+      delay: -157.69233777172974
+    },
+    {
+      name: 'Betelgeuse',
+      datetime: '2045-12-21T06:00:00.000+00:00',
+      target: { ra: 88.7929583, dec: 7.4070639 },
+      delay: 472.89137102459006
+    },
+    {
+      name: 'Arcturus',
+      datetime: '2045-12-21T06:00:00.000+00:00',
+      target: { ra: 213.9153, dec: 19.1824 },
+      delay: -177.8208667666774
+    }
+  ])(
+    'should agree with the light travel time of ERFA epv00 for $name at $datetime',
+    ({ datetime, target, delay }) => {
+      const at = new Date(datetime)
+
+      // The barycentric position of the Earth of ERFA epv00, resolved along the direction to the
+      // target (in seconds):
+      expect(
+        Math.abs((getBarycentricJulianDate(at, target) - getJulianDate(at)) * 86400 - delay)
+      ).toBeLessThan(0.01)
+    }
+  )
 })
 
 /***************************************************************************************************************/
