@@ -733,7 +733,7 @@ const initialiseSGP4 = (tle: TwoLineElement, gravity: GravityModel): SGP4Propaga
  * @param propagationConstants - The propagation constants of the theory for the element set.
  * @param t - The time since the epoch of the element set (in minutes).
  * @throws An SGP4MeanMotionError, an SGP4MeanEccentricityError, an SGP4SemiLatusRectumError or an SGP4DecayedError where the theory fails.
- * @returns The state vector of the object, in the True Equator, Mean Equinox (TEME) frame of the epoch (in kilometres and kilometres per second).
+ * @returns The state vector of the object, in the True Equator, Mean Equinox (TEME) frame of date (in kilometres and kilometres per second).
  *
  */
 const propagateSGP4 = (propagationConstants: SGP4PropagationConstants, t: number): StateVector => {
@@ -1022,7 +1022,7 @@ const propagateSGP4 = (propagationConstants: SGP4PropagationConstants, t: number
  * of the theory, and each propagation of it is then resolved from those constants, e.g., to the
  * state vector of the object at a time since the epoch of the element set.
  *
- * The state vector is given in the True Equator, Mean Equinox (TEME) frame of the epoch, e.g., the
+ * The state vector is given in the True Equator, Mean Equinox (TEME) frame of date, e.g., the
  * frame the SGP4 theory resolves it in, in SI metres and metres per second.
  *
  * N.B. An element set of ephemeris type 4 is fitted to the extended theory of the United States
@@ -1099,7 +1099,7 @@ export class SatelliteRecord {
    * getStateVector()
    *
    * Propagates the record to a datetime, e.g., the state vector of the object at that instant, in
-   * the True Equator, Mean Equinox (TEME) frame of the epoch.
+   * the True Equator, Mean Equinox (TEME) frame of date.
    *
    * N.B. The epoch of the element set is carried as a Julian date, whose resolution of ~40
    * microseconds displaces the object by no more than ~0.15 metres in a low Earth orbit, far
@@ -1131,7 +1131,7 @@ export class SatelliteRecord {
    * getStateVectorAtMinutesSinceEpoch()
    *
    * Propagates the record to a time since the epoch of its element set, e.g., the state vector of
-   * the object, in the True Equator, Mean Equinox (TEME) frame of the epoch.
+   * the object, in the True Equator, Mean Equinox (TEME) frame of date.
    *
    * @param minutes - The time since the epoch of the element set (in minutes), which may be negative.
    * @throws An error if the time is not finite.
