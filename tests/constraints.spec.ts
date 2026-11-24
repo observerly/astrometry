@@ -208,6 +208,21 @@ describe('SunAltitudeConstraint', () => {
     expect(() => new SunAltitudeConstraint()).not.toThrow()
     expect(() => new SunAltitudeConstraint({ maximum: -12, minimum: -90 })).not.toThrow()
   })
+
+  it.each([
+    {
+      name: 'a minimum that is not a number',
+      bounds: { minimum: Number.NaN }
+    },
+    {
+      name: 'a maximum that is not a number',
+      bounds: { maximum: Number.NaN }
+    }
+  ])('should throw for $name', ({ bounds }) => {
+    // A bound that is not a number compares false against every value, e.g., it would accept or
+    // reject every observation without reason:
+    expect(() => new SunAltitudeConstraint(bounds)).toThrow()
+  })
 })
 
 /*****************************************************************************************************************/
@@ -252,6 +267,21 @@ describe('IsNight', () => {
     expect(constraint.maximum).toBe(-12)
     expect(constraint.isSatisfiedBy(sunAt(-13))).toBe(true)
     expect(constraint.score(sunAt(-11))).toBe(-1)
+  })
+
+  it.each([
+    {
+      name: 'a minimum that is not a number',
+      bounds: { minimum: Number.NaN }
+    },
+    {
+      name: 'a maximum that is not a number',
+      bounds: { maximum: Number.NaN }
+    }
+  ])('should throw for $name', ({ bounds }) => {
+    // A bound that is not a number compares false against every value, e.g., it would accept or
+    // reject every observation without reason:
+    expect(() => new IsNight(bounds)).toThrow()
   })
 })
 
@@ -948,6 +978,21 @@ describe('IsAstronomicalTwilight', () => {
     expect(constraint.maximum).toBe(-18)
     expect(constraint.isSatisfiedBy(sunAt(-15))).toBe(false)
     expect(constraint.isSatisfiedBy(sunAt(-19))).toBe(true)
+  })
+
+  it.each([
+    {
+      name: 'a minimum that is not a number',
+      bounds: { minimum: Number.NaN }
+    },
+    {
+      name: 'a maximum that is not a number',
+      bounds: { maximum: Number.NaN }
+    }
+  ])('should throw for $name', ({ bounds }) => {
+    // A bound that is not a number compares false against every value, e.g., it would accept or
+    // reject every observation without reason:
+    expect(() => new IsAstronomicalTwilight(bounds)).toThrow()
   })
 })
 
