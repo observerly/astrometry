@@ -824,7 +824,14 @@ export class SunAvoidanceConstraint extends Constraint {
   constructor({ minimum = 45, maximum = 90, weight }: SunAvoidanceConstraintParameters = {}) {
     super(weight)
 
-    if (minimum < 0 || minimum > 180 || maximum < 0 || maximum > 180) {
+    if (
+      !Number.isFinite(minimum) ||
+      !Number.isFinite(maximum) ||
+      minimum < 0 ||
+      minimum > 180 ||
+      maximum < 0 ||
+      maximum > 180
+    ) {
       throw new Error(
         'Invalid separation bounds: minimum and maximum must be within [0, 180] degrees'
       )
