@@ -464,7 +464,7 @@ export function getSolarEclipse(
     0.0048 * E * Math.cos(radians(Ms)) +
     0.002 * E * Math.cos(radians(2 * Ms)) -
     0.3299 * Math.cos(radians(Ml)) -
-    0.006 * E * Math.cos(radians(Ml + Ms)) -
+    0.006 * E * Math.cos(radians(Ml + Ms)) +
     0.0041 * E * Math.cos(radians(Ml - Ms))
 
   const u =

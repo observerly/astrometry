@@ -488,8 +488,69 @@ describe('getSolarEclipse', () => {
 
     expect(eclipse.isCentral).toBe(false)
     expect(eclipse.type).toBe('partial')
-    expect(eclipse.magnitude).toBeCloseTo(0.9885, 4)
+    expect(eclipse.magnitude).toBeCloseTo(0.9863, 4)
   })
+
+  it.each([
+    {
+      name: 'the solar eclipse of October 1996',
+      maximum: '1996-10-12T14:02:50Z',
+      γ: 1.12361
+    },
+    {
+      name: 'the solar eclipse of April 2004',
+      maximum: '2004-04-19T13:34:30Z',
+      γ: -1.13317
+    },
+    {
+      name: 'the solar eclipse of August 2018',
+      maximum: '2018-08-11T09:46:54Z',
+      γ: 1.14803
+    },
+    {
+      name: 'the solar eclipse of June 2021',
+      maximum: '2021-06-10T10:42:39Z',
+      γ: 0.91581
+    },
+    {
+      name: 'the solar eclipse of February 2026',
+      maximum: '2026-02-17T12:12:40Z',
+      γ: -0.97367
+    },
+    {
+      name: 'the solar eclipse of May 2032',
+      maximum: '2032-05-09T13:26:09Z',
+      γ: -0.93788
+    },
+    {
+      name: 'the solar eclipse of July 2036',
+      maximum: '2036-07-23T10:31:34Z',
+      γ: -1.4245
+    },
+    {
+      name: 'the solar eclipse of August 2036',
+      maximum: '2036-08-21T17:25:07Z',
+      γ: 1.08282
+    },
+    {
+      name: 'the solar eclipse of June 2039',
+      maximum: '2039-06-21T17:12:26Z',
+      γ: 0.83179
+    }
+  ])(
+    'should agree with the γ of the shadow axis of ERFA moon98 and epv00 for $name',
+    ({ maximum, γ }) => {
+      // The least distance of the axis of the shadow of the Moon from the centre of the Earth (in
+      // equatorial radii of the Earth), signed north of it, of ERFA moon98 and epv00:
+      const eclipse = getSolarEclipse(new Date(maximum), { latitude: 0, longitude: 0 })
+
+      if (!eclipse) {
+        throw new Error('Expected a solar eclipse')
+      }
+
+      expect(Math.abs(eclipse.γ - γ)).toBeLessThan(0.001)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
