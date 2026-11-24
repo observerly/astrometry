@@ -85,6 +85,8 @@ Every function takes a JavaScript `Date`. A `Date` is an instant in time, so you
 
 Functions that work on a whole day, e.g., sunrise, sunset, night and twilight, read that day in **UTC**.
 
+Sidereal time takes UTC as UT1, e.g., it neglects DUT1, which is within ±0.9 seconds, and so an altitude or azimuth is good to ~12″.
+
 ### Observers
 
 An observer is a `latitude` and `longitude` in degrees, east positive. An optional `elevation`, in metres above sea level, lowers the observer's horizon for rise and set times.
