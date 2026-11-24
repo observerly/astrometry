@@ -46,6 +46,8 @@ export type WCS = {
    *
    * The central or reference equatorial coordinate for the WCS, corresponding to the pixel at the central reference pixel.
    *
+   * N.B. It is carried as the FITS header gives it, but the conversion does not use it: the reference
+   * coordinate is taken from the constant terms of the affine transformation, E and F, instead.
    *
    */
   crval: EquatorialCoordinate
