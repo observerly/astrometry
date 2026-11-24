@@ -1264,6 +1264,14 @@ export function isBlueMoon(datetime: Date): boolean {
     return false
   }
 
+  // The full Moon is the instant of the opposition, and not the window over which the Moon reads as
+  // full, and so it is a Blue Moon only if that instant falls within the calendar month (of UTC):
+  const opposition = getNextFullMoon(new Date(datetime.getTime() - 2 * 24 * 60 * 60 * 1000))
+
+  if (opposition.getUTCMonth() !== datetime.getUTCMonth()) {
+    return false
+  }
+
   // Get the first full Moon of the calendar month (of UTC):
   const first = getNextFullMoon(
     new Date(Date.UTC(datetime.getUTCFullYear(), datetime.getUTCMonth(), 1, 0, 0, 0, 0))

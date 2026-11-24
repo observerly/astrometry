@@ -1018,6 +1018,61 @@ describe('isBlueMoon', () => {
     const datetime = new Date('2023-08-31T01:35:00Z')
     expect(isBlueMoon(datetime)).toBe(true)
   })
+
+  it.each([
+    {
+      name: 'the last day of June 1977',
+      datetime: '1977-06-30T23:24:31.841Z',
+      opposition: '1977-07-01T03:24:31.841Z'
+    },
+    {
+      name: 'the last day of January 1980',
+      datetime: '1980-01-31T23:21:49.756Z',
+      opposition: '1980-02-01T02:21:49.756Z'
+    },
+    {
+      name: 'the last day of November 1982',
+      datetime: '1982-11-30T23:21:31.820Z',
+      opposition: '1982-12-01T00:21:31.820Z'
+    },
+    {
+      name: 'the last day of August 1993',
+      datetime: '1993-08-31T23:33:37.665Z',
+      opposition: '1993-09-01T02:33:37.665Z'
+    },
+    {
+      name: 'the last day of June 1996',
+      datetime: '1996-06-30T23:58:47.242Z',
+      opposition: '1996-07-01T03:58:47.242Z'
+    },
+    {
+      name: 'the last day of October 2001',
+      datetime: '2001-10-31T23:41:41.945Z',
+      opposition: '2001-11-01T05:41:41.945Z'
+    },
+    {
+      name: 'the last day of May 2007',
+      datetime: '2007-05-31T23:04:13.934Z',
+      opposition: '2007-06-01T01:04:13.934Z'
+    },
+    {
+      name: 'the last day of April 2045',
+      datetime: '2045-04-30T23:52:53.452Z',
+      opposition: '2045-05-01T05:52:53.452Z'
+    },
+    {
+      name: 'the last day of December 2047',
+      datetime: '2047-12-31T23:57:58.056Z',
+      opposition: '2048-01-01T06:57:58.056Z'
+    }
+  ])(
+    'should return false for $name, where the full Moon of ERFA moon98 and epv00 falls in the next month',
+    ({ datetime }) => {
+      // The Moon reads as full on the last day of the month, but the opposition in longitude of ERFA
+      // moon98 and epv00 is on the first day of the next month, and so it is not a Blue Moon:
+      expect(isBlueMoon(new Date(datetime))).toBe(false)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
