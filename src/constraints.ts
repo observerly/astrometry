@@ -159,7 +159,7 @@ export type TargetAltitudeConstraintParameters = ConstraintParameters & {
  * @class TargetAltitudeConstraint
  *
  * @description A constraint on the altitude of the target above the observer's horizon. The target
- * must be at or above a minimum altitude to be observable; the score then increases linearly with
+ * must be above a minimum altitude (exclusive) to be observable; the score then increases linearly with
  * altitude up to a maximum altitude (the zenith by default), where it reaches 1.
  *
  *
@@ -225,7 +225,7 @@ export type SunAltitudeConstraintParameters = ConstraintParameters & {
   /**
    *
    * The maximum altitude (in degrees) of the Sun for the observation to be dark enough. The Sun must
-   * be at or below this altitude (e.g. -18° for astronomical darkness) for the observation to begin.
+   * be below this altitude (exclusive, e.g. -18° for astronomical darkness) for the observation to begin.
    *
    */
   maximum?: number
@@ -246,7 +246,7 @@ export type SunAltitudeConstraintParameters = ConstraintParameters & {
  * @class SunAltitudeConstraint
  *
  * @description A constraint on the altitude of the Sun below the observer's horizon. The Sun must be
- * at or below a maximum altitude (e.g. -18° for astronomical darkness) for the observation to be
+ * below a maximum altitude (exclusive, e.g. -18° for astronomical darkness) for the observation to be
  * possible; the score then increases the deeper the Sun sinks, reaching 1 at the minimum altitude.
  *
  * Note that, unlike the target, a lower Sun altitude scores higher.
@@ -312,7 +312,7 @@ export class SunAltitudeConstraint extends Constraint {
  * @class IsNight
  *
  * @description A convenience constraint that is satisfied when it is astronomical night, i.e. the
- * Sun is at or below -18° below the horizon (Twilight.Night). It wraps a { SunAltitudeConstraint }
+ * Sun is below -18° below the horizon (Twilight.Night), e.g., at exactly -18° it is not night. It wraps a { SunAltitudeConstraint }
  * pre-configured with sensible night defaults, and accepts the same parameters should a different
  * darkness threshold be required.
  *
@@ -330,7 +330,7 @@ export class IsNight extends Constraint {
 
   constructor(parameters: SunAltitudeConstraintParameters = {}) {
     super(parameters.weight)
-    // Astronomical night is the Sun at or below -18° (Twilight.Night) by default:
+    // Astronomical night is the Sun below -18° (Twilight.Night) by default (the maximum is exclusive):
     this.constraint = new SunAltitudeConstraint({ maximum: -18, minimum: -90, ...parameters })
   }
 
