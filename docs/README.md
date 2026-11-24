@@ -239,7 +239,7 @@ getLunarPhase(datetime)
 // 'New'
 
 getLunarIllumination(datetime)
-// 0.19 (%)
+// 0.18 (%)
 ```
 
 The `moon` module also covers the Moon's position, distance, angular size and age, and finds the next full and new Moon.
