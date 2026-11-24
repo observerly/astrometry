@@ -201,7 +201,7 @@ export function getEquatorialToGalacticMatrix(): Matrix3 {
  *
  * getBiasPrecessionNutationMatrix()
  *
- * Resolves the bias-precession-nutation matrix NPB of IAU 2006/2000A, e.g., the rotation from the
+ * Resolves the bias-precession-nutation matrix NPB of IAU 2006/2000B, e.g., the rotation from the
  * International Celestial Reference System (ICRS), which a modern catalogue coordinate is referred
  * to, to the true equator and equinox of the date, as the product of the nutation matrix N, the
  * precession matrix P and the frame bias matrix B, as is defined by the iauPnm06a routine of the
