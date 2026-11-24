@@ -156,6 +156,10 @@ export function getNormalizedSphericalCoordinate(A: SphericalCoordinate): Spheri
  * The Greenwich Sidereal Time (GST) is the hour angle of the vernal
  * equinox, the ascending node of the ecliptic on the celestial equator.
  *
+ * N.B. The sidereal time is defined against UT1, and the given date is taken as UT1, e.g., the
+ * difference DUT1 = UT1 − UTC, which is kept within ±0.9 seconds, is neglected, which displaces
+ * an altitude or an azimuth by up to ~12 arcseconds.
+ *
  * @param datetime - The date for which to calculate the Greenwich Sidereal Time (GST).
  * @returns Greenwich Sidereal Time as number - the Greenwich Sidereal Time (GST) of the given date normalised to UTC.
  *
