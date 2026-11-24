@@ -85,6 +85,15 @@ describe('MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000', () => {
     expect(MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000).toBeGreaterThan(0)
     expect(MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000).toBeLessThan(90)
   })
+
+  it('should be exported from the package root', async () => {
+    // The constant is a part of the public interface, e.g., it is importable from the package root:
+    const root = await import('../src')
+
+    expect(root.MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000).toBe(
+      MEAN_OBLIQUITY_OF_THE_ECLIPTIC_AT_J2000
+    )
+  })
 })
 
 /*****************************************************************************************************************/
