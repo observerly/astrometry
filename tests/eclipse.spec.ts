@@ -237,6 +237,71 @@ describe('getLunarEclipse', () => {
       expect(getLunarEclipse(new Date(maximum), { latitude: 0, longitude: 0 })).not.toBe(false)
     }
   )
+
+  it.each([
+    {
+      name: 'the total lunar eclipse of July 2000',
+      maximum: '2000-07-16T13:56:12Z',
+      γ: 0.0298,
+      isCentral: true
+    },
+    {
+      name: 'the total lunar eclipse of June 2011',
+      maximum: '2011-06-15T20:13:09Z',
+      γ: 0.0904,
+      isCentral: true
+    },
+    {
+      name: 'the total lunar eclipse of July 2018',
+      maximum: '2018-07-27T20:22:27Z',
+      γ: 0.1165,
+      isCentral: true
+    },
+    {
+      name: 'the total lunar eclipse of June 2029',
+      maximum: '2029-06-26T03:22:56Z',
+      γ: 0.0132,
+      isCentral: true
+    },
+    {
+      name: 'the total lunar eclipse of January 2019',
+      maximum: '2019-01-21T05:12:52Z',
+      γ: 0.3691,
+      isCentral: false
+    },
+    {
+      name: 'the total lunar eclipse of March 2025',
+      maximum: '2025-03-14T06:59:23Z',
+      γ: 0.3481,
+      isCentral: false
+    },
+    {
+      name: 'the total lunar eclipse of May 2021',
+      maximum: '2021-05-26T11:19:21Z',
+      γ: 0.477,
+      isCentral: false
+    },
+    {
+      name: 'the partial lunar eclipse of September 2024',
+      maximum: '2024-09-18T02:44:58Z',
+      γ: -0.9792,
+      isCentral: false
+    }
+  ])(
+    'should resolve whether the axis of the shadow of the Earth crosses the Moon of ERFA moon98 and epv00 for $name',
+    ({ maximum, isCentral }) => {
+      // The lunar eclipse is central where the axis of the shadow of the Earth passes through the
+      // disc of the Moon, e.g., |γ| of ERFA moon98 and epv00 is less than the radius of the Moon of
+      // ~0.2725 equatorial radii of the Earth:
+      const eclipse = getLunarEclipse(new Date(maximum), { latitude: 0, longitude: 0 })
+
+      if (!eclipse) {
+        throw new Error('Expected a lunar eclipse')
+      }
+
+      expect(eclipse.isCentral).toBe(isCentral)
+    }
+  )
 })
 
 /*****************************************************************************************************************/

@@ -291,8 +291,9 @@ export function getLunarEclipse(
   // center of the Earth to the radius of the Earth:
   const γ = (P * Math.cos(radians(F1)) + Q * Math.sin(radians(F1))) * (1 - 0.0048 * W)
 
-  // Determine the type of eclipse, either a umbral or penumbral eclipse:
-  const isCentral = Math.abs(γ) < 0.9972
+  // The eclipse is central where the axis of the shadow of the Earth crosses the disc of the Moon, e.g.,
+  // |γ| is less than the radius of the Moon of ~0.2725 equatorial radii of the Earth:
+  const isCentral = Math.abs(γ) < 0.2725
 
   // The radii at the distance of the Moon, for the penumbral shadow:
   const ρ = 1.2848 + u
