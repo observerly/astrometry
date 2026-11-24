@@ -19,7 +19,8 @@ import {
   getConstellation,
   getJulianDate,
   getPrecessionMatrix,
-  getRotatedCartesianCoordinate
+  getRotatedCartesianCoordinate,
+  pegasus
 } from '../src'
 
 /*****************************************************************************************************************/
@@ -63,6 +64,18 @@ describe('constellations', () => {
         }
       }
     }
+  })
+
+  it.each([
+    {
+      name: 'Pegasus',
+      feature: pegasus
+    }
+  ])('should give a centrum within the boundary of $name', ({ name, feature }) => {
+    // The centrum is the mean of the unit vectors of the vertices of the boundary, which lies within it:
+    const { centrum } = feature.features[0].properties as { centrum: EquatorialCoordinate }
+
+    expect(getConstellation(centrum)?.name).toBe(name)
   })
 })
 
