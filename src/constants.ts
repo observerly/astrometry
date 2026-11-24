@@ -8,7 +8,7 @@
 
 /**
  *
- * The approximateed average radius of the Earth in meters.
+ * The equatorial radius of the Earth in meters.
  *
  */
 export const EARTH_RADIUS = 6.3781378e6 as const
