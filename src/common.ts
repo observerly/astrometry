@@ -364,7 +364,7 @@ export type Matrix3 = readonly [
  * - MOD: the mean equator and equinox of the date, e.g., the ICRS carried by the frame bias and the
  *   precession of IAU 2006, as P · B.
  * - TOD: the true equator and equinox of the date, e.g., the MOD carried by the nutation of IAU
- *   2000A, as N · P · B.
+ *   2000B, as N · P · B.
  * - ecliptic: the true ecliptic and equinox of the date, e.g., the TOD rotated about the equinox
  *   through the true obliquity of the ecliptic, as R1(ε).
  * - galactic: the galactic frame of the Hipparcos catalogue, e.g., fixed to the ICRS, as G.
