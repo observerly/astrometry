@@ -94,9 +94,10 @@ export type GravityModel = {
  * be preferred over { WGS72 } otherwise.
  *
  * N.B. The two differ in xke by ~4.5 parts in 10¹⁰, which scales the semi-major axis of an orbit,
- * but not the mean motion it is propagated with, and so it displaces a propagation by a constant
- * that does not grow with time, e.g., ~2 millimetres in a low Earth orbit and ~1 centimetre in a
- * geostationary orbit, as measured against the reference implementation.
+ * but not the mean motion it is propagated with, and so it displaces a propagation by an offset
+ * that grows slowly with time, e.g., ~2 millimetres at the epoch of a low Earth orbit, rising to
+ * ~2.6 millimetres a week on, and ~1 centimetre in a geostationary orbit, as measured against the
+ * reference implementation.
  *
  * N.B. The model is frozen, as it is shared by every propagation that is resolved with it.
  *
