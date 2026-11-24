@@ -43,6 +43,8 @@ import {
   isNewMoon
 } from '../src'
 
+import { ARCSECOND_IN_DEGREES } from '../src/constants'
+
 /*****************************************************************************************************************/
 
 // For testing we need to specify a date because most calculations are
@@ -344,7 +346,113 @@ describe('getLunarEclipticLongitude', () => {
 
   it('should return the correct Lunar ecliptic longitude for the given date', () => {
     const λ = getLunarEclipticLongitude(datetime)
-    expect(λ).toBe(77.44020837285663)
+    expect(λ).toBe(77.36648908174726)
+  })
+
+  it.each([
+    {
+      name: 'the 1st of March 1950',
+      datetime: '1950-03-01T00:00:00.000Z',
+      longitude: 115.26244450503094
+    },
+    {
+      name: 'the new Moon of November 1987',
+      datetime: '1987-11-21T06:33:31.000Z',
+      longitude: 238.40893776283843
+    },
+    {
+      name: 'the new Moon of January 1999',
+      datetime: '1999-01-17T15:46:46.000Z',
+      longitude: 297.0870265839949
+    },
+    {
+      name: 'J2000.0',
+      datetime: '2000-01-01T12:00:00.000Z',
+      longitude: 223.32784782932848
+    },
+    {
+      name: 'the new Moon of August 2004',
+      datetime: '2004-08-16T01:24:32.000Z',
+      longitude: 143.53066272298213
+    },
+    {
+      name: 'the 4th of July 2010',
+      datetime: '2010-07-04T18:00:00.000Z',
+      longitude: 14.249959309451711
+    },
+    {
+      name: 'the total solar eclipse of August 2017',
+      datetime: '2017-08-21T18:30:44.000Z',
+      longitude: 148.89067392810108
+    },
+    {
+      name: 'the 14th of May 2021',
+      datetime: '2021-05-14T00:00:00.000Z',
+      longitude: 77.36669981966324
+    },
+    {
+      name: 'the full Moon of May 2021',
+      datetime: '2021-05-26T11:14:30.000Z',
+      longitude: 245.4400642510544
+    },
+    {
+      name: 'the new Moon of September 2024',
+      datetime: '2024-09-03T01:55:00.000Z',
+      longitude: 161.06658113778764
+    },
+    {
+      name: 'the new Moon of January 2025',
+      datetime: '2025-01-29T12:36:36.000Z',
+      longitude: 309.86257347816746
+    },
+    {
+      name: 'the 15th of November 2026',
+      datetime: '2026-11-15T05:00:00.000Z',
+      longitude: 297.8290761600208
+    },
+    {
+      name: 'the full Moon of December 2026',
+      datetime: '2026-12-24T01:28:57.000Z',
+      longitude: 92.23614150513987
+    },
+    {
+      name: 'the 1st of January 2030',
+      datetime: '2030-01-01T00:00:00.000Z',
+      longitude: 238.41676021931784
+    },
+    {
+      name: 'the new Moon of March 2036',
+      datetime: '2036-03-27T20:57:31.000Z',
+      longitude: 7.774165508255904
+    },
+    {
+      name: 'the full Moon of September 2043',
+      datetime: '2043-09-19T01:47:45.000Z',
+      longitude: 356.0447153910693
+    },
+    {
+      name: 'the 15th of June 2050',
+      datetime: '2050-06-15T09:00:00.000Z',
+      longitude: 35.69731243994609
+    },
+    {
+      name: 'the 10th of October 2075',
+      datetime: '2075-10-10T22:00:00.000Z',
+      longitude: 209.4895704762967
+    },
+    {
+      name: 'the 1st of January 2100',
+      datetime: '2100-01-01T00:00:00.000Z',
+      longitude: 157.41147707218082
+    }
+  ])('should agree with the ecliptic longitude of ERFA moon98 for ', ({ datetime, longitude }) => {
+    // The geometric ecliptic longitude of the Moon of ERFA moon98, referred to the mean ecliptic
+    // and equinox of the date by ERFA ecm06:
+    const λ = getLunarEclipticLongitude(new Date(datetime))
+
+    expect(Math.abs(((((λ - longitude) % 360) + 540) % 360) - 180)).toBeLessThan(
+      ARCSECOND_IN_DEGREES
+    )
   })
 })
 
@@ -661,7 +769,7 @@ describe('getNextNewMoon', () => {
   it('should return the correct date of the next New Moon', () => {
     // The new Moon is on the 10th of June 2021 at ~10:53 UTC (ERFA moon98 and epv00):
     const nextNewMoon = getNextNewMoon(datetime)
-    expect(nextNewMoon.toISOString()).toBe('2021-06-10T10:53:45.790Z')
+    expect(nextNewMoon.toISOString()).toBe('2021-06-10T10:53:43.126Z')
   })
 
   it('should return a new Moon that is still to come for a datetime just after one', () => {
@@ -680,7 +788,7 @@ describe('getNextNewMoon', () => {
     // The new Moon is on the 3rd of September 2024 at ~01:55 UTC (ERFA moon98 and epv00):
     const datetime = new Date('2024-09-02T23:00:00.000Z')
 
-    expect(getNextNewMoon(datetime).toISOString()).toBe('2024-09-03T01:56:16.657Z')
+    expect(getNextNewMoon(datetime).toISOString()).toBe('2024-09-03T01:56:36.535Z')
   })
 
   it.each([
@@ -733,7 +841,7 @@ describe('getNextNewMoon', () => {
 
       const newMoon = getNextNewMoon(new Date(expected - 2 * 24 * 60 * 60 * 1000))
 
-      expect(Math.abs(newMoon.getTime() - expected)).toBeLessThan(20 * 60 * 1000)
+      expect(Math.abs(newMoon.getTime() - expected)).toBeLessThan(60 * 1000)
     }
   )
 })
@@ -748,7 +856,7 @@ describe('getNextFullMoon', () => {
   it('should return the correct date of the next Full Moon', () => {
     // The full Moon is on the 26th of May 2021 at ~11:14 UTC (ERFA moon98 and epv00):
     const nextFullMoon = getNextFullMoon(datetime)
-    expect(nextFullMoon.toISOString()).toBe('2021-05-26T11:16:55.314Z')
+    expect(nextFullMoon.toISOString()).toBe('2021-05-26T11:14:43.765Z')
   })
 
   it('should return a full Moon that is still to come for a datetime just after one', () => {
@@ -813,7 +921,7 @@ describe('getNextFullMoon', () => {
 
       const fullMoon = getNextFullMoon(new Date(expected - 2 * 24 * 60 * 60 * 1000))
 
-      expect(Math.abs(fullMoon.getTime() - expected)).toBeLessThan(20 * 60 * 1000)
+      expect(Math.abs(fullMoon.getTime() - expected)).toBeLessThan(60 * 1000)
     }
   )
 
@@ -839,7 +947,7 @@ describe('getNextFullMoon', () => {
 
       expect(
         Math.abs(fullMoon.getTime() - new Date('2026-12-24T01:28:57.750Z').getTime())
-      ).toBeLessThan(20 * 60 * 1000)
+      ).toBeLessThan(60 * 1000)
 
       expect(
         Math.abs(

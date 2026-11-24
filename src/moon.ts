@@ -527,32 +527,123 @@ export function getLunarCorrectedEclipticLongitudeOfTheAscendingNode(datetime: D
  *
  * getLunarEclipticLongitude()
  *
- * The ecliptic longitude for the Moon is the angle between the perihelion and
- * the current position of the Moon, as seen from the centre of the Earth,
- * corrected for the equation of center and the Moon's ecliptic longitude at
- * perigee at the epoch.
+ * The geometric ecliptic longitude of the Moon, as seen from the centre of the Earth, referred to
+ * the mean ecliptic and equinox of the date, e.g., the mean longitude of the Moon displaced by the
+ * 59 periodic terms of the truncated ELP-2000/82 theory of Meeus (Astronomical Algorithms, ch. 47)
+ * and its three additive terms, as ERFA moon98 resolves it, which is accurate to ~10 arcseconds.
  *
  * @param datetime - The date to calculate the Moon's ecliptic longitude for.
  * @returns The Moon's ecliptic longitude in degrees.
  *
  */
 export function getLunarEclipticLongitude(datetime: Date): number {
-  // Get the true ecliptic longitude:
-  const λt = getLunarTrueEclipticLongitude(datetime)
+  // The series is referred to Terrestrial Time, and so it is resolved at the Terrestrial Time of
+  // the given date:
+  const T = getNumberOfCenturiesSinceJ2000(getTerrestrialTime(datetime))
 
-  // Get the corrected ecliptic longitude of the ascending node:
-  const Ωcorr = getLunarCorrectedEclipticLongitudeOfTheAscendingNode(datetime)
+  // The mean longitude of the Moon, referred to the mean equinox of the date:
+  const L = getLunarMeanGeometricLongitude(datetime)
 
-  // Get the Moon's orbital inclination:
-  const ι = radians(5.1453964)
+  // The mean elongation of the Moon, e.g., there is no function for it in this module:
+  const D =
+    297.8501921 + 445267.1114034 * T - 0.0018819 * T ** 2 + T ** 3 / 545868 + T ** 4 / 113065000
+
+  // The mean anomaly of the Sun:
+  const M = getSolarMeanAnomaly(datetime)
+
+  // The mean anomaly of the Moon:
+  const Mʹ = getLunarMeanAnomaly(datetime)
+
+  // The mean distance of the Moon from its ascending node at the date, e.g., and not at the nearest
+  // mean new Moon, as getLunarArgumentOfLatitude() resolves it:
+  const F =
+    93.272095 + 483202.0175233 * T - 0.0036539 * T ** 2 + T ** 3 / 3526000 + T ** 4 / 863310000
+
+  // The arguments of the additive terms, due to Venus (A1) and to Jupiter (A2):
+  const A1 = 119.75 + 131.849 * T
+
+  const A2 = 53.09 + 479264.29 * T
+
+  // The decrease of the eccentricity of the orbit of the Earth, which scales the terms in the mean
+  // anomaly of the Sun by E, and those in twice it by E²:
+  const E = 1 - 0.002516 * T - 0.0000074 * T ** 2
+
+  // The periodic terms in longitude, as multiples of D, M, Mʹ and F, and their coefficients (in
+  // degrees):
+  const terms: [number, number, number, number, number][] = [
+    [0, 0, 1, 0, 6.288774],
+    [2, 0, -1, 0, 1.274027],
+    [2, 0, 0, 0, 0.658314],
+    [0, 0, 2, 0, 0.213618],
+    [0, 1, 0, 0, -0.185116],
+    [0, 0, 0, 2, -0.114332],
+    [2, 0, -2, 0, 0.058793],
+    [2, -1, -1, 0, 0.057066],
+    [2, 0, 1, 0, 0.053322],
+    [2, -1, 0, 0, 0.045758],
+    [0, 1, -1, 0, -0.040923],
+    [1, 0, 0, 0, -0.03472],
+    [0, 1, 1, 0, -0.030383],
+    [2, 0, 0, -2, 0.015327],
+    [0, 0, 1, 2, -0.012528],
+    [0, 0, 1, -2, 0.01098],
+    [4, 0, -1, 0, 0.010675],
+    [0, 0, 3, 0, 0.010034],
+    [4, 0, -2, 0, 0.008548],
+    [2, 1, -1, 0, -0.007888],
+    [2, 1, 0, 0, -0.006766],
+    [1, 0, -1, 0, -0.005163],
+    [1, 1, 0, 0, 0.004987],
+    [2, -1, 1, 0, 0.004036],
+    [2, 0, 2, 0, 0.003994],
+    [4, 0, 0, 0, 0.003861],
+    [2, 0, -3, 0, 0.003665],
+    [0, 1, -2, 0, -0.002689],
+    [2, 0, -1, 2, -0.002602],
+    [2, -1, -2, 0, 0.00239],
+    [1, 0, 1, 0, -0.002348],
+    [2, -2, 0, 0, 0.002236],
+    [0, 1, 2, 0, -0.00212],
+    [0, 2, 0, 0, -0.002069],
+    [2, -2, -1, 0, 0.002048],
+    [2, 0, 1, -2, -0.001773],
+    [2, 0, 0, 2, -0.001595],
+    [4, -1, -1, 0, 0.001215],
+    [0, 0, 2, 2, -0.00111],
+    [3, 0, -1, 0, -0.000892],
+    [2, 1, 1, 0, -0.00081],
+    [4, -1, -2, 0, 0.000759],
+    [0, 2, -1, 0, -0.000713],
+    [2, 2, -1, 0, -0.0007],
+    [2, 1, -2, 0, 0.000691],
+    [2, -1, 0, -2, 0.000596],
+    [4, 0, 1, 0, 0.000549],
+    [0, 0, 4, 0, 0.000537],
+    [4, -1, 0, 0, 0.00052],
+    [1, 0, -2, 0, -0.000487],
+    [2, 1, 0, -2, -0.000399],
+    [0, 0, 2, -2, -0.000381],
+    [1, 1, 1, 0, 0.000351],
+    [3, 0, -2, 0, -0.00034],
+    [4, 0, -3, 0, 0.00033],
+    [2, -1, 2, 0, 0.000327],
+    [0, 2, 1, 0, -0.000323],
+    [1, 1, -1, 0, 0.000299],
+    [2, 0, 3, 0, 0.000294]
+  ]
+
+  // The additive terms in longitude (in degrees):
+  let Σl =
+    0.003958 * Math.sin(radians(A1)) +
+    0.001962 * Math.sin(radians(L - F)) +
+    0.000318 * Math.sin(radians(A2))
+
+  for (const [d, m, mʹ, f, l] of terms) {
+    Σl += l * E ** Math.abs(m) * Math.sin(radians(d * D + m * M + mʹ * Mʹ + f * F))
+  }
 
   // Calculate the ecliptic longitude of the Moon (in degrees):
-  let λ =
-    (Ωcorr +
-      degrees(
-        Math.atan2(Math.sin(radians(λt - Ωcorr)) * Math.cos(ι), Math.cos(radians(λt - Ωcorr)))
-      )) %
-    360
+  let λ = (L + Σl) % 360
 
   // Correct for negative angles
   if (λ < 0) {
