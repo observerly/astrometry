@@ -489,7 +489,14 @@ export class MoonSeparationConstraint extends Constraint {
   constructor({ minimum = 0, maximum = 180, weight }: MoonSeparationConstraintParameters = {}) {
     super(weight)
 
-    if (minimum < 0 || minimum > 180 || maximum < 0 || maximum > 180) {
+    if (
+      !Number.isFinite(minimum) ||
+      !Number.isFinite(maximum) ||
+      minimum < 0 ||
+      minimum > 180 ||
+      maximum < 0 ||
+      maximum > 180
+    ) {
       throw new Error(
         'Invalid separation bounds: minimum and maximum must be within [0, 180] degrees'
       )
