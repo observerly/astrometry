@@ -179,7 +179,14 @@ export class TargetAltitudeConstraint extends Constraint {
   constructor({ minimum = 6, maximum = 90, weight }: TargetAltitudeConstraintParameters = {}) {
     super(weight)
 
-    if (minimum < -90 || minimum > 90 || maximum < -90 || maximum > 90) {
+    if (
+      !Number.isFinite(minimum) ||
+      !Number.isFinite(maximum) ||
+      minimum < -90 ||
+      minimum > 90 ||
+      maximum < -90 ||
+      maximum > 90
+    ) {
       throw new Error(
         'Invalid altitude bounds: minimum and maximum must be within [-90, 90] degrees'
       )
