@@ -217,7 +217,7 @@ export function getLunarMeanGeometricLongitude(datetime: Date): number {
  * position and the vernal equinox.
  *
  * @param datetime - The date to calculate the Moon's argument of latitude for.
- * @returns The Moon's argument of latitude at the given date.
+ * @returns The Moon's argument of latitude at the mean new Moon nearest the given date.
  *
  */
 export function getLunarArgumentOfLatitude(datetime: Date): number {
