@@ -49,7 +49,7 @@ describe('getLunarEclipse', () => {
 
     expect(eclipse.type).toBe('penumbral')
     expect(eclipse.magnitude).toBeLessThan(1)
-    expect(eclipse.magnitude).toBeCloseTo(0.4685)
+    expect(eclipse.magnitude).toBeCloseTo(0.4625)
     expect(eclipse.γ).toBeCloseTo(-1.3216)
   })
 
@@ -118,7 +118,7 @@ describe('getLunarEclipse', () => {
 
     expect(eclipse.type).toBe('penumbral')
     expect(eclipse.magnitude).toBeLessThan(1)
-    expect(eclipse.magnitude).toBeCloseTo(0.1562)
+    expect(eclipse.magnitude).toBeCloseTo(0.1488)
     expect(eclipse.γ).toBeCloseTo(-1.4915)
   })
 
@@ -167,6 +167,76 @@ describe('getLunarEclipse', () => {
     // The maximum is within the accuracy of the method, of up to ~1 minute, of the reference:
     expect(Math.abs(eclipse.maximum.getTime() - new Date(reference).getTime())).toBeLessThan(60000)
   })
+
+  it.each([
+    {
+      name: 'the lunar eclipse of September 1969',
+      maximum: '1969-09-25T20:10:04Z',
+      γ: 1.0663
+    },
+    {
+      name: 'the lunar eclipse of April 1977',
+      maximum: '1977-04-04T04:19:03Z',
+      γ: -0.91404
+    },
+    {
+      name: 'the lunar eclipse of October 1987',
+      maximum: '1987-10-07T04:02:01Z',
+      γ: 1.01958
+    },
+    {
+      name: 'the lunar eclipse of October 2005',
+      maximum: '2005-10-17T12:03:52Z',
+      γ: 0.98019
+    },
+    {
+      name: 'the lunar eclipse of April 2013',
+      maximum: '2013-04-25T20:08:22Z',
+      γ: -1.01153
+    },
+    {
+      name: 'the lunar eclipse of October 2023',
+      maximum: '2023-10-28T20:14:36Z',
+      γ: 0.94758
+    },
+    {
+      name: 'the lunar eclipse of November 2041',
+      maximum: '2041-11-08T04:34:25Z',
+      γ: 0.92169
+    },
+    {
+      name: 'the lunar eclipse of May 2049',
+      maximum: '2049-05-17T11:26:17Z',
+      γ: -1.13326
+    }
+  ])(
+    'should agree with the γ of the Moon from the shadow axis of ERFA moon98 and epv00 for $name',
+    ({ maximum, γ }) => {
+      // The least distance of the centre of the Moon from the axis of the shadow of the Earth (in
+      // equatorial radii of the Earth), signed north of it, of ERFA moon98 and epv00:
+      const eclipse = getLunarEclipse(new Date(maximum), { latitude: 0, longitude: 0 })
+
+      if (!eclipse) {
+        throw new Error('Expected a lunar eclipse')
+      }
+
+      expect(Math.abs(eclipse.γ - γ)).toBeLessThan(0.0015)
+    }
+  )
+
+  it.each([
+    {
+      name: 'the penumbral lunar eclipse of August 1969',
+      maximum: '1969-08-27T10:48:04Z',
+      γ: -1.54009
+    }
+  ])(
+    'should return the lunar eclipse inside the penumbral limit of ERFA moon98 and epv00 for $name',
+    ({ maximum }) => {
+      // The γ of ERFA moon98 and epv00 lies inside the penumbral limit, e.g., |γ| < 1.5573 + u:
+      expect(getLunarEclipse(new Date(maximum), { latitude: 0, longitude: 0 })).not.toBe(false)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
@@ -580,7 +650,7 @@ describe('isLunarEclipse', () => {
 
     expect(eclipse.type).toBe('penumbral')
     expect(eclipse.magnitude).toBeLessThan(1)
-    expect(eclipse.magnitude).toBeCloseTo(0.4685)
+    expect(eclipse.magnitude).toBeCloseTo(0.4625)
     expect(eclipse.γ).toBeCloseTo(-1.3216)
   })
 
@@ -626,7 +696,7 @@ describe('isLunarEclipse', () => {
 
     expect(eclipse.type).toBe('penumbral')
     expect(eclipse.magnitude).toBeLessThan(1)
-    expect(eclipse.magnitude).toBeCloseTo(0.1562)
+    expect(eclipse.magnitude).toBeCloseTo(0.1488)
     expect(eclipse.γ).toBeCloseTo(-1.4915)
   })
 
