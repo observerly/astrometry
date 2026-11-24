@@ -557,6 +557,21 @@ describe('MoonIlluminationConstraint', () => {
       expect(score).toBeLessThanOrEqual(1)
     }
   })
+
+  it.each([
+    {
+      name: 'a minimum that is not a number',
+      bounds: { minimum: Number.NaN }
+    },
+    {
+      name: 'a maximum that is not a number',
+      bounds: { maximum: Number.NaN }
+    }
+  ])('should throw for $name', ({ bounds }) => {
+    // A bound that is not a number compares false against every value, e.g., it would accept or
+    // reject every observation without reason:
+    expect(() => new MoonIlluminationConstraint(bounds)).toThrow()
+  })
 })
 
 /*****************************************************************************************************************/
