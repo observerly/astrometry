@@ -294,15 +294,13 @@ export function convertEquatorialToHorizontal(
     )
   )
 
-  const azimuth = Math.acos(
-    Math.max(
-      -1,
-      Math.min(
-        1,
-        (Math.sin(declination) - Math.sin(radians(latitude)) * Math.sin(altitude)) /
-          (Math.cos(radians(latitude)) * Math.cos(altitude))
-      )
-    )
+  // The azimuth of the target, measured from the north through the east, resolved from both of its
+  // components, as ERFA hd2ae resolves it, e.g., and not from its cosine alone, which is undefined
+  // at either pole of the Earth, where the altitude does not depend on the hour angle:
+  const azimuth = Math.atan2(
+    -Math.cos(declination) * Math.sin(ha),
+    Math.sin(declination) * Math.cos(radians(latitude)) -
+      Math.cos(declination) * Math.sin(radians(latitude)) * Math.cos(ha)
   )
 
   // N.B. The elevation of the observer does not displace a distant target: it depresses the
@@ -310,7 +308,7 @@ export function convertEquatorialToHorizontal(
   // horizon they compare the altitude of the target against:
   return {
     alt: degrees(altitude),
-    az: Math.sin(ha) > 0 ? 360 - degrees(azimuth) : degrees(azimuth)
+    az: (degrees(azimuth) + 360) % 360
   }
 }
 

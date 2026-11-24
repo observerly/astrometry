@@ -29,6 +29,7 @@ import {
   type EquatorialCoordinate,
   type GalacticCoordinate,
   getAngularSeparation,
+  getApparentHourAngle,
   getEquatorialToEclipticMatrix,
   getEquatorialToGalacticMatrix,
   getGreenwichApparentSiderealTime,
@@ -676,6 +677,93 @@ describe('convertEquatorialToHorizontal', () => {
 
     expect(topocentric.alt).toBeCloseTo(geocentric.alt, 9)
     expect(topocentric.az).toBeCloseTo(geocentric.az, 9)
+  })
+
+  it.each([
+    {
+      name: 'the north pole at an hour angle of 0°',
+      latitude: 90,
+      dec: 60,
+      ha: 0,
+      az: 180.0
+    },
+    {
+      name: 'the north pole at an hour angle of 30°',
+      latitude: 90,
+      dec: 60,
+      ha: 30,
+      az: 210.0
+    },
+    {
+      name: 'the north pole at an hour angle of 120°',
+      latitude: 90,
+      dec: 60,
+      ha: 120,
+      az: 300.0
+    },
+    {
+      name: 'the north pole at an hour angle of 250°',
+      latitude: 90,
+      dec: -10,
+      ha: 250,
+      az: 70.0
+    },
+    {
+      name: 'the south pole at an hour angle of 30°',
+      latitude: -90,
+      dec: -60,
+      ha: 30,
+      az: 330.0
+    },
+    {
+      name: 'the south pole at an hour angle of 300°',
+      latitude: -90,
+      dec: -45,
+      ha: 300,
+      az: 60.0
+    },
+    {
+      name: 'Greenwich at an hour angle of 45°',
+      latitude: 51.4769,
+      dec: 20,
+      ha: 45,
+      az: 245.21407747114318
+    },
+    {
+      name: 'Greenwich at an hour angle of 200°',
+      latitude: 51.4769,
+      dec: 70,
+      ha: 200,
+      az: 7.958721725505601
+    },
+    {
+      name: 'the equator at an hour angle of 90°',
+      latitude: 0,
+      dec: 10,
+      ha: 90,
+      az: 280.0
+    },
+    {
+      name: 'Sydney at an hour angle of 330°',
+      latitude: -33.8688,
+      dec: -50,
+      ha: 330,
+      az: 135.39273818501115
+    }
+  ])('should agree with the azimuth of ERFA hd2ae for $name', ({ latitude, dec, ha, az }) => {
+    const datetime = new Date('2021-05-14T00:00:00.000+00:00')
+
+    // The right ascension of the target at the given apparent hour angle, e.g., the apparent hour
+    // angle of a right ascension of 0° less the given hour angle:
+    const ra = (((getApparentHourAngle(datetime, 0, 0) - ha) % 360) + 360) % 360
+
+    const horizontal = convertEquatorialToHorizontal(
+      datetime,
+      { latitude, longitude: 0 },
+      { ra, dec }
+    )
+
+    expect(Math.abs(((((horizontal.az - az) % 360) + 540) % 360) - 180)).toBeLessThan(1e-6)
   })
 })
 
