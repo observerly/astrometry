@@ -112,9 +112,9 @@ export const J1900 = 2415020.0 as const
 /**
  *
  * The standard epoch "J1970" is defined by international agreement to be equivalent
- * to: The Gregorian date January 1, 1970, at 00:00 TT (Terrestrial Time).
+ * to: The Gregorian date January 1, 1970, at 00:00 UTC (Coordinated Universal Time).
  *
- * The Julian date 2440587.5 TT (Terrestrial Time).
+ * The Julian date 2440587.5 UTC (Coordinated Universal Time).
  *
  * This is useful because it is the "epoch" referenced to the Unix 0 time system. The
  * Unix time 0 is exactly midnight UTC on 1 January 1970, with Unix time incrementing
