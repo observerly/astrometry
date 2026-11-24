@@ -46,7 +46,6 @@ export function getFocalRatio(apertureWidth: number, focalLength: number): Focal
  * @param focalLength - the focal length of the optics (in meters)
  * @param pixelSize - the pixel size of the camera (in meters)
  * @param resolution - the resolution of the camera (in pixels)
- * @param binning - the binning of the camera (in pixels)
  * @returns the field of view (FOV) of the camera (in degrees)
  */
 export function getFieldOfView(
