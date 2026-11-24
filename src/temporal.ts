@@ -53,7 +53,7 @@ export function convertLocalSiderealTimeToGreenwichSiderealTime(
     GST += 24
   }
 
-  if (GST > 24) {
+  if (GST >= 24) {
     GST -= 24
   }
 
