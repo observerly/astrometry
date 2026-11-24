@@ -427,6 +427,35 @@ describe('getObservationalQualityWindows', () => {
       ).toThrow()
     }
   })
+
+  it.each([
+    {
+      name: 'four tenths of a millisecond',
+      stepSeconds: 0.0004
+    },
+    {
+      name: 'a tenth of a millisecond',
+      stepSeconds: 0.0001
+    },
+    {
+      name: 'a nanosecond',
+      stepSeconds: 1e-9
+    }
+  ])('should throw for a step of $name, which a Date cannot advance by', ({ stepSeconds }) => {
+    // A Date resolves a millisecond, and so a step of less than one would never advance the
+    // sampling through the interval:
+    const from = new Date('2021-05-14T00:00:00.000Z')
+
+    expect(() =>
+      getObservationalQualityWindows(
+        { from, to: new Date(from.getTime() + 10) },
+        { latitude: 51.4769, longitude: 0 },
+        { ra: 88.7929583, dec: 7.4070639 },
+        undefined,
+        { stepSeconds }
+      )
+    ).toThrow()
+  })
 })
 
 /*****************************************************************************************************************/

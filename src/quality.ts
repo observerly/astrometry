@@ -353,6 +353,11 @@ export function getObservationalQualityWindows(
     throw new Error('Invalid step: stepSeconds must be finite and greater than zero')
   }
 
+  // A Date resolves a millisecond, and so a step of less than one does not advance the sampling:
+  if (stepSeconds * 1000 < 1) {
+    throw new Error('Invalid step: stepSeconds must be at least a millisecond')
+  }
+
   const windows: ObservationalQualityWindow[] = []
 
   // The start of the window under construction, and a running total and count of the qualities
