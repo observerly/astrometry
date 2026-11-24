@@ -159,7 +159,7 @@ export type EquatorialCoordinate = {
    *
    *
    * The epoch of a celestial object is the Julian date at which its coordinate was resolved, e.g.,
-   * J2000.0 for a coordinate of the standard epoch, or 2457388.5 for a coordinate of the Gaia DR3
+   * J2000.0 for a coordinate of the standard epoch, or 2457389.0 for a coordinate of the Gaia DR3
    * epoch of J2016.0.
    *
    * N.B. Where it is not given, the coordinate is taken to be of the standard epoch, J2000.0.
