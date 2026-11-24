@@ -137,6 +137,34 @@ describe('convertLocalSiderealTimeToGreenwichSiderealTime', () => {
       convertLocalSiderealTimeToGreenwichSiderealTime(LST, { latitude, longitude })
     ).toBeCloseTo(GST)
   })
+
+  it.each([
+    {
+      name: 'a local sidereal time of 12h at a longitude of -180°',
+      LST: 12,
+      longitude: -180,
+      GST: 0
+    },
+    {
+      name: 'a local sidereal time of 18h at a longitude of -90°',
+      LST: 18,
+      longitude: -90,
+      GST: 0
+    },
+    {
+      name: 'a local sidereal time of 0h at a longitude of 0°',
+      LST: 0,
+      longitude: 0,
+      GST: 0
+    }
+  ])(
+    'should return a Greenwich sidereal time within [0h, 24h) for $name',
+    ({ LST, longitude, GST }) => {
+      expect(convertLocalSiderealTimeToGreenwichSiderealTime(LST, { latitude: 0, longitude })).toBe(
+        GST
+      )
+    }
+  )
 })
 
 /*****************************************************************************************************************/
