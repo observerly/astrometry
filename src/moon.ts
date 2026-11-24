@@ -1019,43 +1019,25 @@ export function getNextNewMoon(datetime: Date): Date {
     date = new Date(date.getTime() + 60 * 60 * 1000)
   }
 
-  let current = date.getTime() - 12 * 60 * 60 * 1000
+  // The new Moon is the conjunction of the Moon and the Sun in ecliptic longitude, e.g., where
+  // the difference of their longitudes is zero, and so it is resolved by Newton's method from the
+  // hour at which the Moon first reads as new, as the difference advances at the mean rate of
+  // ~12.19° per day, which converges within a few iterations:
+  let time = date.getTime()
 
-  const end = date.getTime() + 12 * 60 * 60 * 1000
+  for (let i = 0; i < 10; i++) {
+    const at = new Date(time)
 
-  // Initialize variables to keep track of the minimum illumination and date:
-  let minimum = Number.POSITIVE_INFINITY
+    // The difference of the ecliptic longitudes of the Moon and the Sun, within [-180°, 180°):
+    const Δλ =
+      ((((getLunarEclipticLongitude(at) - getSolarEclipticLongitude(at)) % 360) + 540) % 360) - 180
 
-  // Initialize the date of the new Moon:
-  let newMoon: Date = date
+    time -= (Δλ / (360 / LUNAR_SYNODIC_MONTH)) * 24 * 60 * 60 * 1000
 
-  // Counter to track how many consecutive times the illumination has not decreased
-  let counter = 0
-
-  // Loop between lower and upper to get a more precise time for the new Moon:
-  // Taking into consideration that the date is incremented in 10000ms intervals.
-  while (current <= end) {
-    // Get the illumination of the Moon at the current date:
-    const illumination = getLunarIllumination(new Date(current))
-
-    // Check if the current illumination is less than the minimum found so far:
-    if (illumination < minimum) {
-      minimum = illumination
-      newMoon = new Date(current)
-      counter = 0 // Reset the counter if the illumination decreases
-    } else {
-      counter++
-    }
-
-    // Increment by 10000 milliseconds (10 seconds)
-    current += 10000
-
-    // If illumination hasn't decreased for a certain number of iterations, break the loop
-    if (counter > 100) {
-      // The threshold can be adjusted based on specific needs
-      break
-    }
+    if (Math.abs(Δλ) < 1e-7) break
   }
+
+  const newMoon = new Date(time)
 
   // The Moon reads as new over a window of ~22 hours centred on the syzygy, and so the datetime
   // given may lie within it but beyond the syzygy itself, e.g., the new Moon resolved from it has

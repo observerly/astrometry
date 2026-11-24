@@ -661,13 +661,13 @@ describe('getNextNewMoon', () => {
   it('should return the correct date of the next New Moon', () => {
     // The new Moon is on the 10th of June 2021 at ~10:53 UTC (ERFA moon98 and epv00):
     const nextNewMoon = getNextNewMoon(datetime)
-    expect(nextNewMoon.toISOString()).toBe('2021-06-10T10:43:00.000Z')
+    expect(nextNewMoon.toISOString()).toBe('2021-06-10T10:53:45.790Z')
   })
 
   it('should return a new Moon that is still to come for a datetime just after one', () => {
     // The Moon reads as new for ~22 hours about the syzygy, and so a datetime within that window
     // but beyond the syzygy resolved the new Moon that had already passed:
-    const passed = new Date('2024-09-03T02:22:50.000Z')
+    const passed = new Date('2024-09-03T01:56:16.657Z')
 
     for (const hours of [1, 6, 12, 18]) {
       const datetime = new Date(passed.getTime() + hours * 60 * 60 * 1000)
@@ -680,8 +680,62 @@ describe('getNextNewMoon', () => {
     // The new Moon is on the 3rd of September 2024 at ~01:55 UTC (ERFA moon98 and epv00):
     const datetime = new Date('2024-09-02T23:00:00.000Z')
 
-    expect(getNextNewMoon(datetime).toISOString()).toBe('2024-09-03T02:22:50.000Z')
+    expect(getNextNewMoon(datetime).toISOString()).toBe('2024-09-03T01:56:16.657Z')
   })
+
+  it.each([
+    {
+      name: 'the new Moon of November 1987',
+      conjunction: '1987-11-21T06:33:31.746Z'
+    },
+    {
+      name: 'the new Moon of January 1999',
+      conjunction: '1999-01-17T15:46:46.822Z'
+    },
+    {
+      name: 'the new Moon of August 2004',
+      conjunction: '2004-08-16T01:24:32.589Z'
+    },
+    {
+      name: 'the new Moon of August 2017',
+      conjunction: '2017-08-21T18:30:44.479Z'
+    },
+    {
+      name: 'the new Moon of May 2021',
+      conjunction: '2021-05-11T19:00:26.284Z'
+    },
+    {
+      name: 'the new Moon of January 2025',
+      conjunction: '2025-01-29T12:36:36.314Z'
+    },
+    {
+      name: 'the new Moon of December 2026',
+      conjunction: '2026-12-09T00:52:35.904Z'
+    },
+    {
+      name: 'the new Moon of March 2036',
+      conjunction: '2036-03-27T20:57:31.877Z'
+    },
+    {
+      name: 'the new Moon of September 2043',
+      conjunction: '2043-09-03T13:17:59.275Z'
+    },
+    {
+      name: 'the new Moon of May 2047',
+      conjunction: '2047-05-24T20:28:15.359Z'
+    }
+  ])(
+    'should agree with the conjunction in longitude of ERFA moon98 and epv00 for $name',
+    ({ conjunction }) => {
+      // The new Moon is the conjunction of the Moon and the Sun in ecliptic longitude, and the
+      // search begins two days before it:
+      const expected = new Date(conjunction).getTime()
+
+      const newMoon = getNextNewMoon(new Date(expected - 2 * 24 * 60 * 60 * 1000))
+
+      expect(Math.abs(newMoon.getTime() - expected)).toBeLessThan(20 * 60 * 1000)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
