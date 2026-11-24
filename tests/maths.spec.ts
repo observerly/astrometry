@@ -14,6 +14,8 @@ import { getAngularSeparation } from '../src/astrometry'
 
 import type { CartesianCoordinate, Matrix3 } from '../src/common'
 
+import { constellations } from '../src/constellations'
+
 import { convertCartesianToEquatorial, convertEquatorialToCartesian } from '../src/coordinates'
 
 import {
@@ -2641,6 +2643,47 @@ describe('interpolateGeodesic', () => {
   it('should return the start point alone for a segment of zero length', () => {
     // A repeated vertex has no steps between it and itself, and so it is not divided by zero:
     expect(interpolateGeodesic([1, 2], [1, 2], 1)).toEqual([[1, 2]])
+  })
+
+  it.each([
+    {
+      name: 'a segment across the ecliptic',
+      start: [10.1, 20.3],
+      end: [33.7, -5.9]
+    },
+    {
+      name: 'a segment of the boundary of Libra',
+      start: [227.881951, -3.72416],
+      end: [227.853012, -0.474289]
+    },
+    {
+      name: 'a segment across the vernal equinox',
+      start: [359.25, 9.99],
+      end: [0.75, 10.01]
+    }
+  ])(
+    'should end $name at the start of the segment that follows it, bit for bit',
+    ({ start, end }) => {
+      // The end of one segment is the start of the next, and so the two must be identical, e.g., as the
+      // first and the last positions of a linear ring of RFC 7946 must be:
+      const segment = interpolateGeodesic(start, end, 1)
+
+      const next = interpolateGeodesic(end, start, 1)
+
+      expect(segment[segment.length - 1]).toStrictEqual(next[0])
+    }
+  )
+
+  it('should close every boundary ring of every constellation bit for bit', () => {
+    for (const [, constellation] of constellations) {
+      for (const feature of constellation.feature.features) {
+        if (feature.geometry.type !== 'Polygon') continue
+
+        for (const ring of feature.geometry.coordinates) {
+          expect(ring[ring.length - 1]).toStrictEqual(ring[0])
+        }
+      }
+    }
   })
 })
 

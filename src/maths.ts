@@ -79,9 +79,10 @@ export function interpolateGeodesic(start: number[], end: number[], precision: n
     // point alone, rather than the 0 / 0 that is not a number:
     const t = steps === 0 ? 0 : i / steps
 
-    // Interpolate X and Y
-    let x = startX + t * (adjustedEndX - startX)
-    let y = startY + t * (endY - startY)
+    // Interpolate X and Y, e.g., the last point is the end itself, and not start + 1 · (end − start),
+    // which is not bit for bit the end, and so the segment ends where the next one begins:
+    let x = i === steps ? endX : startX + t * (adjustedEndX - startX)
+    let y = i === steps ? endY : startY + t * (endY - startY)
 
     // Normalize X (longitude) to be within 0 and 360
     x = (x + 360) % 360
