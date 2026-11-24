@@ -1092,43 +1092,28 @@ export function getNextFullMoon(datetime: Date): Date {
     date = new Date(date.getTime() + 60 * 60 * 1000)
   }
 
-  let current = date.getTime() - 12 * 60 * 60 * 1000
+  // The full Moon is the opposition of the Moon and the Sun in ecliptic longitude, e.g., where
+  // the difference of their longitudes is 180°, and so it is resolved by Newton's method from the
+  // hour at which the Moon first reads as full, as the difference advances at the mean rate of
+  // ~12.19° per day, which converges within a few iterations:
+  let time = date.getTime()
 
-  const end = date.getTime() + 12 * 60 * 60 * 1000
+  for (let i = 0; i < 10; i++) {
+    const at = new Date(time)
 
-  // Initialize variables to keep track of the maximum illumination and date:
-  let maximum = Number.NEGATIVE_INFINITY
+    // The difference of the ecliptic longitudes of the Moon and the Sun from 180°, within
+    // [-180°, 180°):
+    const Δλ =
+      ((((getLunarEclipticLongitude(at) - getSolarEclipticLongitude(at) - 180) % 360) + 540) %
+        360) -
+      180
 
-  // Initialize the date of the full Moon:
-  let fullMoon: Date = date
+    time -= (Δλ / (360 / LUNAR_SYNODIC_MONTH)) * 24 * 60 * 60 * 1000
 
-  // Counter to track how many consecutive times the illumination has not increased
-  let counter = 0
-
-  // Loop between lower and upper to get a more precise time for the full Moon:
-  // Taking into consideration that the date is incremented in 10000ms intervals.
-  while (current <= end) {
-    // Get the illumination of the Moon at the current date:
-    const illumination = getLunarIllumination(new Date(current))
-
-    // Check if the current illumination is greater than the maximum found so far:
-    if (illumination > maximum) {
-      maximum = illumination
-      fullMoon = new Date(current)
-      counter = 0 // Reset the counter if the illumination increases
-    } else {
-      counter++
-    }
-
-    // Increment by 10000 milliseconds (10 seconds)
-    current += 10000
-
-    // If illumination hasn't increased for a certain number of iterations, break the loop
-    if (counter > 100) {
-      // The threshold can be adjusted based on specific needs
-      break
-    }
+    if (Math.abs(Δλ) < 1e-7) break
   }
+
+  const fullMoon = new Date(time)
 
   // The Moon reads as full over a window of ~20 hours centred on the syzygy, and so the datetime
   // given may lie within it but beyond the syzygy itself, e.g., the full Moon resolved from it has

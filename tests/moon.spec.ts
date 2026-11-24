@@ -748,13 +748,13 @@ describe('getNextFullMoon', () => {
   it('should return the correct date of the next Full Moon', () => {
     // The full Moon is on the 26th of May 2021 at ~11:14 UTC (ERFA moon98 and epv00):
     const nextFullMoon = getNextFullMoon(datetime)
-    expect(nextFullMoon.toISOString()).toBe('2021-05-26T11:21:50.000Z')
+    expect(nextFullMoon.toISOString()).toBe('2021-05-26T11:16:55.314Z')
   })
 
   it('should return a full Moon that is still to come for a datetime just after one', () => {
     // The Moon reads as full for ~20 hours about the syzygy, and so a datetime within that window
     // but beyond the syzygy resolved the full Moon that had already passed:
-    const passed = new Date('2024-08-19T18:26:00.000Z')
+    const passed = new Date('2024-08-19T18:31:12.790Z')
 
     for (const hours of [1, 6, 12, 18]) {
       const datetime = new Date(passed.getTime() + hours * 60 * 60 * 1000)
@@ -762,6 +762,92 @@ describe('getNextFullMoon', () => {
       expect(getNextFullMoon(datetime).getTime()).toBeGreaterThan(datetime.getTime())
     }
   })
+
+  it.each([
+    {
+      name: 'the full Moon of December 1987',
+      opposition: '1987-12-05T08:01:42.387Z'
+    },
+    {
+      name: 'the full Moon of January 1999',
+      opposition: '1999-01-31T16:07:23.816Z'
+    },
+    {
+      name: 'the full Moon of August 2004',
+      opposition: '2004-08-30T02:22:58.137Z'
+    },
+    {
+      name: 'the full Moon of September 2017',
+      opposition: '2017-09-06T07:03:31.698Z'
+    },
+    {
+      name: 'the full Moon of May 2021',
+      opposition: '2021-05-26T11:14:30.957Z'
+    },
+    {
+      name: 'the full Moon of February 2025',
+      opposition: '2025-02-12T13:54:03.456Z'
+    },
+    {
+      name: 'the full Moon of December 2026',
+      opposition: '2026-12-24T01:28:57.750Z'
+    },
+    {
+      name: 'the full Moon of April 2036',
+      opposition: '2036-04-10T20:23:17.290Z'
+    },
+    {
+      name: 'the full Moon of September 2043',
+      opposition: '2043-09-19T01:47:45.101Z'
+    },
+    {
+      name: 'the full Moon of June 2047',
+      opposition: '2047-06-08T02:05:32.445Z'
+    }
+  ])(
+    'should agree with the opposition in longitude of ERFA moon98 and epv00 for $name',
+    ({ opposition }) => {
+      // The full Moon is the opposition of the Moon and the Sun in ecliptic longitude, and the
+      // search begins two days before it:
+      const expected = new Date(opposition).getTime()
+
+      const fullMoon = getNextFullMoon(new Date(expected - 2 * 24 * 60 * 60 * 1000))
+
+      expect(Math.abs(fullMoon.getTime() - expected)).toBeLessThan(20 * 60 * 1000)
+    }
+  )
+
+  it.each([
+    {
+      name: 'midnight',
+      datetime: '2026-12-07T00:00:00.000Z'
+    },
+    {
+      name: 'six minutes past midnight',
+      datetime: '2026-12-07T00:06:00.000Z'
+    },
+    {
+      name: 'a quarter to seven',
+      datetime: '2026-12-07T06:45:00.000Z'
+    }
+  ])(
+    'should not depend on the minute the search begins at for a search from $name',
+    ({ datetime }) => {
+      // The full Moon of December 2026 is on the 24th at ~01:29 UTC (ERFA moon98 and epv00), and it
+      // is the same instant whatever minute the search begins at:
+      const fullMoon = getNextFullMoon(new Date(datetime))
+
+      expect(
+        Math.abs(fullMoon.getTime() - new Date('2026-12-24T01:28:57.750Z').getTime())
+      ).toBeLessThan(20 * 60 * 1000)
+
+      expect(
+        Math.abs(
+          fullMoon.getTime() - getNextFullMoon(new Date('2026-12-07T00:00:00.000Z')).getTime()
+        )
+      ).toBeLessThan(1000)
+    }
+  )
 })
 
 /*****************************************************************************************************************/
