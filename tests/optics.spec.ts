@@ -55,22 +55,22 @@ describe('getFieldOfView', () => {
   it('should return the correct value for a 600mm focal length', () => {
     const fov = getFieldOfView(focalLength, pixelSize, { x: 1392, y: 1040 })
     // 0.86° x 0.64° field of view:
-    expect(fov.x).toBe(0.857374044633764)
-    expect(fov.y).toBe(0.6405668149562604)
+    expect(fov.x).toBe(0.8573580464788403)
+    expect(fov.y).toBe(0.6405601429160562)
   })
 
   it('should return the correct value for a 1000mm focal length', () => {
     const fov = getFieldOfView(1.0, pixelSize, { x: 1392, y: 1040 })
     // 0.51° x 0.38° field of view:
-    expect(fov.x).toBe(0.5144244267802583)
-    expect(fov.y).toBe(0.3843400889737562)
+    expect(fov.x).toBe(0.5144209711045133)
+    expect(fov.y).toBe(0.3843386477957795)
   })
 
   it('should return the correct value for a 600mm focal length and a 8.25μm pixel size', () => {
     const fov = getFieldOfView(focalLength, 8.25e-6, { x: 1392, y: 1040 })
     // 1.1° x 0.82° field of view:
-    expect(fov.x).toBe(1.0966412198803959)
-    expect(fov.y).toBe(0.8193296470370773)
+    expect(fov.x).toBe(1.0966077431278027)
+    expect(fov.y).toBe(0.8193156854053667)
   })
 
   it('should throw for a focal length that is not greater than zero', () => {
@@ -90,6 +90,36 @@ describe('getFieldOfView', () => {
     expect(() => getFieldOfView(focalLength, pixelSize, { x: 1392, y: 0 })).toThrow()
     expect(() => getFieldOfView(focalLength, pixelSize, { x: -1392, y: 1040 })).toThrow()
   })
+
+  it.each([
+    {
+      name: 'a 14mm lens on a full frame sensor',
+      focalLength: 0.014,
+      x: 104.2500326978036,
+      y: 81.20258929000894
+    },
+    {
+      name: 'a 50mm lens on a full frame sensor',
+      focalLength: 0.05,
+      x: 39.597752709049864,
+      y: 26.991466561591622
+    },
+    {
+      name: 'a 400mm lens on a full frame sensor',
+      focalLength: 0.4,
+      x: 5.153143660537662,
+      y: 3.4367160033109143
+    }
+  ])(
+    'should return the rectilinear field of view, 2·atan(N·p / 2f), of $name',
+    ({ focalLength, x, y }) => {
+      // A full frame sensor of 6000 × 4000 pixels of 6μm, e.g., 36mm × 24mm:
+      const fov = getFieldOfView(focalLength, 6e-6, { x: 6000, y: 4000 })
+
+      expect(fov.x).toBeCloseTo(x, 9)
+      expect(fov.y).toBeCloseTo(y, 9)
+    }
+  )
 })
 
 /*****************************************************************************************************************/

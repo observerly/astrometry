@@ -69,13 +69,11 @@ export function getFieldOfView(
     throw new Error('Invalid field of view as resolution is not greater than zero')
   }
 
-  // Get the angular size of a pixel of the camera (in degrees):
-  const θ = degrees(pixelSize / focalLength)
-
-  // Return the field of view (FOV)
+  // Return the field of view (FOV) of a rectilinear lens, e.g., the angle the sensor subtends at the
+  // focal length, 2·atan(N·p / 2f), and not N·p / f, which overstates it for a short focal length:
   return {
-    x: resolution.x * θ,
-    y: resolution.y * θ
+    x: degrees(2 * Math.atan((resolution.x * pixelSize) / (2 * focalLength))),
+    y: degrees(2 * Math.atan((resolution.y * pixelSize) / (2 * focalLength)))
   }
 }
 
