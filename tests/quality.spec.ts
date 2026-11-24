@@ -25,6 +25,7 @@ import {
   getObservationalQuality,
   getObservationalQualityRanking,
   getObservationalQualityWindows,
+  getSolarEquatorialCoordinate,
   TargetAltitudeConstraint
 } from '../src'
 
@@ -217,6 +218,39 @@ describe('getObservationalQuality', () => {
 
     expect(Math.abs(context.moon.alt - 40.025)).toBeLessThan(0.2)
   })
+
+  it.each([
+    {
+      name: 'the International Space Station at ~400 km',
+      elevation: 400000
+    },
+    {
+      name: 'a satellite in geostationary orbit at ~35,786 km',
+      elevation: 35786000
+    }
+  ])(
+    'should not refract the altitude of the Sun for an observer above the atmosphere, e.g., $name',
+    ({ elevation }) => {
+      // The pressure of the atmosphere falls as exp(-h / (29.3 * T)) with the height of the observer,
+      // as SOFA iauAtco13 estimates it, and so it, and the refraction with it, vanishes in orbit:
+      const datetime = new Date('2021-05-14T08:00:00.000+00:00')
+
+      const observer = { latitude: 0, longitude: 0, elevation }
+
+      const { context } = getObservationalQuality(datetime, observer, {
+        ra: 88.7929583,
+        dec: 7.4070639
+      })
+
+      const sun = convertEquatorialToHorizontal(
+        datetime,
+        observer,
+        getSolarEquatorialCoordinate(datetime)
+      )
+
+      expect(Math.abs(context.sun.alt - sun.alt)).toBeLessThan(1e-9)
+    }
+  )
 })
 
 /*****************************************************************************************************************/

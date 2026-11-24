@@ -36,7 +36,11 @@ import { getGeographicCoordinate } from './observer'
 
 import { getCorrectionToEquatorialForPrecessionOfEquinoxes } from './precession'
 
-import { getCorrectionToHorizontalForRefraction } from './refraction'
+import {
+  DEFAULT_SURFACE_PRESSURE,
+  DEFAULT_SURFACE_TEMPERATURE,
+  getCorrectionToHorizontalForRefraction
+} from './refraction'
 
 import { getSolarEquatorialCoordinate } from './sun'
 
@@ -87,13 +91,24 @@ const getConstraintContext = (
     φ: mean.ra + nutation.ra
   })
 
+  // The pressure of the atmosphere at the height of the observer, as SOFA iauAtco13 estimates it,
+  // e.g., exp(-h / (29.3 * T)) of the pressure at sea level, which vanishes for an observer in orbit
+  // above the atmosphere, and with it the refraction (in Pascals):
+  const pressure =
+    DEFAULT_SURFACE_PRESSURE *
+    Math.exp(-(observer.elevation ?? 0) / (29.3 * DEFAULT_SURFACE_TEMPERATURE))
+
   // Resolve the refracted horizontal coordinates of the target, the Sun and the Moon:
   const t = getCorrectionToHorizontalForRefraction(
-    convertEquatorialToHorizontal(datetime, observer, { ra, dec })
+    convertEquatorialToHorizontal(datetime, observer, { ra, dec }),
+    DEFAULT_SURFACE_TEMPERATURE,
+    pressure
   )
 
   const sun = getCorrectionToHorizontalForRefraction(
-    convertEquatorialToHorizontal(datetime, observer, getSolarEquatorialCoordinate(datetime))
+    convertEquatorialToHorizontal(datetime, observer, getSolarEquatorialCoordinate(datetime)),
+    DEFAULT_SURFACE_TEMPERATURE,
+    pressure
   )
 
   // N.B. The Moon is near enough to the Earth that its horizontal parallax is ~1°, and so its
@@ -103,7 +118,9 @@ const getConstraintContext = (
     convertEquatorialToHorizontal(datetime, observer, {
       ...getLunarEquatorialCoordinate(datetime),
       distance: getLunarDistance(datetime)
-    })
+    }),
+    DEFAULT_SURFACE_TEMPERATURE,
+    pressure
   )
 
   // The Moon's illuminated fraction, as a percentage in the range [0, 100]:
