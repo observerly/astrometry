@@ -983,6 +983,21 @@ describe('MoonAvoidanceConstraint', () => {
     expect(() => new MoonAvoidanceConstraint({ minimum: 90, maximum: 45 })).toThrow()
     expect(() => new MoonAvoidanceConstraint({ weight: 0 })).toThrow()
   })
+
+  it.each([
+    {
+      name: 'a minimum that is not a number',
+      bounds: { minimum: Number.NaN }
+    },
+    {
+      name: 'a maximum that is not a number',
+      bounds: { maximum: Number.NaN }
+    }
+  ])('should throw for $name', ({ bounds }) => {
+    // A bound that is not a number compares false against every value, e.g., it would accept or
+    // reject every observation without reason:
+    expect(() => new MoonAvoidanceConstraint(bounds)).toThrow()
+  })
 })
 
 /*****************************************************************************************************************/
