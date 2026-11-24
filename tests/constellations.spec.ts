@@ -20,6 +20,7 @@ import {
   getJulianDate,
   getPrecessionMatrix,
   getRotatedCartesianCoordinate,
+  libra,
   pegasus
 } from '../src'
 
@@ -70,6 +71,10 @@ describe('constellations', () => {
     {
       name: 'Pegasus',
       feature: pegasus
+    },
+    {
+      name: 'Libra',
+      feature: libra
     }
   ])('should give a centrum within the boundary of $name', ({ name, feature }) => {
     // The centrum is the mean of the unit vectors of the vertices of the boundary, which lies within it:
