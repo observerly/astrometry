@@ -69,7 +69,7 @@ const position = convertEquatorialToHorizontal(datetime, observer, betelgeuse)
 // { alt: 76.8207, az: 200.2558 }
 ```
 
-Betelgeuse is 77° above the horizon, just west of due south.
+Betelgeuse is 77° above the horizon, just west of due south. This uses the J2000 catalogue position as it is, which is ~0.34° from where Betelgeuse appears tonight: see [Apparent Place](#apparent-place) for the corrections that carry it there.
 
 ## Conventions
 
