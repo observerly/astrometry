@@ -190,6 +190,13 @@ describe('MILLIARCSECOND_IN_DEGREES', () => {
     expect(MILLIARCSECOND_IN_DEGREES).toBeGreaterThan(0)
     expect(Number.isFinite(MILLIARCSECOND_IN_DEGREES)).toBe(true)
   })
+
+  it('should be exported from the package root', async () => {
+    // The constant is a part of the public interface, e.g., it is importable from the package root:
+    const root = await import('../src')
+
+    expect(root.MILLIARCSECOND_IN_DEGREES).toBe(MILLIARCSECOND_IN_DEGREES)
+  })
 })
 
 /*****************************************************************************************************************/
