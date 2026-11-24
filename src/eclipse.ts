@@ -155,6 +155,10 @@ function snap(datetime: Date, q: number): number {
  *
  * getLunarEclipse()
  *
+ * N.B. The JD of the eclipse is the Julian Ephemeris Day of Meeus, which is referred to Terrestrial
+ * Time (TT), and so it differs from the Julian date of its maximum in UTC by TT − UTC, e.g., 69.184
+ * seconds since 2017.
+ *
  * @param datetime - The date and time to calculate the lunar eclipse for.
  * @param observer - The geographic coordinates of the observer.
  * @returns - The lunar eclipse at the given date and time for the observer.
@@ -351,6 +355,10 @@ export function getLunarEclipse(
 /**
  *
  * getSolarEclipse()
+ *
+ * N.B. The JD of the eclipse is the Julian Ephemeris Day of Meeus, which is referred to Terrestrial
+ * Time (TT), and so it differs from the Julian date of its maximum in UTC by TT − UTC, e.g., 69.184
+ * seconds since 2017.
  *
  * @param datetime - The date and time to calculate the solar eclipse for.
  * @param observer - The geographic coordinates of the observer.
