@@ -43,6 +43,22 @@ describe('getFocalRatio', () => {
     expect(() => getFocalRatio(apertureWidth, 0)).toThrow()
     expect(() => getFocalRatio(apertureWidth, -focalLength)).toThrow()
   })
+
+  it.each([
+    {
+      name: 'an aperture that is not a number',
+      apertureWidth: Number.NaN,
+      focalLength: 0.6
+    },
+    {
+      name: 'a focal length that is not a number',
+      apertureWidth: 0.08,
+      focalLength: Number.NaN
+    }
+  ])('should throw for $name', ({ apertureWidth, focalLength }) => {
+    // A focal ratio of f/NaN is not a focal ratio:
+    expect(() => getFocalRatio(apertureWidth, focalLength)).toThrow()
+  })
 })
 
 /*****************************************************************************************************************/

@@ -26,11 +26,11 @@ type FocalRatio = `f/${number}`
  */
 export function getFocalRatio(apertureWidth: number, focalLength: number): FocalRatio {
   // Check that the aperterure is a sensible number, e.g., > 0:
-  if (apertureWidth <= 0) {
+  if (!(apertureWidth > 0)) {
     throw new Error('Invalid focal ratio as aperture is not greater than zero')
   }
 
-  if (focalLength <= 0) {
+  if (!(focalLength > 0)) {
     throw new Error('Invalid focal ratio as focal length is not greater than zero')
   }
 
