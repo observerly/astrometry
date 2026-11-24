@@ -117,6 +117,29 @@ describe('getMidpointEquatorialCoordinate', () => {
 
     expect(getMidpointEquatorialCoordinate(A, B)).toEqual(getMidpointEquatorialCoordinate(B, A))
   })
+
+  it.each([
+    {
+      name: 'two targets either side of the vernal equinox on the equator',
+      A: { ra: 359, dec: 0 },
+      B: { ra: 1, dec: 0 }
+    },
+    {
+      name: 'two targets either side of the vernal equinox north of the equator',
+      A: { ra: 359.5, dec: 45 },
+      B: { ra: 0.5, dec: 45 }
+    },
+    {
+      name: 'two targets either side of the vernal equinox south of the equator',
+      A: { ra: 358, dec: -30 },
+      B: { ra: 2, dec: -30 }
+    }
+  ])('should return a right ascension within [0°, 360°) for $name', ({ A, B }) => {
+    const { ra } = getMidpointEquatorialCoordinate(A, B)
+
+    expect(ra).toBeGreaterThanOrEqual(0)
+    expect(ra).toBeLessThan(360)
+  })
 })
 
 /*****************************************************************************************************************/

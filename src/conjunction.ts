@@ -82,7 +82,7 @@ export function getMidpointEquatorialCoordinate(
   const z = Math.sin(radians(A.dec)) + Math.sin(radians(B.dec))
 
   return {
-    ra: getNormalizedAzimuthalDegree(degrees(Math.atan2(y, x))),
+    ra: getNormalizedAzimuthalDegree(degrees(Math.atan2(y, x))) % 360,
     dec: degrees(Math.atan2(z, Math.sqrt(x ** 2 + y ** 2)))
   }
 }
