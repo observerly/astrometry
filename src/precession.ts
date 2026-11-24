@@ -128,7 +128,7 @@ export function getPrecessionAngles(datetime: Date): { ζ: number; z: number; θ
  *
  * @param datetime - The date to correct the equatorial coordinates for.
  * @param target - The equatorial J2000 coordinates of the target.
- * @returns The corrected equatorial coordinates of the target.
+ * @returns The correction to the equatorial coordinate (in degrees) to add to the target's coordinate.
  *
  */
 export function getCorrectionToEquatorialForPrecessionOfEquinoxes(
